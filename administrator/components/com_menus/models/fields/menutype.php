@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: menus.php 12020 2009-06-08 10:55:09Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,13 +26,20 @@ class JFormFieldMenuType extends JFormFieldList
 	public $type = 'MenuType';
 
 	/**
+	 * A reverse lookup of the base link URL to Title
+	 *
+	 * @var	array
+	 */
+	protected $_rlu = array();
+
+	/**
 	 * Method to get the field input.
 	 *
 	 * @return	string		The field input.
 	 */
 	protected function _getInput()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$html = array();
 		$types = $this->_getTypeList();
 
@@ -42,22 +49,23 @@ class JFormFieldMenuType extends JFormFieldList
 		switch ($this->value)
 		{
 			case 'url':
-				$value = JText::_('Menu_External_URL');
+				$value = JText::_('Menus_Type_External_URL');
 				break;
 
 			case 'alias':
-				$value = JText::_('Menu_Alias');
+				$value = JText::_('Menus_Type_Alias');
 				break;
 
 			case 'separator':
-				$value = JText::_('Menu_Separator');
+				$value = JText::_('Menus_Type_Separator');
 				break;
 
 			default:
-				$value = htmlspecialchars(substr($this->value, 0, strpos($this->value, '::')));
+				$link	= $this->_form->getValue('link');
+				// Clean the link back to the option, view and layout
+				$value	= JText::_(JArrayHelper::getValue($this->_rlu, MenusHelper::getLinkKey($link)));
 				break;
 		}
-
 		// Load the javascript and css
 		JHtml::_('behavior.framework');
 		JHtml::script('modal.js');
@@ -67,19 +75,17 @@ class JFormFieldMenuType extends JFormFieldList
 		$document = JFactory::getDocument();
 		$document->addScriptDeclaration("
 		window.addEvent('domready', function() {
-
-			var div = new Element('div').setStyle('display', 'none').injectBefore(\$('menu-types'));
-			\$('menu-types').injectInside(div);
+			var div = new Element('div').setStyle('display', 'none').injectBefore(document.id('menu-types'));
+			document.id('menu-types').injectInside(div);
 			SqueezeBox.initialize();
 			SqueezeBox.assign($$('input.modal'), {
 				parse: 'rel'
 			});
 		});");
 
-
-		$html[] = '<input type="text" readonly="readonly" value="'.$value.'"'.$size.$class.'>';
-		$html[] = '<input type="button" class="modal" value="'.JText::_('Change').'" rel="{handler:\'clone\', target:\'menu-types\'}">';
-		$html[] = '<input type="hidden" value="'.htmlspecialchars($this->value).'">';
+		$html[] = '<input type="text" readonly="readonly" disabled="disabled" value="'.$value.'"'.$size.$class.'>';
+		$html[] = '<input type="button" class="modal" value="'.JText::_('Menus_Change_Linktype').'" rel="{handler:\'clone\', target:\'menu-types\'}">';
+		$html[] = '<input type="hidden" name="'.$this->inputName.'" value="'.htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8').'">';
 
 		$html[] = '<div id="menu-types">';
 		$html[] = $types;
@@ -88,49 +94,59 @@ class JFormFieldMenuType extends JFormFieldList
 		return implode("\n", $html);
 	}
 
-
 	protected function _getTypeList()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$html = array();
 		$types = $this->_getTypeOptions();
 
-		$html[] = '<dl class="menu_types">';
+		$html[] = '<h2 class="modal-title">'.JText::_('Menus_Type_Choose').'</h2>';
+		$html[] = '<ul class="menu_types">';
 
-		$html[] = '	<dt>'.JText::_('System').'</dt>';
-		$html[] = '	<dd>';
-		$html[] = '		<ul>';
-		$html[] = '			<li>';
-		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'url'))).'" title="'.JText::_('Menu_External_URL_Desc').'">'.JText::_('Menu_External_URL').'</a>';
-		$html[] = '			</li>';
-		$html[] = '			<li>';
-		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'alias'))).'" title="'.JText::_('Menu_Alias_Desc').'">'.JText::_('Menu_Alias').'</a>';
-		$html[] = '			</li>';
-		$html[] = '			<li>';
-		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'separator'))).'" title="'.JText::_('Menu_Separator_Desc').'">'.JText::_('Menu_Separator').'</a>';
-		$html[] = '			</li>';
-		$html[] = '		</ul>';
-		$html[] = '	</dd>';
+
 
 		foreach ($types as $name => $list)
 		{
+		$html[] = '<li>';
+		$html[] = '<dl class="menu_type">';
 		$html[] = '	<dt>'.$name.'</dt>';
 		$html[] = '	<dd>';
 		$html[] = '		<ul>';
 			foreach ($list as $item)
 			{
 		$html[] = '			<li>';
-		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>$item->title, 'request'=>$item->request))).'" title="'.$item->description.'">'.$item->title.'</a>';
+		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>$item->title, 'request'=>$item->request))).'" title="'.JText::_($item->description).'">'.JText::_($item->title).'</a>';
 		$html[] = '			</li>';
 			}
 		$html[] = '		</ul>';
 		$html[] = '	</dd>';
-		}
 		$html[] = '</dl>';
+		$html[] = '</li>';
+		}
+
+		$html[] = '<li>';
+		$html[] = '<dl class="menu_type">';
+		$html[] = '	<dt>'.JText::_('Menus_Type_System').'</dt>';
+		$html[] = '	<dd>';
+		// $html[] = '		'.JText::_('Menus_Type_System_Desc');
+		$html[] = '		<ul>';
+		$html[] = '			<li>';
+		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'url'))).'" title="'.JText::_('Menus_Type_External_URL_Desc').'">'.JText::_('Menus_Type_External_URL').'</a>';
+		$html[] = '			</li>';
+		$html[] = '			<li>';
+		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'alias'))).'" title="'.JText::_('Menus_Type_Alias_Desc').'">'.JText::_('Menus_Type_Alias').'</a>';
+		$html[] = '			</li>';
+		$html[] = '			<li>';
+		$html[] = '				<a class="choose_type" href="index.php?option=com_menus&amp;task=item.setType&amp;type='.base64_encode(json_encode(array('title'=>'separator'))).'" title="'.JText::_('Menus_Type_Separator_Desc').'">'.JText::_('Menus_Type_Separator').'</a>';
+		$html[] = '			</li>';
+		$html[] = '		</ul>';
+		$html[] = '	</dd>';
+		$html[] = '</dl>';
+		$html[] = '</li>';
+		$html[] = '</ul>';
 
 		return implode("\n", $html);
 	}
-
 	/**
 	 * Method to get the available menu item type options.
 	 *
@@ -141,24 +157,41 @@ class JFormFieldMenuType extends JFormFieldList
 	{
 		jimport('joomla.filesystem.file');
 
-		// Initialize variables.
+		// Initialise variables.
+		$lang = &JFactory::getLanguage();
 		$list = array();
 
 		// Get the list of components.
 		$db = & JFactory::getDBO();
 		$db->setQuery(
-			'SELECT `name`, `option`' .
-			' FROM `#__components`' .
-			' WHERE `link` <> ""' .
-			' AND `parent` = 0' .
+			'SELECT `name`, `element` AS "option"' .
+			' FROM `#__extensions`' .
+			' WHERE `type` = "component"' .
+			' AND `enabled` = 1' .
 			' ORDER BY `name`'
 		);
 		$components = $db->loadObjectList();
 
 		foreach ($components as $component)
 		{
-			if ($options = $this->_getTypeOptionsByComponent($component->option)) {
+
+			if ($options = $this->_getTypeOptionsByComponent($component->option))
+			{
 				$list[$component->name] = $options;
+
+				// Create the reverse lookup for link-to-name.
+				foreach ($options as $option)
+				{
+					if (isset($option->request))
+					{
+						$this->_rlu[MenusHelper::getLinkKey($option->request)] = $option->get('title');
+
+						if (isset($option->request['option'])) {
+							$lang->load($option->request['option'].'.menu', JPATH_ADMINISTRATOR.'/components/'.$option->request['option']);
+							$lang->load($option->request['option'].'.menu');
+						}
+					}
+				}
 			}
 		}
 
@@ -167,7 +200,7 @@ class JFormFieldMenuType extends JFormFieldList
 
 	protected function _getTypeOptionsByComponent($component)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
 
 		$mainXML = JPATH_SITE.'/components/'.$component.'/metadata.xml';
@@ -184,7 +217,7 @@ class JFormFieldMenuType extends JFormFieldList
 
 	protected function _getTypeOptionsFromXML($file, $component)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
 
 		// Attempt to load the xml file.
@@ -258,7 +291,7 @@ class JFormFieldMenuType extends JFormFieldList
 
 	protected function _getTypeOptionsFromMVC($component)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
 
 		// Get the views for this component.
@@ -345,26 +378,65 @@ class JFormFieldMenuType extends JFormFieldList
 
 	protected function _getTypeOptionsFromLayouts($component, $view)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
-
+		$layouts = array();
+		$layoutNames = array();
+		$templateLayouts = array();
+		
 		// Get the layouts from the view folder.
 		$path = JPATH_SITE.'/components/'.$component.'/views/'.$view.'/tmpl';
 		if (JFolder::exists($path)) {
-			$layouts = JFolder::files($path, '.php$');
+			$layouts = array_merge($layouts, JFolder::files($path, '.xml$', false, true));
 		}
 		else {
 			return $options;
 		}
+		
+		// build list of standard layout names
+		foreach ($layouts as $layout)
+		{
+			// Ignore private layouts.
+			if (strpos(JFile::getName($layout), '_') === false)
+			{
+				$file = $layout;
+				// Get the layout name.
+				$layoutNames[] = JFile::stripext(JFile::getName($layout));			
+			}
+		}
+			
+		// get the template layouts
+		// TODO: This should only search one template -- the current template for this item (default of specified)
+		$folders = JFolder::folders(JPATH_SITE.DS.'templates','',false,true);
+		foreach($folders as $folder)
+		{
+			if (JFolder::exists($folder.DS.'html'.DS.$component.DS.$view)) {
+				$templateLayouts = JFolder::files($folder.DS.'html'.DS.$component.DS.$view, '.xml$', false, true);
+					
+				foreach ($templateLayouts as $layout)
+				{
+					$file = $layout;
+					// Get the layout name.
+					$templateLayoutName = JFile::stripext(JFile::getName($layout));
+					// add to the list only if it is not a standard layout
+					if (array_search($templateLayoutName, $layoutNames) === false) {
+						$layouts[] = $layout;
+					}
+
+				}
+			}
+		}
+
 
 		// Process the found layouts.
 		foreach ($layouts as $layout)
 		{
 			// Ignore private layouts.
-			if (strpos($layout, '_') === false)
+			if (strpos(JFile::getName($layout), '_') === false)
 			{
+				$file = $layout;
 				// Get the layout name.
-				$layout = JFile::stripext($layout);
+				$layout = JFile::stripext(JFile::getName($layout));
 
 				// Create the menu option for the layout.
 				$o = new JObject;
@@ -378,7 +450,6 @@ class JFormFieldMenuType extends JFormFieldList
 				}
 
 				// Load layout metadata if it exists.
-				$file = $path.'/'.$layout.'.xml';
 				if (is_file($file))
 				{
 					// Attempt to load the xml file.

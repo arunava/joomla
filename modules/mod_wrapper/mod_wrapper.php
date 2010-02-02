@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_wrapper
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,4 +23,4 @@ $height = $params->get('height');
 $scroll = $params->get('scrolling');
 $class	= $params->get('moduleclass_sfx');
 
-require JModuleHelper::getLayoutPath('mod_wrapper');
+require JModuleHelper::getLayoutPath('mod_wrapper', $params->get('layout', 'default'));

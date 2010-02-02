@@ -1,14 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
 /**
- * Query Element Class
+ * Query Element Class.
  *
  * @package		Joomla.Framework
  * @subpackage	Database
@@ -18,28 +18,38 @@ class JQueryElement
 {
 	/** @var string The name of the element */
 	protected $_name = null;
+
 	/** @var array An array of elements */
 	protected $_elements = null;
+
 	/** @var string Glue piece */
 	protected $_glue = null;
 
 	/**
-	 * Constructor
-	 * @param	string	The name of the element
-	 * @param	mixed	String or array
-	 * @param	string	The glue for elements
+	 * Constructor.
+	 *
+	 * @param	string	The name of the element.
+	 * @param	mixed	String or array.
+	 * @param	string	The glue for elements.
 	 */
 	public function __construct($name, $elements, $glue=',')
 	{
 		$this->_elements	= array();
 		$this->_name		= $name;
-		$this->append($elements);
 		$this->_glue		= $glue;
+
+		$this->append($elements);
+	}
+
+	public function __toString()
+	{
+		return PHP_EOL.$this->_name.' '.implode($this->_glue, $this->_elements);
 	}
 
 	/**
-	 * Appends element parts to the internal list
-	 * @param	mixed	String or array
+	 * Appends element parts to the internal list.
+	 *
+	 * @param	mixed	String or array.
 	 */
 	public function append($elements)
 	{
@@ -49,19 +59,10 @@ class JQueryElement
 			$this->_elements = array_unique(array_merge($this->_elements, array($elements)));
 		}
 	}
-
-	/**
-	 * Render the query element
-	 * @return	string
-	 */
-	public function toString()
-	{
-		return "\n{$this->_name} " . implode($this->_glue, $this->_elements);
-	}
 }
 
 /**
- * Query Building Class
+ * Query Building Class.
  *
  * @package		Joomla.Framework
  * @subpackage	Database
@@ -71,18 +72,37 @@ class JQuery
 {
 	/** @var string The query type */
 	protected $_type = '';
+
 	/** @var object The select element */
 	protected $_select = null;
+
+    /** @var object The delete element */
+    protected $_delete = null;
+
+    /** @var object The update element */
+    protected $_update = null;
+
+    /** @var object The insert element */
+    protected $_insert = null;
+
 	/** @var object The from element */
 	protected $_from = null;
+
 	/** @var object The join element */
 	protected $_join = null;
+
+    /** @var object The set element */
+    protected $_set = null;
+
 	/** @var object The where element */
 	protected $_where = null;
+
 	/** @var object The where element */
 	protected $_group = null;
+
 	/** @var object The where element */
 	protected $_having = null;
+
 	/** @var object The where element */
 	protected $_order = null;
 
@@ -100,6 +120,36 @@ class JQuery
 
 		return $this;
 	}
+
+    /**
+     * @param   mixed   A string or an array of field names
+     */
+    public function delete()
+    {
+        $this->_type = 'delete';
+        $this->_delete = new JQueryElement('DELETE', array(), '');
+        return $this;
+    }
+
+    /**
+     * @param   mixed   A string or array of table names
+     */
+    public function insert($tables)
+    {
+        $this->_type = 'insert';
+        $this->_insert = new JQueryElement('INSERT INTO', $tables);
+        return $this;
+    }
+
+    /**
+     * @param   mixed   A string or array of table names
+     */
+    public function update($tables)
+    {
+        $this->_type = 'update';
+        $this->_update = new JQueryElement('UPDATE', $tables);
+        return $this;
+    }
 
 	/**
 	 * @param	mixed	A string or array of table names
@@ -132,7 +182,7 @@ class JQuery
 	/**
 	 * @param	string
 	 */
-	function &innerJoin($conditions)
+	public function innerJoin($conditions)
 	{
 		$this->join('INNER', $conditions);
 
@@ -142,7 +192,7 @@ class JQuery
 	/**
 	 * @param	string
 	 */
-	function &outerJoin($conditions)
+	public function outerJoin($conditions)
 	{
 		$this->join('OUTER', $conditions);
 
@@ -152,7 +202,7 @@ class JQuery
 	/**
 	 * @param	string
 	 */
-	function &leftJoin($conditions)
+	public function leftJoin($conditions)
 	{
 		$this->join('LEFT', $conditions);
 
@@ -162,12 +212,28 @@ class JQuery
 	/**
 	 * @param	string
 	 */
-	function &rightJoin($conditions)
+	public function rightJoin($conditions)
 	{
 		$this->join('RIGHT', $conditions);
 
 		return $this;
 	}
+
+    /**
+     * @param   mixed   A string or array of conditions
+     * @param   string
+     */
+    public function set($conditions, $glue=',')
+    {
+        if (is_null($this->_set)) {
+            $glue = strtoupper($glue);
+            $this->_set = new JQueryElement('SET', $conditions, "\n\t$glue ");
+        } else {
+            $this->_set->append($conditions);
+        }
+
+        return $this;
+    }
 
 	/**
 	 * @param	mixed	A string or array of where conditions
@@ -177,7 +243,7 @@ class JQuery
 	{
 		if (is_null($this->_where)) {
 			$glue = strtoupper($glue);
-			$this->_where = new JQueryElement('WHERE', $conditions, "\n\t$glue ");
+			$this->_where = new JQueryElement('WHERE', $conditions, " $glue ");
 		} else {
 			$this->_where->append($conditions);
 		}
@@ -200,14 +266,16 @@ class JQuery
 	}
 
 	/**
-	 * @param	mixed	A string or array of ordering columns
+	 * @param   mixed   A string or array of columns
+	 * @param   string
 	 */
-	public function having($columns)
+	public function having($conditions, $glue='AND')
 	{
 		if (is_null($this->_having)) {
-			$this->_having = new JQueryElement('HAVING', $columns);
+			$glue = strtoupper($glue);
+			$this->_having = new JQueryElement('HAVING', $conditions, " $glue ");
 		} else {
-			$this->_having->append($columns);
+			$this->_having->append($conditions);
 		}
 
 		return $this;
@@ -237,38 +305,53 @@ class JQuery
 		switch ($this->_type)
 		{
 			case 'select':
-				$query .= $this->_select->toString();
-				$query .= $this->_from->toString();
+				$query .= (string) $this->_select;
+				$query .= (string) $this->_from;
 				if ($this->_join) {
 					// special case for joins
 					foreach ($this->_join as $join) {
-						$query .= $join->toString();
+						$query .= (string) $join;
 					}
 				}
 				if ($this->_where) {
-					$query .= $this->_where->toString();
+					$query .= (string) $this->_where;
 				}
 				if ($this->_group) {
-					$query .= $this->_group->toString();
+					$query .= (string) $this->_group;
 				}
 				if ($this->_having) {
-					$query .= $this->_having->toString();
+					$query .= (string) $this->_having;
 				}
 				if ($this->_order) {
-					$query .= $this->_order->toString();
+					$query .= (string) $this->_order;
+				}
+				break;
+
+			case 'delete':
+				$query .= (string) $this->_delete;
+				$query .= (string) $this->_from;
+				if ($this->_where) {
+					$query .= (string) $this->_where;
+				}
+				break;
+
+			case 'update':
+				$query .= (string) $this->_update;
+				$query .= (string) $this->_set;
+				if ($this->_where) {
+					$query .= (string) $this->_where;
+				}
+				break;
+
+			case 'insert':
+				$query .= (string) $this->_insert;
+				$query .= (string) $this->_set;
+				if ($this->_where) {
+					$query .= (string) $this->_where;
 				}
 				break;
 		}
 
 		return $query;
 	}
-
-	/**
-	 * @return	string	The completed query
-	 */
-	public function toString()
-	{
-		return (string) $this;
-	}
-
 }

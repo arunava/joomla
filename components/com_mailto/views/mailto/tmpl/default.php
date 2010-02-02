@@ -1,5 +1,15 @@
-<?php // no direct access
-defined('_JEXEC') or die; ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	com_mailto
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+?>
 <script language="javascript" type="text/javascript">
 <!--
 	function submitbutton(pressbutton) {
@@ -23,12 +33,12 @@ $data	= $this->get('data');
 <div style="padding: 10px;">
 	<div style="text-align:right">
 		<a href="javascript: void window.close()">
-			<?php echo JText::_('CLOSE_WINDOW'); ?> <img src="<?php echo JURI::base() ?>components/com_mailto/assets/close-x.png" border="0" alt="" title="" /></a>
+			<?php echo JText::_('CLOSE_WINDOW'); ?> <?php echo JHTML::_('image', 'mailto/close-x.png', NULL, NULL, true); ?></a>
 	</div>
 
-	<div class="componentheading">
+	<h2>
 		<?php echo JText::_('EMAIL_THIS_LINK_TO_A_FRIEND'); ?>
-	</div>
+	</h2>
 
 	<p>
 		<?php echo JText::_('EMAIL_TO'); ?>:

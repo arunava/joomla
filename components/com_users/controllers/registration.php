@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -38,7 +38,7 @@ class UsersControllerRegistration extends UsersController
 
 		// If user registration or account activation is disabled, throw a 403.
 		if ($uParams->get('useractivation', 1) == 0 || $uParams->get('allowUserRegistration', 1) == 0) {
-			JError::raiseError(403, JText::_('ACCESS FORBIDDEN'));
+			JError::raiseError(403, JText::_('ACCESS_FORBIDDEN'));
 			return false;
 		}
 
@@ -79,9 +79,9 @@ class UsersControllerRegistration extends UsersController
 	function register()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('USERS INVALID TOKEN'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Registration', 'UsersModel');
 
@@ -89,10 +89,16 @@ class UsersControllerRegistration extends UsersController
 		$data = JRequest::getVar('jform', array(), 'post', 'array');
 
 		// Validate the posted data.
-		$return = $model->validate($data);
+		$form	= &$model->getForm();
+		if (!$form)
+		{
+			JError::raiseError(500, $model->getError());
+			return false;
+		}
+		$data	= $model->validate($form, $data);
 
-		// Check for errors.
-		if ($return === false)
+		// Check for validation errors.
+		if ($data === false)
 		{
 			// Get the validation messages.
 			$errors	= $model->getErrors();
@@ -116,7 +122,6 @@ class UsersControllerRegistration extends UsersController
 		}
 
 		// Attempt to save the data.
-		$data	= $return;
 		$return	= $model->register($data);
 
 		// Check for errors.

@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -25,7 +25,8 @@ class MenusViewItem extends JView
 	{
 		$state		= $this->get('State');
 		$item		= $this->get('Item');
-		$form		= $this->get('Form');
+		$itemForm	= $this->get('Form');
+		$paramsForm	= $this->get('ParamsForm');
 		$modules	= $this->get('Modules');
 
 		// Check for errors.
@@ -34,12 +35,14 @@ class MenusViewItem extends JView
 			return false;
 		}
 
-		$form->bind($item);
+		$itemForm->bind($item);
+		$paramsForm->bind($item->params);
 
-		$this->assignRef('state',	$state);
-		$this->assignRef('item',	$item);
-		$this->assignRef('form',	$form);
-		$this->assignRef('modules',	$modules);
+		$this->assignRef('state',		$state);
+		$this->assignRef('item',		$item);
+		$this->assignRef('form',		$itemForm);
+		$this->assignRef('paramsform',	$paramsForm);
+		$this->assignRef('modules',		$modules);
 
 		parent::display($tpl);
 		JRequest::setVar('hidemainmenu', true);
@@ -57,20 +60,28 @@ class MenusViewItem extends JView
 		$isNew		= ($this->item->id == 0);
 		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
 
-		JToolBarHelper::title(JText::_($isNew ? 'Menus_Title_Add_Item' : 'Menus_Title_Edit_Item'));
+		JToolBarHelper::title(JText::_($isNew ? 'Menus_View_New_Item_Title' : 'Menus_View_Edit_Item_Title'), 'menu-add');
 
-		// If an existing item, can save to a copy.
-		if (!$isNew) {
-			JToolBarHelper::custom('item.save2copy', 'copy.png', 'copy_f2.png', 'JToolbar_Save_as_copy', false);
-		}
 
 		// If not checked out, can save the item.
 		if ($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'))
 		{
+
+			JToolBarHelper::apply('item.apply','JTOOLBAR_APPLY');
+			JToolBarHelper::save('item.save','JTOOLBAR_SAVE');
 			JToolBarHelper::addNew('item.save2new', 'JToolbar_Save_and_new');
-			JToolBarHelper::save('item.save');
-			JToolBarHelper::apply('item.apply');
 		}
-		JToolBarHelper::cancel('item.cancel');
+		// If an existing item, can save to a copy.
+		if (!$isNew) {
+			JToolBarHelper::custom('item.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_copy', false)
+			;}
+		if ($isNew) {
+			JToolBarHelper::cancel('item.cancel','JToolbar_Cancel');
+			}
+		else {
+			JToolBarHelper::cancel('item.cancel', 'JToolbar_Close');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.menus.item','JTOOLBAR_HELP');
 	}
 }

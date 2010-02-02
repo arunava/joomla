@@ -3,9 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Utilities
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * JArrayHelper is an array utility class for doing all sorts of odds and ends with arrays.
@@ -25,7 +28,7 @@ class JArrayHelper
 	 * @param	mixed	$default	A default value (int|array) to assign if $array is not an array
 	 * @since	1.5
 	 */
-	function toInteger(&$array, $default = null)
+	static function toInteger(&$array, $default = null)
 	{
 		if (is_array($array)) {
 			foreach ($array as $i => $v) {
@@ -52,7 +55,7 @@ class JArrayHelper
 	 * @return	object	The object mapped from the given array
 	 * @since	1.5
 	 */
-	function toObject(&$array, $class = 'stdClass')
+	static function toObject(&$array, $class = 'stdClass')
 	{
 		$obj = null;
 		if (is_array($array))
@@ -70,7 +73,7 @@ class JArrayHelper
 		return $obj;
 	}
 
-	function toString($array = null, $inner_glue = '=', $outer_glue = ' ', $keepOuterKey = false)
+	static function toString($array = null, $inner_glue = '=', $outer_glue = ' ', $keepOuterKey = false)
 	{
 		$output = array();
 
@@ -105,7 +108,7 @@ class JArrayHelper
 	 * @return	array	The array mapped from the given object
 	 * @since	1.5
 	 */
-	function fromObject($p_obj, $recurse = true, $regex = null)
+	static function fromObject($p_obj, $recurse = true, $regex = null)
 	{
 		$result = null;
 		if (is_object($p_obj))
@@ -179,7 +182,7 @@ class JArrayHelper
 	 */
 	function getValue(&$array, $name, $default=null, $type='')
 	{
-		// Initialize variables
+		// Initialise variables.
 		$result = null;
 
 		if (isset ($array[$name])) {

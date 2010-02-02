@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	MailTo
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -41,10 +41,10 @@ class MailtoController extends JController
 	 */
 	function send()
 	{
-		global $mainframe;
-
 		// Check for request forgeries
-		JRequest::checkToken() or jexit('Invalid Token');
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+
+		$app	= &JFactory::getApplication();
 		$session = &JFactory::getSession();
 		$db	= &JFactory::getDbo();
 
@@ -56,9 +56,9 @@ class MailtoController extends JController
 
 		jimport('joomla.mail.helper');
 
-		$SiteName 	= $mainframe->getCfg('sitename');
-		$MailFrom 	= $mainframe->getCfg('mailfrom');
-		$FromName 	= $mainframe->getCfg('fromname');
+		$SiteName 	= $app->getCfg('sitename');
+		$MailFrom 	= $app->getCfg('mailfrom');
+		$FromName 	= $app->getCfg('fromname');
 
 		$link 		= base64_decode(JRequest::getVar('link', '', 'post', 'base64'));
 

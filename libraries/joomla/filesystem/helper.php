@@ -1,31 +1,28 @@
 <?php
 /**
- * File system helper
- * 
- * Holds support functions for the filesystem, particularly the stream 
- * 
- * PHP5
- *  
- * Created on Sep 22, 2008
- * 
- * @package Joomla
- * @subpackage Filesystem
- * @license GNU General Public License version 2 or later; see LICENSE.txt
- * @copyright 2008 OpenSourceMatters 
- * @version SVN: $Id:$    
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	FileSystem
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
- 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 jimport('joomla.filesystem.file');
 jimport('joomla.filesystem.folder');
 
+/**
+ * File system helper
+ *
+ * Holds support functions for the filesystem, particularly the stream
+ */
 class JFilesystemHelper {
 	// ----------------------------
 	// Support Functions; should probably live in a helper?
 	// ----------------------------
-	
+
 	/**
 	 * Remote file size function for streams that don't support it
 	 * @see http://www.php.net/manual/en/function.filesize.php#71098
@@ -67,7 +64,7 @@ class JFilesystemHelper {
             return $ftpsize;
         }
     }
-    
+
 	/**
 	 * Quick FTP chmod
 	 * @see http://www.php.net/manual/en/function.ftp-chmod.php
@@ -100,19 +97,19 @@ class JFilesystemHelper {
         $res = ftp_chmod($ftpid, $mode, $path);
         ftp_close($ftpid);
         return $res;
-    }    
-    
+    }
+
     /**
      * Modes that require a write operation
      */
     static function getWriteModes() {
 		return Array('w','w+','a','a+','r+','x','x+');
-    }	
+    }
 
 	// ----------------------------
 	// Stream and Filter Support Operations
 	// ----------------------------
-	
+
 	/**
 	 * Returns the supported streams, in addition to direct file access
 	 * Also includes Joomla! streams as well as PHP streams
@@ -124,7 +121,7 @@ class JFilesystemHelper {
 		if(!$streams) $streams = array_merge(stream_get_wrappers(), JFilesystemHelper::getJStreams());
 		return $streams;
 	}
-	
+
 	/**
 	 * Returns a list of transports
 	 */
@@ -132,7 +129,7 @@ class JFilesystemHelper {
 		// is this overkill?
 		return stream_get_transports();
 	}
-	
+
 	/**
 	 * Returns a list of filters
 	 */
@@ -141,7 +138,7 @@ class JFilesystemHelper {
 		// TODO: add user space filter loading like user space stream loading
 		return stream_get_filters();
 	}
-	
+
 	/**
 	 * Returns a list of J! streams
 	 */
@@ -150,7 +147,7 @@ class JFilesystemHelper {
 		if(!$streams) $streams = array_map(array('JFile','stripExt'),JFolder::files(dirname(__FILE__).DS.'streams','.php'));
 		return $streams;
 	}
-	
+
 	function isJoomlaStream($streamname) {
 		return in_array($streamname, JFilesystemHelper::getJStreams());
 	}

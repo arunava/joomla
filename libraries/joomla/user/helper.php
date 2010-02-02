@@ -1,9 +1,12 @@
 <?php
 /**
  * @version		$Id:helper.php 6961 2007-03-15 16:06:53Z tcp $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Authorization helper class, provides static methods to perform various tasks relevant
@@ -203,7 +206,7 @@ class JUserHelper
 		$data = new JObject;
 
 		// Trigger the data preparation event.
-		$results = $dispatcher->trigger('onPrepareUsersProfileData', array($userId, &$data));
+		$results = $dispatcher->trigger('onPrepareUserProfileData', array($userId, &$data));
 
 		return $data;
 	}
@@ -217,7 +220,7 @@ class JUserHelper
 	 */
 	public static function activateUser($activation)
 	{
-		//Initialize some variables
+		// Initialize some variables.
 		$db = & JFactory::getDbo();
 
 		// Lets get the id of the user we want to activate
@@ -262,7 +265,7 @@ class JUserHelper
 	 */
 	public static function getUserId($username)
 	{
-		// Initialize some variables
+		// Initialise some variables
 		$db = & JFactory::getDbo();
 
 		$query = 'SELECT id FROM #__users WHERE username = ' . $db->Quote($username);

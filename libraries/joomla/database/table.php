@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Table
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -56,6 +56,21 @@ abstract class JTable extends JObject
 	protected $_trackAssets = false;
 
 	/**
+	 * The rules associated with this record.
+	 *
+	 * @var	JRules	A JRules object.
+	 */
+	protected $_rules = null;
+
+	/**
+	 * Indicator that the tables have been locked.
+	 *
+	 * @var		boolean
+	 * @since	1.6
+	 */
+	protected $_locked = false;
+
+	/**
 	 * Object constructor to set table and key fields.  In most cases this will
 	 * be overridden by child classes to explicitly set the table and key fields
 	 * for a particular database table.
@@ -65,17 +80,63 @@ abstract class JTable extends JObject
 	 * @param	object JDatabase connector object.
 	 * @since	1.0
 	 */
-	function __construct($table, $key, & $db)
+	function __construct($table, $key, &$db)
 	{
 		// Set internal variables.
 		$this->_tbl		= $table;
 		$this->_tbl_key	= $key;
-		$this->_db		= & $db;
+		$this->_db		= &$db;
 
+		// Initialise the table properties.
+		if ($fields = $this->getFields())
+		{
+			foreach ($fields as $name => $type)
+			{
+				// Add the field if it is not already present.
+				if (!property_exists($this, $name)) {
+					$this->$name = null;
+				}
+			}
+		}
 		// If we are tracking assets, make sure an access field exists and initially set the default.
-		if ($this->_trackAssets) {
+		if (property_exists($this, 'asset_id'))
+		{
+			jimport('joomla.access.rules');
+			$this->_trackAssets = true;
+			// TODO: Do we need the following line anymore?
+			//$this->access = (int) JFactory::getConfig()->getValue('access');
+		}
+		// If the acess property exists, set the default.
+		if (property_exists($this, 'access'))
+		{
 			$this->access = (int) JFactory::getConfig()->getValue('access');
 		}
+	}
+
+	/**
+	 * Get the columns from database table.
+	 *
+	 * @return	mixed	An array of the field names, or false if an error occurs.
+	 */
+	public function getFields()
+	{
+		static $cache = null;
+
+		if ($cache === null)
+		{
+			// Lookup the fields for this table only once.
+			$name	= $this->getTableName();
+			$fields	= $this->_db->getTableFields($name);
+
+			if (!isset($fields[$name]))
+			{
+				$this->setError(JText::_('JTable_Error_Columns_not_found'));
+				return false;
+			}
+			$cache = $fields[$name];
+		}
+
+		return $cache;
 	}
 
 	/**
@@ -90,11 +151,8 @@ abstract class JTable extends JObject
 	 * @since	1.5
 	 * @link	http://docs.joomla.org/JTable/getInstance
 	*/
-	public static function & getInstance($type, $prefix = 'JTable', $config = array())
+	public static function getInstance($type, $prefix = 'JTable', $config = array())
 	{
-		// Initialize variables.
-		$false = false;
-
 		// Sanitize and prepare the table class name.
 		$type = preg_replace('/[^A-Z0-9_\.-]/i', '', $type);
 		$tableClass = $prefix.ucfirst($type);
@@ -112,27 +170,26 @@ abstract class JTable extends JObject
 				// If we were unable to load the proper class, raise a warning and return false.
 				if (!class_exists($tableClass)) {
 					JError::raiseWarning(0, 'Table class ' . $tableClass . ' not found in file.');
-					return $false;
+					return false;
 				}
 			}
 			else {
 				// If we were unable to find the class file in the JTable include paths, raise a warning and return false.
 				JError::raiseWarning(0, 'Table ' . $type . ' not supported. File not found.');
-				return $false;
+				return false;
 			}
 		}
 
 		// If a database object was passed in the configuration array use it, otherwise get the global one from JFactory.
-		if (array_key_exists('dbo', $config))  {
-			$db = & $config['dbo'];
-		} else {
+		if (array_key_exists('dbo', $config)) {
+			$db = &$config['dbo'];
+		}
+		else {
 			$db = & JFactory::getDbo();
 		}
 
 		// Instantiate a new table class and return it.
-		$instance = new $tableClass($db);
-
-		return $instance;
+		return new $tableClass($db);
 	}
 
 	/**
@@ -175,49 +232,52 @@ abstract class JTable extends JObject
 	}
 
 	/**
-	 * Abstract method to return the access section name for the asset table.
-	 * For example to have assets for this table tracked in the access section
-	 * with the name 'core' you would return the string: 'core'.
+	 * Method to compute the default name of the asset.
+	 * The default name is in the form `table_name.id`
+	 * where id is the value of the primary key of the table.
 	 *
-	 * @return	string	The name of the asset section to track table objects in.
-	 * @since	1.6
-	 * @link	http://docs.joomla.org/JTable/getAssetSection
+	 * @return	string
 	 */
-	public function getAssetSection()
+	protected function _getAssetName()
 	{
-		die('Must provide an implementation of getAssetSection');
+		$k = $this->_tbl_key;
+		return $this->_tbl.'.'.(int) $this->$k;
 	}
 
 	/**
-	 * Abstract method to return the name prefix to use for the asset table.
-	 * Different types of assets can co-exist within the same section by using
-	 * different name prefixes.  For example, if you have a section named 'core'
-	 * that tracks both modules and plugins you could have asset name prefixes
-	 * for those asset types as 'module' and 'plugin' respectively.
-	 *
-	 * @return	string	The asset name prefix to use for tracking assets.
-	 * @since	1.6
-	 * @link	http://docs.joomla.org/JTable/getAssetNamePrefix
-	 */
-	public function getAssetNamePrefix()
-	{
-		die('Must provide an implementation of getAssetNamePrefix');
-	}
-
-	/**
-	 * Abstract method to return the title to use for the asset table.  In
+	 * Method to return the title to use for the asset table.  In
 	 * tracking the assets a title is kept for each asset so that there is some
 	 * context available in a unified access manager.  Usually this woud just
 	 * return $this->title or $this->name or whatever is being used for the
-	 * primary name of the row.
+	 * primary name of the row. If this method is not overriden, the asset name is used.
 	 *
 	 * @return	string	The string to use as the title in the asset table.
 	 * @since	1.6
 	 * @link	http://docs.joomla.org/JTable/getAssetTitle
 	 */
-	public function getAssetTitle()
+	protected function _getAssetTitle()
 	{
-		die('Must provide an implementation of getAssetTitle');
+		return $this->_getAssetName();
+	}
+
+	/**
+	 * Method to get the parent asset under which to register this one.
+	 * By default, all assets are registered to the ROOT node with ID 1.
+	 * The extended class can define a table and id to lookup.  If the
+	 * asset does not exist it will be created.
+	 *
+	 * @param	JTable	A JTable object for the asset parent.
+	 *
+	 * @return	int
+	 */
+	protected function _getAssetParentId($table = null, $id = null)
+	{
+		// For simple cases, parent to the asset root.
+		if (empty($table) || empty($id)) {
+			return 1;
+		}
+
+		return 1;
 	}
 
 	/**
@@ -250,7 +310,7 @@ abstract class JTable extends JObject
 	 * @return	object	The internal database connector object.
 	 * @link	http://docs.joomla.org/JTable/getDBO
 	 */
-	public function & getDBO()
+	public function getDBO()
 	{
 		return $this->_db;
 	}
@@ -262,15 +322,40 @@ abstract class JTable extends JObject
 	 * @return	boolean	True on success.
 	 * @link	http://docs.joomla.org/JTable/setDBO
 	 */
-	public function setDBO(& $db)
+	public function setDBO(&$db)
 	{
 		// Make sure the new database object is a JDatabase.
 		if (!$db instanceof JDatabase) {
 			return false;
 		}
 
-		$this->_db = & $db;
+		$this->_db = &$db;
 		return true;
+	}
+
+	/**
+	 * Method to set rules for the record.
+	 *
+	 * @param	mixed	A JRules object, JSON string, or array.
+	 */
+	function setRules($input)
+	{
+		if ($input instanceof JRules) {
+			$this->_rules = $input;
+		}
+		else {
+			$this->_rules = new JRules($input);
+		}
+	}
+
+	/**
+	 * Method to get the rules for the record.
+	 *
+	 * @return	JRules
+	 */
+	public function getRules()
+	{
+		return $this->_rules;
 	}
 
 	/**
@@ -344,40 +429,61 @@ abstract class JTable extends JObject
 	 * Method to load a row from the database by primary key and bind the fields
 	 * to the JTable instance properties.
 	 *
-	 * @param	mixed	An optional primary key value to load the row by.  If not
+	 * @param	mixed	An optional primary key value to load the row by, or an array of fields to match.  If not
 	 * 					set the instance property value is used.
 	 * @param	boolean	True to reset the default values before loading the new row.
 	 * @return	boolean	True if successful. False if row not found or on error (internal error state set in that case).
 	 * @since	1.0
 	 * @link	http://docs.joomla.org/JTable/load
 	 */
-	public function load($pk = null, $reset = true)
+	public function load($keys = null, $reset = true)
 	{
-		// Initialize variables.
-		$k = $this->_tbl_key;
-		$pk = (is_null($pk)) ? $this->$k : $pk;
-
-		// If no primary key is given, return false.
-		if ($pk === null) {
-			return false;
+		if (empty($keys))
+		{
+			// If empty, use the value of the current key
+			$keyName = $this->getKeyName();
+			$keys = array($keyName => $this->$keyName);
+		}
+		else if (!is_array($keys))
+		{
+			// Load by primary key.
+			$keyName = $this->getKeyName();
+			$keys = array($keyName => $keys);
 		}
 
-		// Reset the object values if asked.
-		if ($reset) {
+		if ($reset)
+		{
 			$this->reset();
 		}
 
-		// Load the row by primary key.
-		$this->_db->setQuery(
-			'SELECT *' .
-			' FROM `'.$this->_tbl.'`' .
-			' WHERE `'.$this->_tbl_key.'` = '.$this->_db->quote($pk)
-		);
-		$row = $this->_db->loadAssoc();
+		// Initialise the query.
+		jimport('joomla.database.query');
+
+		$db		= $this->getDBO();
+		$query	= new JQuery;
+		$query->select('*');
+		$query->from($this->getTableName());
+		$fields = array_keys($this->getProperties());
+
+		foreach ($keys as $field => $value)
+		{
+			// Check that $field is in the table.
+			if (!in_array($field, $fields))
+			{
+				$this->setError(JText::sprintf('JTable_Error_Class_is_missing_field', get_class($this), $field));
+				return false;
+			}
+			// Add the search tuple to the query.
+			$query->where($db->nameQuote($field).' = '.$db->quote($value));
+		}
+
+		$db->setQuery($query);
+		$row = $db->loadAssoc();
 
 		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
+		if ($db->getErrorNum())
+		{
+			$this->setError($db->getErrorMsg());
 			return false;
 		}
 
@@ -419,7 +525,7 @@ abstract class JTable extends JObject
 	 */
 	public function store($updateNulls = false)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 
 		// If a primary key exists update the object, otherwise insert it.
@@ -441,106 +547,63 @@ abstract class JTable extends JObject
 			return true;
 		}
 
-		/*
-		 * The following section is only encountered if tracking assets is enabled
-		 * for the database table class.
-		 */
+		if ($this->_locked) {
+			$this->_unlock();
+		}
 
-		// Get the section id for the asset.
-		$section = $this->getAssetSection();
-		$this->_db->setQuery(
-			'SELECT `id`' .
-			' FROM `#__access_sections`' .
-			' WHERE `name` = '.$this->_db->Quote($section)
-		);
-		$sectionId = $this->_db->loadResult();
+		//
+		// Asset Tracking
+		//
 
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
+		$parentId	= $this->_getAssetParentId();
+		$name		= $this->_getAssetName();
+		$title		= $this->_getAssetTitle();
+
+		$asset	= JTable::getInstance('Asset');
+		$asset->loadByName($name);
+
+		// Check for an error.
+		if ($error = $asset->getError())
+		{
+			$this->setError($error);
 			return false;
 		}
 
-		// Make sure the section is valid.
-		if (empty($sectionId)) {
-			$this->setError(JText::_('Access_Section_Invalid'));
-			return false;
+		// Specify how a new or moved node asset is inserted into the tree.
+		if (empty($this->asset_id) || $asset->parent_id != $parentId) {
+			$asset->setLocation($parentId, 'last-child');
 		}
 
-		// Get and sanitize the asset name.
-		$prefix = $this->getAssetNamePrefix();
-		$name = strtolower(preg_replace('#[\s\-]+#', '.', trim($prefix.'.'.$this->$k, ' .')));
-
-		// Get the asset id for the asset.
-		$this->_db->setQuery(
-			'SELECT `id`' .
-			' FROM `#__access_assets`' .
-			' WHERE `name` = '.$this->_db->Quote($name)
-		);
-		$assetId = $this->_db->loadResult();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Is the asset new.
-		$isNew = (empty($assetId)) ? true : false;
-
-		// Build the asset object.
-		$asset = new stdClass;
-		$asset->section_id	= $sectionId;
-		$asset->section		= $section;
+		// Prepare the asset to be stored.
+		$asset->parent_id	= $parentId;
 		$asset->name		= $name;
-		$asset->title		= $this->getAssetTitle();
-
-		// Synchronize the assets table.
-		if ($isNew) {
-			$asset->id = null;
-			$return = $this->_db->insertObject('#__access_assets', $asset, 'id');
-		}
-		else {
-			$asset->id = $assetId;
-			$return = $this->_db->updateObject('#__access_assets', $asset, 'id');
+		$asset->title		= $title;
+		if ($this->_rules instanceof JRules) {
+			$asset->rules = (string) $this->_rules;
 		}
 
-		// Check for error.
-		if (!$return) {
-			$this->setError($this->_db->getErrorMsg());
+		if (!$asset->check() || !$asset->store($updateNulls))
+		{
+			$this->setError($asset->getError());
 			return false;
 		}
 
-		// Get the updated asset id.
-		$assetId = $asset->id;
+		if (empty($this->asset_id))
+		{
+			// Update the asset_id field in this table.
+			$this->asset_id = (int) $asset->id;
 
-		// Get the asset group id[ default to 1 or public].
-		$groupId = (!$this->access) ? 1 : $this->access;
+			$this->_db->setQuery(
+				'UPDATE '.$this->_db->nameQuote($this->_tbl).
+				' SET asset_id = '.(int) $this->asset_id.
+				' WHERE '.$this->_db->nameQuote($k).' = '.(int) $this->$k
+			);
 
-		// Delete previous asset to group maps.
-		$this->_db->setQuery(
-			'DELETE FROM `#__access_asset_assetgroup_map`' .
-			' WHERE `asset_id` = '.(int) $assetId
-		);
-		$this->_db->query();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Insert asset to group map.
-		$this->_db->setQuery(
-			'INSERT INTO `#__access_asset_assetgroup_map` (`asset_id`, `group_id`) VALUES' .
-			' ('.(int) $assetId.', '.(int) $groupId.')'
-		);
-		$this->_db->query();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
+			if (!$this->_db->query())
+			{
+				$this->setError($this->_db->getErrorMsg());
+				return false;
+			}
 		}
 
 		return true;
@@ -607,7 +670,7 @@ abstract class JTable extends JObject
 	 */
 	public function delete($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$pk = (is_null($pk)) ? $this->$k : $pk;
 
@@ -616,85 +679,32 @@ abstract class JTable extends JObject
 			return false;
 		}
 
+		// If tracking assets, remove the asset first.
+		if ($this->_trackAssets)
+		{
+			// Get and the asset name.
+			$this->$k	= $pk;
+			$name		= $this->_getAssetName();
+			$asset		= JTable::getInstance('Asset');
+			if ($asset->loadByName($name))
+			{
+				if (!$asset->delete())
+				{
+					$this->setError($asset->getError());
+					return false;
+				}
+			}
+			else
+			{
+				$this->setError($asset->getError());
+				return false;
+			}
+		}
+
 		// Delete the row by primary key.
 		$this->_db->setQuery(
 			'DELETE FROM `'.$this->_tbl.'`' .
 			' WHERE `'.$this->_tbl_key.'` = '.$this->_db->quote($pk)
-		);
-		$this->_db->query();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// If the table is not set to track assets return true.
-		if (!$this->_trackAssets) {
-			return true;
-		}
-
-		/*
-		 * The following section is only encountered if tracking assets is enabled
-		 * for the database table class.
-		 */
-
-		// Get the section id for the asset.
-		$section = $this->getAssetSection();
-		$this->_db->setQuery(
-			'SELECT `id`' .
-			' FROM `#__access_sections`' .
-			' WHERE `name` = '.$this->_db->Quote($section)
-		);
-		$sectionId = $this->_db->loadResult();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Make sure the section is valid.
-		if (empty($sectionId)) {
-			$this->setError(JText::_('Access_Section_Invalid'));
-			return false;
-		}
-
-		// Get and sanitize the asset name.
-		$prefix = $this->getAssetNamePrefix();
-		$name = strtolower(preg_replace('#[\s\-]+#', '.', trim($prefix.'.'.$pk, ' .')));
-
-		// Get the asset id for the asset.
-		$this->_db->setQuery(
-			'SELECT `id`' .
-			' FROM `#__access_assets`' .
-			' WHERE `name` = '.$this->_db->Quote($name)
-		);
-		$assetId = $this->_db->loadResult();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Delete asset to group maps.
-		$this->_db->setQuery(
-			'DELETE FROM `#__access_asset_assetgroup_map`' .
-			' WHERE `asset_id` = '.(int) $assetId
-		);
-		$this->_db->query();
-
-		// Check for a database error.
-		if ($this->_db->getErrorNum()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Delete the asset.
-		$this->_db->setQuery(
-			'DELETE FROM `#__access_assets`' .
-			' WHERE `id` = '.(int) $assetId
 		);
 		$this->_db->query();
 
@@ -729,7 +739,7 @@ abstract class JTable extends JObject
 			return true;
 		}
 
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$pk = (is_null($pk)) ? $this->$k : $pk;
 
@@ -739,8 +749,7 @@ abstract class JTable extends JObject
 		}
 
 		// Get the current time in MySQL format.
-		$date = &JFactory::getDate();
-		$time = $date->toMysql();
+		$time = JFactory::getDate()->toMysql();
 
 		// Check the row out by primary key.
 		$this->_db->setQuery(
@@ -781,7 +790,7 @@ abstract class JTable extends JObject
 			return true;
 		}
 
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$pk = (is_null($pk)) ? $this->$k : $pk;
 
@@ -828,7 +837,7 @@ abstract class JTable extends JObject
 			return true;
 		}
 
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$pk = (is_null($pk)) ? $this->$k : $pk;
 
@@ -952,7 +961,7 @@ abstract class JTable extends JObject
 			return false;
 		}
 
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 
 		// Setup the extra where and ordering clause data.
@@ -1028,7 +1037,7 @@ abstract class JTable extends JObject
 			return true;
 		}
 
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$row = null;
 
@@ -1036,7 +1045,7 @@ abstract class JTable extends JObject
 		$query = new JQuery();
 
 		// Select the primary key and ordering values from the table.
-		$query->select('`'.$this->_tbl_key.'`, `ordering');
+		$query->select('`'.$this->_tbl_key.'`, `ordering`');
 		$query->from('`'.$this->_tbl.'`');
 
 		// If the movement delta is negative move the row up.
@@ -1128,7 +1137,7 @@ abstract class JTable extends JObject
 	 */
 	public function publish($pks = null, $state = 1, $userId = 0)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 
 		// Sanitize input.
@@ -1210,7 +1219,7 @@ abstract class JTable extends JObject
 	 */
 	public function canDelete($pk = null, $joins = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 		$pk = (is_null($pk)) ? $this->$k : $pk;
 
@@ -1282,7 +1291,7 @@ abstract class JTable extends JObject
 	 */
 	public function toXML($mapKeysToText=false)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$xml = array();
 		$map = $mapKeysToText ? ' mapkeystotext="true"' : '';
 
@@ -1325,6 +1334,8 @@ abstract class JTable extends JObject
 			return false;
 		}
 
+		$this->_locked = true;
+
 		return true;
 	}
 
@@ -1345,6 +1356,8 @@ abstract class JTable extends JObject
 			$this->setError($this->_db->getErrorMsg());
 			return false;
 		}
+
+		$this->_locked = false;
 
 		return true;
 	}

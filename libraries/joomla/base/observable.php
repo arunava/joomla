@@ -3,7 +3,7 @@
  * @version		$Id:observer.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Base
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -132,7 +132,7 @@ class JObservable extends JObject
 	 */
 	public function detach($observer)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$retval = false;
 
 		$key = array_search($observer, $this->_observers);

@@ -1,146 +1,158 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
 defined('JPATH_BASE') or die;
 
-jimport('joomla.database.tableasset');
+jimport('joomla.database.tablenested');
 
 /**
  * Category table
  *
  * @package 	Joomla.Framework
- * @subpackage		Table
- * @since	1.0
+ * @subpackage	Table
+ * @since		1.0
  */
-class JTableCategory extends JTable
+class JTableCategory extends JTableNested
 {
-	/** @var int Primary key */
-	var $id					= null;
-	/** @var int */
-	var $parent_id			= null;
-	/** @var string The menu title for the category (a short name)*/
-	var $title				= null;
-	/** @var string The full name for the category*/
-	var $name				= null;
-	/** @var string The the alias for the category*/
-	var $alias				= null;
-	/** @var string */
-	var $image				= null;
-	/** @var string */
-	var $section				= null;
-	/** @var int */
-	var $image_position		= null;
-	/** @var string */
-	var $description			= null;
-	/** @var boolean */
-	var $published			= null;
-	/** @var boolean */
-	var $checked_out			= 0;
-	/** @var time */
-	var $checked_out_time		= 0;
-	/** @var int */
-	var $ordering			= null;
-	/** @var int */
-	var $access				= null;
-	/** @var string */
-	var $params				= null;
-
 	/**
-	 * Track rows as assets.
-	 *
-	 * @var		boolean
-	 * @since	1.6
+	 * @param database A database connector object
 	 */
-	protected $_trackAssets = true;
-
-	/**
-	* @param database A database connector object
-	*/
-	function __construct(&$db)
+	public function __construct(&$db)
 	{
 		parent::__construct('#__categories', 'id', $db);
+
+		$this->access	= (int) JFactory::getConfig()->getValue('access');
 	}
 
 	/**
-	 * Method to return the access section name for the asset table.
+	 * Method to compute the default name of the asset.
+	 * The default name is in the form `table_name.id`
+	 * where id is the value of the primary key of the table.
 	 *
-	 * @access	public
 	 * @return	string
-	 * @since	1.6
 	 */
-	function getAssetSection()
+	protected function _getAssetName()
 	{
-		return 'com_content';
-	}
-
-	/**
-	 * Method to return the name prefix to use for the asset table.
-	 *
-	 * @access	public
-	 * @return	string
-	 * @since	1.6
-	 */
-	function getAssetNamePrefix()
-	{
-		return 'category';
+		$k = $this->_tbl_key;
+		return $this->extension.'.category.'.(int) $this->$k;
 	}
 
 	/**
 	 * Method to return the title to use for the asset table.
 	 *
-	 * @access	public
 	 * @return	string
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function getAssetTitle()
+	protected function _getAssetTitle()
 	{
 		return $this->title;
 	}
 
 	/**
-	 * Overloaded check function
+	 * Get the parent asset id for the record
 	 *
-	 * @access public
-	 * @return boolean
-	 * @see JTable::check
-	 * @since 1.5
+	 * @return	int
 	 */
-	function check()
+	protected function _getAssetParentId()
 	{
-		// check for valid name
-		if (trim($this->title) == '') {
-			$this->setError(JText::sprintf('must contain a title', JText::_('Category')));
-			return false;
+		// Initialise variables.
+		$assetId = null;
+
+		// This is a category under a category.
+		if ($this->parent_id > 1)
+		{
+			// Build the query to get the asset id for the parent category.
+			$query = new JQuery;
+			$query->select('asset_id');
+			$query->from('#__categories');
+			$query->where('id = '.(int) $this->parent_id);
+
+			// Get the asset id from the database.
+			$this->_db->setQuery($query);
+			if ($result = $this->_db->loadResult()) {
+				$assetId = (int) $result;
+			}
+		}
+		// This is a category that needs to parent with the extension.
+		elseif ($assetId === null)
+		{
+			// Build the query to get the asset id for the parent category.
+			$query = new JQuery;
+			$query->select('id');
+			$query->from('#__assets');
+			$query->where('name = '.$this->_db->quote($this->extension));
+
+			// Get the asset id from the database.
+			$this->_db->setQuery($query);
+			if ($result = $this->_db->loadResult()) {
+				$assetId = (int) $result;
+			}
 		}
 
-		// check for existing name
-		/*$query = 'SELECT id'
-		. ' FROM #__categories '
-		. ' WHERE title = '.$this->_db->Quote($this->title)
-		. ' AND section = '.$this->_db->Quote($this->section)
-		;
-		$this->_db->setQuery($query);
+		// Return the asset id.
+		if ($assetId) {
+			return $assetId;
+		}
+		else {
+			return parent::_getAssetParentId();
+		}
+	}
 
-		$xid = intval($this->_db->loadResult());
-		if ($xid && $xid != intval($this->id)) {
-			$this->_error = JText::sprintf('WARNNAMETRYAGAIN', JText::_('Category'));
+	/**
+	 * Override check function
+	 *
+	 * @return	boolean
+	 * @see		JTable::check
+	 * @since	1.5
+	 */
+	public function check()
+	{
+		// Check for a title.
+		if (trim($this->title) == '') {
+			$this->setError(JText::sprintf('MUST_CONTAIN_A_TITLE', JText::_('Category')));
 			return false;
-		}*/
+		}
 
 		if (empty($this->alias)) {
-			$this->alias = $this->title;
+			$this->alias = strtolower($this->title);
 		}
-		$this->alias = JFilterOutput::stringURLSafe($this->alias);
+
+		$this->alias = JApplication::stringURLSafe($this->alias);
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$datenow = &JFactory::getDate();
-			$this->alias = $datenow->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->toFormat('%Y-%m-%d-%H-%M-%S');
 		}
 
 		return true;
+	}
+	/**
+	 * Overloaded bind function.
+	 *
+	 * @param	array		named array
+	 * @return	null|string	null is operation was satisfactory, otherwise returns an error
+	 * @see		JTable:bind
+	 * @since	1.5
+	 */
+	public function bind($array, $ignore = '')
+	{
+		if (isset($array['params']) && is_array($array['params']))
+		{
+			$registry = new JRegistry();
+			$registry->loadArray($array['params']);
+			$array['params'] = (string)$registry;
+		}
+
+		if (isset($array['metadata']) && is_array($array['metadata']))
+		{
+			$registry = new JRegistry();
+			$registry->loadArray($array['metadata']);
+			$array['metadata'] = (string)$registry;
+		}
+
+		return parent::bind($array, $ignore);
 	}
 }

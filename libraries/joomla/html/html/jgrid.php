@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: grid.php 11952 2009-06-01 03:21:19Z robs $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -15,51 +15,46 @@
 abstract class JHtmlJGrid
 {
 	/**
-	 * @param	int $value	The state value
+	 * @param	int $value	The state value.
 	 * @param	int $i
+	 * @param	string		An optional prefix for the task.
+	 * @param	boolean		An optional setting for access control on the action.
 	 */
-	function published($value = 0, $i, $taskPrefix = '')
+	public static function published($value = 0, $i, $taskPrefix = '', $canChange = true)
 	{
 		// Array of image, task, title, action
 		$states	= array(
 			1	=> array('tick.png',		$taskPrefix.'unpublish',	'JState_Published',		'JState_UnPublish_Item'),
 			0	=> array('publish_x.png',	$taskPrefix.'publish',		'JState_UnPublished',	'JState_Publish_Item'),
+			-1	=> array('disabled.png',	$taskPrefix.'unpublish',	'JState_Archived',		'JState_UnPublish_Item'),
 			-2	=> array('trash.png',		$taskPrefix.'publish',		'JState_Trashed',		'JState_Publish_Item'),
 		);
 		$state	= JArrayHelper::getValue($states, (int) $value, $states[0]);
-		$html	= '<a href="javascript:void(0);" onclick="return listItemTask(\'cb'.$i.'\',\''.$state[1].'\')" title="'.JText::_($state[3]).'">'
-				. JHtml::_('image.administrator', $state[0], '/images/', null, '/images/', JText::_($state[2])).'</a>';
+		$html	= JHtml::_('image', 'admin/'.$state[0], JText::_($state[2]), NULL, true);
+		if ($canChange) {
+			$html	= '<a href="javascript:void(0);" onclick="return listItemTask(\'cb'.$i.'\',\''.$state[1].'\')" title="'.JText::_($state[3]).'">'
+					. $html.'</a>';
+		}
 
 		return $html;
 	}
 
 	/**
-	 * Display an HTML select list of state filters
+	 * Returns an array of standard published state filter options.
 	 *
-	 * @param	int $selected	The selected value of the list
 	 * @return	string			The HTML code for the select tag
 	 * @since	1.6
 	 */
-	function filterPublished($name, $selected = 0, $attribs = null)
+	public static function publishedOptions()
 	{
 		// Build the active state filter options.
 		$options	= array();
-		$options[]	= JHtml::_('select.option', '*', JText::_('JSelect_Any'));
-		$options[]	= JHtml::_('select.option', '1', JText::_('JState_Published'));
-		$options[]	= JHtml::_('select.option', '0', JText::_('JState_UnPublished'));
-		$options[]	= JHtml::_('select.option', '-2', JText::_('JState_Trashed'));
+		$options[]	= JHtml::_('select.option', '1', 'JOption_Published');
+		$options[]	= JHtml::_('select.option', '0', 'JOption_Unpublished');
+		$options[]	= JHtml::_('select.option', '-2', 'JOption_Trash');
+		$options[]	= JHtml::_('select.option', '*', 'JOption_All');
 
-		if ($attribs === null)
-		{
-			$attribs = array(
-				'list.attr' => 'class="inputbox" onchange="this.form.submit();"',
-				'list.select' => $selected
-			);
-		}
-
-		return JHTML::_('select.genericlist', $options, $name,
-			$attribs
-		);
+		return $options;
 	}
 
 	/**
@@ -70,16 +65,71 @@ abstract class JHtmlJGrid
 	 *
 	 * @return	string	The required HTML.
 	 */
-	function checkedout($editorName, $time)
+	public static function checkedout($editorName, $time)
 	{
-		$text	= addslashes(htmlspecialchars($editorName));
+		$text	= addslashes(htmlspecialchars($editorName, ENT_COMPAT, 'UTF-8'));
 		$date 	= JHTML::_('date',  $time, '%A, %d %B %Y');
 		$time	= JHTML::_('date',  $time, '%H:%M');
 
-		$hover = '<span class="editlinktip hasTip" title="'. JText::_('Checked Out') .'::'. $text .'<br />'. $date .'<br />'. $time .'">';
-		$checked = $hover .'<img src="images/checked_out.png" alt="'.JText::_('Checked Out').'" /></span>';
+		$hover = '<span class="editlinktip hasTip" title="'. JText::_('CHECKED_OUT') .'::'. $text .'<br />'. $date .'<br />'. $time .'">';
+		$checked = $hover .JHTML::_('image', 'admin/checked_out.png', JText::_('CHECKED_OUT'), NULL, true).'</span>';
 
 		return $checked;
 	}
 
+	/**
+	 * Create a order-up action icon.
+	 *
+	 * @param	integer	The row index.
+	 * @param	string	The task to fire.
+	 * @param	boolean	True to show the icon.
+	 * @param	string	The image alternate text string.
+	 *
+	 * @return	string	The HTML for the IMG tag.
+	 * @since	1.6
+	 */
+	public static function orderUp($i, $task, $enabled = true, $alt = 'JGrid_Move_Up')
+	{
+		$alt = JText::_($alt);
+
+		// TODO: Deal with hardcoded links.
+		if ($enabled)
+		{
+			$html	= '<a href="#reorder" onclick="return listItemTask(\'cb'.$i.'\',\''.$task.'\')" title="'.$alt.'">';
+			$html	.= JHTML::_('image', 'admin/uparrow.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
+			$html	.= '</a>';
+		}
+		else {
+			$html	= JHTML::_('image', 'admin/uparrow0.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
+		}
+		return $html;
+	}
+
+	/**
+	 * Create a move-down action icon.
+	 *
+	 * @param	integer	The row index.
+	 * @param	string	The task to fire.
+	 * @param	boolean	True to show the icon.
+	 * @param	string	The image alternate text string.
+	 *
+	 * @return	string	The HTML for the IMG tag.
+	 * @since	1.6
+	 */
+	public static function orderDown($i, $task, $enabled = true, $alt = 'JGrid_Move_Up')
+	{
+		$alt = JText::_($alt);
+
+		// TODO: Deal with hardcoded links.
+		if ($enabled)
+		{
+			$html	= '<a href="#reorder" onclick="return listItemTask(\'cb'.$i.'\',\''.$task.'\')" title="'.$alt.'">';
+			$html	.= JHTML::_('image', 'admin/downarrow.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
+			$html	.= '</a>';
+		}
+		else {
+			$html	= JHTML::_('image', 'admin/downarrow0.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
+		}
+		return $html;
+	}
 }

@@ -3,7 +3,6 @@
 <form>
 	<fields>
 		<field
-			id="id"
 			name="id"
 			type="hidden"
 			default="0"
@@ -12,18 +11,6 @@
 		/>
 
 		<field
-			id="parent_id"
-			name="parent_id"
-			type="UserGroups"
-			class="inputbox"
-			default=""
-			label="Users_Group_Parent"
-			description="Users_Group_Parent_Desc"
-			required="true"
-		/>
-
-		<field
-			id="title"
 			name="title"
 			type="text"
 			class="inputbox"
@@ -34,12 +21,28 @@
 		/>
 
 		<field
-			name="left_id"
+			name="parent_id"
+			type="usergroup"
+			class="inputbox"
+			default=""
+			label="Users_Group_Parent"
+			description="Users_Group_Parent_Desc"
+			required="true"
+		/>
+
+		<field
+			name="actions"
+			type="hidden"
+			multiple="true"
+		/>
+
+		<field
+			name="lft"
 			type="hidden"
 			filter="unset"
 		/>
 		<field
-			name="right_id"
+			name="rgt"
 			type="hidden"
 			filter="unset"
 		/>

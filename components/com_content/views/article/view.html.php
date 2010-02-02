@@ -1,14 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
 defined('_JEXEC') or die;
 
-require_once (JPATH_COMPONENT.DS.'view.php');
+jimport('joomla.application.component.view');
 
 /**
  * HTML Article View class for the Content component
@@ -17,7 +17,7 @@ require_once (JPATH_COMPONENT.DS.'view.php');
  * @subpackage	com_content
  * @since		1.5
  */
-class ContentViewArticle extends ContentView
+class ContentViewArticle extends JView
 {
 	protected $state;
 	protected $item;
@@ -38,14 +38,38 @@ class ContentViewArticle extends ContentView
 		$item	= $this->get('Item');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors'))) {
-			JError::raiseWarning(500, implode("\n", $errors));
+		// @TODO Maybe this could go into JComponentHelper::raiseErrors($this->get('Errors'))
+		if (count($errors = $this->get('Errors')))
+		{
+			foreach ($errors as &$error)
+			{
+				if ($error instanceof Exception)
+				{
+					if ($error->getCode() == 404)
+					{
+						// If there is a 404, throw a hard error.
+						JError::raiseError(404, $error->getMessage());
+						return false;
+					}
+					else
+					{
+						JError::raiseError(500, $error->getMessage());
+					}
+				}
+				else
+				{
+					JError::raiseWarning(500, $error);
+				}
+			}
 			return false;
 		}
 
 		// Add router helpers.
 		$item->slug		= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
 		$item->catslug	= $item->category_alias ? ($item->catid.':'.$item->category_alias) : $item->catid;
+
+		// TODO: Change based on shownoauth
+		$item->readmore_link	= JRoute::_(ContentRoute::article($item->slug, $item->catslug));
 
 		// Create a shortcut to the paramemters.
 		$params	= &$state->params;

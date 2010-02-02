@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,28 +31,7 @@ JHtml::_('behavior.formvalidation');
 		</div>
 	</div>
 	<div class="m">
-		<h1><?php echo JText::_('Steps'); ?></h1>
-		<div class="step-off">
-			1 : <?php echo JText::_('Language'); ?>
-		</div>
-		<div class="step-off">
-			2 : <?php echo JText::_('Pre-Installation check'); ?>
-		</div>
-		<div class="step-off">
-			3 : <?php echo JText::_('License'); ?>
-		</div>
-		<div class="step-off">
-			4 : <?php echo JText::_('Database'); ?>
-		</div>
-		<div class="step-off">
-			5 : <?php echo JText::_('FTP Configuration'); ?>
-		</div>
-		<div class="step-off">
-			6 : <?php echo JText::_('Configuration'); ?>
-		</div>
-		<div class="step-on">
-			7 : <?php echo JText::_('Finish'); ?>
-		</div>
+		<?php echo JHtml::_('installation.stepbar', 7); ?>
 		<div class="box"></div>
   	</div>
 	<div class="b">
@@ -62,7 +41,7 @@ JHtml::_('behavior.formvalidation');
 	</div>
 </div>
 
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" class="form-validate">
 <div id="right">
 	<div id="rightpad">
 		<div id="step">
@@ -118,7 +97,7 @@ JHtml::_('behavior.formvalidation');
 								<tr>
 									<td align="center">
 										<h3>
-										<?php echo JText::_('Administration Login Details'); ?>
+										<?php echo JText::_('ADMINISTRATION_LOGIN_DETAILS'); ?>
 										</h3>
 									</td>
 								</tr>
@@ -141,7 +120,7 @@ JHtml::_('behavior.formvalidation');
 													<br />
 													<?php echo JText::_('languagebuttonlinetwo'); ?>
 													<br /><br />
-													</a></td>
+													</a>
 												</div>
 											</div>
 										</div>

@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,10 +14,12 @@ defined('_JEXEC') or die;
 
 	<?php foreach ($this->form->getGroups() as $group): ?>
 	<fieldset>
+		<dl>
 		<?php foreach ($this->form->getFields($group, $group) as $name => $field): ?>
-		<dt><?php echo $field->label; ?></dt>
-		<dd><?php echo $field->field; ?></dd>
+			<dt><?php echo $field->label; ?></dt>
+			<dd><?php echo $field->field; ?></dd>
 		<?php endforeach; ?>
+		</dl>
 	</fieldset>
 	<?php endforeach; ?>
 

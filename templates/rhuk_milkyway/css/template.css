@@ -1,6 +1,6 @@
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -306,7 +306,7 @@ td.pill_r {
 
 #maincolumn_full {
 	margin-left: 0;
-	padding: 0;	
+	padding: 0;
 	width: 100%;
 }
 
@@ -805,4 +805,41 @@ td.key {
 
 #component-contact table td {
 	padding: 2px 0;
+}
+
+/**
+ * User Accessibility
+ */
+
+	/* For elements that aren't to be seen by users unless the user does something  
+	 * like clicking on a header to see the collapsed section. */
+.element-hidden, .hide {
+	display: none;
+}
+
+	/* For elements that aren't to be seen by visual users but do need to be read by screenreaders.
+	 * Cannot be used for elements that can get focus such as links and form elements */
+.element-invisible, .hidelabeltxt {
+	height: 0;
+	overflow: hidden;
+	position: absolute;
+}
+
+	/* Firefox has issues styling legend so this is a universal fix 
+	for making the legend invisible (i.e. visually it's not there, but screen readers see it */
+
+legend.element-invisible { 
+	position: absolute !important;
+	margin: 0;
+	padding: 0;
+	border:0;
+	margin-left: -10000px;
+	font-size: 1px;
+	height: 0;
+}
+
+fieldset.filters {
+	border: none;
+	margins: 0;
+	
 }

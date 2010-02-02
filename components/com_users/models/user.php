@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,8 +23,11 @@ jimport('joomla.plugin.helper');
 class UsersModelUser extends JModelForm
 {
 	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * @since	1.6
 	 */
-	function _populateState($property = null, $default = null)
+	protected function _populateState($property = null, $default = null)
 	{
 		// Get the application object.
 		$app	= &JFactory::getApplication();
@@ -63,7 +66,7 @@ class UsersModelUser extends JModelForm
 		);
 
 		// Get the form.
-		$form = $this->getForm('login', $options);
+		$form = $this->getForm('login', 'com_users.login', $options);
 
 		// Check for an error.
 		if (JError::isError($form)) {
@@ -74,11 +77,19 @@ class UsersModelUser extends JModelForm
 		$app = &JFactory::getApplication();
 		$data = $app->getUserState('users.login.form.data', array());
 
+		// check for return URL from the request first
+		if ($return = JRequest::getVar('return', '', 'method', 'base64')) {
+			$data['return'] = base64_decode($return);
+			if (!JURI::isInternal($data['return'])) {
+				$data['return'] = '';  
+			}
+		}
+		
 		// Set the return URL if empty.
 		if (!isset($data['return']) || empty($data['return'])) {
 			$data['return'] = 'index.php?option=com_users&view=profile';
-			$app->setUserState('users.login.form.data', $data);
 		}
+		$app->setUserState('users.login.form.data', $data);
 
 		// Bind the form data if present.
 		if (!empty($data)) {
@@ -105,7 +116,7 @@ class UsersModelUser extends JModelForm
 		);
 
 		// Get the form.
-		return $this->getForm('remind', $options);
+		return $this->getForm('remind', 'com_users.remind', $options);
 	}
 
 	/**
@@ -125,7 +136,7 @@ class UsersModelUser extends JModelForm
 		);
 
 		// Get the form.
-		return $this->getForm('reset_request', $options);
+		return $this->getForm('reset_request', 'com_users.reset_request', $options);
 	}
 
 	/**
@@ -145,7 +156,7 @@ class UsersModelUser extends JModelForm
 		);
 
 		// Get the form.
-		return $this->getForm('reset_confirm', $options);
+		return $this->getForm('reset_confirm', 'com_users.reset_confirm', $options);
 	}
 
 	/**
@@ -165,7 +176,7 @@ class UsersModelUser extends JModelForm
 		);
 
 		// Get the form.
-		return $this->getForm('reset_complete', $options);
+		return $this->getForm('reset_complete', 'com_users.reset_complete', $options);
 	}
 
 	function processRemindRequest($data)
@@ -193,7 +204,7 @@ class UsersModelUser extends JModelForm
 		$query->where('`email` = '.$this->_db->Quote($data['email']));
 
 		// Get the user id.
-		$this->_db->setQuery($query->toString());
+		$this->_db->setQuery((string) $query);
 		$user = $this->_db->loadObject();
 
 		// Check for an error.
@@ -394,7 +405,7 @@ class UsersModelUser extends JModelForm
 		$query->where('`activation` = '.$this->_db->Quote($data['token']));
 
 		// Get the user id.
-		$this->_db->setQuery($query->toString());
+		$this->_db->setQuery((string) $query);
 		$user = $this->_db->loadObject();
 
 		// Check for an error.

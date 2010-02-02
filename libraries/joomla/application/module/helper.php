@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Application
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,12 +21,13 @@ jimport('joomla.application.component.helper');
  */
 abstract class JModuleHelper
 {
+
 	/**
 	 * Get module by name (real, eg 'Breadcrumbs' or folder, eg 'mod_breadcrumbs')
 	 *
-	 * @access	public
 	 * @param	string 	$name	The name of the module
 	 * @param	string	$title	The title of the module, optional
+	 *
 	 * @return	object	The Module object
 	 */
 	public static function &getModule($name, $title = null)
@@ -42,7 +41,7 @@ abstract class JModuleHelper
 			if ($modules[$i]->name == $name)
 			{
 				// Match the title if we're looking for a specific instance of the module
-				if (! $title || $modules[$i]->title == $title)
+				if (!$title || $modules[$i]->title == $title)
 				{
 					$result = &$modules[$i];
 					break;	// Found it
@@ -71,25 +70,29 @@ abstract class JModuleHelper
 	/**
 	 * Get modules by position
 	 *
-	 * @access public
 	 * @param string 	$position	The position of the module
+	 *
 	 * @return array	An array of module objects
 	 */
 	public static function &getModules($position)
 	{
+		$app		= &JFactory::getApplication();
 		$position	= strtolower($position);
 		$result		= array();
 
 		$modules = &JModuleHelper::_load();
 
 		$total = count($modules);
-		for ($i = 0; $i < $total; $i++) {
+		for ($i = 0; $i < $total; $i++)
+		{
 			if ($modules[$i]->position == $position) {
 				$result[] = &$modules[$i];
 			}
 		}
-		if (count($result) == 0) {
-			if (JRequest::getBool('tp')) {
+		if (count($result) == 0)
+		{
+			if ($app->getCfg('debug_modules') && JRequest::getBool('tp'))
+			{
 				$result[0] = JModuleHelper::getModule('mod_'.$position);
 				$result[0]->title = $position;
 				$result[0]->content = $position;
@@ -103,8 +106,8 @@ abstract class JModuleHelper
 	/**
 	 * Checks if a module is enabled
 	 *
-	 * @access	public
 	 * @param   string 	$module	The module name
+	 *
 	 * @return	boolean
 	 */
 	public static function isEnabled($module)
@@ -113,26 +116,41 @@ abstract class JModuleHelper
 		return (!is_null($result));
 	}
 
+	/**
+	 * Render the module.
+	 *
+	 * @param	object	A module object.
+	 * @param	array	An array of attributes for the module (probably from the XML).
+	 *
+	 * @return	strign	The HTML content of the module output.
+	 */
 	public static function renderModule($module, $attribs = array())
 	{
 		static $chrome;
-		$option = JRequest::getCmd('option');
 
-		$app	= JFactory::getApplication();
-		$scope = $app->scope; //record the scope
-		$app->scope = $module->module;  //set scope to component name
+		$option = JRequest::getCmd('option');
+		$app	= &JFactory::getApplication();
+
+		// Record the scope.
+		$scope	= $app->scope;
+
+		// Set scope to component name
+		$app->scope = $module->module;
 
 		// Get module parameters
 		$params = new JParameter($module->params);
 
 		// Get module path
 		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
-		$path = JPATH_BASE.DS.'modules'.DS.$module->module.DS.$module->module.'.php';
+		$path = JPATH_BASE.'/modules/'.$module->module.'/'.$module->module.'.php';
 
 		// Load the module
-		if (!$module->user && file_exists($path) && empty($module->content))
+		if (!$module->user && file_exists($path))
 		{
 			$lang = &JFactory::getLanguage();
+			// 1.6 3PD
+			$lang->load($module->module, dirname($path));
+			// 1.5 or Core
 			$lang->load($module->module);
 
 			$content = '';
@@ -147,8 +165,8 @@ abstract class JModuleHelper
 			$chrome = array();
 		}
 
-		require_once JPATH_BASE.DS.'templates'.DS.'system'.DS.'html'.DS.'modules.php';
-		$chromePath = JPATH_BASE.DS.'templates'.DS.$app->getTemplate().DS.'html'.DS.'modules.php';
+		require_once JPATH_BASE.'/templates/system/html/modules.php';
+		$chromePath = JPATH_BASE.'/templates/'.$app->getTemplate().'/html/modules.php';
 		if (!isset($chrome[$chromePath]))
 		{
 			if (file_exists($chromePath)) {
@@ -163,7 +181,7 @@ abstract class JModuleHelper
 		}
 
 		//dynamically add outline style
-		if (JRequest::getBool('tp')) {
+		if ($app->getCfg('debug_modules') && JRequest::getBool('tp')) {
 			$attribs['style'] .= ' outline';
 		}
 
@@ -202,8 +220,8 @@ abstract class JModuleHelper
 		$app = JFactory::getApplication();
 
 		// Build the template and base path for the layout
-		$tPath = JPATH_BASE.DS.'templates'.DS.$app->getTemplate().DS.'html'.DS.$module.DS.$layout.'.php';
-		$bPath = JPATH_BASE.DS.'modules'.DS.$module.DS.'tmpl'.DS.$layout.'.php';
+		$tPath = JPATH_BASE.'/templates/'.$app->getTemplate().'/html/'.$module.'/'.$layout.'.php';
+		$bPath = JPATH_BASE.'/modules/'.$module.'/tmpl/'.$layout.'.php';
 
 		// If the template has a layout override use it
 		if (file_exists($tPath)) {
@@ -230,22 +248,24 @@ abstract class JModuleHelper
 		$Itemid = JRequest::getInt('Itemid');
 		$app	= JFactory::getApplication();
 		$user	= &JFactory::getUser();
+		$groups	= implode(',', $user->authorisedLevels());
 		$db		= &JFactory::getDbo();
 		$where	= isset($Itemid) ? ' AND (mm.menuid = '. (int) $Itemid .' OR mm.menuid <= 0)' : '';
 
 		$db->setQuery(
-			'SELECT id, title, module, position, content, showtitle, control, params, mm.menuid'
+			'SELECT id, title, module, position, content, showtitle, params, mm.menuid'
 			. ' FROM #__modules AS m'
 			. ' LEFT JOIN #__modules_menu AS mm ON mm.moduleid = m.id'
 			. ' WHERE m.published = 1'
-			. ' AND m.access IN ('. implode(',', $user->authorisedLevels('core.view')).')'
+			. ' AND m.access IN ('.$groups.')'
 			. ' AND m.client_id = '. (int) $app->getClientId()
 			. $where
 			. ' ORDER BY position, ordering'
 		);
 
-		if (null === ($modules = $db->loadObjectList())) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Error Loading Modules') . $db->getErrorMsg());
+		if (null === ($modules = $db->loadObjectList()))
+		{
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('ERROR_LOADING_MODULES') . $db->getErrorMsg());
 			return false;
 		}
 

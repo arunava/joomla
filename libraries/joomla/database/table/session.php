@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,54 +17,6 @@ defined('JPATH_BASE') or die;
  */
 class JTableSession extends JTable
 {
-	/**
-	 *
-	 * @var int Primary key
-	 */
-	var $session_id			= null;
-
-	/**
-	 *
-	 * @var string
-	 */
-	var $time				= null;
-
-	/**
-	 *
-	 * @var string
-	 */
-	var $userid				= null;
-
-	/**
-	 *
-	 * @var string
-	 */
-	var $usertype			= null;
-
-	/**
-	 *
-	 * @var string
-	 */
-	var $username			= null;
-
-	/**
-	 *
-	 * @var int
-	 */
-	var $guest				= null;
-
-	/**
-	 *
-	 * @var int
-	 */
-	var $client_id			= null;
-
-	/**
-	 *
-	 * @var string
-	 */
-	var $data				= null;
-
 	/**
 	 * Constructor
 	 * @param database A database connector object
@@ -86,7 +38,7 @@ class JTableSession extends JTable
 		$ret = $this->_db->insertObject($this->_tbl, $this, 'session_id');
 
 		if (!$ret) {
-			$this->setError(strtolower(get_class($this))."::". JText::_('store failed') ."<br />" . $this->_db->stderr());
+			$this->setError(strtolower(get_class($this))."::". JText::_('STORE_FAILED') ."<br />" . $this->_db->stderr());
 			return false;
 		} else {
 			return true;
@@ -99,7 +51,7 @@ class JTableSession extends JTable
 		$ret = $this->_db->updateObject($this->_tbl, $this, 'session_id', $updateNulls);
 
 		if (!$ret) {
-			$this->setError(strtolower(get_class($this))."::". JText::_('store failed') ." <br />" . $this->_db->stderr());
+			$this->setError(strtolower(get_class($this))."::". JText::_('STORE_FAILED') ." <br />" . $this->_db->stderr());
 			return false;
 		} else {
 			return true;

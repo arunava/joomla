@@ -1,11 +1,11 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
+// No direct access
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
@@ -19,7 +19,6 @@ class ContentViewArticles extends JView
 	protected $state;
 	protected $items;
 	protected $pagination;
-	protected $f_published;
 
 	/**
 	 * Display the view
@@ -31,7 +30,8 @@ class ContentViewArticles extends JView
 		$pagination	= $this->get('Pagination');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors'))) {
+		if (count($errors = $this->get('Errors')))
+		{
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
@@ -40,40 +40,46 @@ class ContentViewArticles extends JView
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
 
-		// Published filter.
-		$options	= array();
-		$options[]	= JHtml::_('select.option', '1', 'JCommon_Option_Filter_Published');
-		$options[]	= JHtml::_('select.option', '0', 'JCommon_Option_Filter_Unpublished');
-		$options[]	= JHtml::_('select.option', '-1', 'Content_Option_Filter_Archived');
-		$options[]	= JHtml::_('select.option', '-2', 'JCommon_Option_Filter_Trash');
-		$options[]	= JHtml::_('select.option', '*', 'JCommon_Option_Filter_All');
-		$this->assign('f_published', $options);
-
 		$this->_setToolbar();
 		parent::display($tpl);
 	}
 
 	/**
 	 * Display the toolbar
-	 *
-	 * @access	private
 	 */
 	protected function _setToolbar()
 	{
-		$state = $this->get('State');
+		$state	= $this->get('State');
+		$canDo	= ContentHelper::getActions($state->get('filter.category_id'));
+
 		JToolBarHelper::title(JText::_('Content_Articles_Title'), 'article.png');
-		if ($state->get('filter.published') != -1) {
-			JToolBarHelper::archiveList('articles.archive');
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::custom('article.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
 		}
-		JToolBarHelper::custom('articles.publish', 'publish.png', 'publish_f2.png', 'Publish', true);
-		JToolBarHelper::custom('articles.unpublish', 'unpublish.png', 'unpublish_f2.png', 'Unpublish', true);
-		if ($state->get('filter.published') == -2) {
-			JToolBarHelper::deleteList('', 'articles.delete');
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::custom('article.edit', 'edit.png', 'edit_f2.png','JTOOLBAR_EDIT', true);
 		}
-		else {
-			JToolBarHelper::trash('articles.trash');
+		JToolBarHelper::divider();
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::custom('articles.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
+			JToolBarHelper::custom('articles.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_UNPUBLISH', true);
+			if ($state->get('filter.published') != -1) {
+				JToolBarHelper::divider();
+				JToolBarHelper::archiveList('articles.archive','JTOOLBAR_ARCHIVE');
+			}
 		}
-		JToolBarHelper::custom('article.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
-		JToolBarHelper::custom('article.edit', 'new.png', 'new_f2.png', 'New', false);
+		if ($state->get('filter.published') == -2 && $canDo->get('core.delete')) {
+
+			JToolBarHelper::deleteList('', 'articles.delete','JTOOLBAR_EMPTY_TRASH');
+		}
+		else if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::trash('articles.trash','JTOOLBAR_TRASH');
+		}
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::divider();
+			JToolBarHelper::preferences('com_content');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.content.articles','JTOOLBAR_HELP');
 	}
 }

@@ -1,76 +1,98 @@
+
 <?php
 /**
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
 defined('_JEXEC') or die;
 
-// TODO: Make this js friendly
-//JHtml::_('behavior.caption');
+JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
 
-// If the page class is defined, wrap the whole output in a div.
+// If the page class is defined, add to class as suffix.
+// It will be a separate class if the user starts it with a space
 $pageClass = $this->params->get('pageclass_sfx');
 ?>
-<?php if ($pageClass) : ?>
-<div class="<?php echo $pageClass;?>">
-<?php endif;?>
+
+<div class="blog-featured<?php echo $pageClass;?>">
 
 <?php if ($this->params->get('show_page_title', 1)) : ?>
 <h1>
-	<?php echo $this->escape($this->params->get('page_title')); ?>
+	<?php if ($this->escape($this->params->get('page_heading'))) :?>
+		<?php echo $this->escape($this->params->get('page_heading')); ?>
+	<?php else : ?>
+		<?php echo $this->escape($this->params->get('page_title')); ?>
+	<?php endif; ?>
 </h1>
 <?php endif; ?>
-
+<?php $leadingcount=0 ; ?>
 <?php if (!empty($this->lead_items)) : ?>
-<ol class="jarticles-lead">
+<div class="items-leading">
 	<?php foreach ($this->lead_items as &$item) : ?>
-	<li<?php echo $item->state == 0 ? 'system-unpublished' : null; ?>>
+		<div class="leading-<?php echo $leadingcount; ?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
+			<?php
+				$this->item = &$item;
+				echo $this->loadTemplate('item');
+			?>
+		</div>
 		<?php
-			$this->item = &$item;
-			echo $this->loadTemplate('item');
+		      $leadingcount=$leadingcount +1;
 		?>
-	</li>
 	<?php endforeach; ?>
-</ol>
+</div>
 <?php endif; ?>
-
 <?php
-// @TODO: Account for column separator. May need different arrangement for the down-then-across case.
+      $introcount=(count($this->intro_items));
+      $counter=0;
 ?>
-<?php if (!empty($this->lead_items)) : ?>
-<ol class="jarticles columns-<?php echo (int) $this->columns;?>">
-	<?php foreach ($this->intro_items as &$item) : ?>
-	<li<?php echo $item->state == 0 ? 'system-unpublished' : null; ?>>
-		<?php
-			$this->item = &$item;
-			echo $this->loadTemplate('item');
-		?>
-	</li>
+<?php if (!empty($this->intro_items)) : ?>
+	<?php foreach ($this->intro_items as $key => &$item) : ?>
+
+	<?php
+	    $key= ($key-$leadingcount)+1;
+	    $rowcount=( ((int)$key-1) %	(int) $this->columns) +1;
+	    $row =   $counter / $this->columns ;
+
+		if($rowcount==1) : ?>
+
+	          <div class="items-row cols-<?php echo (int) $this->columns;?> <? echo 'row-'.$row ; ?>">
+		  <?php endif; ?>
+          <div class="item column-<?php echo $rowcount;?><?php echo $item->state == 0 ? ' system-unpublished"' : null; ?>">
+			  <?php
+					$this->item = &$item;
+					echo $this->loadTemplate('item');
+			  ?>
+		  </div>
+		  <?php $counter=$counter +1; ?>
+			<?php if (($rowcount == $this->columns) or ($counter ==$introcount)): ?>
+				<span class="row-separator"></span>
+				</div>
+
+			<?php endif; ?>
 	<?php endforeach; ?>
-</ol>
 <?php endif; ?>
 
 <?php if (!empty($this->link_items)) : ?>
-	<?php $this->loadTemplate('links'); ?>
+	<div class="items-more">
+	<?php echo $this->loadTemplate('links'); ?>
+	</div>
 <?php endif; ?>
-
 
 <?php if ($this->params->def('show_pagination', 2) == 1  || ($this->params->get('show_pagination') == 2 && $this->pagination->get('pages.total') > 1)) : ?>
-	<div>
-		<?php echo $this->pagination->getPagesLinks(); ?>
+	<div class="pagination">
+
+		<?php   if ($this->params->def('show_pagination_results', 1)) : ?>
+         	<p class="counter">
+                <?php echo $this->pagination->getPagesCounter(); ?>
+        	</p>
+        <?php  endif; ?>
+				<?php echo $this->pagination->getPagesLinks(); ?>
 	</div>
-	<?php if ($this->params->def('show_pagination_results', 1)) : ?>
-	<div>
-		<?php echo $this->pagination->getPagesCounter(); ?>
-	</div>
-	<?php endif; ?>
 <?php endif; ?>
 
-<?php if ($pageClass) : ?>
 </div>
-<?php endif;?>
+

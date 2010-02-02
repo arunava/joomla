@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_newsflash
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -33,9 +33,7 @@ if (!$items) {
 	return;
 }
 
-$layout = $params->get('layout', 'default');
-$layout = JFilterInput::clean($layout, 'word');
-$path = JModuleHelper::getLayoutPath('mod_newsflash', $layout);
+$path = JModuleHelper::getLayoutPath('mod_newsflash', $params->get('layout', 'default'));
 if (file_exists($path)) {
 	require $path;
 }

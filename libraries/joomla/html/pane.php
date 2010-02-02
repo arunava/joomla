@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,6 +17,7 @@ defined('JPATH_BASE') or die;
  * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
+ * @deprecated	in favour of JHtml::_ static helpers
  */
 abstract class JPane extends JObject
 {
@@ -24,23 +25,14 @@ abstract class JPane extends JObject
 	public $useCookies = false;
 
 	/**
-	* Constructor
-	*
- 	* @param	array	$params		Associative array of values
-	*/
-	function __construct($params = array())
-	{
-	}
-
-	/**
-	 * Returns a reference to a JPanel object
+	 * Returns a JPanel object.
 	 *
-	 * @param	string 	$behavior   The behavior to use
-	 * @param	boolean	$useCookies Use cookies to remember the state of the panel
-	 * @param	array 	$params		Associative array of values
+	 * @param	string 	$behavior   The behavior to use.
+	 * @param	boolean	$useCookies Use cookies to remember the state of the panel.
+	 * @param	array 	$params		Associative array of values.
 	 * @return	object
 	 */
-	public static function &getInstance($behavior = 'Tabs', $params = array())
+	public static function getInstance($behavior = 'Tabs', $params = array())
 	{
 		$classname = 'JPane'.$behavior;
 		$instance = new $classname($params);
@@ -49,38 +41,38 @@ abstract class JPane extends JObject
 	}
 
 	/**
-	 * Creates a pane and creates the javascript object for it
+	 * Creates a pane and creates the javascript object for it.
 	 *
 	 * @abstract
-	 * @param	string	The pane identifier
+	 * @param	string	The pane identifier.
 	 */
 	abstract public function startPane($id);
 
 	/**
-	 * Ends the pane
+	 * Ends the pane.
 	 *
 	 * @abstract
 	 */
 	abstract public function endPane();
 
 	/**
-	 * Creates a panel with title text and starts that panel
+	 * Creates a panel with title text and starts that panel.
 	 *
 	 * @abstract
-	 * @param	string	$text The panel name and/or title
-	 * @param	string	$id The panel identifer
+	 * @param	string	$text	The panel name and/or title.
+	 * @param	string	$id		The panel identifer.
 	 */
 	abstract public function startPanel($text, $id);
 
 	/**
-	 * Ends a panel
+	 * Ends a panel.
 	 *
 	 * @abstract
 	 */
 	abstract public function endPanel();
 
 	/**
-	 * Load the javascript behavior and attach it to the document
+	 * Load the javascript behavior and attach it to the document.
 	 *
 	 * @abstract
 	 */
@@ -88,7 +80,7 @@ abstract class JPane extends JObject
 }
 
 /**
- * JPanelTabs class to to draw parameter panes
+ * JPanelTabs class to to draw parameter panes.
  *
  * @package		Joomla.Framework
  * @subpackage	HTML
@@ -97,9 +89,9 @@ abstract class JPane extends JObject
 class JPaneTabs extends JPane
 {
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
-	 * @param	array 	$params		Associative array of values
+	 * @param	array 	$params		Associative array of values.
 	 */
 	function __construct($params = array())
 	{
@@ -114,9 +106,9 @@ class JPaneTabs extends JPane
 	}
 
 	/**
-	 * Creates a pane and creates the javascript object for it
+	 * Creates a pane and creates the javascript object for it.
 	 *
-	 * @param string The pane identifier
+	 * @param string The pane identifier.
 	 */
 	public function startPane($id)
 	{
@@ -124,7 +116,7 @@ class JPaneTabs extends JPane
 	}
 
 	/**
-	 * Ends the pane
+	 * Ends the pane.
 	 */
 	public function endPane()
 	{
@@ -132,18 +124,18 @@ class JPaneTabs extends JPane
 	}
 
 	/**
-	 * Creates a tab panel with title text and starts that panel
+	 * Creates a tab panel with title text and starts that panel.
 	 *
 	 * @param	string	$text	The name of the tab
 	 * @param	string	$id		The tab identifier
 	 */
 	public function startPanel($text, $id)
 	{
-		return '<dt id="'.$id.'"><span>'.$text.'</span></dt><dd>';
+		return '<dt class="'.$id.'"><span>'.$text.'</span></dt><dd>';
 	}
 
 	/**
-	 * Ends a tab page
+	 * Ends a tab page.
 	 */
 	public function endPanel()
 	{
@@ -151,7 +143,7 @@ class JPaneTabs extends JPane
 	}
 
 	/**
-	 * Load the javascript behavior and attach it to the document
+	 * Load the javascript behavior and attach it to the document.
 	 *
 	 * @param	array 	$params		Associative array of values
 	 */
@@ -163,9 +155,9 @@ class JPaneTabs extends JPane
 		$document = &JFactory::getDocument();
 
 		$options = '{';
-		$opt['onActive']		= (isset($params['onActive'])) ? $params['onActive'] : null ;
+		$opt['onActive']	 = (isset($params['onActive'])) ? $params['onActive'] : null ;
 		$opt['onBackground'] = (isset($params['onBackground'])) ? $params['onBackground'] : null ;
-		$opt['display']		= (isset($params['startOffset'])) ? (int)$params['startOffset'] : null ;
+		$opt['display']		 = (isset($params['startOffset'])) ? (int)$params['startOffset'] : null ;
 		foreach ($opt as $k => $v)
 		{
 			if ($v) {
@@ -177,7 +169,7 @@ class JPaneTabs extends JPane
 		}
 		$options .= '}';
 
-		$js = '		window.addEvent(\'domready\', function(){ $$(\'dl.tabs\').each(function(tabs){ new JTabs(tabs, '.$options.'); }); });';
+		$js = '	window.addEvent(\'domready\', function(){ $$(\'dl.tabs\').each(function(tabs){ new JTabs(tabs, '.$options.'); }); });';
 
 		$document->addScriptDeclaration($js);
 		$document->addScript(JURI::root(true). '/media/system/js/tabs.js');
@@ -185,7 +177,7 @@ class JPaneTabs extends JPane
 }
 
 /**
- * JPanelSliders class to to draw parameter panes
+ * JPanelSliders class to to draw parameter panes.
  *
  * @package		Joomla.Framework
  * @subpackage	HTML
@@ -194,9 +186,9 @@ class JPaneTabs extends JPane
 class JPaneSliders extends JPane
 {
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
-	 * @param int useCookies, if set to 1 cookie will hold last used tab between page refreshes
+	 * @param	array	$params	Associative array of values.
 	 */
 	function __construct($params = array())
 	{
@@ -211,9 +203,9 @@ class JPaneSliders extends JPane
 	}
 
 	/**
-	 * Creates a pane and creates the javascript object for it
+	 * Creates a pane and creates the javascript object for it.
 	 *
-	 * @param string The pane identifier
+	 * @param string The pane identifier.
 	 */
 	public function startPane($id)
 	{
@@ -221,7 +213,7 @@ class JPaneSliders extends JPane
 	}
 
 	/**
-	 * Ends the pane
+	 * Ends the pane.
 	 */
 	public function endPane()
 	{
@@ -229,20 +221,20 @@ class JPaneSliders extends JPane
 	}
 
 	/**
-	 * Creates a tab panel with title text and starts that panel
+	 * Creates a tab panel with title text and starts that panel.
 	 *
-	 * @param	string	$text - The name of the tab
-	 * @param	string	$id - The tab identifier
+	 * @param	string	$text	The name of the tab.
+	 * @param	string	$id		The tab identifier.
 	 */
 	public function startPanel($text, $id)
 	{
 		return '<div class="panel">'
-			.'<h3 class="jpane-toggler title" id="'.$id.'"><span>'.$text.'</span></h3>'
+			.'<h3 class="jpane-toggler title" id="'.$id.'"><a href="#"><span>'.$text.'</span></a></h3>'
 			.'<div class="jpane-slider content">';
 	}
 
 	/**
-	 * Ends a tab page
+	 * Ends a tab page.
 	 */
 	public function endPanel()
 	{
@@ -250,13 +242,13 @@ class JPaneSliders extends JPane
 	}
 
 	/**
-	 * Load the javascript behavior and attach it to the document
+	 * Load the javascript behavior and attach it to the document.
 	 *
-	 * @param	array 	$params		Associative array of values
+	 * @param	array 	$params		Associative array of values.
 	 */
 	protected function _loadBehavior($params = array())
 	{
-		// Include mootools framework
+		// Include mootools framework.
 		JHtml::_('behavior.framework', true);
 
 		$document = &JFactory::getDocument();
@@ -280,7 +272,7 @@ class JPaneSliders extends JPane
 		}
 		$options .= '}';
 
-		$js = '		window.addEvent(\'domready\', function(){ new Accordion($$(\'.panel h3.jpane-toggler\'), $$(\'.panel div.jpane-slider\'), '.$options.'); });';
+		$js = '	window.addEvent(\'domready\', function(){ new Accordion($$(\'.panel h3.jpane-toggler\'), $$(\'.panel div.jpane-slider\'), '.$options.'); });';
 
 		$document->addScriptDeclaration($js);
 	}

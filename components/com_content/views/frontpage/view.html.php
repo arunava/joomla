@@ -1,24 +1,23 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
 defined('_JEXEC') or die;
 
-require_once (JPATH_COMPONENT.DS.'view.php');
+jimport('joomla.application.component.view');
 
 /**
  * Frontpage View class
  *
- * @static
  * @package		Joomla.Site
  * @subpackage	com_content
- * @since 1.5
+ * @since		1.5
  */
-class ContentViewFrontpage extends ContentView
+class ContentViewFrontpage extends JView
 {
 	protected $state = null;
 	protected $item = null;
@@ -37,7 +36,7 @@ class ContentViewFrontpage extends ContentView
 	 */
 	function display($tpl = null)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$user		= &JFactory::getUser();
 		$app		= &JFactory::getApplication();
 
@@ -60,11 +59,11 @@ class ContentViewFrontpage extends ContentView
 		$numIntro	= $params->def('num_intro_articles',	4);
 		$numLinks	= $params->def('num_links', 			4);
 
-		// Compute the weblink slug and prepare description (runs content plugins).
+		// Compute the article slugs and prepare introtext (runs content plugins).
 		foreach ($items as $i => &$item)
 		{
 			$item->slug		= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
-			$item->catslug	= $item->category_alias ? ($item->catid.':'.$item->category_alias) : $item->catid;
+			$item->catslug	= $item->category_route ? ($item->catid.':'.$item->category_route) : $item->catid;
 			$item->event	= new stdClass();
 
 			$dispatcher	= &JDispatcher::getInstance();
@@ -101,7 +100,7 @@ class ContentViewFrontpage extends ContentView
 		$this->columns	= max(1, $params->def('num_columns', 1));
 		$order		= $params->def('multi_column_order', 1);
 
-		if ($order == 1 || $this->columns == 1)
+		if ($order !== 1 || $this->columns == 1)
 		{
 			// Order articles across, then down (or single column mode)
 			for ($i = $numLeading; $i < $limit &&$i < $max; $i++) {
@@ -150,8 +149,10 @@ class ContentViewFrontpage extends ContentView
 		// we need to get it from the menu item itself
 		if ($menu = $menus->getActive())
 		{
-			$menuParams = new JParameter($menu->params);
-			$title = $menuParams->get('page_title');
+			$menuParams = new JObject(json_decode($menu->params, true));
+			if ($pageTitle = $menuParams->get('page_title')) {
+				$title = $pageTitle;
+			}
 		}
 		if (empty($title)) {
 			$title	= htmlspecialchars_decode($app->getCfg('sitename'));

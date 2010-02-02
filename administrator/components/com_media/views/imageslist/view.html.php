@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,28 +11,25 @@ defined('_JEXEC') or die;
 jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * HTML View class for the Media component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewImagesList extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
-
 		// Do not allow cache
 		JResponse::allowCache(false);
 
 		$app = JFactory::getApplication();
 		$append = '';
-		if ($app->getClientId() == 1) $append = 'administrator/';
+		// if ($app->getClientId() == 1) $append = 'administrator/';
 
 		JHtml::_('behavior.framework', true);
-		JHtml::_('stylesheet', 'popup-imagelist.css', $append .'components/com_media/assets/');
+		JHtml::_('stylesheet', 'popup-imagelist.css', $append .'media/media/');
 
 		$document = &JFactory::getDocument();
 		$document->addScriptDeclaration("var ImageManager = window.parent.ImageManager;");

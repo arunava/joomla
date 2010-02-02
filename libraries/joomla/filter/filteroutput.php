@@ -3,9 +3,12 @@
  * @version		$Id:output.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Filter
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+// No direct access
+defined('JPATH_BASE') or die();
 
 /**
  * JFilterOutput
@@ -90,6 +93,39 @@ class JFilterOutput
 		return $str;
 	}
 
+ 	/**
+	 * This method implements unicode slugs instead of transliteration.
+	 *
+	 * @static
+	 * @param	string	$input	String to process
+	 * @return	string	Processed string
+	 * @since	1.6
+	*/
+	function stringURLUnicodeSlug($string)
+	{
+		//replace double byte whitespaces by single byte (Far-East languages)
+		$str = preg_replace('/\xE3\x80\x80/', ' ', $string);
+
+
+		// remove any '-' from the string as they will be used as concatenator.
+		// Would be great to let the spaces in but only Firefox is friendly with this
+
+		$str = str_replace('-', ' ', $str);
+
+		// replace forbidden characters by whitespaces
+		$str = preg_replace( '#[:\#\*"@+=;!&%()\]\/\'\\\\|\[]#',"\x20", $str );
+
+		//delete all '?'
+		$str = str_replace('?', '', $str);
+
+		//trim white spaces at beginning and end of alias
+		$str = trim( $str );
+
+		// remove any duplicate whitespace and replace whitespaces by hyphens
+		$str =preg_replace('#\x20+#','-', $str);
+		return $str;
+	}
+
 	/**
 	* Replaces &amp; with & for xhtml compliance
 	*
@@ -98,7 +134,7 @@ class JFilterOutput
 	* @static
 	* @since 1.5
 	*/
-	function ampReplace($text)
+	static function ampReplace($text)
 	{
 		$text = str_replace('&&', '*--*', $text);
 		$text = str_replace('&#', '*-*', $text);
@@ -137,7 +173,7 @@ class JFilterOutput
 		$text = preg_replace('/&amp;/', ' ', $text);
 		$text = preg_replace('/&quot;/', ' ', $text);
 		$text = strip_tags($text);
-		$text = htmlspecialchars($text);
+		$text = htmlspecialchars($text, ENT_COMPAT, 'UTF-8');
 		return $text;
 	}
 }

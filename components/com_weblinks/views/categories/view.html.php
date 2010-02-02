@@ -1,9 +1,7 @@
 <?php
 /**
- * @version		$Id$
- * @package		Joomla.Site
- * @subpackage	Weblinks
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id: view.html.php 12416 2009-07-03 08:49:14Z eddieajau $
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,23 +11,29 @@ defined('_JEXEC') or die;
 jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * Content categories view.
  *
- * @static
  * @package		Joomla.Site
- * @subpackage	Weblinks
- * @since 1.0
+ * @subpackage	com_weblinks
+ * @since 1.5
  */
 class WeblinksViewCategories extends JView
 {
-	public $state;
-	public $items;
-	public $pagination;
+	protected $state = null;
+	protected $item = null;
+	protected $items = null;
+	protected $pagination = null;
 
+	/**
+	 * Display the view
+	 *
+	 * @return	mixed	False on error, null otherwise.
+	 */
 	function display($tpl = null)
 	{
+		// Initialise variables.
+		$user		= &JFactory::getUser();
 		$app		= &JFactory::getApplication();
-		$params		= &$app->getParams();
 
 		$state		= $this->get('State');
 		$items		= $this->get('Items');
@@ -37,25 +41,25 @@ class WeblinksViewCategories extends JView
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
-			JError::raiseError(500, implode("\n", $errors));
+			JError::raiseWarning(500, implode("\n", $errors));
 			return false;
 		}
+
+		$params = &$state->params;
 
 		// PREPARE THE DATA
 
 		// Compute the weblink slug and prepare description (runs content plugins).
-		for ($i = 0, $n = count($items); $i < $n; $i++)
+		foreach ($items as $i => &$item)
 		{
-			$item		= &$items[$i];
-			$item->slug	= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
-
-			// TODO: only use if the description is displayed
-			$item->description = JHtml::_('content.prepare', $item->description);
+			$item->slug			= $item->route ? ($item->id.':'.$item->route) : $item->id;
+			$item->description	= JHtml::_('content.prepare', $item->description);
 		}
 
 		$this->assignRef('params',		$params);
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
+		$this->assignRef('user',		$user);
 
 		$this->_prepareDocument();
 
@@ -67,22 +71,32 @@ class WeblinksViewCategories extends JView
 	 */
 	protected function _prepareDocument()
 	{
+		$app	= &JFactory::getApplication();
 		$menus	= &JSite::getMenu();
+		$title	= null;
 
 		// Because the application sets a default page title,
 		// we need to get it from the menu item itself
 		if ($menu = $menus->getActive())
 		{
 			$menuParams = new JParameter($menu->params);
-			if ($title = $menuParams->get('page_title')) {
-				$this->document->setTitle($title);
-			}
-			else {
-				$this->document->setTitle(JText::_('Web Links'));
-			}
+			$title = $menuParams->get('page_title');
 		}
-		else {
-			$this->document->setTitle(JText::_('Web Links'));
+		if (empty($title)) {
+			$title	= htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		$this->document->setTitle($title);
+
+		// Add feed links
+		if ($this->params->get('show_feed_link', 1))
+		{
+			$link = '&format=feed&limitstart=';
+
+			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
+
+			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
 		}
 	}
 }

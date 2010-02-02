@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -27,14 +27,14 @@ class MenusModelMenu extends JModelForm
 	 protected $_context		= 'com_menus.menu';
 
 	/**
-	 * Returns a reference to the a Table object, always creating it
+	 * Returns a Table object, always creating it
 	 *
 	 * @param	type 	$type 	 The table type to instantiate
 	 * @param	string 	$prefix	 A prefix for the table class name. Optional.
 	 * @param	array	$options Configuration array for model. Optional.
 	 * @return	JTable	A database object
 	*/
-	public function &getTable($type = 'MenuType', $prefix = 'JTable', $config = array())
+	public function getTable($type = 'MenuType', $prefix = 'JTable', $config = array())
 	{
 		return JTable::getInstance($type, $prefix, $config);
 	}
@@ -46,8 +46,7 @@ class MenusModelMenu extends JModelForm
 	 */
 	protected function _populateState()
 	{
-		$app	= &JFactory::getApplication('administrator');
-		$params	= &JComponentHelper::getParams('com_menus');
+		$app = JFactory::getApplication('administrator');
 
 		// Load the User state.
 		if (!($id = (int)$app->getUserState('com_menus.edit.menu.id'))) {
@@ -56,6 +55,7 @@ class MenusModelMenu extends JModelForm
 		$this->setState('menu.id', $id);
 
 		// Load the parameters.
+		$params = JComponentHelper::getParams('com_menus');
 		$this->setState('params', $params);
 	}
 
@@ -68,7 +68,7 @@ class MenusModelMenu extends JModelForm
 	 */
 	public function &getItem($itemId = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$itemId = (!empty($itemId)) ? $itemId : (int)$this->getState('menu.id');
 		$false	= false;
 
@@ -93,20 +93,26 @@ class MenusModelMenu extends JModelForm
 	 *
 	 * @return	mixed	JForm object on success, false on failure.
 	 */
-	public function &getForm()
+	public function getForm()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication();
 
-		if ($form = &parent::getForm('menu'))
-		{
-			// Check the session for previously entered form data.
-			$data = $app->getUserState('com_menus.edit.menu.data', array());
+		// Get the form.
+		$form = parent::getForm('menu', 'com_menus.menu', array('array' => 'jform', 'event' => 'onPrepareForm'));
 
-			// Bind the form data if present.
-			if (!empty($data)) {
-				$form->bind($data);
-			}
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
+			return false;
+		}
+
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_menus.edit.menu.data', array());
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
 		}
 
 		return $form;
@@ -171,8 +177,7 @@ class MenusModelMenu extends JModelForm
 		$table = &$this->getTable();
 
 		// Iterate the items to delete each one.
-		foreach ($itemIds as $itemId)
-		{
+		foreach ($itemIds as $itemId) {
 			// TODO: Delete the menu associations - Menu items and Modules
 
 			if (!$table->delete($itemId))
@@ -203,12 +208,10 @@ class MenusModelMenu extends JModelForm
 
 		$result = array();
 
-		foreach ($modules as &$module)
-		{
+		foreach ($modules as &$module) {
 			if ($module->params[0] == '{') {
 				$params = JArrayHelper::toObject(json_decode($module->params, true), 'JObject');
-			}
-			else {
+			} else {
 				$params = new JParameter($module->params);
 			}
 

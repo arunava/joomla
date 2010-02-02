@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Administrator
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,14 +22,13 @@ class JElementNewsfeed extends JElement
 	/**
 	 * Element name
 	 *
-	 * @access	protected
 	 * @var		string
 	 */
-	var	$_name = 'Newsfeed';
+	protected	$_name = 'Newsfeed';
 
-	function fetchElement($name, $value, &$node, $control_name)
+	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		$query = 'SELECT a.id, c.title, a.name'
 		. ' FROM #__newsfeeds AS a'

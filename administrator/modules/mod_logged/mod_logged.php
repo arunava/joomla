@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Administrator
- * @copyright		Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright		Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -53,4 +53,4 @@ $query = 'SELECT username, time, userid, usertype, client_id'
 $db->setQuery($query);
 $rows = $db->loadObjectList();
 
-require(dirname(__FILE__).DS.'tmpl'.DS.'default.php');
+require dirname(__FILE__).'/tmpl/default.php';

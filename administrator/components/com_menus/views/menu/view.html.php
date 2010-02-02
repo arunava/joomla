@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -52,10 +52,23 @@ class MenusViewMenu extends JView
 	protected function _setToolBar()
 	{
 		$isNew	= ($this->item->id == 0);
-		JToolBarHelper::title(JText::_($isNew ? 'Menus_Title_Add_Menu' : 'Menus_Title_Edit_Menu'));
+		JToolBarHelper::title(JText::_($isNew ? 'Menus_View_New_Menu_Title' : 'Menus_View_Edit_Menu_Title'));
 
-		JToolBarHelper::save('menu.save');
-		JToolBarHelper::apply('menu.apply');
-		JToolBarHelper::cancel('menu.cancel');
+		JToolBarHelper::apply('menu.apply','JTOOLBAR_APPLY');
+		JToolBarHelper::save('menu.save','JTOOLBAR_SAVE');
+		JToolBarHelper::addNew('menu.save2new', 'JToolbar_Save_and_new');
+
+		// If an existing item, can save to a copy.
+		if (!$isNew) {
+			JToolBarHelper::custom('menu.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_copy', false);
+		}
+		if ($isNew) {
+			JToolBarHelper::cancel('menu.cancel', 'JToolbar_Cancel');
+		}
+		else {
+			JToolBarHelper::cancel('menu.cancel', 'JToolbar_Close');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.menus.menu','JTOOLBAR_HELP');
 	}
 }

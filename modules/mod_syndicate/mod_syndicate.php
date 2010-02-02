@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_syndicate
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,4 +22,4 @@ if (is_null($link)) {
 	return;
 }
 
-require JModuleHelper::getLayoutPath('mod_syndicate');
+require JModuleHelper::getLayoutPath('mod_syndicate', $params->get('layout', 'default'));

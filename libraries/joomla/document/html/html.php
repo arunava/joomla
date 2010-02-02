@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Document
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,6 +18,8 @@ jimport('joomla.application.module.helper');
  * @subpackage	Document
  * @since		1.5
  */
+
+jimport('joomla.document.document');
 
 class JDocumentHTML extends JDocument
 {
@@ -183,7 +185,7 @@ class JDocumentHTML extends JDocument
 			return $this->_buffer;
 		}
 
-		$result = '';
+		$result = null;
 		if (isset($this->_buffer[$type][$name])) {
 			return $this->_buffer[$type][$name];
 		}
@@ -202,14 +204,19 @@ class JDocumentHTML extends JDocument
 	/**
 	 * Set the contents a document include
 	 *
-	 * @access public
-	 * @param string 	$type		The type of renderer
-	 * @param string 	$name		oke The name of the element to render
-	 * @param string 	$content	The content to be set in the buffer
+	 * @param	string	$content	The content to be set in the buffer.
+	 * @param	array	$options	Array of optional elements.
 	 */
-	function setBuffer($contents, $type, $name = null)
+	public function setBuffer($content, $options = array())
 	{
-		$this->_buffer[$type][$name] = $contents;
+		// The following code is just for backward compatibility.
+		if (func_num_args() > 1 && !is_array($options)) {
+			$args = func_get_args(); $options = array();
+			$options['type'] = $args[1];
+			$options['name'] = (isset($args[2])) ? $args[2] : null;
+		}
+
+		$this->_buffer[$options['type']][$options['name']] = $content;
 	}
 
 	/**
@@ -255,8 +262,9 @@ class JDocumentHTML extends JDocument
 	{
 		$result = '';
 
-		$words = explode(' ', $condition);
-		for ($i = 0; $i < count($words); $i+=2)
+        $operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<\=|\>\=|and|or|xor) ';
+		$words = preg_split('# '.$operators.' #', $condition, null, PREG_SPLIT_DELIM_CAPTURE);
+		for ($i = 0, $n = count($words); $i < $n; $i+=2)
 		{
 			// odd parts (modules)
 			$name		= strtolower($words[$i]);
@@ -304,7 +312,6 @@ class JDocumentHTML extends JDocument
 	function _loadTemplate($directory, $filename)
 	{
 //		$component	= JApplicationHelper::getComponentName();
-		$mainframe	= &JFactory::getApplication();
 
 		$contents = '';
 
@@ -340,7 +347,7 @@ class JDocumentHTML extends JDocument
 	}
 
 	/**
-	 * Fetch the template, and initialize the params
+	 * Fetch the template, and initialise the params
 	 *
 	 * @param array parameters to determine the template
 	 */
@@ -348,8 +355,9 @@ class JDocumentHTML extends JDocument
 	 {
 		// check
 		$directory	= isset($params['directory']) ? $params['directory'] : 'templates';
-		$template	= JFilterInput::clean($params['template'], 'cmd');
-		$file		= JFilterInput::clean($params['file'], 'cmd');
+		$filter		= JFilterInput::getInstance();
+		$template	= $filter->clean($params['template'], 'cmd');
+		$file		= $filter->clean($params['file'], 'cmd');
 
 		if (!file_exists($directory.DS.$template.DS.$file)) {
 			$template = 'system';
@@ -357,15 +365,15 @@ class JDocumentHTML extends JDocument
 
 		// Load the language file for the template
 		$lang = &JFactory::getLanguage();
-		// 1.5 or core
-		$lang->load('tpl_'.$template);
 		// 1.6
 		$lang->load('tpl_'.$template, $directory.DS.$template);
+		// 1.5 or core
+		$lang->load('tpl_'.$template);
 
 		// Assign the variables
 		$this->template = $template;
 		$this->baseurl  = JURI::base(true);
-		$this->params   = new JParameter($params['params']);
+		$this->params   = isset($params['params']) ? $params['params'] : new JParameter;
 
 		// load
 		$this->_template = $this->_loadTemplate($directory.DS.$template, $file);

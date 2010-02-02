@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Mail
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -55,7 +55,8 @@ abstract class JMailHelper
 	 * @return	string	Cleaned E-Mail body string.
 	 * @since	1.5
 	 */
-	function cleanBody($body) {
+	public static function cleanBody($body)
+	{
 		// Strip all E-Mail headers from a string
 		return preg_replace("/((From:|To:|Cc:|Bcc:|Subject:|Content-type:) ([\S]+))/", "", $body);
 	}

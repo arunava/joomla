@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Language
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,7 +12,7 @@ defined('JPATH_BASE') or die;
 
 /**
  * @package 	Joomla.Framework
- * @subpackage		Language
+ * @subpackage	Language
  * @static
  * @since 1.5
  */
@@ -21,13 +21,12 @@ class JLanguageHelper
 	/**
 	 * Builds a list of the system languages which can be used in a select option
 	 *
-	 * @access	public
 	 * @param	string	Client key for the area
 	 * @param	string	Base path to use
 	 * @param	array	An array of arrays (text, value, selected)
 	 * @since	1.5
 	 */
-	function createLanguageList($actualLanguage, $basePath = JPATH_BASE, $caching = false)
+	public static function createLanguageList($actualLanguage, $basePath = JPATH_BASE, $caching = false)
 	{
 		$list = array ();
 
@@ -50,13 +49,12 @@ class JLanguageHelper
 	}
 
 	/**
- 	 * Tries to detect the language
+ 	 * Tries to detect the language.
  	 *
- 	 * @access	public
  	 * @return	string locale
  	 * @since	1.5
  	 */
-	function detectLanguage()
+	public static function detectLanguage()
 	{
 		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 		{
@@ -71,11 +69,18 @@ class JLanguageHelper
 
 				foreach($systemLangs as $systemLang => $metadata)
 				{
-					if (strtolower($browserLang) == strtolower(substr($metadata['tag'], 0, strlen($browserLang)))) {
-						return $systemLang;
-					} elseif ($primary_browserLang == substr($metadata['tag'], 0, 2)) {
-						$primaryDetectedLang = $systemLang;
-					}
+				// take off 3 letters iso code languages as they can't match browsers' languages and default them to en
+					$Jinstall_lang = $metadata['tag'];
+					
+					if (strlen($Jinstall_lang) < 6) 
+					{
+						if (strtolower($browserLang) == strtolower(substr($metadata['tag'], 0, strlen($browserLang)))) {
+							return $systemLang;
+						}
+						else if ($primary_browserLang == substr($metadata['tag'], 0, 2)) {
+							$primaryDetectedLang = $systemLang;
+						}
+					}	
 				}
 
 				if (isset($primaryDetectedLang)) {
@@ -86,5 +91,4 @@ class JLanguageHelper
 
 		return 'en-GB';
 	}
-
 }

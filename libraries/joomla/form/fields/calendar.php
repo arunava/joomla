@@ -1,15 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
-jimport('joomla.form.field');
+require_once dirname(__FILE__).'/text.php';
 
 /**
  * Form Field class for the Joomla Framework.
@@ -20,7 +19,7 @@ jimport('joomla.form.field');
  */
 class JFormFieldCalendar extends JFormFieldText
 {
-   /**
+	/**
 	 * The field type.
 	 *
 	 * @var		string
@@ -34,13 +33,46 @@ class JFormFieldCalendar extends JFormFieldText
 	 */
 	protected function _getInput()
 	{
-		$format = $this->_element->attributes('format');
-		$time	= $this->_element->attributes('time');
+		$format = ((string)$this->_element->attributes()->format) ? (string)$this->_element->attributes()->format : '%Y-%m-%d';
+		$filter = (string)$this->_element->attributes()->filter;
+		$time = (string)$this->_element->attributes()->time;
+		$onchange = (string)$this->_element->attributes()->onchange ? ' onchange="'.$this->_replacePrefix((string)$this->_element->attributes()->onchange).'"' : '';
 
 		if ($this->value == 'now') {
 			$this->value = strftime($format);
 		}
 
-		return JHtml::calendar($this->value, $this->inputName, $this->inputId, $format);
+		// Get some system objects.
+		$config = JFactory::getConfig();
+		$user	= JFactory::getUser();
+
+		switch (strtoupper($filter))
+		{
+			case 'SERVER_UTC':
+				// Convert a date to UTC based on the server timezone.
+				if (intval($this->value)) {
+					// Get a date object based on the correct timezone.
+					$date = JFactory::getDate($this->value, 'UTC');
+					$date->setOffset($config->getValue('config.offset'));
+
+					// Transform the date string.
+					$this->value = $date->toMySQL(true);
+				}
+				break;
+
+			case 'USER_UTC':
+				// Convert a date to UTC based on the user timezone.
+				if (intval($this->value)) {
+					// Get a date object based on the correct timezone.
+					$date = JFactory::getDate($this->value, 'UTC');
+					$date->setOffset($user->getParam('timezone', $config->getValue('config.offset')));
+
+					// Transform the date string.
+					$this->value = $date->toMySQL(true);
+				}
+				break;
+		}
+
+		return JHtml::_('calendar', $this->value, $this->inputName, $this->inputId, $format, $onchange);
 	}
 }

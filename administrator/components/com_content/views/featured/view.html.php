@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -19,7 +19,6 @@ class ContentViewFeatured extends JView
 	protected $state;
 	protected $items;
 	protected $pagination;
-	protected $f_published;
 
 	/**
 	 * Display the view
@@ -40,35 +39,40 @@ class ContentViewFeatured extends JView
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
 
-		// Published filter.
-		$options	= array();
-		$options[]	= JHtml::_('select.option', '1', 'JCommon_Option_Filter_Published');
-		$options[]	= JHtml::_('select.option', '0', 'JCommon_Option_Filter_Unpublished');
-		$options[]	= JHtml::_('select.option', '-1', 'Content_Option_Filter_Archived');
-		$options[]	= JHtml::_('select.option', '-2', 'JCommon_Option_Filter_Trash');
-		$options[]	= JHtml::_('select.option', '*', 'JCommon_Option_Filter_All');
-		$this->assign('f_published', $options);
-
 		$this->_setToolbar();
 		parent::display($tpl);
 	}
 
 	/**
 	 * Display the toolbar
-	 *
-	 * @access	private
 	 */
 	protected function _setToolbar()
 	{
-		$state = $this->get('State');
-		JToolBarHelper::title(JText::_('Content_Featured_Title'), 'frontpage.png');
-		if ($state->get('filter.published') != -1) {
-			JToolBarHelper::archiveList('featured.archive');
+		$canDo	= ContentHelper::getActions($this->state->get('filter.category_id'));
+
+		JToolBarHelper::title(JText::_('Content_Featured_Title'), 'featured.png');
+
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::custom('article.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
 		}
-		JToolBarHelper::custom('featured.publish', 'publish.png', 'publish_f2.png', 'Publish', true);
-		JToolBarHelper::custom('featured.unpublish', 'unpublish.png', 'unpublish_f2.png', 'Unpublish', true);
-		JToolBarHelper::custom('featured.delete','delete.png','delete_f2.png','JToolbar_Remove', true);
-		JToolBarHelper::custom('article.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
-		JToolBarHelper::custom('article.edit', 'new.png', 'new_f2.png', 'New', false);
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::custom('article.edit', 'edit.png', 'edit_f2.png','JTOOLBAR_EDIT', true);
+		}
+		JToolBarHelper::divider();
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::custom('articles.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
+			JToolBarHelper::custom('articles.unpublish', 'unpublish.png', 'unpublish_f2.png','JTOOLBAR_UNPUBLISH', true);
+			JToolBarHelper::custom('featured.delete','remove.png','remove_f2.png','JToolbar_Remove', true);
+			if ($this->state->get('filter.published') != -1) {
+				JToolBarHelper::archiveList('articles.archive','JTOOLBAR_ARCHIVE');
+			}
+
+		}
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::divider();
+			JToolBarHelper::preferences('com_content');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.content.featured','JTOOLBAR_HELP');
 	}
 }

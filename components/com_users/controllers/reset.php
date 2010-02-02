@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -27,7 +27,7 @@ class UsersControllerReset extends UsersController
 	function request()
 	{
 		// Check the request token.
-		JRequest::checkToken('post') or jexit(JText::_('INVALID_TOKEN'));
+		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
 
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('User', 'UsersModel');
@@ -92,7 +92,7 @@ class UsersControllerReset extends UsersController
 	function confirm()
 	{
 		// Check the request token.
-		JRequest::checkToken('request') or jexit(JText::_('INVALID_TOKEN'));
+		JRequest::checkToken('request') or jexit(JText::_('JInvalid_Token'));
 
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('User', 'UsersModel');
@@ -155,8 +155,8 @@ class UsersControllerReset extends UsersController
 	 */
 	function complete()
 	{
-		// Check the request token.
-		JRequest::checkToken('post') or jexit(JText::_('INVALID_TOKEN'));
+		// Check for request forgeries
+		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
 
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('User', 'UsersModel');

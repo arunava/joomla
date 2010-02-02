@@ -3,14 +3,14 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_newsflash
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
 defined('_JEXEC') or die;
 
-require_once (JPATH_SITE.DS.'components'.DS.'com_content'.DS.'helpers'.DS.'route.php');
+require_once JPATH_SITE.'/components/com_content/router.php';
 
 class modNewsFlashHelper
 {
@@ -19,6 +19,7 @@ class modNewsFlashHelper
 		$app	= &JFactory::getApplication();
 		$user 	= &JFactory::getUser();
 		$groups	= $user->authorisedLevels();
+		// $groups	= implode(',', $groups);
 
 		$item->text		= $item->introtext;
 		$item->groups	= '';
@@ -34,7 +35,7 @@ class modNewsFlashHelper
 			{
 				// Check to see if the user has access to view the full article
 				if (in_array($item->access, $groups)) {
-					$item->linkOn = JRoute::_(ContentHelperRoute::getArticleRoute($item->slug, $item->catslug, $item->sectionid));
+					$item->linkOn = JRoute::_(ContentRoute::article($item->slug, $item->catslug, $item->sectionid));
 					$item->linkText = JText::_('Read more text');
 				}
 				else {
@@ -54,7 +55,7 @@ class modNewsFlashHelper
 		$results = $app->triggerEvent('onBeforeDisplayContent', array (&$item, &$params, 1));
 		$item->beforeDisplayContent = trim(implode("\n", $results));
 
-		require(JModuleHelper::getLayoutPath('mod_newsflash', '_item'));
+		require JModuleHelper::getLayoutPath('mod_newsflash', '_item');
 	}
 
 	function getList(&$params, &$access)
@@ -79,15 +80,12 @@ class modNewsFlashHelper
 			' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(":", cc.id, cc.alias) ELSE cc.id END as catslug'.
 			' FROM #__content AS a' .
 			' INNER JOIN #__categories AS cc ON cc.id = a.catid' .
-			' INNER JOIN #__sections AS s ON s.id = a.sectionid' .
 			' WHERE a.state = 1 ' .
-			($noauth ? ' AND a.access IN ('.$groups.') AND cc.access IN ('.$groups.') AND s.access IN ('.$groups.')' : '').
+			($noauth ? ' AND a.access IN ('.$groups.') AND cc.access IN ('.$groups.') ' : '').
 			' AND (a.publish_up = '.$db->Quote($nullDate).' OR a.publish_up <= '.$db->Quote($now).') ' .
 			' AND (a.publish_down = '.$db->Quote($nullDate).' OR a.publish_down >= '.$db->Quote($now).')' .
 			' AND cc.id = '. (int) $catid .
-			' AND cc.section = s.id' .
 			' AND cc.published = 1' .
-			' AND s.published = 1' .
 			' ORDER BY a.ordering';
 		$db->setQuery($query, 0, $items);
 		$rows = $db->loadObjectList();

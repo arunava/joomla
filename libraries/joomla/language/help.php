@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Language
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,18 +18,18 @@ class JHelp
 {
 
 	/**
-	* Create an URL for a giving help file reference
-	*
-	* @param string The name of the popup file (excluding the file extension for an xml file)
-	* @param boolean Use the help file in the component directory
-	*/
-	function createURL($ref, $useComponent = false)
+	 * Create an URL for a giving help file reference
+	 *
+	 * @param string The name of the popup file (excluding the file extension for an xml file)
+	 * @param boolean Use the help file in the component directory
+	 */
+	static function createURL($ref, $useComponent = false)
 	{
-		global $mainframe, $option;
-
+		$component		= JApplicationHelper::getComponentName();
+		$app			= &JFactory::getApplication();
 		$user			= &JFactory::getUser();
 		$userHelpUrl	= $user->getParam('helpsite');
-		$globalHelpUrl 	= $mainframe->getCfg('helpurl');
+		$globalHelpUrl 	= $app->getCfg('helpurl');
 		$lang			= &JFactory::getLanguage();
 
 		if ($useComponent) {
@@ -37,7 +37,7 @@ class JHelp
 				$ref = $ref . '.html';
 			}
 
-			$url = 'components/' . $option. '/help';
+			$url = 'components/' . $component. '/help';
 			$tag =  $lang->getTag();
 
 			// Check if the file exists within a different language!
@@ -96,16 +96,17 @@ class JHelp
 	 * @param string	Language tag to select (if exists)
 	 * @param array	An array of arrays (text, value, selected)
 	 */
-	function createSiteList($pathToXml, $selected = null)
+	static function createSiteList($pathToXml, $selected = null)
 	{
 		$list	= array ();
-		$xml	= &JFactory::getXMLParser('Simple');
 		$data	= null;
+		$xml = false;
+
 		if (!empty($pathToXml)) {
-			$data = file_get_contents($pathToXml);
+			$xml = JFactory::getXML($pathToXml);
 		}
 
-		if (empty($data))
+		if( ! $xml)
 		{
 			$option['text'] = 'English (GB) help.joomla.org';
 			$option['value'] = 'http://help.joomla.org';
@@ -113,24 +114,14 @@ class JHelp
 		}
 		else
 		{
-			if ($xml->loadString($data))
+			$option = array ();
+
+			foreach ($xml->sites->site as $site)
 			{
-				// Are there any languages??
-				$elmSites = & $xml->document->sites[0];
+				$option['text'] = (string)$site;
+				$option['value'] = (string)$site->attributes()->url;
 
-				if (is_object($elmSites)) {
-
-					$option = array ();
-					$sites = $elmSites->children();
-					foreach ($sites as $site)
-					{
-						$text				= $site->data();
-						$url				= $site->attributes('url');
-						$option['text']		= $text;
-						$option['value']	= $url;
-						$list[]				= $option;
-					}
-				}
+				$list[] = $option;
 			}
 		}
 

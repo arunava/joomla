@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Articles
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,14 +23,13 @@ class JElementAuthor extends JElement
 	/**
 	 * The name of the element.
 	 *
-	 * @access	protected
 	 * @var		string
 	 */
 	var	$_name = 'Author';
 
 	function fetchElement($name, $value, &$node, $control_name)
 	{
-		$access	= &JFactory::getACL();
+		$access	= JFactory::getACL();
 
 		// Include user in groups that have access to edit their articles, other articles, or manage content.
 		$action = array('com_content.article.edit_own', 'com_content.article.edit_article', 'com_content.manage');
@@ -55,8 +54,8 @@ class JElementAuthor extends JElement
 		$query->where('m.group_id IN ('.$groups.')');
 
 		// Get the users.
-		$db = &JFactory::getDbo();
-		$db->setQuery($query->toString());
+		$db = JFactory::getDbo();
+		$db->setQuery((string) $query);
 		$users = $db->loadObjectList();
 
 		// Check for a database error.

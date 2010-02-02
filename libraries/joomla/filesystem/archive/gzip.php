@@ -3,7 +3,7 @@
  * @version		$Id:gzip.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -55,7 +55,7 @@ class JArchiveGzip extends JObject
 	*/
 	function extract($archive, $destination, $options = array ())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$this->_data = null;
 
 		if (!extension_loaded('zlib')) {
@@ -89,14 +89,14 @@ class JArchiveGzip extends JObject
 			$this->set('error.message', 'Unable to read archive (gz)');
 			return JError::raiseWarning(100, $this->get('error.message'));
 		}
-		
+
 		$output =& JFactory::getStream();
 		if(!$output->open($destination, 'w')) {
 			$this->set('error.message', 'Unable to write archive (gz)');
 			$input->close(); // close the previous file
 			return JError::raiseWarning(100, $this->get('error.message'));
 		}
-		
+
 		$written = 0;
 		do {
 			$this->_data = $input->read($input->get('chunksize', 8196));

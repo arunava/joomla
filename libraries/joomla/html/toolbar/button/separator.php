@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -29,7 +29,7 @@ class JButtonSeparator extends JButton
 
 	public function render(&$definition)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$class	= null;
 		$style	= null;
 
@@ -38,7 +38,7 @@ class JButtonSeparator extends JButton
 		// Custom width
 		$style = (empty($definition[2])) ? null : ' style="width:' .  intval($definition[2]) . 'px;"';
 
-		return '<td class="' . $class . '"' . $style . ">\n</td>\n";
+		return '<li class="' . $class . '"' . $style . ">\n</li>\n";
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Application
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -20,10 +20,8 @@ class JRouterAdministrator extends JRouter
 {
 	/**
 	 * Function to convert a route to an internal URI
-	 *
-	 * @access public
 	 */
-	function parse($uri)
+	public function parse(&$uri)
 	{
 		return array();
 	}
@@ -31,7 +29,7 @@ class JRouterAdministrator extends JRouter
 	/**
 	 * Function to convert an internal URI to a route
 	 *
-	 * @param	string	$string	The internal URL
+	 * @param	string	The internal URL
 	 * @return	string	The absolute search engine friendly URL
 	 * @since	1.5
 	 */
@@ -40,9 +38,9 @@ class JRouterAdministrator extends JRouter
 		//Create the URI object
 		$uri =& parent::build($url);
 		// Get the path data
-		$route = $uri->getPath();		
+		$route = $uri->getPath();
 		//Add basepath to the uri
-		$uri->setPath(JURI::base(true).'/'.$route);	
+		$uri->setPath(JURI::base(true).'/'.$route);
 		return $uri;
 	}
 }

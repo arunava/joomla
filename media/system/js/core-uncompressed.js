@@ -1,6 +1,6 @@
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,8 +31,8 @@ Joomla.submitform = function(task, form) {
 
 /**
  * Custom behavior for JavaScript I18N in Joomla! 1.6
- * 
- * Allows you to call JText._() to get a translated JavaScript string pushed in with JText::script() in Joomla.
+ *
+ * Allows you to call Joomla.JText._() to get a translated JavaScript string pushed in with JText::script() in Joomla.
  */
 Joomla.JText = {
 	strings: {},
@@ -52,20 +52,31 @@ Joomla.JText = {
  */
 Joomla.replaceTokens = function(n) {
 	var els = document.getElementsByTagName('input');
-	for (var i=0; i < els.length; i++)
-	{
+	for (var i = 0; i < els.length; i++) {
 		if ((els[i].type == 'hidden') && (els[i].name.length == 32) && els[i].value == '1') {
 			els[i].name = n;
 		}
 	}
 };
 
+/**
+ * USED IN: administrator/components/com_banners/views/client/tmpl/default.php
+ *
+ * Verifies if the string is in a valid email format
+ *
+ * @param string
+ * @return boolean
+ */
+Joomla.isEmail = function(text) {
+	var regex = new RegExp("^[\\w-_\.]*[\\w-_\.]\@[\\w]\.+[\\w]+[\\w]$");
+	return regex.test(text);
+};
 
 /**
  * USED IN: administrator/components/com_modules/views/module/tmpl/default.php
- * 
+ *
  * Writes a dynamically generated list
- * 
+ *
  * @param string
  *            The parameters to insert into the <select> tag
  * @param array
@@ -99,9 +110,9 @@ function writeDynaList(selectParams, source, key, orig_key, orig_val) {
 
 /**
  * USED IN: administrator/components/com_content/views/article/view.html.php
- * 
+ *
  * Changes a dynamically generated list
- * 
+ *
  * @param string
  *            The name of the list to change
  * @param array
@@ -114,7 +125,7 @@ function writeDynaList(selectParams, source, key, orig_key, orig_val) {
  *            The original item value that was selected
  */
 function changeDynaList(listname, source, key, orig_key, orig_val) {
-	var list = eval('document.adminForm.' + listname);
+	var list = document.adminForm[listname];
 
 	// empty the list
 	for (i in list.options.length) {
@@ -138,7 +149,7 @@ function changeDynaList(listname, source, key, orig_key, orig_val) {
 
 /**
  * USED IN: administrator/components/com_menus/views/menus/tmpl/default.php
- * 
+ *
  * @param radioObj
  * @return
  */
@@ -177,14 +188,14 @@ function radioGetCheckedValue(radioObj) {
  * administrator/components/com_newsfeeds/views/newsfeed/tmpl/default.php
  * components/com_content/views/article/tmpl/form.php
  * templates/beez/html/com_content/article/form.php
- * 
+ *
  * @param frmName
  * @param srcListName
  * @return
  */
 function getSelectedValue(frmName, srcListName) {
-	var form = eval('document.' + frmName);
-	var srcList = eval('form.' + srcListName);
+	var form = document[frmName];
+	var srcList = form[srcListName];
 
 	i = srcList.selectedIndex;
 	if (i != null && i > -1) {
@@ -196,23 +207,21 @@ function getSelectedValue(frmName, srcListName) {
 
 /**
  * USED IN: all list forms.
- * 
+ *
  * Toggles the check state of a group of boxes
- * 
+ *
  * Checkboxes must have an id attribute in the form cb0, cb1...
- * 
+ *
  * @param	mixed	The number of box to 'check', for a checkbox element
  * @param	string	An alternative field name
  */
-function checkAll(checkbox, stub)
-{
-	if (checkbox.form)
-	{
-		c = 0;
-		for (i=0, n=checkbox.form.elements.length; i < n; i++) {
-			e = checkbox.form.elements[i];
+function checkAll(checkbox, stub) {
+	if (checkbox.form) {
+		var c = 0;
+		for (var i = 0, n = checkbox.form.elements.length; i < n; i++) {
+			var e = checkbox.form.elements[i];
 			if (e.type == checkbox.type) {
-				if ((stub && e.name.indexOf( stub ) == 0) || !stub) {
+				if ((stub && e.name.indexOf(stub) == 0) || !stub) {
 					e.checked = checkbox.checked;
 					c += (e.checked == true ? 1 : 0);
 				}
@@ -223,18 +232,17 @@ function checkAll(checkbox, stub)
 		}
 		return true;
 	}
-	else
-	{
+	else {
 		// The old way of doing it
 		if (!stub) {
 			stub = 'cb';
-		}		
+		}
 		var f = document.adminForm;
 		var c = f.toggle.checked;
 		var n = checkbox;
 		var n2 = 0;
-		for (i = 0; i < n; i++) {
-			cb = eval('f.' + stub + '' + i);
+		for (var i = 0; i < n; i++) {
+			var cb = f[stub+''+i];
 			if (cb) {
 				cb.checked = c;
 				n2++;
@@ -250,17 +258,17 @@ function checkAll(checkbox, stub)
 
 /**
  * USED IN: all over :)
- * 
+ *
  * @param id
  * @param task
  * @return
  */
 function listItemTask(id, task) {
 	var f = document.adminForm;
-	cb = eval('f.' + id);
+	var cb = f[id];
 	if (cb) {
-		for (i = 0; true; i++) {
-			cbx = eval('f.cb' + i);
+		for (var i = 0; true; i++) {
+			var cbx = f['cb'+i];
 			if (!cbx)
 				break;
 			cbx.checked = false;
@@ -292,7 +300,7 @@ function listItemTask(id, task) {
  * administrator/components/com_trash/admin.trash.html.php
  * administrator/components/com_update/views/update/tmpl/default_item.php
  * libraries/joomla/html/html/grid.php
- * 
+ *
  * @param isitchecked
  * @return
  */
@@ -326,7 +334,7 @@ function submitform(pressbutton) {
 
 /**
  * USED IN: libraries/joomla/html/toolbar/button/help.php
- * 
+ *
  * Pops up a new window in the middle of the screen
  */
 function popupWindow(mypage, myname, w, h, scroll) {
@@ -359,13 +367,12 @@ function saveorder(n, task) {
 	checkAll_button(n, task);
 }
 function checkAll_button(n, task) {
-
 	if (!task) {
 		task = 'saveorder';
 	}
 
-	for ( var j = 0; j <= n; j++) {
-		box = eval("document.adminForm.cb" + j);
+	for (var j = 0; j <= n; j++) {
+		var box = document.adminForm['cb'+j];
 		if (box) {
 			if (box.checked == false) {
 				box.checked = true;
@@ -376,18 +383,4 @@ function checkAll_button(n, task) {
 		}
 	}
 	submitform(task);
-}
-
-/**
- * USED IN: administrator/components/com_banners/views/client/tmpl/default.php
- * 
- * Verifies if the string is in a valid email format
- * 
- * @param string
- * @return boolean
- */
-function isEmail(text) {
-	var pattern = "^[\\w-_\.]*[\\w-_\.]\@[\\w]\.+[\\w]+[\\w]$";
-	var regex = new RegExp(pattern);
-	return regex.test(text);
 }

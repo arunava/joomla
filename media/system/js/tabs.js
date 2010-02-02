@@ -1,6 +1,6 @@
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,7 +13,7 @@
  */
 var JTabs = new Class({
 	Implements: [Options, Events],
-	
+
 	options : {
 		display: 0,
 		onActive: function(title, description) {
@@ -25,15 +25,17 @@ var JTabs = new Class({
 			title.addClass('closed').removeClass('open');
 		},
 		titleSelector: 'dt',
-		descriptionSelector: 'dd',		
+		descriptionSelector: 'dd',
 	},
 
     initialize: function(dlist, options){
 		this.setOptions(options);
-        this.dlist = $(dlist);
+        this.dlist = document.id(dlist);
         this.titles = this.dlist.getElements(this.options.titleSelector);
         this.descriptions = this.dlist.getElements(this.options.descriptionSelector);
         this.content = new Element('div').inject(this.dlist, 'after').addClass('current');
+
+	this.options.display = this.options.display.toInt().limit(0, this.titles.length-1);
 
         for (var i = 0, l = this.titles.length; i < l; i++){
             var title = this.titles[i];
@@ -43,7 +45,7 @@ var JTabs = new Class({
             description.inject(this.content);
         }
 
-        if ($chk(this.options.display)) this.display(this.options.display);
+        this.display(this.options.display);
 
         if (this.options.initialize) this.options.initialize.call(this);
     },
@@ -57,5 +59,6 @@ var JTabs = new Class({
     display: function(i) {
         this.hideAllBut(i);
         this.fireEvent('onActive', [this.titles[i], this.descriptions[i]]);
+	Cookie.write('jpanetabs_' + this.dlist.id, i);
     }
 });

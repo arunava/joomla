@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -11,7 +11,7 @@ defined('_JEXEC') or die('Invalid Request.');
 jimport('joomla.application.component.model');
 jimport('joomla.filesystem.file');
 jimport('joomla.user.helper');
-require_once(JPATH_INSTALLATION.'/helpers/database.php');
+require_once JPATH_INSTALLATION.'/helpers/database.php';
 
 /**
  * Install Configuration model for the Joomla Core Installer.
@@ -52,12 +52,12 @@ class JInstallationModelConfiguration extends JModel
 		$registry->setValue('sitename', $options->site_name);
 		$registry->setValue('editor', 'tinymce');
 		$registry->setValue('list_limit', 20);
-		$registry->setValue('root_user', 42);
 		$registry->setValue('access', 1);
 
 		/* Debug Settings */
 		$registry->setValue('debug', 0);
 		$registry->setValue('debug_lang', 0);
+		$registry->setValue('debug_modules', 1);
 
 		/* Database Settings */
 		$registry->setValue('dbtype', $options->db_type);
@@ -94,6 +94,8 @@ class JInstallationModelConfiguration extends JModel
 		$registry->setValue('smtpuser', '');
 		$registry->setValue('smtppass', '');
 		$registry->setValue('smtphost', 'localhost');
+		$registry->setValue('smtpsecure', 'none');
+		$registry->setValue('smtpport', '25');
 
 		/* Cache Settings */
 		$registry->setValue('caching', 0);
@@ -110,6 +112,7 @@ class JInstallationModelConfiguration extends JModel
 		$registry->setValue('sef', 1);
 		$registry->setValue('sef_rewrite', 0);
 		$registry->setValue('sef_suffix', 1);
+		$registry->setValue('unicodeslugs', 0);
 
 		/* Feed Settings */
 		$registry->setValue('feed_limit', 10);
@@ -197,7 +200,7 @@ class JInstallationModelConfiguration extends JModel
 
 		// Check for errors.
 		if (JError::isError($db)) {
-			$this->setError(JText::sprintf('WARNNOTCONNECTDB', $db->toString()));
+			$this->setError(JText::sprintf('WARNNOTCONNECTDB', (string)$db));
 			return false;
 		}
 
@@ -217,7 +220,7 @@ class JInstallationModelConfiguration extends JModel
 		$nullDate 		= $db->getNullDate();
 		$query	= 'INSERT INTO #__users SET'
 				. ' id = 42'
-				. ', name = '.$db->quote('Administrator')
+				. ', name = '.$db->quote('Super User')
 				. ', username = '.$db->quote($options->admin_user)
 				. ', email = '.$db->quote($options->admin_email)
 				. ', password = '.$db->quote($cryptpass)

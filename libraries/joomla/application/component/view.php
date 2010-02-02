@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Application
- * @copyright Copyright Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright Copyright Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -331,12 +331,11 @@ class JView extends JObject
 	/**
 	 * Method to get data from a registered model or a property of the view
 	 *
-	 * @access	public
 	 * @param	string	The name of the method to call on the model, or the property to get
 	 * @param	string	The name of the model to reference, or the default value [optional]
 	 * @return mixed	The return value of the method
 	 */
-	function &get($property, $default = null)
+	public function get($property, $default = null)
 	{
 
 		// If $model is null we use the default model
@@ -375,7 +374,7 @@ class JView extends JObject
 	 * @param	string	$name	The name of the model (optional)
 	 * @return	mixed			JModel object
 	 */
-	function &getModel($name = null)
+	function getModel($name = null)
 	{
 		if ($name === null) {
 			$name = $this->_defaultModel;
@@ -439,7 +438,7 @@ class JView extends JObject
 	 * @param	boolean	$default	Is this the default model?
 	 * @return	object				The added model
 	 */
-	function &setModel(&$model, $default = false)
+	function setModel(&$model, $default = false)
 	{
 		$name = strtolower($model->getName());
 		$this->_models[$name] = &$model;
@@ -525,8 +524,6 @@ class JView extends JObject
 	 */
 	function loadTemplate($tpl = null)
 	{
-		global $mainframe, $option;
-
 		// clear prior output
 		$this->_output = null;
 
@@ -604,7 +601,9 @@ class JView extends JObject
 	*/
 	function _setPath($type, $path)
 	{
-		global $mainframe, $option;
+		jimport('joomla.application.helper');
+		$component	= JApplicationHelper::getComponentName();
+		$app		= &JFactory::getApplication();
 
 		// clear out the prior search dirs
 		$this->_path[$type] = array();
@@ -616,15 +615,14 @@ class JView extends JObject
 		switch (strtolower($type))
 		{
 			case 'template':
-			{
-				// set the alternative template search dir
-				if (isset($mainframe))
+				// Set the alternative template search dir
+				if (isset($app))
 				{
-					$option = preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
-					$fallback = JPATH_BASE.DS.'templates'.DS.$mainframe->getTemplate().DS.'html'.DS.$option.DS.$this->getName();
+					$component	= preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
+					$fallback	= JPATH_BASE.DS.'templates'.DS.$app->getTemplate().DS.'html'.DS.$component.DS.$this->getName();
 					$this->_addPath('template', $fallback);
 				}
-			}	break;
+				break;
 		}
 	}
 

@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,19 +18,28 @@ jimport('joomla.application.component.model');
  */
 class JInstallationModelSetup extends JModel
 {
-	function getOptions()
+	/**
+	 * Get the current setup options from the session.
+	 *
+	 * @return	array
+	 */
+	public function getOptions()
 	{
-		// Get the current setup options from the session.
 		$session = & JFactory::getSession();
 		$options = $session->get('setup.options', array());
 
 		return $options;
 	}
 
-	function storeOptions($options)
+	/**
+	 * Store the current setup options in the session.
+	 *
+	 * @return	array
+	 */
+	public function storeOptions($options)
 	{
 		// Get the current setup options from the session.
-		$session = & JFactory::getSession();
+		$session = &JFactory::getSession();
 		$old = $session->get('setup.options', array());
 
 		// Merge the new setup options into the current ones and store in the session.
@@ -38,8 +47,8 @@ class JInstallationModelSetup extends JModel
 		$session->set('setup.options', $options);
 
 		// If the setup language is set in the options, set it separately in the session.
-		if (!empty($options['lang'])) {
-			$session->set('setup.language', $options['lang']);
+		if (!empty($options['language'])) {
+			$session->set('setup.language', $options['language']);
 		}
 
 		return $options;
@@ -48,13 +57,12 @@ class JInstallationModelSetup extends JModel
 	/**
 	 * Method to get the link form.
 	 *
-	 * @access	public
 	 * @return	mixed	JForm object on success, false on failure.
 	 * @since	1.6
 	 */
-	function & getForm($view = null)
+	public function &getForm($view = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$false = false;
 
 		if (!$view) {
@@ -65,7 +73,7 @@ class JInstallationModelSetup extends JModel
 		jimport('joomla.form.form');
 		JForm::addFormPath(JPATH_COMPONENT.'/models/forms');
 		JForm::addFieldPath(JPATH_COMPONENT.'/models/fields');
-		$form = & JForm::getInstance('jform', $view, true, array('array' => true));
+		$form = &JForm::getInstance($view, 'jform', true, array('array' => 'jform'));
 
 		// Check for an error.
 		if (JError::isError($form)) {
@@ -84,16 +92,15 @@ class JInstallationModelSetup extends JModel
 		return $form;
 	}
 
-	function getDboptions()
+	public function getDboptions()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
 
 		// Create an array of known database connect functions.
 		$map = array(
 			'MySQL'  => 'mysql_connect',
 			'MySQLi' => 'mysqli_connect',
-			//'MSSQL'  => 'mssql_connect'
 		);
 
 		// Iterate over the options, building an array.
@@ -126,16 +133,12 @@ class JInstallationModelSetup extends JModel
 	 * Generate a panel of language choices for the user to select their language
 	 *
 	 * @return	boolean True if successful
-	 * @access	public
 	 * @since	1.5
 	 */
-	function getLanguages()
+	public function getLanguages()
 	{
-		// Initialize variables.
-		$app = & JFactory::getApplication();
-
-		// Get existing values from the session.
-		//$vars	= & $this->getVars();
+		// Initialise variables.
+		$app = &JFactory::getApplication();
 
 		// Detect the native language.
 		jimport('joomla.language.helper');
@@ -143,9 +146,8 @@ class JInstallationModelSetup extends JModel
 
 		// Get a forced language if it exists.
 		$forced = $app->getLocalise();
-		if (!empty($forced['lang']))
-		{
-			$native = $forced['lang'];
+		if (!empty($forced['language'])) {
+			$native = $forced['language'];
 		}
 
 		// Get the list of available languages.
@@ -157,35 +159,40 @@ class JInstallationModelSetup extends JModel
 		return $list;
 	}
 
-	function getPhpOptions()
+	/**
+	 * Gets PHP options.
+	 *
+	 * @return	array
+	 */
+	public function getPhpOptions()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$options = array();
 
 		// Check the PHP Version.
 		$option = new stdClass;
-		$option->label  = JText::_('PHP version').' >= 5.2.0';
+		$option->label  = JText::_('PHP_VERSION').' >= 5.2.0';
 		$option->state  = (phpversion() >= '5.2.0');
 		$option->notice = null;
 		$options[] = $option;
 
 		// Check for zlib support.
 		$option = new stdClass;
-		$option->label  = JText::_('zlib compression support');
+		$option->label  = JText::_('ZLIB_COMPRESSION_SUPPORT');
 		$option->state  = extension_loaded('zlib');
 		$option->notice = null;
 		$options[] = $option;
 
 		// Check for XML support.
 		$option = new stdClass;
-		$option->label  = JText::_('XML support');
+		$option->label  = JText::_('XML_SUPPORT');
 		$option->state  = extension_loaded('xml');
 		$option->notice = null;
 		$options[] = $option;
 
 		// Check for MySQL support.
 		$option = new stdClass;
-		$option->label  = JText::_('MySQL support');
+		$option->label  = JText::_('MYSQL_SUPPORT');
 		$option->state  = (function_exists('mysql_connect') || function_exists('mysqli_connect'));
 		$option->notice = null;
 		$options[] = $option;
@@ -195,14 +202,14 @@ class JInstallationModelSetup extends JModel
 		{
 			// Check for default MB language.
 			$option = new stdClass;
-			$option->label  = JText::_('MB language is default');
+			$option->label  = JText::_('MB_LANGUAGE_IS_DEFAULT');
 			$option->state  = (strtolower(ini_get('mbstring.language')) == 'neutral');
 			$option->notice = ($option->state) ? null : JText::_('NOTICEMBLANGNOTDEFAULT');
 			$options[] = $option;
 
 			// Check for MB function overload.
 			$option = new stdClass;
-			$option->label  = JText::_('MB string overload off');
+			$option->label  = JText::_('MB_STRING_OVERLOAD_OFF');
 			$option->state  = (ini_get('mbstring.func_overload') == 0);
 			$option->notice = ($option->state) ? null : JText::_('NOTICEMBSTRINGOVERLOAD');
 			$options[] = $option;
@@ -211,64 +218,69 @@ class JInstallationModelSetup extends JModel
 		// Check for configuration file writeable.
 		$option = new stdClass;
 		$option->label  = 'configuration.php '.JText::_('writable');
-		$option->state  = ((@ file_exists('../configuration.php') && @ is_writable('../configuration.php')) || is_writable('../'));
+		$option->state  = ((@file_exists('../configuration.php') && @is_writable('../configuration.php')) || is_writable('../'));
 		$option->notice = ($option->state) ? null : JText::_('NOTICEYOUCANSTILLINSTALL');
 		$options[] = $option;
 
 		return $options;
 	}
 
-	function getPhpSettings()
+	/**
+	 * Gets PHP Settings.
+	 *
+	 * @return	array
+	 */
+	public function getPhpSettings()
 	{
-		// Initialize variables
+		// Initialise variables.
 		$settings = array();
 
 		// Check for safe mode.
 		$setting = new stdClass;
-		$setting->label = JText::_('Safe Mode');
-		$setting->state = (ini_get('safe_mode') == '1' ? true : false);
+		$setting->label = JText::_('SAFE_MODE');
+		$setting->state = (bool) ini_get('safe_mode');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
 		// Check for display errors.
 		$setting = new stdClass;
-		$setting->label = JText::_('Display Errors');
-		$setting->state = (ini_get('display_errors') == '1' ? true : false);
+		$setting->label = JText::_('DISPLAY_ERRORS');
+		$setting->state = (bool) ini_get('display_errors');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
 		// Check for file uploads.
 		$setting = new stdClass;
-		$setting->label = JText::_('File Uploads');
-		$setting->state = (ini_get('file_uploads') == '1' ? true : false);
+		$setting->label = JText::_('FILE_UPLOADS');
+		$setting->state = (bool) ini_get('file_uploads');
 		$setting->recommended = true;
 		$settings[] = $setting;
 
 		// Check for magic quotes.
 		$setting = new stdClass;
-		$setting->label = JText::_('Magic Quotes Runtime');
-		$setting->state = (ini_get('magic_quotes_runtime') == '1' ? true : false);
+		$setting->label = JText::_('MAGIC_QUOTES_RUNTIME');
+		$setting->state = (bool) ini_get('magic_quotes_runtime');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
 		// Check for register globals.
 		$setting = new stdClass;
-		$setting->label = JText::_('Register Globals');
-		$setting->state = (ini_get('register_globals') == '1' ? true : false);
+		$setting->label = JText::_('REGISTER_GLOBALS');
+		$setting->state = (bool) ini_get('register_globals');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
 		// Check for output buffering.
 		$setting = new stdClass;
-		$setting->label = JText::_('Output Buffering');
-		$setting->state = (ini_get('output_buffering') == '1' ? true : false);
+		$setting->label = JText::_('OUTPUT_BUFFERING');
+		$setting->state = (bool) ini_get('output_buffering');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
 		// Check for session auto-start.
 		$setting = new stdClass;
-		$setting->label = JText::_('Session auto start');
-		$setting->state = (ini_get('session.auto_start') == '1' ? true : false);
+		$setting->label = JText::_('SESSION_AUTO_START');
+		$setting->state = (bool) ini_get('session.auto_start');
 		$setting->recommended = false;
 		$settings[] = $setting;
 
@@ -278,15 +290,14 @@ class JInstallationModelSetup extends JModel
 	/**
 	 * Method to validate the form data.
 	 *
-	 * @access	public
-	 * @param	array	The form data.
-	 * @return	mixed	Array of filtered data if valid, false otherwise.
+	 * @param	array		The form data.
+	 * @return	array|bool	Array of filtered data if valid, false otherwise.
 	 * @since	1.6
 	 */
-	function validate($data, $view = null)
+	public function validate($data, $view = null)
 	{
 		// Get the form.
-		$form = & $this->getForm($view);
+		$form = &$this->getForm($view);
 
 		// Check for an error.
 		if ($form === false) {
@@ -294,7 +305,7 @@ class JInstallationModelSetup extends JModel
 		}
 
 		// Filter and validate the form data.
-		$data	= $form->filter($data);
+		$data = $form->filter($data);
 		$return	= $form->validate($data);
 
 		// Check for an error.

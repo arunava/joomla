@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -28,13 +28,13 @@ abstract class JHtmlGrid
 	 * @return	string	The boolean setting widget.
 	 * @since	1.0
 	 */
-	function boolean($i, $value, $taskOn = null, $taskOff = null)
+	static function boolean($i, $value, $taskOn = null, $taskOff = null)
 	{
 		// Load the behavior.
 		self::behavior();
 
 		// Build the title.
-		$title = ($value) ? JText::_('Yes') : JText::_('No');
+		$title = ($value) ? JText::_('JYes') : JText::_('JNo');
 		$title .= '::'.JText::_('Click_To_Toggle');
 
 		// Build the <a> tag.
@@ -65,10 +65,10 @@ abstract class JHtmlGrid
 		$index		= intval($direction == 'desc');
 		$direction	= ($direction == 'desc') ? 'asc' : 'desc';
 
-		$html = '<a href="javascript:tableOrdering(\''.$order.'\',\''.$direction.'\',\''.$task.'\');" title="'.JText::_('Click to sort this column').'">';
+		$html = '<a href="javascript:tableOrdering(\''.$order.'\',\''.$direction.'\',\''.$task.'\');" title="'.JText::_('CLICK_TO_SORT_THIS_COLUMN').'">';
 		$html .= JText::_($title);
 		if ($order == $selected) {
-			$html .= JHtml::_('image.administrator',  $images[$index], '/images/', NULL, NULL);
+			$html .= JHtml::_('image', 'system/'.$images[$index], '', NULL, true);
 		}
 		$html .= '</a>';
 		return $html;
@@ -87,7 +87,7 @@ abstract class JHtmlGrid
 		if ($checkedOut) {
 			return '';
 		} else {
-			return '<input type="checkbox" id="cb'.$rowNum.'" name="'.$name.'[]" value="'.$recId.'" onclick="isChecked(this.checked);" />';
+			return '<input type="checkbox" id="cb'.$rowNum.'" name="'.$name.'[]" value="'.$recId.'" onclick="isChecked(this.checked);" title="'.JText::sprintf('JGrid_Checkbox_Row_N', ($rowNum + 1)).'" />';
 		}
 	}
 
@@ -98,13 +98,13 @@ abstract class JHtmlGrid
 	{
 		// TODO: This needs to be reworked to suit the new access levels
 		if ($row->access <= 1)  {
-			$color_access = 'style="color: green;"';
+			$color_access = 'class="allow"';
 			$task_access = 'accessregistered';
 		} else if ($row->access == 1) {
-			$color_access = 'style="color: red;"';
+			$color_access = 'class="deny"';
 			$task_access = 'accessspecial';
 		} else {
-			$color_access = 'style="color: black;"';
+			$color_access = 'class="none"';
 			$task_access = 'accesspublic';
 		}
 
@@ -163,11 +163,11 @@ abstract class JHtmlGrid
 		$img 	= $value ? $img1 : $img0;
 		$task 	= $value ? 'unpublish' : 'publish';
 		$alt 	= $value ? JText::_('Published') : JText::_('Unpublished');
-		$action = $value ? JText::_('Unpublish Item') : JText::_('Publish item');
+		$action = $value ? JText::_('UNPUBLISH_ITEM') : JText::_('PUBLISH_ITEM');
 
 		$href = '
-		<a href="javascript:void(0);" onclick="return listItemTask(\'cb'. $i .'\',\''. $prefix.$task .'\')" title="'. $action .'">
-		<img src="images/'. $img .'" border="0" alt="'. $alt .'" /></a>'
+		<a href="javascript:void(0);" onclick="return listItemTask(\'cb'. $i .'\',\''. $prefix.$task .'\')" title="'. $action .'">'.
+		JHTML::_('image', 'admin/'.$img, $alt, array('border' => 0), true).'</a>'
 		;
 
 		return $href;
@@ -181,7 +181,7 @@ abstract class JHtmlGrid
 		$trashed = null
 	) {
 		$state = array(
-			'' => '- ' . JText::_('Select State') . ' -',
+			'' => '- ' . JText::_('SELECT_STATE') . ' -',
 			'P' => JText::_($published),
 			'U' => JText::_($unpublished)
 		);
@@ -208,8 +208,8 @@ abstract class JHtmlGrid
 
 	public static function order($rows, $image = 'filesave.png', $task = 'saveorder')
 	{
-		$image = JHtml::_('image.administrator',  $image, '/images/', NULL, NULL, JText::_('Save Order'));
-		$href = '<a href="javascript:saveorder('.(count($rows)-1).', \''.$task.'\')" title="'.JText::_('Save Order').'">'.$image.'</a>';
+		$image = JHtml::_('image',  'admin/'.$image, JText::_('SAVE_ORDER'), NULL, true);
+		$href = '<a href="javascript:saveorder('.(count($rows)-1).', \''.$task.'\')" title="'.JText::_('SAVE_ORDER').'">'.$image.'</a>';
 		return $href;
 	}
 
@@ -219,19 +219,19 @@ abstract class JHtmlGrid
 		$hover = '';
 		if ($overlib)
 		{
-			$text = addslashes(htmlspecialchars($row->editor));
+			$text = addslashes(htmlspecialchars($row->editor, ENT_COMPAT, 'UTF-8'));
 
 			$date 	= JHtml::_('date',  $row->checked_out_time, JText::_('DATE_FORMAT_LC1'));
 			$time	= JHtml::_('date',  $row->checked_out_time, '%H:%M');
 
-			$hover = '<span class="editlinktip hasTip" title="'. JText::_('Checked Out') .'::'. $text .'<br />'. $date .'<br />'. $time .'">';
+			$hover = '<span class="editlinktip hasTip" title="'. JText::_('CHECKED_OUT') .'::'. $text .'<br />'. $date .'<br />'. $time .'">';
 		}
-		$checked = $hover .'<img src="images/checked_out.png"/></span>';
+		$checked = $hover .JHTML::_('image', 'admin/checked_out.png', NULL, NULL, true).'</span>';
 
 		return $checked;
 	}
 
-	function behavior()
+	static function behavior()
 	{
 		static $loaded;
 
@@ -247,19 +247,19 @@ abstract class JHtmlGrid
 			actions.combine($$(\'a.grid_trash\'));
 			actions.each(function(a){
 				a.addEvent(\'click\', function(){
-					args = Json.evaluate(this.rel);
+					args = JSON.decode(this.rel);
 					listItemTask(args.id, args.task);
 				});
 			});
 			$$(\'input.check-all-toggle\').each(function(el){
 				el.addEvent(\'click\', function(){
 					if (el.checked) {
-						$(this.form).getElements(\'input[type=checkbox]\').each(function(i){
+						document.id(this.form).getElements(\'input[type=checkbox]\').each(function(i){
 							i.checked = true;
 						})
 					}
 					else {
-						$(this.form).getElements(\'input[type=checkbox]\').each(function(i){
+						document.id(this.form).getElements(\'input[type=checkbox]\').each(function(i){
 							i.checked = false;
 						})
 					}

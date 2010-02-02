@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_menu
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,4 +14,4 @@ defined('_JEXEC') or die;
 require_once dirname(__FILE__).DS.'helper.php';
 
 $list = modMenuHelper::getList($params);
-require JModuleHelper::getLayoutPath('mod_menu', 'default');
+require JModuleHelper::getLayoutPath('mod_menu', $params->get('layout', 'default'));

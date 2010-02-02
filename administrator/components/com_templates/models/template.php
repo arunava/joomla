@@ -1,336 +1,153 @@
 <?php
 /**
- * @version		$Id: template.php 11838 2009-05-27 22:07:20Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
+// No direct access.
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.model');
 
 /**
  * @package		Joomla.Administrator
- * @subpackage	Templates
+ * @subpackage	com_templates
+ * @since		1.6
  */
 class TemplatesModelTemplate extends JModel
 {
 	/**
-	 * Template id
+	 * Cache for the template information.
 	 *
-	 * @var int
+	 * @var		object
 	 */
-	var $_id = null;
+	private $_template = null;
 
 	/**
-	 * Template data
-	 *
-	 * @var array
+	 * Method to auto-populate the model state.
 	 */
-	var $_data = null;
-
-	/**
-	 * client object
-	 *
-	 * @var object
-	 */
-	var $_client = null;
-	
-	/**
-	 * Template style object list
-	 *
-	 * @var array
-	 */
-	
-	var $_style = null;
-	
-
-	/**
-	 * params object
-	 *
-	 * @var object
-	 */
-	var $_params = null;
-
-	/**
-	 * Template name
-	 *
-	 * @var string
-	 */
-	var $_template = null; 
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$id			= JRequest::getVar('id', '', 'method', 'int');
-		$cid		= JRequest::getVar('cid', array($id), 'method', 'array');
-		$cid		= array(JFilterInput::clean(@$cid[0], 'int'));
-		$this->setId($cid[0]);
+		// Load the User state.
+		$pk = (int) JRequest::getInt('id');
+		$this->setState('extension.id', $pk);
 
-		$this->_client	= &JApplicationHelper::getClientInfo(JRequest::getVar('client', '0', '', 'int'));
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_templates');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to set the Template identifier
+	 * Internal method to get file properties.
 	 *
-	 * @access	public
-	 * @param	int Template identifier
-	 */
-	function setId($id)
-	{
-		// Set Template id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
-
-	/**
-	 * Method to get a Template
+	 * @param	string $path	The base path.
+	 * @param	string $name	The file name.
 	 *
-	 * @since 1.6
+	 * @return	object
 	 */
-	function &getData()
+	private function _getFile($path, $name)
 	{
-		// Load the data
-		if (!$this->_loadData())
-			$this->_initData();
+		$temp = new stdClass;
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the client object
-	 *
-	 * @since 1.6
-	 */
-	function &getClient()
-	{
-		return $this->_client;
-	}
-
-	function &getParams()
-	{
-		$this->getData();
-		return $this->_params;
-	}
-
-	function &getTemplate()
-	{
-		if (empty($this->_template)) {
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-			$this->_template=TemplatesHelper::getTemplateName($this->_id);
+		if ($this->_template)
+		{
+			$temp->name = $name;
+			$temp->exists = file_exists($path.$name);
+			$temp->id = urlencode(base64_encode($this->_template->extension_id.':'.$name));
+			return $temp;
 		}
+	}
+
+	/**
+	 * Method to get the template information.
+	 *
+	 * @return	mixed	Object if successful, false if not and internal error is set.
+	 */
+	public function &getTemplate()
+	{
+		if (empty($this->_template))
+		{
+			// Initialise variables.
+			$pk		= $this->getState('extension.id');
+			$db		= $this->getDbo();
+			$result	= false;
+
+			// Get the template information.
+			$db->setQuery(
+				'SELECT extension_id, client_id, element' .
+				' FROM #__extensions' .
+				' WHERE extension_id = '.(int) $pk.
+				'  AND type = '.$db->quote('template')
+			);
+
+			$result = $db->loadObject();
+			if (empty($result))
+			{
+				if ($error = $db->getErrorMsg()) {
+					$this->setError($error);
+				}
+				else {
+					$this->setError(JText::_('Templates_Error_Extension_record_not_found'));
+				}
+				$this->_template = false;
+			}
+			else {
+				$this->_template = $result;
+			}
+		}
+
 		return $this->_template;
 	}
 
-	function &getId()
-	{
-		return $this->_id;
-	}
 	/**
-	 * Method to store the Template
+	 * Method to get a list of all the files to edit in a template.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
+	 * @return	array	A nested array of relevant files.
 	 */
-	function store($params)
+	public function getFiles()
 	{
-		require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-		$menus		= JRequest::getVar('selections', array(), 'post', 'array');
-		$menutype		= JRequest::getVar('menus', '', 'post', 'string');
-		$description = JRequest::getVar('description', '', 'post', 'string');
-		JArrayHelper::toInteger($menus);
-		$query = 'UPDATE #__menu_template SET description='.$this->_db->Quote($description).
-					', params = '.$this->_db->Quote(json_encode($params)).
-					' WHERE id = '.$this->_db->Quote($this->_id);
-		$this->_db->setQuery($query);
-		if (!$this->_db->query()) {
-			return JError::raiseWarning(500, $this->_db->getError());
-		}
-		if ($this->_client->id==1)
-			return true;
-		if ($menutype=='default') {
-			$query = 'UPDATE #__menu_template SET home=0 WHERE client_id='.$this->_db->Quote($this->_client->id);
-			$this->_db->setQuery($query);
-			$this->_db->query();
-			$query = 'UPDATE #__menu_template SET home=1 WHERE id='.$this->_db->Quote($this->_id);
-			$this->_db->setQuery($query);
-			$this->_db->query();
-		}
-		if ($this->_client->id == '1')	{
-			return true;
-		}
+		// Initialise variables.
+		$result	= array();
 
-		$query = 'UPDATE #__menu SET template_id=0 WHERE template_id='.$this->_db->Quote($this->_id);
-		$this->_db->setQuery($query);
-		if (!$this->_db->query()) {
-			return JError::raiseWarning(500, $this->_db->getError());
-		}
+		if ($this->_template)
+		{
+			jimport('joomla.filesystem.folder');
 
-		foreach ($menus as $menuid)	{
-			// If 'None' is not in array
-			if ((int) $menuid >= 0)	{
-				$query = 'UPDATE #__menu SET template_id='.$this->_db->Quote($this->_id).' WHERE id='.$this->_db->Quote($menuid);
-				$this->_db->setQuery($query);
-				if (!$this->_db->query()) {
-					return JError::raiseWarning(500, $this->_db->getError());
+			$client = JApplicationHelper::getClientInfo($this->_template->client_id);
+			$path	= JPath::clean($client->path.'/templates/'.$this->_template->element.'/');
+
+			// Check if the template path exists.
+			if (is_dir($path))
+			{
+				$result['main'] = array();
+				$result['css'] = array();
+				$result['clo'] = array();
+				$result['mlo'] = array();
+
+				// Handle the main PHP files.
+				$result['main']['index'] = $this->_getFile($path, 'index.php');
+				$result['main']['error'] = $this->_getFile($path, 'error.php');
+				$result['main']['print'] = $this->_getFile($path, 'component.php');
+
+				// Handle the CSS files.
+				$files = JFolder::files($path.'/css', '\.css$', false, false);
+
+				foreach ($files as $file)
+				{
+					$result['css'][] = $this->_getFile($path.'/css/', 'css/'.$file);
 				}
 			}
-		}
-		return true;
-	}
-
-	/**
-	 * Method to load Template data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _loadData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT * FROM #__menu_template WHERE id = '.$this->_db->Quote($this->_id);
-			$this->_db->setQuery($query);
-			$this->_db->query();
-			if ($this->_db->getNumRows() == 0) {
-				return JError::raiseWarning(500, JText::_('Template not found'));
-			}
-			$this->_data=$this->_db->loadObject();
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-			$this->_template=$this->_data->template;
-			$tBaseDir	= JPath::clean($this->_client->path.DS.'templates');
-
-
-			if (!is_dir($tBaseDir . DS . $this->_template)) {
-				return JError::raiseWarning(500, JText::_('Template folder not found'));
-			}
-
-			$lang = &JFactory::getLanguage();
-			 // 1.5 or Core
-			$lang->load('tpl_'.$this->_template, $this->_client->path);
-			// 1.6 3PD Templates
-			$lang->load('joomla', $this->_client->path.DS.'templates'.DS.$this->_template);
-
-			$xml	= $this->_client->path.DS.'templates'.DS.$this->_template.DS.'templateDetails.xml';
-			$this->_data->xmldata	= TemplatesHelper::parseXMLTemplateFile($tBaseDir, $this->_template);
-
-			$this->_params = new JParameter($this->_data->params, $xml, 'template');
-
-			$assigned = TemplatesHelper::isTemplateAssigned($this->_id);
-			
-			if ($this->_data->home) {
-				$this->_data->pages = 'all';
-			} elseif (!$assigned) {
-				$this->_data->pages = 'none';
-			} else {
-				$this->_data->pages = null;
+			else
+			{
+				$this->setError(JText::_('Templates_Error_Template_folder_not_found'));
 			}
 		}
-		return true;
-	}
 
-	function &getStyle()
-	{
-		if (empty($this->_style)) {
-			$query = 'SELECT id,description,home FROM #__menu_template '.
-					'WHERE template = '.$this->_db->Quote($this->_template).
-					' AND client_id = '.$this->_db->Quote($this->_client->id);
-			$this->_db->setQuery($query);
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-			$this->_style = $this->_db->loadObjectList();
-			for ($i = 0, $n = count($this->_style); $i < $n; $i++) {
-				$this->_style[$i]->assigned = TemplatesHelper::isTemplateAssigned($this->_style[$i]->id);
-				
-			}
-			
-		}
-		return $this->_style;
-	}
-	
-	function add()
-	{
-		$query = 'SELECT params FROM #__menu_template WHERE id = '.$this->_db->Quote($this->_id);
-		$this->_db->setQuery($query);
-		$oldparams = $this->_db->loadResult();
-		$query = 'INSERT INTO #__menu_template (template,client_id,home,description,params) VALUE ('.
-				$this->_db->Quote($this->_template).','.$this->_db->Quote($this->_client->id).',0,'.$this->_db->Quote(JText::_('New Style')).','.
-				$this->_db->Quote($oldparams).')';
-		$this->_db->setQuery($query);
-		$this->_db->query();
-		return $this->_db->insertid();
-	}
-	
-	function delete()
-	{
-		require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-		$query = 'SELECT COUNT(*) FROM #__menu_template WHERE template = '.$this->_db->Quote($this->_template).
-				' AND client_id = '.$this->_db->Quote($this->_client->id);
-		$this->_db->setQuery($query);
-		if ($this->_db->loadResult()==1)
-		{
-			JError::raiseWarning(500, JText::_('Template must have at least one style'));
-			return false;
-		}
-		if (TemplatesHelper::isTemplateDefault($this->_id))
-		{
-			JError::raiseWarning(500, JText::_('Can not delete default style'));
-			return false;
-		}
-		$query = 'DELETE FROM #__menu_template WHERE id = '.$this->_db->Quote($this->_id);
-		$this->_db->setQuery($query);
-		$this->_db->query();
-		return true;
-	}
-	
-	function setDefault()
-	{
-		$query = 'UPDATE #__menu_template SET home=0 WHERE client_id='.$this->_db->Quote($this->_client->id);
-		$this->_db->setQuery($query);
-		$this->_db->query();
-		$query = 'UPDATE #__menu_template SET home=1 WHERE id='.$this->_db->Quote($this->_id);
-		$this->_db->setQuery($query);
-		$this->_db->query();
-		return true;
-	}
-	
-	function getOtherID()
-	{
-		$query = 'SELECT id FROM #__menu_template WHERE template = '.$this->_db->Quote($this->_template).
-				' AND client_id = '.$this->_db->Quote($clientId).' LIMIT 1';
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
-	}
-	
-	/**
-	 * Method to initialise the Template data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$template = new stdClass();
-			$template->name					= null;
-			$template->description			= null;
-			$template->pages				= null;
-			$this->_data = $template;
-			return (boolean) $this->_data;
-		}
-		return true;
+		return $result;
 	}
 }

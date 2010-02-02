@@ -3,7 +3,7 @@
  * @version		$Id:storage.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -45,7 +45,7 @@ class JCacheStorage extends JObject
 	}
 
 	/**
-	 * Returns a reference to a cache storage hanlder object, only creating it
+	 * Returns a cache storage hanlder object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @static
@@ -53,7 +53,7 @@ class JCacheStorage extends JObject
 	 * @return	object	A JCacheStorageHandler object
 	 * @since	1.5
 	 */
-	function &getInstance($handler = 'file', $options = array())
+	function getInstance($handler = 'file', $options = array())
 	{
 		static $now = null;
 		if (is_null($now)) {
@@ -67,13 +67,13 @@ class JCacheStorage extends JObject
 		{
 			$path = dirname(__FILE__).DS.'storage'.DS.$handler.'.php';
 			if (file_exists($path)) {
-				require_once($path);
+				require_once $path;
 			} else {
 				return JError::raiseWarning(500, 'Unable to load Cache Storage: '.$handler);
 			}
 		}
-		$return = new $class($options);
-		return $return;
+
+		return new $class($options);
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_random_image
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,4 +24,4 @@ if (!count($images)) {
 }
 
 $image = modRandomImageHelper::getRandomImage($params, $images);
-require JModuleHelper::getLayoutPath('mod_random_image');
+require JModuleHelper::getLayoutPath('mod_random_image', $params->get('layout', 'default'));

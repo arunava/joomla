@@ -2,14 +2,28 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// PHP 5 check
+if (version_compare(PHP_VERSION, '5.2.0', '<')) {
+	die('Your host needs to use PHP 5.2.0 or higher to run Joomla 1.6.');
+}
+
+/**
+ * Constant that is checked in included files to prevent direct access.
+ */
 define('_JEXEC', 1);
 
+/**
+ * Constant that defines the base path of the installed Joomla site.
+ */
 define('JPATH_BASE', dirname(__FILE__));
 
+/**
+ * Shortcut for the directory separator character.
+ */
 define('DS', DIRECTORY_SEPARATOR);
 
 // Set path constants.
@@ -27,7 +41,7 @@ define('JPATH_THEMES',			JPATH_BASE);
 define('JPATH_CACHE',			JPATH_ROOT.DS.'cache');
 
 /*
- * Joomla! system checks.
+ * Joomla system checks.
  */
 error_reporting(E_ALL);
 @set_magic_quotes_runtime(0);
@@ -42,13 +56,13 @@ if (file_exists(JPATH_CONFIGURATION.DS.'configuration.php') && (filesize(JPATH_C
 }
 
 /*
- * Joomla! system startup
+ * Joomla system startup
  */
 
-// Bootstrap the Joomla! Framework.
-require_once(JPATH_LIBRARIES.DS.'joomla'.DS.'import.php');
+// Bootstrap the Joomla Framework.
+require_once JPATH_LIBRARIES.DS.'joomla'.DS.'import.php';
 
-// Joomla! library imports.
+// Joomla library imports.
 jimport('joomla.database.table');
 jimport('joomla.user.user');
 jimport('joomla.environment.uri');
@@ -58,15 +72,13 @@ jimport('joomla.language.language');
 jimport('joomla.utilities.string');
 
 // Create the application object.
-$mainframe = & JFactory::getApplication('installation');
+$app = &JFactory::getApplication('installation');
 
-// Initialize the application.
-$mainframe->initialise();
+// Initialise the application.
+$app->initialise();
 
 // Render the document.
-$mainframe->render();
+$app->render();
 
-/**
- * RETURN THE RESPONSE
- */
-echo JResponse::toString();
+// Return the response.
+echo $app;

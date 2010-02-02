@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,10 +11,10 @@ defined('_JEXEC') or die;
 jimport('joomla.application.component.model');
 
 /**
- * Weblinks Component Weblink Model
+ * Media Component Manager Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Content
+ * @subpackage	com_media
  * @since 1.5
  */
 class MediaModelManager extends JModel
@@ -46,8 +44,6 @@ class MediaModelManager extends JModel
 	 */
 	function getFolderList($base = null)
 	{
-		global $mainframe;
-
 		// Get some paths from the request
 		if (empty($base)) {
 			$base = COM_MEDIA_BASE;
@@ -63,7 +59,7 @@ class MediaModelManager extends JModel
 		$lang->load(JRequest::getCmd('option'), JPATH_ADMINISTRATOR);
 
 		$document = &JFactory::getDocument();
-		$document->setTitle(JText::_('Insert Image'));
+		$document->setTitle(JText::_('INSERT_IMAGE'));
 
 		// Build the array of select options for the folder list
 		$options[] = JHtml::_('select.option', "","/");

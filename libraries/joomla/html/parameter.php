@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Parameter
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,14 +10,14 @@ defined('JPATH_BASE') or die;
 
 jimport('joomla.registry.registry');
 
-//Register the element class with the loader
-JLoader::register('JElement', dirname(__FILE__).DS.'parameter'.DS.'element.php');
+//Register the element class with the loader.
+JLoader::register('JElement', dirname(__FILE__).'/parameter/element.php');
 
 /**
  * Parameter handler
  *
  * @package 	Joomla.Framework
- * @subpackage		Parameter
+ * @subpackage	Parameter
  * @since		1.5
  */
 class JParameter extends JRegistry
@@ -63,19 +61,17 @@ class JParameter extends JRegistry
 	 * @param	string Path to the xml setup file
 	 * @since	1.5
 	 */
-	public function __construct($data, $path = '')
+	public function __construct($data = '', $path = '')
 	{
 		parent::__construct('_default');
 
-		// Set base path
+		// Set base path.
 		$this->_elementPath[] = dirname(__FILE__).DS.'parameter'.DS.'element';
 
-		if ($data = trim($data))
-		{
+		if ($data = trim($data)) {
 			if (strpos($data, '{') === 0) {
 				$this->loadJSON($data);
-			}
-			else {
+			} else {
 				$this->loadINI($data);
 			}
 		}
@@ -88,12 +84,11 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Set a value
+	 * Set a value.
 	 *
-	 * @access	public
-	 * @param	string The name of the param
-	 * @param	string The value of the parameter
-	 * @return	string The set value
+	 * @param	string	The name of the param.
+	 * @param	string	The value of the parameter.
+	 * @return	string	The set value.
 	 * @since	1.5
 	 */
 	public function set($key, $value = '', $group = '_default')
@@ -102,11 +97,10 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Get a value
+	 * Get a value.
 	 *
-	 * @access	public
-	 * @param	string The name of the param
-	 * @param	mixed The default value if not found
+	 * @param	string	The name of the param.
+	 * @param	mixed	The default value if not found.
 	 * @return	string
 	 * @since	1.5
 	 */
@@ -118,13 +112,12 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Sets a default value if not alreay assigned
+	 * Sets a default value if not alreay assigned.
 	 *
-	 * @access	public
-	 * @param	string	The name of the param
-	 * @param	string	The value of the parameter
-	 * @param	string	The parameter group to modify
-	 * @return	string	The set value
+	 * @param	string	The name of the param.
+	 * @param	string	The value of the parameter.
+	 * @param	string	The parameter group to modify.
+	 * @return	string	The set value.
 	 * @since	1.5
 	 */
 	public function def($key, $default = '', $group = '_default')
@@ -134,21 +127,20 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Sets the XML object from custom xml files
+	 * Sets the XML object from custom xml files.
 	 *
-	 * @access	public
-	 * @param	object	An XML object
+	 * @param	object	An XML object.
 	 * @since	1.5
 	 */
 	public function setXML(&$xml)
 	{
-		if (is_object($xml))
-		{
+		if (is_object($xml)) {
 			if ($group = $xml->attributes('group')) {
 				$this->_xml[$group] = $xml;
 			} else {
 				$this->_xml['_default'] = $xml;
 			}
+
 			if ($dir = $xml->attributes('addpath')) {
 				$this->addElementPath(JPATH_ROOT . str_replace('/', DS, $dir));
 			}
@@ -156,11 +148,10 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Bind data to the parameter
+	 * Bind data to the parameter.
 	 *
-	 * @param	mixed	$data Array or Object
-	 * @return	boolean	True if the data was successfully bound
-	 * @access	public
+	 * @param	mixed	$data Array or Object.
+	 * @return	boolean	True if the data was successfully bound.
 	 * @since	1.5
 	 */
 	public function bind($data, $group = '_default')
@@ -175,10 +166,9 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Render
+	 * Render.
 	 *
-	 * @access	public
-	 * @param	string	The name of the control, or the default text area if a setup file is not found
+	 * @param	string	The name of the control, or the default text area if a setup file is not found.
 	 * @return	string	HTML
 	 * @since	1.5
 	 */
@@ -190,41 +180,32 @@ class JParameter extends JRegistry
 
 		$params = $this->getParams($name, $group);
 		$html = array ();
-		$html[] = '<table width="100%" class="paramlist admintable" cellspacing="1">';
 
 		if ($description = $this->_xml[$group]->attributes('description')) {
 			// add the params description to the display
 			$desc	= JText::_($description);
-			$html[]	= '<tr><td class="paramlist_description" colspan="2">'.$desc.'</td></tr>';
+			$html[]	= '<p class="paramrow_desc">'.$desc.'</p>';
 		}
 
-		foreach ($params as $param)
-		{
-			$html[] = '<tr>';
-
+		foreach ($params as $param) {
 			if ($param[0]) {
-				$html[] = '<td width="40%" class="paramlist_key"><span class="editlinktip">'.$param[0].'</span></td>';
-				$html[] = '<td class="paramlist_value">'.$param[1].'</td>';
+				$html[] = $param[0];
+				$html[] = $param[1];
 			} else {
-				$html[] = '<td class="paramlist_value" colspan="2">'.$param[1].'</td>';
+				$html[] = $param[1];
 			}
-
-			$html[] = '</tr>';
 		}
 
 		if (count($params) < 1) {
-			$html[] = "<tr><td colspan=\"2\"><i>".JText::_('There are no Parameters for this item')."</i></td></tr>";
+			$html[] = "<p class=\"noparams\">".JText::_('THERE_ARE_NO_PARAMETERS_FOR_THIS_ITEM')."</p>";
 		}
 
-		$html[] = '</table>';
-
-		return implode("\n", $html);
+		return implode(PHP_EOL, $html);
 	}
 
 	/**
 	 * Render all parameters to an array
 	 *
-	 * @access	public
 	 * @param	string	The name of the control, or the default text area if a setup file is not found
 	 * @return	array	Array of all parameters, each as array Any array of the label, the form element and the tooltip
 	 * @since	1.5
@@ -236,17 +217,16 @@ class JParameter extends JRegistry
 		}
 		$results = array();
 		foreach ($this->_xml[$group]->children() as $param)  {
-			$result = $this->getParam($param, $name);
+			$result = $this->getParam($param, $name, $group);
 			$results[$result[5]] = $result;
 		}
 		return $results;
 	}
 
 	/**
-	 * Return number of params to render
+	 * Return number of params to render.
 	 *
-	 * @access	public
-	 * @return	mixed	Boolean falst if no params exist or integer number of params that exist
+	 * @return	mixed	Boolean falst if no params exist or integer number of params that exist.
 	 * @since	1.5
 	 */
 	public function getNumParams($group = '_default')
@@ -259,10 +239,9 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Get the number of params in each group
+	 * Get the number of params in each group.
 	 *
-	 * @access	public
-	 * @return	array	Array of all group names as key and param count as value
+	 * @return	array	Array of all group names as key and param count as value.
 	 * @since	1.5
 	 */
 	public function getGroups()
@@ -270,6 +249,7 @@ class JParameter extends JRegistry
 		if (!is_array($this->_xml)) {
 			return false;
 		}
+
 		$results = array();
 		foreach ($this->_xml as $name => $group)  {
 			$results[$name] = $this->getNumParams($name);
@@ -278,11 +258,10 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Render all parameters
+	 * Render all parameters.
 	 *
-	 * @access	public
-	 * @param	string	The name of the control, or the default text area if a setup file is not found
-	 * @return	array	Aarray of all parameters, each as array Any array of the label, the form element and the tooltip
+	 * @param	string	The name of the control, or the default text area if a setup file is not found.
+	 * @return	array	Aarray of all parameters, each as array Any array of the label, the form element and the tooltip.
 	 * @since	1.5
 	 */
 	public function getParams($name = 'params', $group = '_default')
@@ -290,34 +269,31 @@ class JParameter extends JRegistry
 		if (!isset($this->_xml[$group])) {
 			return false;
 		}
+
 		$results = array();
 		foreach ($this->_xml[$group]->children() as $param)  {
-			$results[] = $this->getParam($param, $name);
+			$results[] = $this->getParam($param, $name, $group);
 		}
 		return $results;
 	}
 
 	/**
-	 * Render a parameter type
+	 * Render a parameter type.
 	 *
-	 * @param	object	A param tag node
-	 * @param	string	The control name
-	 * @return	array	Any array of the label, the form element and the tooltip
+	 * @param	object	A param tag node.
+	 * @param	string	The control name.
+	 * @return	array	Any array of the label, the form element and the tooltip.
 	 * @since	1.5
 	 */
 	public function getParam(&$node, $control_name = 'params', $group = '_default')
 	{
-		//get the type of the parameter
+		// Get the type of the parameter.
 		$type = $node->attributes('type');
-
-		//remove any occurance of a mos_ prefix
-		$type = str_replace('mos_', '', $type);
 
 		$element = &$this->loadElement($type);
 
-		// error happened
-		if ($element === false)
-		{
+		// Check for an error.
+		if ($element === false) {
 			$result = array();
 			$result[0] = $node->attributes('name');
 			$result[1] = JText::_('Element not defined for type').' = '.$type;
@@ -325,17 +301,16 @@ class JParameter extends JRegistry
 			return $result;
 		}
 
-		//get value
+		// Get value.
 		$value = $this->get($node->attributes('name'), $node->attributes('default'), $group);
 
 		return $element->render($node, $value, $control_name);
 	}
 
 	/**
-	 * Loads an xml setup file and parses it
+	 * Loads an xml setup file and parses it.
 	 *
-	 * @access	public
-	 * @param	string	path to xml setup file
+	 * @param	string	path to xml setup file.
 	 * @return	object
 	 * @since	1.5
 	 */
@@ -343,23 +318,18 @@ class JParameter extends JRegistry
 	{
 		$result = false;
 
-		if ($path)
-		{
-			$xml = & JFactory::getXMLParser('Simple');
+		if ($path) {
+			$xml = &JFactory::getXMLParser('Simple');
 
-			if ($xml->loadFile($path))
-			{
-				if ($params = & $xml->document->params) {
-					foreach ($params as $param)
-					{
+			if ($xml->loadFile($path)) {
+				if ($params = &$xml->document->params) {
+					foreach ($params as $param) {
 						$this->setXML($param);
 						$result = true;
 					}
 				}
 			}
-		}
-		else
-		{
+		} else {
 			$result = true;
 		}
 
@@ -367,42 +337,41 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Loads a element type
+	 * Loads a element type.
 	 *
-	 * @access	public
 	 * @param	string	elementType
 	 * @return	object
 	 * @since	1.5
 	 */
-	public function &loadElement($type, $new = false)
+	public function loadElement($type, $new = false)
 	{
-		$false = false;
 		$signature = md5($type);
 
-		if ((isset($this->_elements[$signature]) && !is_a($this->_elements[$signature], '__PHP_Incomplete_Class'))  && $new === false) {
+		if ((isset($this->_elements[$signature]) && !($this->_elements[$signature] instanceof __PHP_Incomplete_Class))  && $new === false) {
 			return	$this->_elements[$signature];
 		}
 
 		$elementClass	=	'JElement'.$type;
-		if (!class_exists($elementClass))
-		{
+		if (!class_exists($elementClass)) {
 			if (isset($this->_elementPath)) {
 				$dirs = $this->_elementPath;
 			} else {
 				$dirs = array();
 			}
 
-			$file = JFilterInput::clean(str_replace('_', DS, $type).'.php', 'path');
+			$file = JFilterInput::getInstance()->clean(str_replace('_', DS, $type).'.php', 'path');
 
 			jimport('joomla.filesystem.path');
 			if ($elementFile = JPath::find($dirs, $file)) {
 				include_once $elementFile;
 			} else {
+				$false = false;
 				return $false;
 			}
 		}
 
 		if (!class_exists($elementClass)) {
+			$false = false;
 			return $false;
 		}
 
@@ -412,7 +381,7 @@ class JParameter extends JRegistry
 	}
 
 	/**
-	 * Add a directory where JParameter should search for element types
+	 * Add a directory where JParameter should search for element types.
 	 *
 	 * You may either pass a string or an array of directories.
 	 *
@@ -421,28 +390,26 @@ class JParameter extends JRegistry
 	 * the custom folders, it will look in
 	 * JParameter/types.
 	 *
-	 * @access	public
-	 * @param	string|array	directory or directories to search.
+	 * @param	string|array	Directory or directories to search.
 	 * @since	1.5
 	 */
 	public function addElementPath($path)
 	{
-		// just force path to array
+		// Just force path to array.
 		settype($path, 'array');
 
-		// loop through the path directories
-		foreach ($path as $dir)
-		{
-			// no surrounding spaces allowed!
+		// Loop through the path directories.
+		foreach ($path as $dir) {
+			// No surrounding spaces allowed!
 			$dir = trim($dir);
 
-			// add trailing separators as needed
+			// Add trailing separators as needed.
 			if (substr($dir, -1) != DIRECTORY_SEPARATOR) {
-				// directory
+				// Directory
 				$dir .= DIRECTORY_SEPARATOR;
 			}
 
-			// add to the top of the search dirs
+			// Add to the top of the search dirs.
 			array_unshift($this->_elementPath, $dir);
 		}
 	}

@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -38,7 +38,7 @@ class JFormFieldMenuParent extends JFormFieldList
 
 		$query->select('a.id AS value, a.title AS text, a.level');
 		$query->from('#__menu AS a');
-		$query->join('LEFT', '`#__usergroups` AS b ON a.left_id > b.left_id AND a.right_id < b.right_id');
+		$query->join('LEFT', '`#__menu` AS b ON a.lft > b.lft AND a.rgt < b.rgt');
 
 		// Filter by the type
 		if ($menuType = $this->_form->getValue('menutype')) {
@@ -46,7 +46,7 @@ class JFormFieldMenuParent extends JFormFieldList
 		}
 
 		$query->group('a.id');
-		$query->order('a.left_id ASC');
+		$query->order('a.lft ASC');
 
 		// Get the options.
 		$db->setQuery($query);

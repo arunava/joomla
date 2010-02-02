@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,28 +31,7 @@ JHtml::_('behavior.formvalidation');
 		</div>
 	</div>
 	<div class="m">
-		<h1><?php echo JText::_('Steps'); ?></h1>
-		<div class="step-off">
-			1 : <?php echo JText::_('Language'); ?>
-		</div>
-		<div class="step-on">
-			2 : <?php echo JText::_('Pre-Installation check'); ?>
-		</div>
-		<div class="step-off">
-			3 : <?php echo JText::_('License'); ?>
-		</div>
-		<div class="step-off">
-			4 : <?php echo JText::_('Database'); ?>
-		</div>
-		<div class="step-off">
-			5 : <?php echo JText::_('FTP Configuration'); ?>
-		</div>
-		<div class="step-off">
-			6 : <?php echo JText::_('Configuration'); ?>
-		</div>
-		<div class="step-off">
-			7 : <?php echo JText::_('Finish'); ?>
-		</div>
+		<?php echo JHtml::_('installation.stepbar', 2); ?>
 		<div class="box"></div>
   	</div>
 	<div class="b">
@@ -62,7 +41,7 @@ JHtml::_('behavior.formvalidation');
 	</div>
 </div>
 
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" class="form-validate">
 <div id="right">
 	<div id="rightpad">
 		<div id="step">
@@ -74,16 +53,16 @@ JHtml::_('behavior.formvalidation');
 			<div class="m">
 				<div class="far-right">
 <?php if ($this->document->direction == 'ltr') : ?>
-					<div class="button1-left"><div class="refresh"><a href="index.php?view=preinstall" title="<?php echo JText::_('Check Again'); ?>"><?php echo JText::_('Check Again'); ?></a></div></div>
-					<div class="button1-right"><div class="prev"><a href="index.php?view=language" title="<?php echo JText::_('Previous'); ?>"><?php echo JText::_('Previous'); ?></a></div></div>
-					<div class="button1-left"><div class="next"><a href="index.php?view=license" title="<?php echo JText::_('Next'); ?>"><?php echo JText::_('Next'); ?></a></div></div>
+					<div class="button1-left"><div class="refresh"><a href="index.php?view=preinstall" title="<?php echo JText::_('JCheck_Again'); ?>"><?php echo JText::_('JCheck_Again'); ?></a></div></div>
+					<div class="button1-right"><div class="prev"><a href="index.php?view=language" title="<?php echo JText::_('JPrevious'); ?>"><?php echo JText::_('JPrevious'); ?></a></div></div>
+					<div class="button1-left"><div class="next"><a href="index.php?view=license" title="<?php echo JText::_('JNext'); ?>"><?php echo JText::_('JNext'); ?></a></div></div>
 <?php elseif ($this->document->direction == 'rtl') : ?>
-					<div class="button1-right"><div class="prev"><a href="index.php?view=license" title="<?php echo JText::_('Next'); ?>"><?php echo JText::_('Next'); ?></a></div></div>
-					<div class="button1-left"><div class="next"><a href="index.php?view=language" title="<?php echo JText::_('Previous'); ?>"><?php echo JText::_('Previous'); ?></a></div></div>
-					<div class="button1-left"><div class="refresh"><a href="index.php?view=preinstall" title="<?php echo JText::_('Check Again'); ?>"><?php echo JText::_('Check Again'); ?></a></div></div>
+					<div class="button1-right"><div class="prev"><a href="index.php?view=license" title="<?php echo JText::_('JNext'); ?>"><?php echo JText::_('JNext'); ?></a></div></div>
+					<div class="button1-left"><div class="next"><a href="index.php?view=language" title="<?php echo JText::_('JPrevious'); ?>"><?php echo JText::_('JPrevious'); ?></a></div></div>
+					<div class="button1-left"><div class="refresh"><a href="index.php?view=preinstall" title="<?php echo JText::_('JCheck_Again'); ?>"><?php echo JText::_('JCheck_Again'); ?></a></div></div>
 <?php endif; ?>
 				</div>
-				<span class="step"><?php echo JText::_('Pre-Installation check'); ?></span>
+				<span class="step"><?php echo JText::_('Instl_Precheck_Title'); ?></span>
 			</div>
 			<div class="b">
 				<div class="b">
@@ -98,12 +77,9 @@ JHtml::_('behavior.formvalidation');
 				</div>
 			</div>
 			<div class="m">
-				<h2><?php echo JText::_('Pre-installation check for'),' ',$this->version->getLongVersion(); ?>:</h2>
+				<h2><?php echo JText::sprintf('Instl_Precheck_for_version', $this->version->getLongVersion()); ?></h2>
 				<div class="install-text">
-					<?php echo JText::_('If any of these items is not supported (marked as <strong><font color="#ff00">No</font></strong>)
-					then please take actions to correct them. Failure to do so
-					could lead to your Joomla! installation not functioning
-					correctly.'); ?>
+					<?php echo JText::_('Instl_Precheck_Desc'); ?>
 				</div>
 				<div class="install-body">
 					<div class="t">
@@ -121,8 +97,8 @@ JHtml::_('behavior.formvalidation');
 										<?php echo $option->label; ?>
 									</td>
 									<td valign="top">
-										<span class="<?php echo ($option->state) ? 'Yes' : 'No'; ?>">
-											<?php echo ($option->state) ? 'Yes' : 'No'; ?>
+										<span class="<?php echo ($option->state) ? 'green' : 'red'; ?>">
+											<?php echo JText::_(($option->state) ? 'JYes' : 'JNo'); ?>
 										</span>
 										<span class="small">
 											<?php echo $option->notice; ?>&nbsp;
@@ -145,14 +121,9 @@ JHtml::_('behavior.formvalidation');
 
 				<div class="newsection"></div>
 
-				<h2><?php echo JText::_('Recommended settings'); ?>:</h2>
+				<h2><?php echo JText::_('Instl_Precheck_Recommended_settings_Title'); ?></h2>
 				<div class="install-text">
-					<?php echo JText::_(
-						'These settings are recommended for PHP in order to ensure full
-						compatibility with Joomla.
-						<br />
-						However, Joomla! will still operate if your settings do not quite match the recommended.'
-					); ?>
+					<?php echo JText::_('Instl_Precheck_Recommended_settings_Desc'); ?>
 				</div>
 				<div class="install-body">
 					<div class="t">
@@ -166,13 +137,13 @@ JHtml::_('behavior.formvalidation');
 								<thead>
 								<tr>
 									<td class="toggle">
-										<?php echo JText::_('Directive'); ?>
+										<?php echo JText::_('Instl_Precheck_Directive'); ?>
 									</td>
 									<td class="toggle">
-										<?php echo JText::_('Recommended'); ?>
+										<?php echo JText::_('Instl_Precheck_Recommended'); ?>
 									</td>
 									<td class="toggle">
-										<?php echo JText::_('Actual'); ?>
+										<?php echo JText::_('Instl_Precheck_Actual'); ?>
 									</td>
 								</tr>
 								</thead>
@@ -183,13 +154,13 @@ JHtml::_('behavior.formvalidation');
 										<?php echo $setting->label; ?>:
 									</td>
 									<td class="toggle">
-										<span class="<?php echo ($setting->recommended) ? 'Yes' : 'No'; ?>">
-										<?php echo ($setting->recommended) ? 'Yes' : 'No'; ?>
+										<span>
+										<?php echo JText::_(($setting->recommended) ? 'JOn' : 'JOff'); ?>
 										</span>
 									</td>
 									<td>
-										<span class="<?php echo ($setting->state) ? 'Yes' : 'No'; ?>">
-										<?php echo ($setting->state) ? 'Yes' : 'No'; ?>
+										<span class="<?php echo ($setting->state === $setting->recommended) ? 'green' : 'red'; ?>">
+										<?php echo JText::_(($setting->state) ? 'JOn' : 'JOff'); ?>
 										</span>
 									</td>
 								</tr>

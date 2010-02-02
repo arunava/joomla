@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,25 +18,6 @@ defined('JPATH_BASE') or die;
 class JTableMenuType extends JTable
 {
 	/**
-	 * @var int Primary key
-	 */
-	public $id					= null;
-
-	/**
-	 * @var string
-	 */
-	public $menutype			= null;
-
-	/** @var string
-	 */
-	public $title				= null;
-
-	/**
-	 * @var string
-	 */
-	public $description		= null;
-
-	/**
 	 * Constructor
 	 *
 	 * @param database A database connector object
@@ -51,7 +32,7 @@ class JTableMenuType extends JTable
 	 */
 	function check()
 	{
-		$this->menutype = JFilterOutput::stringURLSafe($this->menutype);
+		$this->menutype = JApplication::stringURLSafe($this->menutype);
 		if (empty($this->menutype)) {
 			$this->setError(JText::_('Menu_Error_Menutype_empty'));
 			return false;

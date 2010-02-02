@@ -3,7 +3,7 @@
  * @version		$Id:sessionstorage.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Session
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -33,15 +33,14 @@ class JSessionStorage extends JObject
 	}
 
 	/**
-	 * Returns a reference to a session storage handler object, only creating it
+	 * Returns a session storage handler object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @access public
 	 * @param name 	$name The session store to instantiate
 	 * @return database A JSessionStorage object
 	 * @since 1.5
 	 */
-	function &getInstance($name = 'none', $options = array())
+	public static function getInstance($name = 'none', $options = array())
 	{
 		static $instances;
 
@@ -49,7 +48,7 @@ class JSessionStorage extends JObject
 			$instances = array ();
 		}
 
-		$name = strtolower(JFilterInput::clean($name, 'word'));
+		$name = strtolower(JFilterInput::getInstance()->clean($name, 'word'));
 		if (empty ($instances[$name]))
 		{
 			$class = 'JSessionStorage'.ucfirst($name);
@@ -57,7 +56,7 @@ class JSessionStorage extends JObject
 			{
 				$path = dirname(__FILE__).DS.'storage'.DS.$name.'.php';
 				if (file_exists($path)) {
-					require_once($path);
+					require_once $path;
 				} else {
 					// No call to JError::raiseError here, as it tries to close the non-existing session
 					jexit('Unable to load session storage class: '.$name);

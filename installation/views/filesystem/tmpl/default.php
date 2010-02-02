@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,28 +31,7 @@ JHtml::_('behavior.formvalidation');
 		</div>
 	</div>
 	<div class="m">
-		<h1><?php echo JText::_('Steps'); ?></h1>
-		<div class="step-off">
-			1 : <?php echo JText::_('Language'); ?>
-		</div>
-		<div class="step-off">
-			2 : <?php echo JText::_('Pre-Installation check'); ?>
-		</div>
-		<div class="step-off">
-			3 : <?php echo JText::_('License'); ?>
-		</div>
-		<div class="step-off">
-			4 : <?php echo JText::_('Database'); ?>
-		</div>
-		<div class="step-on">
-			5 : <?php echo JText::_('FTP Configuration'); ?>
-		</div>
-		<div class="step-off">
-			6 : <?php echo JText::_('Configuration'); ?>
-		</div>
-		<div class="step-off">
-			7 : <?php echo JText::_('Finish'); ?>
-		</div>
+		<?php echo JHtml::_('installation.stepbar', 5); ?>
 		<div class="box"></div>
   	</div>
 	<div class="b">
@@ -62,7 +41,7 @@ JHtml::_('behavior.formvalidation');
 	</div>
 </div>
 
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" class="form-validate">
 <div id="right">
 	<div id="rightpad">
 		<div id="step">
@@ -74,14 +53,14 @@ JHtml::_('behavior.formvalidation');
 			<div class="m">
 				<div class="far-right">
 <?php if ($this->document->direction == 'ltr') : ?>
-					<div class="button1-right"><div class="prev"><a href="index.php?view=database" title="<?php echo JText::_('Previous'); ?>"><?php echo JText::_('Previous'); ?></a></div></div>
-					<div class="button1-left"><div class="next"><a onclick="validateForm(adminForm, 'setup.filesystem');" title="<?php echo JText::_('Next'); ?>"><?php echo JText::_('Next'); ?></a></div></div>
+					<div class="button1-right"><div class="prev"><a href="index.php?view=database" title="<?php echo JText::_('JPrevious'); ?>"><?php echo JText::_('JPrevious'); ?></a></div></div>
+					<div class="button1-left"><div class="next"><a onclick="validateForm(adminForm, 'setup.filesystem');" title="<?php echo JText::_('JNext'); ?>"><?php echo JText::_('JNext'); ?></a></div></div>
 <?php elseif ($this->document->direction == 'rtl') : ?>
-					<div class="button1-right"><div class="prev"><a onclick="validateForm(adminForm, 'setup.filesystem');" title="<?php echo JText::_('Next'); ?>"><?php echo JText::_('Next'); ?></a></div></div>
-					<div class="button1-left"><div class="next"><a href="index.php?view=database" title="<?php echo JText::_('Previous'); ?>"><?php echo JText::_('Previous'); ?></a></div></div>
+					<div class="button1-right"><div class="prev"><a onclick="validateForm(adminForm, 'setup.filesystem');" title="<?php echo JText::_('JNext'); ?>"><?php echo JText::_('JNext'); ?></a></div></div>
+					<div class="button1-left"><div class="next"><a href="index.php?view=database" title="<?php echo JText::_('JPrevious'); ?>"><?php echo JText::_('JPrevious'); ?></a></div></div>
 <?php endif; ?>
 				</div>
-				<span class="step"><?php echo JText::_('FTP Configuration'); ?></span>
+				<span class="step"><?php echo JText::_('FTP_CONFIGURATION'); ?></span>
 			</div>
 			<div class="b">
 				<div class="b">
@@ -97,7 +76,7 @@ JHtml::_('behavior.formvalidation');
 			</div>
 			<div class="m">
 				<h2>
-					<?php echo JText::_('FTP Configuration'); ?>:
+					<?php echo JText::_('FTP_CONFIGURATION'); ?>:
 				</h2>
 				<div class="install-text">
 					<?php echo JText::_('
@@ -123,7 +102,7 @@ JHtml::_('behavior.formvalidation');
 					</div>
 					<div class="m">
 						<h3 class="title-smenu" title="<?php echo JText::_('Basic'); ?>">
-							<?php echo JText::_('Basic Settings'); ?>
+							<?php echo JText::_('BASIC_SETTINGS'); ?>
 						</h3>
 						<div class="section-smenu">
 							<table class="content2">
@@ -161,13 +140,13 @@ JHtml::_('behavior.formvalidation');
 								</tr>
 							</table>
 
-							<input type="button" id="findbutton" class="button" value="<?php echo JText::_('Autofind FTP Path'); ?>" onclick="Install.detectFtpRoot(this);" />
-							<input type="button" id="verifybutton" class="button" value="<?php echo JText::_('Verify FTP Settings'); ?>" onclick="Install.verifyFtpSettings(this);" />
+							<input type="button" id="findbutton" class="button" value="<?php echo JText::_('AUTOFIND_FTP_PATH'); ?>" onclick="Install.detectFtpRoot(this);" />
+							<input type="button" id="verifybutton" class="button" value="<?php echo JText::_('VERIFY_FTP_SETTINGS'); ?>" onclick="Install.verifyFtpSettings(this);" />
 							<br /><br />
 						</div>
 
 						<h3 class="title-smenu moofx-toggler" title="<?php echo JText::_('Advanced'); ?>">
-							<?php echo JText::_('Advanced settings'); ?>
+							<?php echo JText::_('ADVANCED_SETTINGS'); ?>
 						</h3>
 						<div class="section-smenu moofx-slider">
 							<table class="content2">

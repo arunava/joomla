@@ -1,25 +1,23 @@
 <?php
 /**
- * @version		$Id: templates.php 11838 2009-05-27 22:07:20Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
 defined('_JEXEC') or die;
 
-$user = & JFactory::getUser();
-if (!$user->authorize('core.templates.manage')) {
-	JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
+// Access check.
+if (!JFactory::getUser()->authorise('core.manage', 'com_templates')) {
+	return JError::raiseWarning(404, JText::_('ALERTNOTAUTH'));
 }
 
-// Require the base controller
-require_once JPATH_COMPONENT.DS.'controller.php';
+// Include dependancies
+jimport('joomla.application.component.controller');
 
-$controller	= new TemplatesController();
-
-// Perform the Request task
+$controller	= JController::getInstance('Templates');
 $controller->execute(JRequest::getCmd('task'));
 $controller->redirect();

@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -45,9 +45,10 @@ class MenusControllerItems extends JController
 	/**
 	 * Proxy for getModel
 	 */
-	public function &getModel()
+	function &getModel($name = 'Item', $prefix = 'MenusModel')
 	{
-		return parent::getModel('Item', '', array('ignore_request' => true));
+		$model = parent::getModel($name, $prefix, array('ignore_request' => true));
+		return $model;
 	}
 
 	/**
@@ -56,7 +57,7 @@ class MenusControllerItems extends JController
 	public function delete()
 	{
 		// Check for request forgeries
-		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get items to remove from the request.
 		$pks	= JRequest::getVar('cid', array(), 'post', 'array');
@@ -90,7 +91,7 @@ class MenusControllerItems extends JController
 	public function publish()
 	{
 		// Check for request forgeries
-		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get items to publish from the request.
 		$pks	= JRequest::getVar('cid', array(), '', 'array');
@@ -125,9 +126,9 @@ class MenusControllerItems extends JController
 	 */
 	public function ordering()
 	{
-		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$pks	= JRequest::getVar('cid', null, 'post', 'array');
 		$model	= &$this->getModel();
 

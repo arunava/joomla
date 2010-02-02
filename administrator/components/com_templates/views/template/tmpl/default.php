@@ -1,94 +1,80 @@
-<?php defined('_JEXEC') or die; ?>
-
 <?php
-	JHtml::_('behavior.tooltip');
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_templates
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access.
+defined('_JEXEC') or die;
+
+// Include the component HTML helpers.
+JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
+JHtml::_('behavior.tooltip');
+JHtml::_('behavior.modal');
 ?>
-<form action="<?php echo JRoute::_('index.php') ?>" method="post" name="adminForm">
-<div class="col width-50">
-	<fieldset class="adminform">
-		<legend><?php echo JText::_('Styles'); ?></legend>
+<form action="<?php echo JRoute::_('index.php?option=com_templates&view=template'); ?>" method="post" name="adminForm" id="adminForm">
+	<div class="width-50 fltlft">
+		<fieldset class="adminform" id="template-manager">
+			<legend><?php echo JText::_('Templates_Template_Master_files');?></legend>
 
-		<table class="admintable">
-		<tr>
-			<th><?php echo JText::_('#'); ?></th>
-			<th><?php echo JText::_('Style'); ?></th>
-			<th><?php echo JText::_('Default'); ?></th>
-			<th><?php echo JText::_('Delete'); ?></th>
-		</tr>
-		<?php 
-		$i = 1;
-		foreach($this->style as $style)
-		{ ?>
-		<tr>
-			<td><?php echo $i; ?></td>
-			<td><a href="<?php echo JRoute::_('index.php?option=com_templates&task=edit&cid[]='.$style->id.'&client='.$this->client->id); ?>">
-				<?php echo JText::_($this->row->template); ?> - <?php echo $style->description; ?>
-			</a></td>
-			<td><?php
-			if($style->home)
-			{
-				echo '<img src="templates/khepri/images/menu/icon-16-default.png" alt="'.JText::_('Default').'" />';
-			} else {
-				echo '<a href="'.JRoute::_('index.php?option=com_templates&task=setdefault&id='.$style->id).'">default</a>';
-			} ?></td>
-			<td><a href="<?php echo JRoute::_('index.php?option=com_templates&task=delete&id='.$style->id); ?>">delete</a></td>
-		</tr>
-		<?php } ?>
-		</table>
-	</fieldset>
+			<?php echo JHtml::_('templates.thumb', $this->template->element, $this->template->client_id); ?>
 
-</div>
+			<h2><?php echo $this->template->element; ?></h2>
+			<ul>
+				<li>
+					<?php $id = $this->files['main']['index']->id; ?>
+					<a href="<?php echo JRoute::_('index.php?option=com_templates&task=source.edit&id='.$id);?>">
+						<?php echo JText::_('Templates_Template_Edit_main');?></a>
+				</li>
+				<?php if ($this->files['main']['error']->exists) : ?>
+				<li>
+					<?php $id = $this->files['main']['error']->id; ?>
+					<a href="<?php echo JRoute::_('index.php?option=com_templates&task=source.edit&id='.$id);?>">
+						<?php echo JText::_('Templates_Template_Edit_error');?></a>
+				</li>
+				<?php endif; ?>
+				<?php if ($this->files['main']['print']->exists) : ?>
+				<li>
+					<?php $id = $this->files['main']['print']->id; ?>
+					<a href="<?php echo JRoute::_('index.php?option=com_templates&task=source.edit&id='.$id);?>">
+						<?php echo JText::_('Templates_Template_Edit_printview');?></a>
+				</li>
+				<?php endif; ?>
+			<ul>
+		</fieldset>
 
-<div class="col width-50">
-	<fieldset class="adminform">
-		<legend><?php echo JText::_('Details'); ?></legend>
+		<div class="clr"></div>
+	</div>
 
-		<table class="admintable">
-		<tr>
-			<td valign="top" class="key">
-				<?php echo JText::_('Name'); ?>:
-			</td>
-			<td>
-				<strong>
-					<?php echo JText::_($this->row->template); ?> - <input class="inputbox" type="text" name="description" id="description" size="40" maxlength="255" value="<?php echo $this->row->description; ?>" />
-					
-				</strong>
-			</td>
-		</tr>
-		<tr>
-			<td valign="top" class="key">
-				<?php echo JText::_('Description'); ?>:
-			</td>
-			<td>
-				<?php echo JText::_($this->row->xmldata->description); ?>
-			</td>
-		</tr>
-		</table>
-	</fieldset>
-	<fieldset class="adminform">
-		<legend><?php echo JText::_('Parameters'); ?></legend>
-		<table class="admintable">
-		<tr>
-			<td>
-			<?php
-			if (!is_null($this->params)) {
-				echo $this->params->render();
-			} else {
-				echo '<i>' . JText :: _('No Parameters') . '</i>';
-			}
-			?>
-			</td>
-		</tr>
-		</table>
-	</fieldset>
-</div>
-<div class="clr"></div>
+	<div class="width-50 fltrt">
 
-<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
-<input type="hidden" name="template" value="<?php echo $this->row->template; ?>" />
+		<fieldset class="adminform" id="template-manager-css">
+			<legend><?php echo JText::_('Templates_Template_CSS');?></legend>
 
-<input type="hidden" name="option" value="<?php echo $this->option;?>" />
-<input type="hidden" name="task" value="" />
-<input type="hidden" name="client" value="<?php echo $this->client->id;?>" />
-<?php echo JHtml::_('form.token'); ?>
+			<?php if (!empty($this->files['css'])) : ?>
+			<ul>
+				<?php foreach ($this->files['css'] as $file) : ?>
+				<li>
+					<a href="<?php echo JRoute::_('index.php?option=com_templates&task=source.edit&id='.$file->id);?>">
+						<?php echo JText::sprintf('Templates_Template_Edit_css', $file->name);?></a>
+				</li>
+				<?php endforeach; ?>
+			<ul>
+			<?php endif; ?>
+
+			<!--<div>
+				<a href="#" class="modal">
+					<?php echo JText::sprintf('Templates_Template_Add_css');?></a>
+			</div>-->
+
+		</fieldset>
+
+		<div class="clr"></div>
+	</div>
+
+	<input type="hidden" name="task" value="" />
 </form>
+

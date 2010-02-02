@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Document
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -76,7 +76,7 @@ class JDocument extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 var $_generator = 'Joomla! 1.5 - Open Source Content Management';
+	 var $_generator = 'Joomla! 1.6 - Open Source Content Management';
 
 	/**
 	 * Document modified date
@@ -239,17 +239,13 @@ class JDocument extends JObject
 	}
 
 	/**
-	 * Returns a reference to the global JDocument object, only creating it
+	 * Returns the global JDocument object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $document = &JDocument::getInstance();</pre>
-	 *
-	 * @access public
 	 * @param type $type The document type to instantiate
 	 * @return object  The document object.
 	 */
-	function &getInstance($type = 'html', $attributes = array())
+	public static function getInstance($type = 'html', $attributes = array())
 	{
 		static $instances;
 
@@ -351,10 +347,10 @@ class JDocument extends JObject
 	/**
 	 * Set the contents of the document buffer
 	 *
-	 * @access public
-	 * @param string 	$content	The content to be set in the buffer
+	 * @param	string 	$content	The content to be set in the buffer.
+	 * @param	array	$options	Array of optional elements.
 	 */
-	function setBuffer($content) {
+	public function setBuffer($content, $options = array()) {
 		$this->_buffer = $content;
 	}
 
@@ -733,9 +729,8 @@ class JDocument extends JObject
 	* @return	object
 	* @since 1.5
 	*/
-	function &loadRenderer($type)
+	function loadRenderer($type)
 	{
-		$null	= null;
 		$class	= 'JDocumentRenderer'.$type;
 
 		if (!class_exists($class))
@@ -749,7 +744,7 @@ class JDocument extends JObject
 		}
 
 		if (!class_exists($class)) {
-			return $null;
+			return null;
 		}
 
 		$instance = new $class($this);

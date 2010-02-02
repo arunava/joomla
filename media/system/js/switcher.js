@@ -1,18 +1,18 @@
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
- * Switcher behavior 
+ * Switcher behavior
  *
  * @package		Joomla
  * @since		1.5
  */
 var JSwitcher = new Class({
 	Implements: [Options, Events],
-	
+
 	togglers: null,
 	elements: null,
 	current: null,
@@ -22,14 +22,14 @@ var JSwitcher = new Class({
 		onHide: $empty,
 		cookieName: 'switcher',
 		togglerSelector: 'a',
-		elementSelector: 'div',
+		elementSelector: 'div.tab',
 		elementPrefix: 'page-'
 	},
 
 	initialize: function(toggler, element, options) {
 		this.setOptions(options);
-		this.togglers = $(toggler).getElements(this.options.togglerSelector);
-		this.elements = $(element).getElements(this.options.elementSelector);
+		this.togglers = document.id(toggler).getElements(this.options.togglerSelector);
+		this.elements = document.id(element).getElements(this.options.elementSelector);
 
 		if ((this.togglers.length == 0) || (this.togglers.length != this.elements.length)) {
 			return;
@@ -44,18 +44,18 @@ var JSwitcher = new Class({
 		var first = $pick(Cookie.read(this.options.cookieName), this.togglers[0].id);
 		this.display(first);
 	},
-	
+
 	display: function(togglerID) {
-		var toggler = $(togglerID);
-		var element = $(this.options.elementPrefix+togglerID);
+		var toggler = document.id(togglerID);
+		var element = document.id(this.options.elementPrefix+togglerID);
 
 		if (!$chk(toggler) || !$chk(element) || toggler == this.current) {
 			return this;
 		}
 
 		if ($chk(this.current)) {
-			this.hide($(this.options.elementPrefix+this.current));
-			$(this.current).removeClass('active');
+			this.hide(document.id(this.options.elementPrefix+this.current));
+			document.id(this.current).removeClass('active');
 		}
 
 		this.show(element);
@@ -69,11 +69,10 @@ var JSwitcher = new Class({
 		this.fireEvent('hide', element);
 		element.setStyle('display', 'none');
 	},
-	
+
 	hideAll: function() {
-		this.elements.each(function(el) {
-			el.setStyle('display', 'none');
-		});
+		this.elements.setStyle('display', 'none');
+		this.togglers.removeClass('active');
 	},
 
 	show: function (element) {

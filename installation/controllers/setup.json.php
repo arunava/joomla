@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -20,7 +20,7 @@ class JInstallationControllerSetup extends JController
 	function loadSampleData()
 	{
 		// Check for a valid token. If invalid, send a 403 with the error message.
-		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('Invalid_Token'), 403));
+		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('JInvalid_Token'), 403));
 
 		// Get the setup model.
 		$model = &$this->getModel('Setup', 'JInstallationModel', array('dbo' => null));
@@ -41,7 +41,7 @@ class JInstallationControllerSetup extends JController
 
 		// Create a response body.
 		$r = new JObject();
-		$r->text = 'Sample Data Loaded Successfully.';
+		$r->text = JText::_('Instl_Success_Sample_data_loaded');
 
 		// Send the response.
 		$this->sendResponse($r);
@@ -50,7 +50,7 @@ class JInstallationControllerSetup extends JController
 	function detectFtpRoot()
 	{
 		// Check for a valid token. If invalid, send a 403 with the error message.
-		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('Invalid_Token'), 403));
+		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('JInvalid_Token'), 403));
 
 		// Get the posted config options.
 		$vars = JRequest::getVar('vars', array(), 'post', 'array');
@@ -83,7 +83,7 @@ class JInstallationControllerSetup extends JController
 	function verifyFtpSettings()
 	{
 		// Check for a valid token. If invalid, send a 403 with the error message.
-		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('Invalid_Token'), 403));
+		JRequest::checkToken('request') or $this->sendResponse(new JException(JText::_('JInvalid_Token'), 403));
 
 		// Get the posted config options.
 		$vars = JRequest::getVar('vars', array(), 'post', 'array');
@@ -161,7 +161,7 @@ class JInstallationJsonResponse
 		{
 			// Prepare the error response.
 			$this->error	= true;
-			$this->header	= JText::_('Installation_Header_Error');
+			$this->header	= JText::_('Instl_Header_Error');
 			$this->message	= $state->getMessage();
 		}
 		else

@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Installer
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -40,15 +38,19 @@ class JInstallerHelper
 
 		// Capture PHP errors
 		$php_errormsg = 'Error Unknown';
+		$track_errors = ini_get('track_errors');
 		ini_set('track_errors', true);
 
 		// Set user agent
-		ini_set('user_agent', "Joomla! 1.5 Installer");
+		jimport('joomla.version');
+		$version = new JVersion();
+		ini_set('user_agent', $version->getUserAgent('Installer'));
 
 		// Open the remote server socket for reading
 		$inputHandle = @ fopen($url, "r");
 		$error = strstr($php_errormsg,'failed to open stream:');
-		if (!$inputHandle) {
+		if (!$inputHandle)
+		{
 			JError::raiseWarning(42, JText::_('SERVER_CONNECT_FAILED').', '.$error);
 			return false;
 		}
@@ -56,7 +58,8 @@ class JInstallerHelper
 		$meta_data = stream_get_meta_data($inputHandle);
 		foreach ($meta_data['wrapper_data'] as $wrapper_data)
 		{
-			if (substr($wrapper_data, 0, strlen("Content-Disposition")) == "Content-Disposition") {
+			if (substr($wrapper_data, 0, strlen("Content-Disposition")) == "Content-Disposition")
+			{
 				$contentfilename = explode ("\"", $wrapper_data);
 				$target = $contentfilename[1];
 			}
@@ -65,17 +68,19 @@ class JInstallerHelper
 		// Set the target path if not given
 		if (!$target) {
 			$target = $config->getValue('config.tmp_path').DS.JInstallerHelper::getFilenameFromURL($url);
-		} else {
+		}
+		else {
 			$target = $config->getValue('config.tmp_path').DS.basename($target);
 		}
 
-		// Initialize contents buffer
+		// Initialise contents buffer
 		$contents = null;
 
 		while (!feof($inputHandle))
 		{
 			$contents .= fread($inputHandle, 4096);
-			if ($contents == false) {
+			if ($contents == false)
+			{
 				JError::raiseWarning(44, 'Failed reading network resource: '.$php_errormsg);
 				return false;
 			}
@@ -86,6 +91,9 @@ class JInstallerHelper
 
 		// Close file pointer resource
 		fclose($inputHandle);
+
+		// restore error tracking to what it was before
+		ini_set('track_errors',$track_errors);
 
 		// Return the name of the downloaded package
 		return basename($target);
@@ -154,11 +162,10 @@ class JInstallerHelper
 		 * Get the extension type and return the directory/type array on success or
 		 * false on fail.
 		 */
-		if ($retval['type'] = JInstallerHelper::detectType($extractdir))
-		{
+		if ($retval['type'] = JInstallerHelper::detectType($extractdir)) {
 			return $retval;
-		} else
-		{
+		}
+		else {
 			return false;
 		}
 	}
@@ -176,41 +183,35 @@ class JInstallerHelper
 		// Search the install dir for an xml file
 		$files = JFolder::files($p_dir, '\.xml$', 1, true);
 
-		if (count($files) > 0)
-		{
-
-			foreach ($files as $file)
-			{
-				$xmlDoc = & JFactory::getXMLParser('Simple');
-
-				if (!$xmlDoc->loadFile($file))
-				{
-					// Free up memory
-					unset ($xmlDoc);
-					continue;
-				}
-				$root = & $xmlDoc->document;
-				if (!is_object($root) || ($root->name() != "install" && $root->name() != 'extension'))
-				{
-					unset($xmlDoc);
-					continue;
-				}
-
-				$type = $root->attributes('type');
-				// Free up memory
-				unset ($xmlDoc);
-				return $type;
-			}
-
-			JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
-			// Free up memory.
-			unset ($xmlDoc);
-			return false;
-		} else
+		if ( ! count($files))
 		{
 			JError::raiseWarning(1, JText::_('ERRORNOTFINDXMLSETUPFILE'));
 			return false;
 		}
+
+		foreach ($files as $file)
+		{
+			if( ! $xml = JFactory::getXML($file))
+			{
+				continue;
+			}
+
+			if($xml->getName() != 'install' && $xml->getName() != 'extension')
+			{
+				unset($xml);
+				continue;
+			}
+
+			$type = (string)$xml->attributes()->type;
+			// Free up memory
+			unset ($xml);
+			return $type;
+		}
+
+		JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
+		// Free up memory.
+		unset ($xml);
+		return false;
 	}
 
 	/**
@@ -223,7 +224,8 @@ class JInstallerHelper
 	 */
 	function getFilenameFromURL($url)
 	{
-		if (is_string($url)) {
+		if (is_string($url))
+		{
 			$parts = explode('/', $url);
 			return $parts[count($parts) - 1];
 		}
@@ -251,7 +253,9 @@ class JInstallerHelper
 		// Is the package file a valid file?
 		if (is_file($package)) {
 			JFile::delete($package);
-		} elseif (is_file(JPath::clean($config->getValue('config.tmp_path').DS.$package))) {
+		}
+		elseif (is_file(JPath::clean($config->getValue('config.tmp_path').DS.$package)))
+		{
 			// It might also be just a base filename
 			JFile::delete(JPath::clean($config->getValue('config.tmp_path').DS.$package));
 		}

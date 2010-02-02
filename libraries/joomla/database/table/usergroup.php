@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,41 +18,6 @@ jimport('joomla.database.table');
  */
 class JTableUsergroup extends JTable
 {
-	/**
-	 * @var int unsigned
-	 */
-	var $id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $parent_id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $left_id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $right_id;
-
-	/**
-	 * @var varchar
-	 */
-	var $title;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $section_id;
-
-	/**
-	 * @var varchar
-	 */
-	var $section;
-
 	/**
 	 * Constructor
 	 *
@@ -78,12 +43,6 @@ class JTableUsergroup extends JTable
 		// Validate the title.
 		if ((trim($this->title)) == '') {
 			$this->setError(JText::_('Usergroup must have a title'));
-			return false;
-		}
-
-		// Validate the section.
-		if (empty($this->section_id)) {
-			$this->setError(JText::_('Usergroup must have a section'));
 			return false;
 		}
 
@@ -131,7 +90,7 @@ class JTableUsergroup extends JTable
 		// the children of this node we also know the right value
 		$db->setQuery(
 			'UPDATE '. $this->_tbl .
-			' SET left_id='. (int)$left .', right_id='. (int)$right .
+			' SET lft='. (int)$left .', rgt='. (int)$right .
 			' WHERE id='. (int)$parent_id
 		);
 		// if there is an update failure, return false to break out of the recursion
@@ -177,7 +136,7 @@ class JTableUsergroup extends JTable
 		if ($this->parent_id == 0) {
 			return new JException(JText::_('Root categories cannot be deleted'));
 		}
-		if ($this->left_id == 0 or $this->right_id == 0) {
+		if ($this->lft == 0 or $this->rgt == 0) {
 			return new JException(JText::_('Left-Right data inconsistency. Cannot delete category.'));
 		}
 
@@ -187,7 +146,7 @@ class JTableUsergroup extends JTable
 		$db->setQuery(
 			'SELECT c.id' .
 			' FROM `'.$this->_tbl.'` AS c' .
-			' WHERE c.left_id >= '.(int) $this->left_id.' AND c.right_id <= '.$this->right_id
+			' WHERE c.lft >= '.(int) $this->lft.' AND c.rgt <= '.$this->rgt
 		);
 		$ids = $db->loadResultArray();
 		if (empty($ids)) {

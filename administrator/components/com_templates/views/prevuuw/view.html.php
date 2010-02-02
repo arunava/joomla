@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: view.html.php 11838 2009-05-27 22:07:20Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,9 +31,9 @@ class TemplatesViewPrevuuw extends JView
 		JToolBarHelper::title(JText::_('Template Manager'), 'thememanager');
 		JToolBarHelper::custom('edit', 'back.png', 'back_f2.png', 'Back', false, false);
 
-		require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
+		require_once JPATH_COMPONENT.DS.'helpers'.DS.'templates.php';
 
-		// Initialize some variables
+		// Initialise some variables
 		$option 	= JRequest::getCmd('option');
 		$id 		= JRequest::getVar('id', '', 'method', 'int');
 		$template	= TemplatesHelper::getTemplateName($id);
@@ -53,6 +53,7 @@ class TemplatesViewPrevuuw extends JView
 		$this->assignRef('option',		$option);
 		$this->assignRef('client',		$client);
 		$this->assignRef('id',			$id);
+		$this->assignRef('template',	$template);
 		$this->assignRef('tp',			$tp);
 		$this->assignRef('url',			$url);
 

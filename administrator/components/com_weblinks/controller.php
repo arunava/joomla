@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,8 +22,10 @@ class WeblinksController extends JController
 	 */
 	function display()
 	{
+		require_once JPATH_COMPONENT.DS.'helpers'.DS.'weblinks.php';
+
 		// Get the document object.
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 
 		// Set the default view name and format from the Request.
 		$vName		= JRequest::getWord('view', 'weblinks');
@@ -33,12 +35,8 @@ class WeblinksController extends JController
 		// Get and render the view.
 		if ($view = &$this->getView($vName, $vFormat))
 		{
-			switch ($vName)
-			{
-				default:
-					$model = &$this->getModel($vName);
-					break;
-			}
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
 
 			// Push the model into the view (as default).
 			$view->setModel($model, true);
@@ -48,6 +46,9 @@ class WeblinksController extends JController
 			$view->assignRef('document', $document);
 
 			$view->display();
+
+			// Load the submenu.
+			WeblinksHelper::addSubmenu($vName);
 		}
 	}
 }

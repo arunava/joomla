@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -50,10 +50,15 @@ class MenusViewMenus extends JView
 	 */
 	protected function _setToolBar()
 	{
-		JToolBarHelper::title(JText::_('Menus_Title_Menus'));
+		JToolBarHelper::title(JText::_('Menus_View_Menus_Title'), 'menumgr.png');
 
 		JToolBarHelper::custom('menu.add', 'new.png', 'new_f2.png', 'New', false);
 		JToolBarHelper::custom('menu.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
 		JToolBarHelper::deleteList('', 'menus.delete');
+		JToolBarHelper::divider();
+		JToolBarHelper::custom('menus.rebuild', 'refresh.png', 'refresh_f2.png', 'Menus_Toolbar_Rebuild', false);
+		JToolBarHelper::preferences('com_menus');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.menus.menus');
 	}
 }

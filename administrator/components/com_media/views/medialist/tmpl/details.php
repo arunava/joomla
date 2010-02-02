@@ -1,4 +1,15 @@
-<?php defined('_JEXEC') or die; ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_media
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access.
+defined('_JEXEC') or die;
+?>
 <form action="index.php?option=com_media&amp;tmpl=component&amp;folder=<?php echo $this->state->folder; ?>" method="post" id="mediamanager-form" name="mediamanager-form">
 	<div class="manager">
 	<table width="100%" cellspacing="0">
@@ -6,8 +17,8 @@
 		<tr>
 			<th><?php echo JText::_('Preview'); ?></th>
 			<th><?php echo JText::_('Name'); ?></th>
-			<th><?php echo JText::_('Dimensions'); ?></th>
-			<th><?php echo JText::_('Size'); ?></th>
+			<th><?php echo JText::_('Pixel_Dimensions'); ?></th>
+			<th><?php echo JText::_('File_Size'); ?></th>
 			<th><?php echo JText::_('Delete'); ?></th>
 		</tr>
 	</thead>

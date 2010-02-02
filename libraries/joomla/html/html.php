@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -39,6 +39,13 @@ abstract class JHtml
 	private static $includePaths = array();
 
 	/**
+	 * An array to hold method references
+	 *
+	 * @var array
+	 */
+	private static $registry = array();
+
+	/**
 	 * Class loader method
 	 *
 	 * Additional arguments may be supplied and are passed to the sub-class.
@@ -50,31 +57,27 @@ abstract class JHtml
 	 */
 	public static function _($type)
 	{
-		//Initialise variables
-		$prefix = 'JHtml';
-		$file   = '';
-		$func   = $type;
+		$type = preg_replace('#[^A-Z0-9_\.]#i', '', $type);
 
 		// Check to see if we need to load a helper file
 		$parts = explode('.', $type);
 
-		switch (count($parts))
-		{
-			case 3 :
-			{
-				$prefix		= preg_replace('#[^A-Z0-9_]#i', '', $parts[0]);
-				$file		= preg_replace('#[^A-Z0-9_]#i', '', $parts[1]);
-				$func		= preg_replace('#[^A-Z0-9_]#i', '', $parts[2]);
-			} break;
+		$prefix = (count($parts) == 3 ? array_shift($parts) : 'JHtml');
+		$file 	= (count($parts) == 2 ? array_shift($parts) : '');
+		$func 	= array_shift($parts);
 
-			case 2 :
-			{
-				$file		= preg_replace('#[^A-Z0-9_]#i', '', $parts[0]);
-				$func		= preg_replace('#[^A-Z0-9_]#i', '', $parts[1]);
-			} break;
+		$key = strtolower($prefix.'.'.$file.'.'.$func);
+
+		if (array_key_exists($key, self::$registry))
+		{
+			$function = self::$registry[$key];
+			$args = func_get_args();
+			// remove function name from arguments
+			array_shift($args);
+			return JHtml::call($function, $args);
 		}
 
-		$className	= $prefix.ucfirst($file);
+		$className = $prefix.ucfirst($file);
 
 		if (!class_exists($className))
 		{
@@ -85,38 +88,105 @@ abstract class JHtml
 
 				if (!class_exists($className))
 				{
-					JError::raiseWarning(0, $className.'::' .$func. ' not found in file.');
+					JError::raiseError(500, $className.'::' .$func. ' not found in file.');
 					return false;
 				}
 			}
 			else
 			{
-				JError::raiseWarning(0, $prefix.$file . ' not supported. File not found.');
+				JError::raiseError(500, $prefix.$file . ' not supported. File not found.');
 				return false;
 			}
 		}
 
-		if (is_callable(array($className, $func)))
+		$toCall = array($className, $func);
+		if (is_callable($toCall))
 		{
+			JHtml::register($key, $toCall);
 			$args = func_get_args();
+			// remove function name from arguments
 			array_shift($args);
-			return call_user_func_array(array($className, $func), $args);
+			return JHtml::call($toCall, $args);
 		}
 		else
 		{
-			JError::raiseWarning(0, $className.'::'.$func.' not supported.');
+			JError::raiseError(500, $className.'::'.$func.' not supported.');
 			return false;
 		}
 	}
 
-	function core($debug = null)
+	/**
+	 * Registers a function to be called with a specific key
+	 *
+	 * @param	string	The name of the key
+	 * @param	string	Function or method
+	 */
+	public static function register($key, $function)
+	{
+		$parts = explode('.', $key);
+
+		$prefix = (count($parts) == 3 ? array_shift($parts) : 'JHtml');
+		$file 	= (count($parts) == 2 ? array_shift($parts) : '');
+		$func 	= array_shift($parts);
+
+		$key = strtolower($prefix.'.'.$file.'.'.$func);
+
+		if (is_callable($function))
+		{
+			self::$registry[$key] = $function;
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Removes a key for a method from registry.
+	 *
+	 * @param	string	The name of the key
+	 */
+	public static function unregister($key)
+	{
+		$key = strtolower($key);
+		if (isset(self::$registry[$key])) {
+			unset(self::$registry[$key]);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Function caller method
+	 *
+	 * @param	string 	Function or method to call
+	 * @param	array	Arguments to be passed to function
+	 */
+	private static function call($function, $args)
+	{
+		if (is_callable($function))
+		{
+			// PHP 5.3 workaround
+			$temp	= array();
+			foreach ($args AS &$arg) {
+				$temp[] = &$arg;
+			}
+			return call_user_func_array($function, $temp);
+		}
+		else {
+			JError::raiseError(500, 'Function not supported.');
+			return false;
+		}
+	}
+
+	public static function core($debug = null)
 	{
 		// If no debugging value is set, use the configuration setting
 		if ($debug === null) {
 			$debug = JFactory::getConfig()->getValue('config.debug');
 		}
 
-		// TODO NOTE: Here we are checking for Konqueror - If they fix thier issue with compressed, we will need to update this
+		// TODO NOTE: Here we are checking for Konqueror - If they fix their issue with compressed, we will need to update this
 		$konkcheck		= strpos(strtolower($_SERVER['HTTP_USER_AGENT']), "konqueror");
 		$uncompressed	= ($debug || $konkcheck) ? '-uncompressed' : '';
 
@@ -143,23 +213,37 @@ abstract class JHtml
 	}
 
 	/**
-	 * Write a <img></amg> element
+	 * Write a <img></img> element
 	 *
 	 * @access	public
-	 * @param	string 	The relative or absoluete URL to use for the src attribute
+	 * @param	string 	The relative or absolute URL to use for the src attribute
 	 * @param	string	The target attribute to use
 	 * @param	array	An associative array of attributes to add
+	 * @param	boolean	If set to true, it tries to find an override for the file in the template
 	 * @since	1.5
 	 */
-	public static function image($url, $alt, $attribs = null)
+	public static function image($url, $alt, $attribs = null, $relative = false, $path_only = false)
 	{
 		if (is_array($attribs)) {
 			$attribs = JArrayHelper::toString($attribs);
 		}
 
-		if (strpos($url, 'http') !== 0) {
+		if($relative)
+		{
+			$app = JFactory::getApplication();
+			$cur_template = $app->getTemplate();
+			if (file_exists(JPATH_THEMES .'/'. $cur_template .'/images/'. $url)) {
+				$url = JURI::base(true).'/templates/'. $cur_template .'/images/'. $url;
+			} else {
+				$url = JURI::root(true).'/media/images/'.$url;
+			}
+			if($path_only)
+			{
+				return $url;
+			}
+		} elseif (strpos($url, 'http') !== 0) {
 			$url = JURI::root(true).'/'.$url;
-		};
+		}
 
 		return '<img src="'.$url.'" alt="'.$alt.'" '.$attribs.' />';
 	}
@@ -246,30 +330,61 @@ abstract class JHtml
 	}
 
 	/**
-	 * Returns formated date according to current local and adds time offset
+	 * Returns formated date according to a given format and time zone.
 	 *
-	 * @access	public
-	 * @param	string	date in an US English date format
+	 * @param	string	String in a format accepted by strtotime(), defaults to "now".
 	 * @param	string	format optional format for strftime
-	 * @returns	string	formated date
+	 * @param	mixed	Time zone to be used for the date.  Special cases: boolean true for user
+	 * 					setting, boolean false for server setting.
+	 * @return	string	A date translated by the given format and time zone.
 	 * @see		strftime
 	 * @since	1.5
 	 */
-	public static function date($date, $format = null, $offset = null)
+	public static function date($input = 'now', $format = null, $tz = true)
 	{
-		if (! $format) {
+		// Get some system objects.
+		$config = JFactory::getConfig();
+		$user	= JFactory::getUser();
+
+		// UTC date converted to user time zone.
+		if ($tz === true)
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the user configuration.
+			$date->setOffset($user->getParam('timezone', $config->getValue('config.offset')));
+		}
+		// UTC date converted to server time zone.
+		elseif ($tz === false)
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the server configuration.
+			$date->setOffset($config->getValue('config.offset'));
+		}
+		// No date conversion.
+		elseif ($tz === null)
+		{
+			$date = JFactory::getDate($input);
+		}
+		// UTC date converted to given time zone.
+		else
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the server configuration.
+			$date->setOffset($tz);
+		}
+
+		// If no format is given use the default locale based format.
+		if (!$format) {
 			$format = JText::_('DATE_FORMAT_LC1');
 		}
 
-		if (is_null($offset))
-		{
-			$config = &JFactory::getConfig();
-			$offset = $config->getValue('config.offset');
-		}
-		$instance = &JFactory::getDate($date);
-		$instance->setOffset($offset);
-
-		return $instance->toFormat($format);
+		return $date->toFormat($format);
 	}
 
 	/**
@@ -289,8 +404,8 @@ abstract class JHtml
 		$tooltip, $title = '', $image = 'tooltip.png', $text = '', $href = '', $link = 1
 	)
 	{
-		$tooltip	= addslashes(htmlspecialchars($tooltip));
-		$title		= addslashes(htmlspecialchars($title));
+		$tooltip	= addslashes(htmlspecialchars($tooltip, ENT_COMPAT, 'UTF-8'));
+		$title		= addslashes(htmlspecialchars($title, ENT_COMPAT, 'UTF-8'));
 
 		if (!$text) {
 			$image 	= JURI::root(true).'/includes/js/ThemeOffice/'. $image;
@@ -357,7 +472,7 @@ abstract class JHtml
 		}
 
 		return '<input type="text" name="'.$name.'" id="'.$id.'" value="'.htmlspecialchars($value, ENT_COMPAT, 'UTF-8').'" '.$attribs.' />'.
-				 '<img class="calendar" src="'.JURI::root(true).'/templates/system/images/calendar.png" alt="calendar" id="'.$id.'_img" />';
+				 JHTML::_('image', 'system/calendar.png', JText::_('calendar'), array( 'class' => 'calendar', 'id' => $id.'_img'), true);
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /**
  * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,7 +26,7 @@ class JInstallationControllerSetup extends JController
 	function setlanguage()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('Invalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get the application object.
 		$app = & JFactory::getApplication();
@@ -69,7 +69,7 @@ class JInstallationControllerSetup extends JController
 	function database()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('Invalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get the application object.
 		$app = & JFactory::getApplication();
@@ -108,8 +108,8 @@ class JInstallationControllerSetup extends JController
 		// Get the database model.
 		$database = & $this->getModel('Database', 'JInstallationModel', array('dbo' => null));
 
-		// Attempt to initialize the database.
-		$return = $database->initialize($vars);
+		// Attempt to initialise the database.
+		$return = $database->initialise($vars);
 
 		// Ensure a language was set.
 		if (!$return) {
@@ -124,7 +124,7 @@ class JInstallationControllerSetup extends JController
 	function filesystem()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('Invalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get the application object.
 		$app = & JFactory::getApplication();
@@ -166,7 +166,7 @@ class JInstallationControllerSetup extends JController
 	function saveconfig()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('Invalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get the application object.
 		$app = & JFactory::getApplication();

@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -32,9 +32,8 @@ class JCacheView extends JCache
 	 */
 	function get(&$view, $method, $id=false)
 	{
-		global $mainframe;
-
-		// Initialize variables
+		// Initialise variables.
+		$app = &JFactory::getApplication();
 		$data = false;
 
 		// If an id is not given generate it from the request
@@ -54,7 +53,7 @@ class JCacheView extends JCache
 			if (isset($data['pathway']) && is_array($data['pathway']))
 			{
 				// Push the pathway data into the pathway object.
-				$pathway = &$mainframe->getPathWay();
+				$pathway = &$app->getPathWay();
 				$pathway->setPathway($data['pathway']);
 			}
 
@@ -109,7 +108,7 @@ class JCacheView extends JCache
 			$cached['head'] = $document->getHeadData();
 
 			// Pathway data
-			$pathway			= &$mainframe->getPathWay();
+			$pathway			= &$app->getPathWay();
 			$cached['pathway']	= $pathway->getPathway();
 
 			// Get the module buffer after component execution.

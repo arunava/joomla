@@ -1,9 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -15,26 +13,24 @@ jimport('joomla.application.component.view');
 /**
  * HTML View class for the Media component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewMediaList extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
-
 		// Do not allow cache
 		JResponse::allowCache(false);
 
-		$style = $mainframe->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
+		$app	= &JFactory::getApplication();
+		$style = $app->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
 
 		JHtml::_('behavior.framework', true);
 
 		$document = &JFactory::getDocument();
-		$document->addStyleSheet('components/com_media/assets/medialist-'.$style.'.css');
+		$document->addStyleSheet('../media/media/css/medialist-'.$style.'.css');
 
 		$document->addScriptDeclaration("
 		window.addEvent('domready', function() {

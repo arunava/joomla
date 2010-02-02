@@ -1,118 +1,60 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.controller');
+jimport('joomla.application.component.controllerform');
 
 /**
- * The Users User Controller
+ * User controller class.
  *
  * @package		Joomla.Administrator
  * @subpackage	com_users
  * @since		1.6
  */
-class UsersControllerUser extends JController
+class UsersControllerUser extends JControllerForm
 {
 	/**
-	 * Constructor
-	 *
-	 * @return	void
+	 * Overrides parent save method to check the submitted passwords match.
 	 */
-	public function __construct()
+	public function save()
 	{
-		parent::__construct();
+		$data = JRequest::getVar('jform', array(), 'post', 'array');
 
-		// Map the save tasks.
-		$this->registerTask('save2new',		'save');
-		$this->registerTask('apply',		'save');
+		// TODO: JForm should really have a validation handler for this.
+		if (isset($data['password']) && isset($data['password2']))
+		{
+			// Check the passwords match.
+			if ($data['password'] != $data['password2'])
+			{
+				$this->setError('Users_Error_Password_mismatch');
+				return false;
+			}
+			unset($data['password2']);
+		}
+
+		return parent::save();
 	}
 
-	/**
-	 * Dummy method to redirect back to standard controller
-	 *
-	 * @return	void
-	 */
-	public function display()
-	{
-		$this->setRedirect(JRoute::_('index.php?option=com_users', false));
-	}
-
-	/**
-	 * Method to add a new user.
-	 *
-	 * @return	void
-	 */
-	public function add()
-	{
-		// Initialize variables.
-		$app = &JFactory::getApplication();
-
-		// Clear the level edit information from the session.
-		$app->setUserState('com_users.edit.user.id', null);
-		$app->setUserState('com_users.edit.user.data', null);
-
-		// Redirect to the edit screen.
-		$this->setRedirect(JRoute::_('index.php?option=com_users&view=user&layout=edit', false));
-	}
-
-	/**
-	 * Method to edit an existing user.
-	 *
-	 * @return	void
-	 */
-	public function edit()
-	{
-		// Initialize variables.
-		$app	= &JFactory::getApplication();
-		$cid	= JRequest::getVar('cid', array(), '', 'array');
-
-		// Get the id of the user to edit.
-		$userId = (int) (count($cid) ? $cid[0] : JRequest::getInt('user_id'));
-
-		// Set the id for the user to edit in the session.
-		$app->setUserState('com_users.edit.user.id', $userId);
-		$app->setUserState('com_users.edit.user.data', null);
-
-		// Redirect to the edit screen.
-		$this->setRedirect(JRoute::_('index.php?option=com_users&view=user&layout=edit', false));
-	}
-
-	/**
-	 * Method to cancel an edit
-	 *
-	 * @return	void
-	 */
-	public function cancel()
-	{
-		// Initialize variables.
-		$app = &JFactory::getApplication();
-
-		// Clear the user edit information from the session.
-		$app->setUserState('com_users.edit.user.id', null);
-		$app->setUserState('com_users.edit.user.data', null);
-
-		// Redirect to the list screen.
-		$this->setRedirect(JRoute::_('index.php?option=com_users&view=users', false));
-	}
 
 	/**
 	 * Method to save a user.
 	 *
 	 * @return	void
 	 */
-	public function save()
+	public function ___save()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
-		$app = &JFactory::getApplication();
+		// Initialise variables.
+		$app	= JFactory::getApplication();
+		$model	= &$this->getModel('User');
 
 		// Get the posted values from the request.
 		$data = JRequest::getVar('jform', array(), 'post', 'array');
@@ -120,22 +62,16 @@ class UsersControllerUser extends JController
 		// Populate the row id from the session.
 		$data['id'] = (int) $app->getUserState('com_users.edit.user.id');
 
-		// Get the model and attempt to validate the posted data.
-		$model	= &$this->getModel('User');
-		$return	= $model->validate($data);
-
-		// Get and sanitize the group data.
-		$data['groups'] = JRequest::getVar('groups', array(), 'post', 'array');
-		$data['groups'] = array_unique($data['groups']);
-		JArrayHelper::toInteger($data['groups']);
-
-		// Remove any values of zero.
-		if (array_search(0, $data['groups'], true)) {
-			unset($data['groups'][array_search(0, $data['groups'], true)]);
+		// Validate the posted data.
+		$form	= &$model->getForm();
+		if (!$form) {
+			JError::raiseError(500, $model->getError());
+			return false;
 		}
+		$data	= $model->validate($form, $data);
 
 		// Check for validation errors.
-		if ($return === false)
+		if ($data === false)
 		{
 			// Get the validation messages.
 			$errors	= $model->getErrors();
@@ -158,6 +94,16 @@ class UsersControllerUser extends JController
 			return false;
 		}
 
+		// Get and sanitize the group data.
+		$data['groups'] = JRequest::getVar('groups', array(), 'post', 'array');
+		$data['groups'] = array_unique($data['groups']);
+		JArrayHelper::toInteger($data['groups']);
+
+		// Remove any values of zero.
+		if (array_search(0, $data['groups'], true)) {
+			unset($data['groups'][array_search(0, $data['groups'], true)]);
+		}
+
 		// Attempt to save the data.
 		$return	= $model->save($data);
 
@@ -168,7 +114,7 @@ class UsersControllerUser extends JController
 			$app->setUserState('com_users.edit.user.data', $data);
 
 			// Redirect back to the edit screen.
-			$this->setMessage(JText::sprintf('USERS_MEMBER_SAVE_FAILED', $model->getError()), 'notice');
+			$this->setMessage(JText::sprintf('USERS_USER_SAVE_FAILED', $model->getError()), 'notice');
 			$this->setRedirect(JRoute::_('index.php?option=com_users&view=user&layout=edit', false));
 			return false;
 		}
@@ -177,8 +123,12 @@ class UsersControllerUser extends JController
 		switch ($this->_task)
 		{
 			case 'apply':
+				// Set the row data in the session.
+				$app->setUserState('com_users.edit.user.id',	$model->getState('user.id'));
+				$app->setUserState('com_users.edit.user.data',	null);
+
 				// Redirect back to the edit screen.
-				$this->setMessage(JText::_('USERS_MEMBER_SAVE_SUCCESS'));
+				$this->setMessage(JText::_('USERS_USER_SAVE_SUCCESS'));
 				$this->setRedirect(JRoute::_('index.php?option=com_users&view=user&layout=edit', false));
 				break;
 
@@ -188,7 +138,7 @@ class UsersControllerUser extends JController
 				$app->setUserState('com_users.edit.user.data', null);
 
 				// Redirect back to the edit screen.
-				$this->setMessage(JText::_('USERS_MEMBER_SAVE_SUCCESS'));
+				$this->setMessage(JText::_('USERS_USER_SAVE_SUCCESS'));
 				$this->setRedirect(JRoute::_('index.php?option=com_users&view=user&layout=edit', false));
 				break;
 
@@ -198,76 +148,10 @@ class UsersControllerUser extends JController
 				$app->setUserState('com_users.edit.user.data', null);
 
 				// Redirect to the list screen.
-				$this->setMessage(JText::_('USERS_MEMBER_SAVE_SUCCESS'));
+				$this->setMessage(JText::_('USERS_USER_SAVE_SUCCESS'));
 				$this->setRedirect(JRoute::_('index.php?option=com_users&view=users', false));
 				break;
 		}
 	}
 
-	/**
-	 * Method to run batch opterations.
-	 *
-	 * @return	void
-	 */
-	function batch()
-	{
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
-
-		// Initialize variables.
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('User');
-		$vars	= JRequest::getVar('batch', array(), 'post', 'array');
-		$cid	= JRequest::getVar('cid', array(), 'post', 'array');
-
-		// Sanitize user ids.
-		$cid = array_unique($cid);
-		JArrayHelper::toInteger($cid);
-
-		// Remove any values of zero.
-		if (array_search(0, $cid, true)) {
-			unset($cid[array_search(0, $cid, true)]);
-		}
-
-		// Attempt to run the batch operation.
-		if (!$model->batch($vars, $cid))
-		{
-			// Batch operation failed, go back to the users list and display a notice.
-			$message = JText::sprintf('USERS_USERS_BATCH_FAILED', $model->getError());
-			$this->setRedirect('index.php?option=com_users&view=users', $message, 'error');
-			return false;
-		}
-
-		$message = JText::_('USERS_USERS_BATCH_SUCCESS');
-		$this->setRedirect('index.php?option=com_users&view=users', $message);
-		return true;
-	}
-
-	/**
-	 * Method to delete users.
-	 *
-	 * @return	void
-	 */
-	public function delete()
-	{
-		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
-
-		// Get and sanitize the items to delete.
-		$cid = JRequest::getVar('cid', null, 'post', 'array');
-		JArrayHelper::toInteger($cid);
-
-		// Get the model.
-		$model = &$this->getModel('User');
-
-		// Attempt to delete the item(s).
-		if (!$model->delete($cid)) {
-			$this->setMessage(JText::sprintf('USERS_MEMBER_DELETE_FAILED', $model->getError()), 'notice');
-		}
-		else {
-			$this->setMessage(JText::sprintf('USERS_MEMBER_DELETE_SUCCESS', count($cid)));
-		}
-
-		// Redirect to the list screen.
-		$this->setRedirect(JRoute::_('index.php?option=com_users&view=users', false));
-	}
 }

@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Weblinks
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,15 +24,14 @@ class WeblinksViewCategory extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
-
+		$app	= &JFactory::getApplication();
 		$document = &JFactory::getDocument();
 
 		$document->link = JRoute::_('index.php?option=com_weblinks&view=category&id='.JRequest::getVar('id',null, '', 'int'));
 
-		JRequest::setVar('limit', $mainframe->getCfg('feed_limit'));
-		$siteEmail = $mainframe->getCfg('mailfrom');
-		$fromName = $mainframe->getCfg('fromname');
+		JRequest::setVar('limit', $app->getCfg('feed_limit'));
+		$siteEmail = $app->getCfg('mailfrom');
+		$fromName = $app->getCfg('fromname');
 		$document->editor = $fromName;
 		$document->editorEmail = $siteEmail;
 
@@ -44,7 +43,7 @@ class WeblinksViewCategory extends JView
 		{
 			// strip html from feed item title
 			$title = $this->escape($item->title);
-			$title = html_entity_decode($title);
+			$title = html_entity_decode($title, ENT_COMPAT, 'UTF-8');
 
 			// url link to article
 			$link = JRoute::_('index.php?option=com_weblinks&view=weblink&id='. $item->id);

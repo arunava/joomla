@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,7 +24,7 @@ class ContactModelCategory extends JModel
 	 * @return string
 	 * @access protected
 	 */
-	function _getCatgoriesQuery(&$options)
+	function _getCategoriesQuery(&$options)
 	{
 		// TODO: Cache on the fingerprint of the arguments
 		$db		= &JFactory::getDbo();
@@ -32,14 +32,14 @@ class ContactModelCategory extends JModel
 		$groups	= implode(',', $user->authorisedLevels());
 
 		$wheres[] = 'a.published = 1';
-		$wheres[] = 'cc.section = ' . $db->Quote('com_contact_details');
+		$wheres[] = 'cc.extension = ' . $db->Quote('com_contact');
 		$wheres[] = 'cc.published = 1';
 
 		$wheres[] = 'a.access IN ('.$groups.')';
-		$wheres[] = 'cc.access <= ('.$groups.')';
+		$wheres[] = 'cc.access IN ('.$groups.')';
 
 		$groupBy	= 'cc.id';
-		$orderBy	= 'cc.ordering' ;
+		$orderBy	= 'cc.lft' ;
 
 		/*
 		 * Query to retrieve all categories that belong under the contacts
@@ -52,7 +52,7 @@ class ContactModelCategory extends JModel
 				' GROUP BY ' . $groupBy .
 				' ORDER BY ' . $orderBy;
 
-		//echo $query;
+
 		return $query;
 	}
 
@@ -73,7 +73,7 @@ class ContactModelCategory extends JModel
 		$orderBy	= @$options['order by'];
 
 		$select = 'cd.*, ' .
-				'cc.name AS category_name, cc.description AS category_description, cc.image AS category_image,'.
+				'cc.title AS category_name, cc.description AS category_description, '.
 				' CASE WHEN CHAR_LENGTH(cd.alias) THEN CONCAT_WS(\':\', cd.id, cd.alias) ELSE cd.id END as slug, '.
 				' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(\':\', cc.id, cc.alias) ELSE cc.id END as catslug ';
 		$from	= '#__contact_details AS cd';
@@ -111,7 +111,7 @@ class ContactModelCategory extends JModel
 	 */
 	function getCategories($options=array())
 	{
-		$query	= $this->_getCatgoriesQuery($options);
+		$query	= $this->_getCategoriesQuery($options);
 		return $this->_getList($query, @$options['limitstart'], @$options['limit']);
 	}
 
@@ -122,7 +122,7 @@ class ContactModelCategory extends JModel
 	 */
 	function getCategoryCount($options=array())
 	{
-		$query	= $this->_getCatgoriesQuery($options);
+		$query	= $this->_getCategoriesQuery($options);
 		return $this->_getListCount($query);
 	}
 

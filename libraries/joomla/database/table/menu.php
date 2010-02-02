@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -19,97 +19,6 @@ jimport('joomla.database.tablenested');
  */
 class JTableMenu extends JTableNested
 {
-	/**
-	 * @var int Primary key
-	 */
-	var $id = null;
-
-	/**
-	 * @var string
-	 */
-	var $menutype = null;
-
-	/**
-	 * @var string
-	 */
-	var $title = null;
-
-	/**
-	 * @var string
-	 */
-	var $alias = null;
-
-	/**
-	 * @var string
-	 */
-	var $link = null;
-
-	/**
-	 * @var int
-	 */
-	var $type = null;
-
-	/**
-	 * @var int
-	 */
-	var $published = null;
-
-	/**
-	 * @var int
-	 */
-	var $component_id = null;
-
-	/**
-	 * @var int
-	 */
-	var $parent_id = null;
-
-	/**
-	 * @var int
-	 */
-	var $ordering = null;
-
-	/**
-	 * @var boolean
-	 */
-	var $checked_out = 0;
-
-	/**
-	 * @var datetime
-	 */
-	var $checked_out_time = 0;
-
-	/**
-	 * @var string
-	 */
-	var $browserNav = null;
-
-	/**
-	 * @var int
-	 */
-	var $access = null;
-
-	/**
-	 * @var string
-	 */
-	var $params = null;
-
-	/**
-	 * @var int
-	 */
-	var $home = null;
-
-	/**
-	 * @var int
-	 */
-	var $template_id = null;
-
-	/**
-	 * @var string The full tree path
-	 */
-	public $path = null;
-
-
 	/**
 	 * Constructor
 	 *
@@ -137,7 +46,7 @@ class JTableMenu extends JTableNested
 		{
 			$registry = new JRegistry();
 			$registry->loadArray($array['params']);
-			$array['params'] = $registry->toString();
+			$array['params'] = (string)$registry;
 		}
 
 		return parent::bind($array, $ignore);
@@ -155,10 +64,9 @@ class JTableMenu extends JTableNested
 		if (empty($this->alias)) {
 			$this->alias = $this->title;
 		}
-		$this->alias = JFilterOutput::stringURLSafe($this->alias);
+		$this->alias = JApplication::stringURLSafe($this->alias);
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$datenow = &JFactory::getDate();
-			$this->alias = $datenow->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
 		}
 
 		return true;

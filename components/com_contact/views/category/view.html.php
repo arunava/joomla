@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -20,14 +20,13 @@ class ContactViewCategory extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe, $option;
+		$app		= &JFactory::getApplication();
+		$user		= &JFactory::getUser();
+		$uri		= &JFactory::getURI();
+		$model		= &$this->getModel();
+		$document	= &JFactory::getDocument();
 
-		$user	  = &JFactory::getUser();
-		$uri 	  = &JFactory::getURI();
-		$model	  = &$this->getModel();
-		$document = &JFactory::getDocument();
-
-		$pparams = &$mainframe->getParams('com_contact');
+		$pparams = &$app->getParams('com_contact');
 
 		// Selected Request vars
 		$categoryId			= JRequest::getVar('catid',				0,				'', 'int');
@@ -35,10 +34,10 @@ class ContactViewCategory extends JView
 		$filter_order		= JRequest::getVar('filter_order',		'cd.ordering',	'', 'cmd');
 		$filter_order_Dir	= JRequest::getVar('filter_order_Dir',	'ASC',			'', 'word');
 
-		$pparams->def('display_num', $mainframe->getCfg('list_limit'));
+		$pparams->def('display_num', $app->getCfg('list_limit'));
 		$default_limit = $pparams->def('display_num', 20);
 
-		$limit = $mainframe->getUserStateFromRequest('com_contact.'.$this->getLayout().'.limit', 'limit', $default_limit, 'int');
+		$limit = $app->getUserStateFromRequest('com_contact.'.$this->getLayout().'.limit', 'limit', $default_limit, 'int');
 
 		// query options
 		$options['category_id']	= $categoryId;
@@ -50,6 +49,11 @@ class ContactViewCategory extends JView
 		$contacts	= $model->getContacts($options);
 		$total 		= $model->getContactCount($options);
 
+				// Validate the category.
+
+
+
+
 		//add alternate feed link
 		if ($pparams->get('show_feed_link', 1) == 1)
 		{
@@ -59,6 +63,8 @@ class ContactViewCategory extends JView
 			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
 			$document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
 		}
+
+
 
 		//prepare contacts
 		if ($pparams->get('show_email', 0) == 1) {
@@ -133,7 +139,7 @@ class ContactViewCategory extends JView
 		$this->assignRef('category',	$category);
 		$this->assignRef('params',		$pparams);
 
-		$this->assign('action',		str_replace('&', '&amp;', $uri->toString()));
+		$this->assign('action',		str_replace('&', '&amp;', $uri));
 
 		parent::display($tpl);
 	}

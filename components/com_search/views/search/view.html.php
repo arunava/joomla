@@ -3,7 +3,7 @@
  * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Weblinks
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,12 +24,11 @@ class SearchViewSearch extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
+		require_once JPATH_COMPONENT_ADMINISTRATOR.DS.'helpers'.DS.'search.php';
 
-		require_once(JPATH_COMPONENT_ADMINISTRATOR.DS.'helpers'.DS.'search.php');
-
-		// Initialize some variables
-		$pathway  = &$mainframe->getPathway();
+		// Initialise some variables
+		$app	= &JFactory::getApplication();
+		$pathway  = &$app->getPathway();
 		$uri      = &JFactory::getURI();
 
 		$error	= '';
@@ -41,7 +40,7 @@ class SearchViewSearch extends JView
 		$state 		= &$this->get('state');
 		$searchword = $state->get('keyword');
 
-		$params = &$mainframe->getParams();
+		$params = &$app->getParams();
 
 		$menus	= &JSite::getMenu();
 		$menu	= $menus->getActive();
@@ -61,7 +60,7 @@ class SearchViewSearch extends JView
 		$document->setTitle($params->get('page_title'));
 
 		// Get the parameters of the active menu item
-		$params	= &$mainframe->getParams();
+		$params	= &$app->getParams();
 
 		// built select lists
 		$orders = array();
@@ -108,7 +107,7 @@ class SearchViewSearch extends JView
 			$total		= &$this->get('total');
 			$pagination	= &$this->get('pagination');
 
-			require_once (JPATH_SITE.DS.'components'.DS.'com_content'.DS.'helpers'.DS.'route.php');
+			require_once JPATH_SITE.DS.'components'.DS.'com_content'.DS.'helpers'.DS.'route.php';
 
 			for ($i=0; $i < count($results); $i++)
 			{
@@ -141,7 +140,7 @@ class SearchViewSearch extends JView
 
 				$result = &$results[$i];
 			    if ($result->created) {
-				    $created = JHtml::Date ($result->created);
+				    $created = JHtml::date($result->created);
 			    }
 			    else {
 				    $created = '';
@@ -166,7 +165,7 @@ class SearchViewSearch extends JView
 
 		$this->assign('total',			$total);
 		$this->assign('error',			$error);
-		$this->assign('action', 	    $uri->toString());
+		$this->assign('action', 	    $uri);
 
 		parent::display($tpl);
 	}

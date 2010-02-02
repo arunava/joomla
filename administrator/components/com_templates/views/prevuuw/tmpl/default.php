@@ -1,31 +1,33 @@
-<?php defined('_JEXEC') or die; ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_templates
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-<style type="text/css">
-.previewFrame {
-	border: none;
-	width: 95%;
-	height: 600px;
-	padding: 0px 5px 0px 10px;
-}
-</style>
+// no direct access
+defined('_JEXEC') or die;
+?>
+
+
 <form action="<?php echo JRoute::_('index.php'); ?>" method="post" name="adminForm">
-<table class="adminform">
-	<tr>
-		<th width="50%" class="title">
-			<?php echo JText::_('Site Preview'); ?>
-		</th>
-		<th width="50%" style="text-align:right">
-			<?php echo JHtml::_('link', $this->url.'index.php?tp='.$this->tp.'&amp;template='.$this->id, JText::_('Open in new window'), array('target' => '_blank')); ?>
-		</th>
-	</tr>
-	<tr>
-		<td width="100%" valign="top" colspan="2">
-			<?php echo JHtml::_('iframe', $this->url.'index.php?tp='.$this->tp.'&amp;template='.$this->id,'previewFrame',  array('class' => 'previewFrame')) ?>
-		</td>
-	</tr>
-</table>
+<div class="width-100">
+	<h3 class="title fltlft">
+		<?php echo JText::_('Site Preview'); ?>
+	</h3>
+	<h3 class="fltrt">
+		<?php echo JHtml::_('link', $this->url.'index.php?tp='.$this->tp.'&amp;template='.$this->id, JText::_('Open in new window'), array('target' => '_blank')); ?>
+	</h3>
+	<div class="clr"></div>
+	<div class="width-100 temprev">
+		<?php echo JHtml::_('iframe', $this->url.'index.php?tp='.$this->tp.'&amp;template='.$this->id,'previewframe',  array('class' => 'previewframe')) ?>
+	</div>
+</div>
+
 <input type="hidden" name="id" value="<?php echo $this->id; ?>" />
-<input type="hidden" name="cid[]" value="<?php echo $this->id; ?>" />
+<input type="hidden" name="template" value="<?php echo $this->template; ?>" />
 <input type="hidden" name="option" value="<?php echo $this->option;?>" />
 <input type="hidden" name="task" value="" />
 <input type="hidden" name="client" value="<?php echo $this->client->id;?>" />

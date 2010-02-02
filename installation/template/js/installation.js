@@ -2,7 +2,7 @@
  * @version		$Id$
  * @package		Joomla.Installation
  * @subpackage	JavaScript
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,9 +16,10 @@ if (typeof(Install) === 'undefined') {
  */
 Install.sampleData = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
-		url: 'index.php?'+$(el.form).toQueryString(),
+		url: 'index.php?'+document.id(el.form).toQueryString(),
 		data: {'task':'setup.loadSampleData', 'protocol':'json'},
 		onRequest: function() { el.set('disabled', 'disabled'); },
 		onComplete: function(response) {
@@ -40,9 +41,10 @@ Install.sampleData = function(el) {
  */
 Install.detectFtpRoot = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
-		url: 'index.php?'+$(el.form).toQueryString(),
+		url: 'index.php?'+document.id(el.form).toQueryString(),
 		data: {'task':'setup.detectFtpRoot', 'protocol':'json'},
 		onRequest: function() { el.set('disabled', 'disabled'); },
 		onComplete: function(response) {
@@ -51,7 +53,7 @@ Install.detectFtpRoot = function(el) {
 			{
 				Joomla.replaceTokens(r.token)
 				if (r.error == false) {
-					$('ftproot').set('value', r.data.root);
+					document.id('ftproot').set('value', r.data.root);
 				}
 			}
 			el.set('disabled', '');
@@ -64,9 +66,10 @@ Install.detectFtpRoot = function(el) {
  */
 Install.verifyFtpSettings = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
-		url: 'index.php?'+$(el.form).toQueryString(),
+		url: 'index.php?'+document.id(el.form).toQueryString(),
 		data: {'task':'setup.verifyFtpSettings', 'protocol':'json'},
 		onRequest: function() { el.set('disabled', 'disabled'); },
 		onComplete: function(response) {

@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,7 +13,6 @@ jimport('joomla.application.component.view');
 /**
  * HTML View class for the WebLinks component
  *
- * @static
  * @package		Joomla.Site
  * @subpackage	com_weblinks
  * @since		1.5
@@ -33,8 +32,8 @@ class WeblinksViewWeblink extends JView
 		$item		= &$this->get('Item');
 		$category	= &$this->get('Category');
 
-		if ($this->getLayout() == 'form') {
-			$this->_displayForm($tpl);
+		if ($this->getLayout() == 'edit') {
+			$this->_displayEdit($tpl);
 			return;
 		}
 
@@ -43,33 +42,33 @@ class WeblinksViewWeblink extends JView
 
 		if ($weblink->url) {
 			// redirects to url if matching id found
-			$mainframe->redirect($weblink->url);
+			$app->redirect($weblink->url);
 		}
 
 		parent::display($tpl);
 	}
 
-	function _displayForm($tpl)
+	function _displayEdit($tpl)
 	{
-		global $mainframe;
-
 		// Get some objects from the JApplication
-		$pathway	= &$mainframe->getPathway();
+		$app	= &JFactory::getApplication();
+		$pathway	= &$app->getPathway();
 		$document	= &JFactory::getDocument();
 		$model		= &$this->getModel();
 		$user		= &JFactory::getUser();
 		$uri     	= &JFactory::getURI();
-		$params = &$mainframe->getParams();
+		$params = &$app->getParams();
 
 		// Make sure you are logged in and have the necessary access rights
-		if ($user->authorise('com_weblinks.submit')) {
+		if ($user->authorise('com_weblinks.edit')) {
 			  JResponse::setHeader('HTTP/1.0 403',true);
               JError::raiseWarning(403, JText::_('ALERTNOTAUTH'));
 			return;
 		}
-
 		//get the weblink
+
 		$weblink	= &$this->get('data');
+
 		$isNew	= ($weblink->id < 1);
 
 		// Edit or Create?
@@ -77,7 +76,7 @@ class WeblinksViewWeblink extends JView
 		{
 			// Is this link checked out?  If not by me fail
 			//if ($model->isCheckedOut($user->get('id'))) {
-			//	$mainframe->redirect("index.php?option=$option", "The weblink $weblink->title is currently being edited by another administrator.");
+			//	$app->redirect("index.php?option=$option", "The weblink $weblink->title is currently being edited by another administrator.");
 			//}
 
 			// Set page title
@@ -89,10 +88,10 @@ class WeblinksViewWeblink extends JView
 			if (is_object($menu)) {
 				$menu_params = new JParameter($menu->params);
 				if (!$menu_params->get('page_title')) {
-					$params->set('page_title',	JText::_('Web Links'.' - '.JText::_('Edit')));
+					$params->set('page_title',	JText::_('Web_Links'.' - '.JText::_('JEdit')));
 				}
 			} else {
-				$params->set('page_title',	JText::_('Web Links'.' - '.JText::_('Edit')));
+				$params->set('page_title',	JText::_('Web_Links'.' - '.JText::_('JEdit')));
 			}
 
 			$document->setTitle($params->get('page_title'));
@@ -103,11 +102,12 @@ class WeblinksViewWeblink extends JView
 				switch ($item->query['view'])
 				{
 					case 'categories':
-						$pathway->addItem($weblink->category, 'index.php?view=category&id='.$weblink->catid);
-						$pathway->addItem(JText::_('Edit').' '.$weblink->title, '');
+						$pathway->addItem($weblink->category, 'index.php?com_weblinks&view=categories&id='.$weblink->catid);
+						$pathway->addItem(JText::_('JEdit').' '.$weblink->title, '');
 						break;
 					case 'category':
-						$pathway->addItem(JText::_('Edit').' '.$weblink->title, '');
+						$pathway->addItem($weblink->category, 'index.php?com_weblinks&view=category&id='.$weblink->catid);
+						$pathway->addItem(JText::_('JEdit').' '.$weblink->title, '');
 						break;
 				}
 			}
@@ -117,7 +117,7 @@ class WeblinksViewWeblink extends JView
 			/*
 			 * The web link does not already exist so we are creating a new one.  Here
 			 * we want to manipulate the pathway and pagetitle to indicate this.  Also,
-			 * we need to initialize some values.
+			 * we need to initialise some values.
 			 */
 			$weblink->published = 0;
 			$weblink->approved = 1;
@@ -161,7 +161,7 @@ class WeblinksViewWeblink extends JView
 
 		JFilterOutput::objectHTMLSafe($weblink, ENT_QUOTES, 'description');
 
-		$this->assign('action', 	$uri->toString());
+		$this->assign('action', 	$uri);
 
 		$this->assignRef('lists'   , $lists);
 		$this->assignRef('weblink' , $weblink);
