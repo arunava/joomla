@@ -82,4 +82,3 @@ class CategoriesViewCategory extends JView
 			JToolBarHelper::help('screen.categories.edit','JTOOLBAR_HELP');
 	}
 }
-

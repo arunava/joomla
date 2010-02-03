@@ -104,11 +104,12 @@ class plgEditorTinymce extends JPlugin
 		 * Lets get the default template for the site application
 		 */
 		$db =& JFactory::getDBO();
-		$query = 'SELECT template'
-		. ' FROM #__template_styles'
-		. ' WHERE client_id = 0'
-		. ' AND home = 1'
-		;
+		$query = new JQuery();
+		
+		$query->select('template');
+		$query->from('#__template_styles');
+		$query->where('client_id=0 AND home=1');
+
 		$db->setQuery( $query );
 		$template = $db->loadResult();
 
@@ -127,7 +128,7 @@ class plgEditorTinymce extends JPlugin
 
 				// Issue warning notice if the file is not found (but pass name to $content_css anyway to avoid TinyMCE error
 				if (!file_exists($templates_path.DS.$template.DS.'css'.DS.$content_css_custom)) {
-					$msg = sprintf (JText::_('PLG_TINY_ERR_TEMPLATECSSFILENOTPRESENT'), $content_css_custom);
+					$msg = sprintf (JText::_('PLG_TINY_ERR_CUSTOMCSSFILENOTPRESENT'), $content_css_custom);
 					JError::raiseNotice('SOME_ERROR_CODE', $msg);
 				}
 			}
@@ -716,7 +717,7 @@ class plgEditorTinymce extends JPlugin
 	{
 		$return  = '';
 		$return .= "\n<div class=\"toggle-editor\">\n";
-		$return .= "<div class=\"button2-left\"><div class=\"blank\"><a href=\"#\" onclick=\"javascript:tinyMCE.execCommand('mceToggleEditor', false, '$name');return false;\" title=\"Toggle editor\">Toggle editor</a></div></div>";
+		$return .= "<div class=\"button2-left\"><div class=\"blank\"><a href=\"#\" onclick=\"javascript:tinyMCE.execCommand('mceToggleEditor', false, '$name');return false;\"title=\"".JText::_('PLG_TINY_BUTTON_TOGGLE_EDITOR')."\">".JText::_('PLG_TINY_BUTTON_TOGGLE_EDITOR')."</a></div></div>";
 		$return .= "</div>\n";
 		return $return;
 	}
