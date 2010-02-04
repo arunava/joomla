@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default_batch.php 12222 2009-06-20 12:59:11Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_categories
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

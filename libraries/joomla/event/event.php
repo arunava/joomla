@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: event.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Event
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

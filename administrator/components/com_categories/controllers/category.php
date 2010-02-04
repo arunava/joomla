@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: category.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -51,7 +51,7 @@ class CategoriesControllerCategory extends JController
 	 */
 	public function add()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication();
 
 		// Clear the row edit information from the session.
@@ -60,7 +60,7 @@ class CategoriesControllerCategory extends JController
 		$app->setUserState('com_categories.edit.category.type',	null);
 
 		// Check if we are adding for a particular extension
-		$extension = $app->getUserStateFromRequest($this->_context.'.filter.extension', 'extension', 'com_content');
+		$extension = $app->getUserStateFromRequest('com_categories.filter.extension', 'extension', 'com_content');
 
 		// Redirect to the edit screen.
 		$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit&extension='.$extension, false));
@@ -73,7 +73,7 @@ class CategoriesControllerCategory extends JController
 	 */
 	public function edit()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$pks	= JRequest::getVar('cid', array(), '', 'array');
 
@@ -102,7 +102,7 @@ class CategoriesControllerCategory extends JController
 		}
 
 		// Check if we are adding for a particular extension
-		$extension = $app->getUserStateFromRequest($this->_context.'.filter.extension', 'extension', 'com_content');
+		$extension = $app->getUserStateFromRequest('com_categories.filter.extension', 'extension', 'com_content');
 
 		// Push the new row id into the session.
 		$app->setUserState('com_categories.edit.category.id',	$id);
@@ -125,7 +125,7 @@ class CategoriesControllerCategory extends JController
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Category');
 
@@ -161,7 +161,7 @@ class CategoriesControllerCategory extends JController
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Category');
 		$task	= $this->getTask();
@@ -265,7 +265,8 @@ class CategoriesControllerCategory extends JController
 				$app->setUserState('com_categories.edit.category.type',	null);
 
 				// Redirect back to the edit screen.
-				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit', false));
+				$extension = JRequest::getString('extension');
+				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit&extension='.$extension, false));
 				break;
 
 			default:
@@ -289,7 +290,7 @@ class CategoriesControllerCategory extends JController
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Category');
 		$vars	= JRequest::getVar('batch', array(), 'post', 'array');

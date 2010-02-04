@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: application.php 13049 2009-10-03 22:52:08Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Administrator
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -90,7 +90,7 @@ class JAdministrator extends JApplication
 		{
 			//forward to https
 			$uri->setScheme('https');
-			$this->redirect($uri->toString());
+			$this->redirect((string)$uri);
 		}
 
 		// Trigger the onAfterRoute event.
@@ -153,14 +153,14 @@ class JAdministrator extends JApplication
 	{
 		$component	= JRequest::getCmd('option', 'com_login');
 		$template	= $this->getTemplate(true);
-		$file 		= JRequest::getCmd('tmpl', 'index');
+		$file		= JRequest::getCmd('tmpl', 'index');
 
 		if ($component == 'com_login') {
 			$file = 'login';
 		}
 
 		$params = array(
-			'template' 	=> $template->template,
+			'template'	=> $template->template,
 			'file'		=> $file.'.php',
 			'directory'	=> JPATH_THEMES,
 			'params'	=> $template->params
@@ -177,8 +177,8 @@ class JAdministrator extends JApplication
 	/**
 	 * Login authentication function
 	 *
-	 * @param	array 	Array('username' => string, 'password' => string)
-	 * @param	array 	Array('remember' => boolean)
+	 * @param	array	Array('username' => string, 'password' => string)
+	 * @param	array	Array('remember' => boolean)
 	 * @see		JApplication::login
 	 */
 	public function login($credentials, $options = array())
@@ -186,7 +186,7 @@ class JAdministrator extends JApplication
 		//The minimum group
 		$options['group'] = 'Public Backend';
 
-		 //Make sure users are not autoregistered
+		//Make sure users are not autoregistered
 		$options['autoregister'] = false;
 
 		//Set the application login entry point
@@ -195,7 +195,7 @@ class JAdministrator extends JApplication
 		}
 
 		// Set the access control action to check.
-		$options['action'] = 'core.login';
+		$options['action'] = 'core.login.admin';
 
 		$result = parent::login($credentials, $options);
 
@@ -226,19 +226,21 @@ class JAdministrator extends JApplication
 			// Load the template name from the database
 			$db = &JFactory::getDbo();
 			$query = 'SELECT template, params'
-				. ' FROM #__menu_template'
+				. ' FROM #__template_styles'
 				. ' WHERE client_id = 1'
 				. ' AND home = 1'
 				;
 			$db->setQuery($query);
 			$template = $db->loadObject();
 
-			$template->template = JFilterInput::clean($template->template, 'cmd');
+			$template->template = JFilterInput::getInstance()->clean($template->template, 'cmd');
 
 			if (!file_exists(JPATH_THEMES.DS.$template->template.DS.'index.php'))
 			{
 				$template->template = 'bluestork';
-				$template->params = '{}';
+				$template->params = new JParameter();
+			} else {
+				$template->params = new JParameter($template->params);
 			}
 		}
 		if ($params) {
@@ -271,12 +273,12 @@ class JAdministrator extends JApplication
 		// check if auto_purge value set
 		if (is_object($config) and $config->cfg_name == 'auto_purge')
 		{
-			$purge 	= $config->cfg_value;
+			$purge	= $config->cfg_value;
 		}
 		else
 		{
 			// if no value set, default is 7 days
-			$purge 	= 7;
+			$purge	= 7;
 		}
 		// calculation of past date
 
@@ -284,7 +286,7 @@ class JAdministrator extends JApplication
 		if ($purge > 0)
 		{
 			// purge old messages at day set in message configuration
-			$past = &JFactory::getDate(time() - $purge * 86400);
+			$past = JFactory::getDate(time() - $purge * 86400);
 			$pastStamp = $past->toMySQL();
 
 			$query = 'DELETE FROM #__messages'

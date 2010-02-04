@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: menutype.php 12186 2009-06-20 00:23:39Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -11,31 +11,12 @@ defined('JPATH_BASE') or die;
 /**
  * Menu Types table
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Table
  * @since		1.5
  */
 class JTableMenuType extends JTable
 {
-	/**
-	 * @var int Primary key
-	 */
-	public $id					= null;
-
-	/**
-	 * @var string
-	 */
-	public $menutype			= null;
-
-	/** @var string
-	 */
-	public $title				= null;
-
-	/**
-	 * @var string
-	 */
-	public $description		= null;
-
 	/**
 	 * Constructor
 	 *
@@ -51,7 +32,7 @@ class JTableMenuType extends JTable
 	 */
 	function check()
 	{
-		$this->menutype = JFilterOutput::stringURLSafe($this->menutype);
+		$this->menutype = JApplication::stringURLSafe($this->menutype);
 		if (empty($this->menutype)) {
 			$this->setError(JText::_('Menu_Error_Menutype_empty'));
 			return false;

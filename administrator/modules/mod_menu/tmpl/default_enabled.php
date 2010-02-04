@@ -3,7 +3,7 @@
  * @version		$Id:mod_menu.php 2463 2006-02-18 06:05:38Z webImagery $
  * @package		Joomla.Administrator
  * @subpackage	mod_menu
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,26 +22,31 @@ $menu->addChild(
 
 $menu->addSeparator();
 
-if ($user->authorize('core.manage', 'com_config')) {
+if ($user->authorise('core.admin')) {
 	$menu->addChild(new JMenuNode(JText::_('Configuration'), 'index.php?option=com_config', 'class:config'));
 	$menu->addSeparator();
 }
 
-$com = $user->authorize('core.manage', 'com_config');
-$chm = $user->authorize('core.manage', 'com_checkin');
-$cam = $user->authorize('core.manage', 'com_cache');
+$chm = $user->authorise('core.manage', 'com_checkin');
+$cam = $user->authorise('core.manage', 'com_cache');
 
-if ($com || $chm || $cam )
+if ($chm || $cam )
 {
 	$menu->addChild(
 		new JMenuNode(JText::_('Mod_Menu_Site_Maintenance'), '#', 'class:maintenance'), true
 	);
 
-	$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Global_Checkin'), 'index.php?option=com_checkin', 'class:checkin'));
+	if ($chm)
+	{
+		$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Global_Checkin'), 'index.php?option=com_checkin', 'class:checkin'));
+		$menu->addSeparator();
+	}
+	if ($cam)
+	{
+		$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Clear_Cache'), 'index.php?option=com_cache', 'class:clear'));
+		$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Purge_Expired_Cache'), 'index.php?option=com_cache&view=purge', 'class:purge'));
+	}
 
-	$menu->addSeparator();
-	$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Clear_Cache'), 'index.php?option=com_cache', 'class:clear'));
-	$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Purge_Expired_Cache'), 'index.php?option=com_cache&view=purge', 'class:purge'));
 	$menu->getParent();
 }
 
@@ -59,7 +64,7 @@ $menu->getParent();
 //
 // Users Submenu
 //
-if ($user->authorize('core.manage', 'com_users'))
+if ($user->authorise('core.manage', 'com_users'))
 {
 	$menu->addChild(
 		new JMenuNode(JText::_('Mod_menu_Com_users_Users'), '#'), true
@@ -86,19 +91,18 @@ if ($user->authorize('core.manage', 'com_users'))
 	);
 
 	$menu->addSeparator();
-	if ($user->authorize('core.manage', 'com_massmail'))
-	{
-		$menu->addChild(new JMenuNode(JText::_('Mod_menu_Mass_Mail_Users'), 'index.php?option=com_massmail', 'class:massmail'));
-		$menu->addChild(new JMenuNode(JText::_('Mod_menu_Read_Private_Messages'), 'index.php?option=com_messages', 'class:readmess'));
-		$menu->addChild(new JMenuNode(JText::_('Mod_menu_New_Private_Message'), 'index.php?option=com_messages&task=add', 'class:writemess'));
-	}
+
+	$menu->addChild(
+		new JMenuNode(JText::_('Mod_menu_Mass_Mail_Users'), 'index.php?option=com_users&view=mail', 'class:massmail')
+	);
+
 	$menu->getParent();
 }
 
 //
 // Menus Submenu
 //
-if ($user->authorize('core.manage', 'com_menus'))
+if ($user->authorise('core.manage', 'com_menus'))
 {
 	$menu->addChild(
 		new JMenuNode(JText::_('Mod_Menu_Menus'), '#'), true
@@ -113,7 +117,7 @@ if ($user->authorize('core.manage', 'com_menus'))
 	{
 		$menu->addChild(
 			new JMenuNode(
-				$menuType->title.($menuType->home ? ' <span><img src="templates/bluestork/images/menu/icon-16-default.png" /></span>' : ''),
+				$menuType->title.($menuType->home ? ' <span>'.JHTML::_('image', 'menu/icon-16-default.png', NULL, NULL, true).'</span>' : ''),
 				'index.php?option=com_menus&view=items&menutype='.$menuType->menutype, 'class:menu'
 			)
 		);
@@ -124,7 +128,7 @@ if ($user->authorize('core.manage', 'com_menus'))
 //
 // Content Submenu
 //
-if ($user->authorize('core.manage', 'com_content'))
+if ($user->authorise('core.manage', 'com_content'))
 {
 	$menu->addChild(
 		new JMenuNode(JText::_('Mod_Menu_Com_Content'), '#'), true
@@ -148,7 +152,7 @@ if ($user->authorize('core.manage', 'com_content'))
 	);
 
 	$menu->addSeparator();
-	if ($user->authorize('core.manage', 'com_media')) {
+	if ($user->authorise('core.manage', 'com_media')) {
 		$menu->addChild(new JMenuNode(JText::_('Mod_Menu_Media_Manager'), 'index.php?option=com_media', 'class:media'));
 	}
 
@@ -161,34 +165,25 @@ if ($user->authorize('core.manage', 'com_content'))
 $menu->addChild(new JMenuNode(JText::_('Mod_Menu_Components'), '#'), true);
 
 // Get the authorised components and sub-menus.
-$components = ModMenuHelper::getComponents(
-		array(
-			// Ignore the core components.
-			'com_content','com_config','com_modules','com_user','com_users','com_cache','com_cpanel','com_installer',
-			'com_massmail','com_messages','com_plugins','com_templates','com_languages','com_mailto','com_media',
-			'com_wrapper','com_menus'
-		),
-		true
-	);
+$components = ModMenuHelper::getComponents( true );
 
 foreach ($components as &$component)
 {
-	$text = $lang->hasKey($component->option) ? JText::_($component->option) : $component->name;
+	$text = $lang->hasKey($component->title) ? JText::_($component->title) : $component->alias;
 
 	if (!empty($component->submenu))
 	{
 		// This component has a db driven submenu.
-		$menu->addChild(new JMenuNode($text, $component->admin_menu_link, $component->admin_menu_img), true);
+		$menu->addChild(new JMenuNode($text, $component->link, $component->img), true);
 		foreach ($component->submenu as $sub)
 		{
-			$key  = $component->option.'_'.str_replace(' ', '_', $sub->name);
-			$text = $lang->hasKey($key) ? JText::_($key) : $sub->name;
-			$menu->addChild(new JMenuNode($text, $sub->admin_menu_link, $sub->admin_menu_img));
+			$text = $lang->hasKey($sub->title) ? JText::_($sub->title) : $sub->alias;
+			$menu->addChild(new JMenuNode($text, $sub->link, $sub->img));
 		}
 		$menu->getParent();
 	}
 	else {
-		$menu->addChild(new JMenuNode($text, $component->admin_menu_link, $component->admin_menu_img));
+		$menu->addChild(new JMenuNode($text, $component->link, $component->img));
 	}
 }
 $menu->getParent();
@@ -196,11 +191,11 @@ $menu->getParent();
 //
 // Extensions Submenu
 //
-$im = $user->authorize('core.manage', 'com_installer');
-$mm = $user->authorize('core.manage', 'com_modules');
-$pm = $user->authorize('core.manage', 'com_plugins');
-$tm = $user->authorize('core.manage', 'com_templates');
-$lm = $user->authorize('core.manage', 'com_languages');
+$im = $user->authorise('core.manage', 'com_installer');
+$mm = $user->authorise('core.manage', 'com_modules');
+$pm = $user->authorise('core.manage', 'com_plugins');
+$tm = $user->authorise('core.manage', 'com_templates');
+$lm = $user->authorise('core.manage', 'com_languages');
 
 if ($im || $mm || $pm || $tm || $lm)
 {
@@ -237,34 +232,33 @@ $menu->addChild(
 );
 $menu->addSeparator();
 
-// TO DO: ADD TARGET=BLANK TO EXTERNAL LINKS
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Support_Forum'), 'http://forum.joomla.org', 'class:help-forum')
+	new JMenuNode(JText::_('Mod_Menu_Help_Support_Forum'), 'http://forum.joomla.org', 'class:help-forum', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Documentation'), 'http://docs.joomla.org', 'class:help-docs')
+	new JMenuNode(JText::_('Mod_Menu_Help_Documentation'), 'http://docs.joomla.org', 'class:help-docs', false, '_blank')
 );
 $menu->addSeparator();
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Extensions'), 'http://extensions.joomla.org', 'class:help-jed')
+	new JMenuNode(JText::_('Mod_Menu_Help_Extensions'), 'http://extensions.joomla.org', 'class:help-jed', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Translations'), 'http://community.joomla.org/translations.html', 'class:help-trans')
+	new JMenuNode(JText::_('Mod_Menu_Help_Translations'), 'http://community.joomla.org/translations.html', 'class:help-trans', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Resources'), 'http://resources.joomla.org', 'class:help-jrd')
+	new JMenuNode(JText::_('Mod_Menu_Help_Resources'), 'http://resources.joomla.org', 'class:help-jrd', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Community'), 'http://community.joomla.org', 'class:help-community')
+	new JMenuNode(JText::_('Mod_Menu_Help_Community'), 'http://community.joomla.org', 'class:help-community', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Security'), 'http://developer.joomla.org/security.html', 'class:help-security')
+	new JMenuNode(JText::_('Mod_Menu_Help_Security'), 'http://developer.joomla.org/security.html', 'class:help-security', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Developer'), 'http://developer.joomla.org', 'class:help-dev')
+	new JMenuNode(JText::_('Mod_Menu_Help_Developer'), 'http://developer.joomla.org', 'class:help-dev', false, '_blank')
 );
 $menu->addChild(
-	new JMenuNode(JText::_('Mod_Menu_Help_Shop'), 'http://shop.joomla.org', 'class:help-shop')
+	new JMenuNode(JText::_('Mod_Menu_Help_Shop'), 'http://shop.joomla.org', 'class:help-shop', false, '_blank')
 );
 $menu->getParent();
 

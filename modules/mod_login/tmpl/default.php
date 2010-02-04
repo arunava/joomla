@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_login
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -11,7 +11,7 @@
 defined('_JEXEC') or die;
 ?>
 <?php if ($type == 'logout') : ?>
-<form action="index.php" method="post" name="login" id="form-login">
+<form action="index.php" method="post" name="form-login" id="form-login">
 <?php if ($params->get('greeting')) : ?>
 	<div>
 	<?php if ($params->get('name')) : {
@@ -32,7 +32,7 @@ defined('_JEXEC') or die;
 <?php else : ?>
 <?php if (JPluginHelper::isEnabled('authentication', 'openid')) :
 		$lang->load('plg_authentication_openid', JPATH_ADMINISTRATOR);
-		$langScript = 	'var JLanguage = {};'.
+		$langScript =	'var JLanguage = {};'.
 						' JLanguage.WHAT_IS_OPENID = \''.JText::_('WHAT_IS_OPENID').'\';'.
 						' JLanguage.LOGIN_WITH_OPENID = \''.JText::_('LOGIN_WITH_OPENID').'\';'.
 						' JLanguage.NORMAL_LOGIN = \''.JText::_('NORMAL_LOGIN').'\';'.
@@ -41,21 +41,21 @@ defined('_JEXEC') or die;
 		$document->addScriptDeclaration($langScript);
 		JHtml::_('script', 'openid.js');
 endif; ?>
-<form action="<?php echo JRoute::_('index.php', true, $params->get('usesecure')); ?>" method="post" name="login" id="form-login" >
+<form action="<?php echo JRoute::_('index.php', true, $params->get('usesecure')); ?>" method="post" name="form-login" id="form-login" >
 	<?php echo $params->get('pretext'); ?>
 	<fieldset class="input">
 	<p id="form-login-username">
-		<label for="modlgn_username"><?php echo JText::_('Username') ?></label><br />
+		<label for="modlgn_username"><?php echo JText::_('Username') ?></label>
 		<input id="modlgn_username" type="text" name="username" class="inputbox" alt="username" size="18" />
 	</p>
 	<p id="form-login-password">
-		<label for="modlgn_passwd"><?php echo JText::_('Password') ?></label><br />
+		<label for="modlgn_passwd"><?php echo JText::_('Password') ?></label>
 		<input id="modlgn_passwd" type="password" name="password" class="inputbox" size="18" alt="password" />
 	</p>
 	<?php if (JPluginHelper::isEnabled('system', 'remember')) : ?>
 	<p id="form-login-remember">
-		<label for="modlgn_remember"><?php echo JText::_('Remember me') ?></label>
-		<input id="modlgn_remember" type="checkbox" name="remember" class="inputbox" value="yes" alt="Remember Me" />
+		<label for="modlgn_remember"><?php echo JText::_('REMEMBER_ME') ?></label>
+		<input id="modlgn_remember" type="checkbox" name="remember" class="inputbox" value="yes" alt="<?php echo JText::_('REMEMBER_ME') ?>" />
 	</p>
 	<?php endif; ?>
 	<input type="submit" name="Submit" class="button" value="<?php echo JText::_('LOGIN') ?>" />

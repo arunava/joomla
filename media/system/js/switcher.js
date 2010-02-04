@@ -1,6 +1,6 @@
 /**
- * @version		$Id: switcher.js 12794 2009-09-20 18:51:14Z severdia $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -71,9 +71,8 @@ var JSwitcher = new Class({
 	},
 
 	hideAll: function() {
-		this.elements.each(function(el) {
-			el.setStyle('display', 'none');
-		});
+		this.elements.setStyle('display', 'none');
+		this.togglers.removeClass('active');
 	},
 
 	show: function (element) {

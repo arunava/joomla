@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id: site.xml 12772 2009-09-18 02:23:53Z eddieajau $ -->
+<!-- $Id$ -->
 <form>
 	<fields>
 		<field name="site_name" type="text" id="site_name" class="inputbox"

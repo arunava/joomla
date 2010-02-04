@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!-- $Id: application.xml 13031 2009-10-02 21:54:22Z louis $ -->
+	<!-- $Id$ -->
 <form>
 	<fields
 		group="cache"
@@ -30,7 +30,7 @@
 
 		<field
 			name="cache_handler"
-			type="cachehandlers"
+			type="cachehandler"
 			default="file"
 			label="Config_Cache_Handler_Label"
 			description="Config_Cache_Handler_Desc"
@@ -205,12 +205,11 @@
 		label="Config_Locale_Settings_Label">
 		<field
 			name="offset"
-			type="timezones"
-			default="0"
+			type="timezone"
+			default=""
 			label="Config_Server_Timezone_Label"
 			description="Config_Server_Timezone_Desc"
-			required="true"
-			filter="integer" />
+			required="true" />
 	</fields>
 
 	<fields
@@ -425,6 +424,20 @@
 			<option
 				value="0">JNo</option>
 		</field>
+
+		<field
+			name="unicodeslugs"
+			type="radio"
+			default="0"
+			label="Config_Unicodeslugs_Label"
+			description="Config_Unicodeslugs_Desc"
+			required="true"
+			filter="integer">
+			<option
+				value="1">JYes</option>
+			<option
+				value="0">JNo</option>
+		</field>
 	</fields>
 
 	<fields
@@ -504,7 +517,7 @@
 
 		<field
 			name="session_handler"
-			type="sessionhandlers"
+			type="sessionhandler"
 			default="none"
 			label="Config_Session_Handler_Label"
 			description="Config_Session_Handler_Desc"
@@ -578,7 +591,7 @@
 
 		<field
 			name="access"
-			type="accesslevels"
+			type="accesslevel"
 			default="1"
 			label="Config_Default_Access_Level_Label"
 			description="Config_Default_Access_Level_Desc"
@@ -691,7 +704,7 @@
 
 		<field
 			name="helpurl"
-			type="helpsites"
+			type="helpsite"
 			default=""
 			label="Config_Help_Server_Label"
 			description="Config_Help_Server_Desc"
@@ -734,13 +747,17 @@
 			class="inputbox"
 			filter="rules">
 			<action
+				name="core.login.site"
+				title="JAction_Login_Site"
+				description="JAction_Login_Site_Desc" />
+			<action
+				name="core.login.admin"
+				title="JAction_Login_Admin"
+				description="JAction_Login_Admin_Desc" />
+			<action
 				name="core.admin"
 				title="JAction_Admin"
 				description="JAction_Admin_Desc" />
-			<action
-				name="core.login"
-				title="JAction_Login"
-				description="JAction_Login_Desc" />
 			<action
 				name="core.manage"
 				title="JAction_Manage"
@@ -766,7 +783,7 @@
 	</fields>
 
 	<fields>
-			<field
+		<field
 			name="asset_id"
 			type="hidden" />
 	</fields>

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: simplecrypt.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Utilities
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,7 +14,7 @@ defined('JPATH_BASE') or die;
  * JSimpleCrypt is a very simple encryption algorithm for encyrpting/decrypting strings
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Utilities
  * @since		1.5
  */

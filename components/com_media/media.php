@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: media.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Massmail
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -25,8 +25,8 @@ if (!$user->authorize('com_media', 'popup')) {
 }
 
 // Set the path definitions
-define('COM_MEDIA_BASE',    JPATH_ROOT.DS.$params->get('image_path', 'images'.DS.'stories'));
-define('COM_MEDIA_BASEURL', JURI::root(true).'/'.$params->get('image_path', 'images/stories'));
+define('COM_MEDIA_BASE',	JPATH_ROOT.DS.$params->get('image_path', 'images'));
+define('COM_MEDIA_BASEURL', JURI::root(true).'/'.$params->get('image_path', 'images'));
 
 // Load the admin HTML view
 require_once JPATH_COMPONENT_ADMINISTRATOR.DS.'helpers'.DS.'media.php';

@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: user.php 11952 2009-06-01 03:21:19Z robs $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -10,96 +10,12 @@ defined('JPATH_BASE') or die;
 /**
  * Users table
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Table
  * @since		1.0
  */
 class JTableUser extends JTable
 {
-	/**
-	 * Unique id
-	 *
-	 * @var int
-	 */
-	var $id				= null;
-
-	/**
-	 * The users real name (or nickname)
-	 *
-	 * @var string
-	 */
-	var $name			= null;
-
-	/**
-	 * The login name
-	 *
-	 * @var string
-	 */
-	var $username		= null;
-
-	/**
-	 * The email
-	 *
-	 * @var string
-	 */
-	var $email			= null;
-
-	/**
-	 * MD5 encrypted password
-	 *
-	 * @var string
-	 */
-	var $password		= null;
-
-	/**
-	 * Description
-	 *
-	 * @var string
-	 */
-	var $usertype		= null;
-
-	/**
-	 * Description
-	 *
-	 * @var int
-	 */
-	var $block			= null;
-
-	/**
-	 * Description
-	 *
-	 * @var int
-	 */
-	var $sendEmail		= null;
-
-	/**
-	 * Description
-	 *
-	 * @var datetime
-	 */
-	var $registerDate	= null;
-
-	/**
-	 * Description
-	 *
-	 * @var datetime
-	 */
-	var $lastvisitDate	= null;
-
-	/**
-	 * Description
-	 *
-	 * @var string activation hash
-	 */
-	var $activation		= null;
-
-	/**
-	 * Description
-	 *
-	 * @var string
-	 */
-	var $params			= null;
-
 	/**
 	 * Associative array of user group ids => names.
 	 *
@@ -116,8 +32,8 @@ class JTableUser extends JTable
 	{
 		parent::__construct('#__users', 'id', $db);
 
-		//initialise
-		$this->id        = 0;
+		// Initialise.
+		$this->id = 0;
 		$this->sendEmail = 0;
 	}
 
@@ -209,7 +125,7 @@ class JTableUser extends JTable
 		if (key_exists('params', $array) && is_array($array['params'])) {
 			$registry = new JRegistry();
 			$registry->loadArray($array['params']);
-			$array['params'] = $registry->toString();
+			$array['params'] = (string)$registry;
 		}
 
 		// Attempt to bind the data.
@@ -256,12 +172,12 @@ class JTableUser extends JTable
 
 		// Validate user information
 		if (trim($this->name) == '') {
-			$this->setError(JText::_('Please enter your name.'));
+			$this->setError(JText::_('PLEASE_ENTER_YOUR_NAME'));
 			return false;
 		}
 
 		if (trim($this->username) == '') {
-			$this->setError(JText::_('Please enter a user name.'));
+			$this->setError(JText::_('PLEASE_ENTER_A_USER_NAME'));
 			return false;
 		}
 
@@ -275,10 +191,9 @@ class JTableUser extends JTable
 			return false;
 		}
 
+		// Set the registration timestamp
 		if ($this->registerDate == null) {
-			// Set the registration timestamp
-			$now = &JFactory::getDate();
-			$this->registerDate = $now->toMySQL();
+			$this->registerDate = JFactory::getDate()->toMySQL();
 		}
 
 
@@ -318,6 +233,7 @@ class JTableUser extends JTable
 		$k = $this->_tbl_key;
 		$key =  $this->$k;
 
+		// TODO: This is a dumb way to handle the groups.
 		// Store groups locally so as to not update directly.
 		$groups = $this->groups;
 		unset($this->groups);
@@ -470,7 +386,7 @@ class JTableUser extends JTable
 		}
 
 		// If no timestamp value is passed to functon, than current time is used.
-		$date = & JFactory::getDate($timeStamp);
+		$date = JFactory::getDate($timeStamp);
 
 		// Update the database row for the user.
 		$this->_db->setQuery(

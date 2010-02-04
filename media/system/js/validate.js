@@ -1,6 +1,6 @@
 /**
- * @version		$Id: validate.js 12253 2009-06-21 21:22:04Z pentacle $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -118,7 +118,7 @@ var JFormValidator = new Class({
 		}
 
 		// Run custom form validators if present
-		$A(this.custom).each(function(validator){
+		new Hash(this.custom).each(function(validator){
 			if (validator.exec() != true) {
 				valid = false;
 			}

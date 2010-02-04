@@ -1,10 +1,9 @@
 <?php
 /**
- * @version		$Id: rules.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -33,7 +32,7 @@ class JFormRuleRules extends JFormRule
 	 */
 	public function test(&$field, &$values)
 	{
-		$name = $field->attributes('name');
+		$name = (string)$field->attributes()->name;
 
 		// TODO: probably should check to see if the action is even available for this field.
 //		$values[$name];

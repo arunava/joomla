@@ -1,10 +1,9 @@
 <?php
 /**
- * @version		$Id: equals.php 12774 2009-09-18 04:47:09Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -29,13 +28,12 @@ class JFormRuleEquals extends JFormRule
 	 * @param	object		$field		A reference to the form field.
 	 * @param	mixed		$values		The values to test for validiaty.
 	 * @return	mixed		JException on invalid rule, true if the value is valid, false otherwise.
-	 * @since	1.6
 	 */
 	public function test(&$field, &$values)
 	{
 		$return = false;
-		$field1	= $field->attributes('name');
-		$field2	= $field->attributes('field');
+		$field1	= (string)$field->attributes()->name;
+		$field2	= (string)$field->attributes()->field;
 
 		// Check the rule.
 		if (!$field2) {

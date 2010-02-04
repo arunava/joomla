@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: application.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Application
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -63,8 +63,8 @@ class JApplication extends JObject
 	/**
 	 * The time the request was made as Unix timestamp.
 	 *
-	 * @var 	integer
-	 * @since 	1.6
+	 * @var	integer
+	 * @since	1.6
 	 */
 	public $startTime = null;
 
@@ -89,7 +89,7 @@ class JApplication extends JObject
 
 		// Set the session default name.
 		if (!isset($config['session_name'])) {
-			 $config['session_name'] = $this->_name;
+			$config['session_name'] = $this->_name;
 		}
 
 		// Set the default configuration file.
@@ -112,18 +112,15 @@ class JApplication extends JObject
 	}
 
 	/**
-	 * Returns a reference to the global JApplication object, only creating it if it
+	 * Returns the global JApplication object, only creating it if it
 	 * doesn't already exist.
 	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $menu = &JApplication::getInstance();</pre>
-	 *
-	 * @param	mixed	$id 		A client identifier or name.
-	 * @param	array	$config 	An optional associative array of configuration settings.
+	 * @param	mixed	$id		A client identifier or name.
+	 * @param	array	$config	An optional associative array of configuration settings.
 	 * @return	JApplication	The appliction object.
 	 * @since	1.5
 	 */
-	public static function &getInstance($client, $config = array(), $prefix = 'J')
+	public static function getInstance($client, $config = array(), $prefix = 'J')
 	{
 		static $instances;
 
@@ -197,7 +194,7 @@ class JApplication extends JObject
 	 * @abstract
 	 */
 	public function route()
- 	{
+	{
 		// Get the full request URI.
 		$uri	= clone JURI::getInstance();
 
@@ -209,9 +206,9 @@ class JApplication extends JObject
 		// Trigger the onAfterRoute event.
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onAfterRoute');
- 	}
+	}
 
- 	/**
+	/**
 	 * Dispatch the applicaiton.
 	 *
 	 * Dispatching is the process of pulling the option from the request object and
@@ -220,8 +217,8 @@ class JApplication extends JObject
 	 *
 	 * @abstract
 	 */
- 	public function dispatch($component)
- 	{
+	public function dispatch($component)
+	{
 		$document = &JFactory::getDocument();
 
 		$document->setTitle($this->getCfg('sitename'). ' - ' .JText::_('Administration'));
@@ -233,7 +230,7 @@ class JApplication extends JObject
 		// Trigger the onAfterDispatch event.
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onAfterDispatch');
- 	}
+	}
 
 	/**
 	 * Render the application.
@@ -247,7 +244,7 @@ class JApplication extends JObject
 	public function render()
 	{
 		$params = array(
-			'template' 	=> $this->getTemplate(),
+			'template'	=> $this->getTemplate(),
 			'file'		=> 'index.php',
 			'directory'	=> JPATH_THEMES,
 			'params'	=> $template->params
@@ -286,14 +283,15 @@ class JApplication extends JObject
 	 * code in the header pointing to the new location. If the headers have already been
 	 * sent this will be accomplished using a JavaScript statement.
 	 *
-	 * @param	string	$url	The URL to redirect to. Can only be http/https URL
-	 * @param	string	$msg	An optional message to display on redirect.
-	 * @param	string  $msgType An optional message type.
+	 * @param	string	The URL to redirect to. Can only be http/https URL
+	 * @param	string	An optional message to display on redirect.
+	 * @param	string  An optional message type.
+	 * @param	boolean	True if the page is 301 Permanently Moved, otherwise 303 See Other is assumed.
 	 * @return	none; calls exit().
 	 * @since	1.5
 	 * @see		JApplication::enqueueMessage()
 	 */
-	public function redirect($url, $msg='', $msgType='message')
+	public function redirect($url, $msg='', $msgType='message', $moved = false)
 	{
 		// Check for relative internal links.
 		if (preg_match('#^index[2]?.php#', $url)) {
@@ -329,21 +327,18 @@ class JApplication extends JObject
 		}
 
 		// Persist messages if they exist.
-		if (count($this->_messageQueue))
-		{
+		if (count($this->_messageQueue)) {
 			$session = &JFactory::getSession();
 			$session->set('application.queue', $this->_messageQueue);
 		}
 
-		/*
-		 * If the headers have been sent, then we cannot send an additional location header
-		 * so we will output a javascript redirect statement.
-		 */
+		// If the headers have been sent, then we cannot send an additional location header
+		// so we will output a javascript redirect statement.
 		if (headers_sent()) {
 			echo "<script>document.location.href='$url';</script>\n";
 		} else {
-			header('HTTP/1.1 301 Moved Permanently');
-			header('Location: ' . $url);
+			header($moved ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 303 See other');
+			header('Location: '.$url);
 		}
 		$this->close();
 	}
@@ -351,7 +346,7 @@ class JApplication extends JObject
 	/**
 	 * Enqueue a system message.
 	 *
-	 * @param	string 	$msg 	The message to enqueue.
+	 * @param	string	$msg	The message to enqueue.
 	 * @param	string	$type	The message type.
 	 * @return	void
 	 * @since	1.5
@@ -393,7 +388,7 @@ class JApplication extends JObject
 		return $this->_messageQueue;
 	}
 
-	 /**
+	/**
 	 * Gets a configuration value.
 	 *
 	 * @param	string	The name of the value to get.
@@ -532,8 +527,8 @@ class JApplication extends JObject
 	 * validation.  Successful validation will update the current session with
 	 * the user details.
 	 *
-	 * @param	array 	Array('username' => string, 'password' => string)
-	 * @param	array 	Array('remember' => boolean)
+	 * @param	array	Array('username' => string, 'password' => string)
+	 * @param	array	Array('remember' => boolean)
 	 * @return	boolean True on success.
 	 * @since	1.5
 	 */
@@ -543,7 +538,7 @@ class JApplication extends JObject
 		jimport('joomla.user.authentication');
 
 		$authenticate = & JAuthentication::getInstance();
-		$response	  = $authenticate->authenticate($credentials, $options);
+		$response	= $authenticate->authenticate($credentials, $options);
 
 		if ($response->status === JAUTHENTICATE_STATUS_SUCCESS)
 		{
@@ -604,12 +599,12 @@ class JApplication extends JObject
 	 * Passed the current user information to the onLogoutUser event and reverts the current
 	 * session record back to 'anonymous' parameters.
 	 *
-	 * @param 	int 	$userid   The user to load - Can be an integer or string - If string, it is converted to ID automatically
-	 * @param	array 	$options  Array('clientid' => array of client id's)
+	 * @param	int	$userid		The user to load - Can be an integer or string - If string, it is converted to ID automatically
+	 * @param	array	$options	Array('clientid' => array of client id's)
 	 */
 	public function logout($userid = null, $options = array())
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$retval = false;
 
 		// Get a user object from the JApplication.
@@ -655,19 +650,25 @@ class JApplication extends JObject
 	 *
 	 * @return	string
 	 */
-	public function getTemplate()
+	public function getTemplate($params = false)
 	{
+		if($params)
+		{
+			$template = new stdClass();
+			$template->template = 'system';
+			$template->params = new JParameter();
+		}
 		return 'system';
 	}
 
 	/**
-	 * Return a reference to the application JRouter object.
+	 * Returns the application JRouter object.
 	 *
-	 * @param	array	$options 	An optional associative array of configuration settings.
+	 * @param	array	$options	An optional associative array of configuration settings.
 	 * @return	JRouter.
 	 * @since	1.5
 	 */
-	static public function &getRouter($name = null, array $options = array())
+	static public function getRouter($name = null, array $options = array())
 	{
 		if (!isset($name)) {
 			$name = $this->_name;
@@ -676,20 +677,40 @@ class JApplication extends JObject
 		jimport('joomla.application.router');
 		$router = &JRouter::getInstance($name, $options);
 		if (JError::isError($router)) {
-			$null = null;
-			return $null;
+			return null;
 		}
 		return $router;
 	}
 
 	/**
-	 * Return a reference to the application JPathway object.
+	 * This method transliterates a string into an URL
+	 * safe string or returns a URL safe UTF-8 string
+	 * based on the global configuration
 	 *
-	 * @param	array	$options 	An optional associative array of configuration settings.
+	 * @param string	$input	String to process
+	 * @return	string	Processed string
+	 * @since	1.6
+	 */
+	static public function stringURLSafe($string)
+	{
+		$app = &JFactory::getApplication();
+		if (self::getCfg('unicodeslugs') == 1)
+		{
+			$output = JFilterOutput::stringURLUnicodeSlug($string);
+		} else {
+			$output = JFilterOutput::stringURLSafe($string);
+		}
+		return $output;
+	}
+
+	/**
+	 * Returns the application JPathway object.
+	 *
+	 * @param	array	$options	An optional associative array of configuration settings.
 	 * @return	object JPathway.
 	 * @since 1.5
 	 */
-	public function &getPathway($name = null, $options = array())
+	public function getPathway($name = null, $options = array())
 	{
 		if (!isset($name)) {
 			$name = $this->_name;
@@ -698,20 +719,19 @@ class JApplication extends JObject
 		jimport('joomla.application.pathway');
 		$pathway = &JPathway::getInstance($name, $options);
 		if (JError::isError($pathway)) {
-			$null = null;
-			return $null;
+			return null;
 		}
 		return $pathway;
 	}
 
 	/**
-	 * Return a reference to the application JPathway object.
+	 * Returns the application JPathway object.
 	 *
-	 * @param	array	$options 	An optional associative array of configuration settings.
+	 * @param	array	$options	An optional associative array of configuration settings.
 	 * @return	object	JMenu.
 	 * @since	1.5
 	 */
-	public function &getMenu($name = null, $options = array())
+	public function getMenu($name = null, $options = array())
 	{
 		if (!isset($name)) {
 			$name = $this->_name;
@@ -720,19 +740,30 @@ class JApplication extends JObject
 		jimport('joomla.application.menu');
 		$menu = &JMenu::getInstance($name, $options);
 		if (JError::isError($menu)) {
-			$null = null;
-			return $null;
+			return null;
 		}
 		return $menu;
 	}
 
 	/**
+	 * Provides a secure hash based on a seed
+	 *
+	 * @param string Seed string
+	 * @return string
+	 */
+	public static function getHash($seed)
+	{
+		$conf = &JFactory::getConfig();
+		return md5($conf->getValue('config.secret') .  $seed );
+	}
+
+	/**
 	 * Create the configuration registry.
 	 *
-	 * @param	string	$file 	The path to the configuration file.
+	 * @param	string	The path to the configuration file.
 	 * return	JConfig
 	 */
-	protected function &_createConfiguration($file)
+	protected function _createConfiguration($file)
 	{
 		jimport('joomla.registry.registry');
 
@@ -762,7 +793,7 @@ class JApplication extends JObject
 	 * @return	object	JSession on success. May call exit() on database error.
 	 * @since	1.5
 	 */
-	protected function &_createSession($name)
+	protected function _createSession($name)
 	{
 		$options = array();
 		$options['name'] = $name;
@@ -799,7 +830,7 @@ class JApplication extends JObject
 		);
 		$exists = $db->loadResult();
 
-		// If the session doesn't exist initialize it.
+		// If the session doesn't exist initialise it.
 		if (!$exists) {
 			$db->setQuery(
 				'INSERT INTO `#__session` (`session_id`, `client_id`, `time`)' .
@@ -851,5 +882,28 @@ class JApplication extends JObject
 	public function isSite()
 	{
 		return ($this->_clientId == 0);
+	}
+
+	/**
+	 * Method to determine if the host OS is  Windows
+	 *
+	 * @return	true if Windows OS
+	 * @since	1.5
+	 * @static
+	 */
+	static function isWinOS() {
+		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	/**
+	 * Returns the response
+	 *
+	 * @return	string
+	 * @since	1.6
+	 */
+	public function __toString()
+	{
+		$compress = $this->getCfg('gzip', false);
+		return JResponse::toString($compress);
 	}
 }

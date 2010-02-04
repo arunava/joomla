@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: modules.php 13046 2009-10-03 19:50:46Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Administrator
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -37,18 +37,15 @@ function modChrome_xhtml($module, &$params, &$attribs)
  */
 function modChrome_sliders($module, &$params, &$attribs)
 {
-	jimport('joomla.html.pane');
-	// Initialize variables
+	// Initialise variables.
 	$user = &JFactory::getUser();
-	$sliders = &JPane::getInstance('sliders');
 
-	$editAllComponents 	= $user->authorize('core.manage', 'com_installer');
+	$editAllComponents	= $user->authorize('core.manage', 'com_installer');
 
 	// special handling for components module
 	if ($module->module != 'mod_components' || ($module->module == 'mod_components' && $editAllComponents)) {
-		$sliders->startPanel(JText::_($module->title), 'module' . $module->id);
+		echo JHtml::_('sliders.panel',JText::_($module->title), 'module' . $module->id);
 		echo $module->content;
-		$sliders->endPanel();
 	}
 }
 
@@ -57,18 +54,15 @@ function modChrome_sliders($module, &$params, &$attribs)
  */
 function modChrome_tabs($module, &$params, &$attribs)
 {
-	jimport('joomla.html.pane');
-	// Initialize variables
+	// Initialise variables.
 	$user	= &JFactory::getUser();
-	$tabs	= &JPane::getInstance('tabs');
 
-	$editAllComponents 	= $user->authorize('core.manage', 'com_installer');
+	$editAllComponents	= $user->authorize('core.manage', 'com_installer');
 
 	// special handling for components module
 	if ($module->module != 'mod_components' || ($module->module == 'mod_components' && $editAllComponents)) {
-			$tabs->startPanel(JText::_($module->title), 'module' . $module->id);
-			echo $module->content;
-			$tabs->endPanel();
+		echo JHtml::_('tabs.panel', JText::_($module->title), 'module' . $module->id);
+		echo $module->content;
 	}
 }
 ?>

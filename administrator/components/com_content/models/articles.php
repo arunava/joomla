@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: articles.php 13109 2009-10-08 18:15:33Z ian $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -9,10 +9,9 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
- * About Page Model
+ * Methods supporting a list of article records.
  *
  * @package		Joomla.Administrator
  * @subpackage	com_content
@@ -24,7 +23,7 @@ class ContentModelArticles extends JModelList
 	 *
 	 * @var		string
 	 */
-	public $_context = 'com_content.articles';
+	protected $_context = 'com_content.articles';
 
 	/**
 	 * Method to auto-populate the model state.
@@ -33,32 +32,23 @@ class ContentModelArticles extends JModelList
 	 */
 	protected function _populateState()
 	{
-		$app = &JFactory::getApplication();
+		// Initialise variables.
+		$app = JFactory::getApplication();
 
-		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
 		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
 		$this->setState('filter.access', $access);
 
-		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$published = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '');
 		$this->setState('filter.published', $published);
 
-		$categoryId = $app->getUserStateFromRequest($this->_context.'.category_id', 'filter_category_id');
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id');
 		$this->setState('filter.category_id', $categoryId);
 
-		// List state information
-		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->getCfg('list_limit'));
-		$this->setState('list.limit', $limit);
-
-		$limitstart = $app->getUserStateFromRequest($this->_context.'.limitstart', 'limitstart', 0);
-		$this->setState('list.limitstart', $limitstart);
-
-		$orderCol = $app->getUserStateFromRequest($this->_context.'.ordercol', 'filter_order', 'a.title');
-		$this->setState('list.ordering', $orderCol);
-
-		$orderDirn = $app->getUserStateFromRequest($this->_context.'.orderdirn', 'filter_order_Dir', 'asc');
-		$this->setState('list.direction', $orderDirn);
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
@@ -71,29 +61,29 @@ class ContentModelArticles extends JModelList
 	 * @param	string		$id	A prefix for the store id.
 	 *
 	 * @return	string		A store id.
+	 * @since	1.6
 	 */
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('list.start');
-		$id	.= ':'.$this->getState('list.limit');
-		$id	.= ':'.$this->getState('list.ordering');
-		$id	.= ':'.$this->getState('list.direction');
 		$id	.= ':'.$this->getState('filter.search');
-		$id	.= ':'.$this->getState('filter.published');
+		$id .= ':'.$this->getState('filter.access');
+		$id	.= ':'.$this->getState('filter.state');
+		$id	.= ':'.$this->getState('filter.category_id');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**
-	 * @param	boolean	True to join selected foreign information
+	 * Build an SQL query to load the list data.
 	 *
-	 * @return	string
+	 * @return	JQuery
 	 */
-	function _getListQuery($resolveFKs = true)
+	protected function _getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		// Select the required fields from the table.
 		$query->select(
@@ -129,15 +119,25 @@ class ContentModelArticles extends JModelList
 		$published = $this->getState('filter.published');
 		if (is_numeric($published)) {
 			$query->where('a.state = ' . (int) $published);
-		}
-		else if ($published === '') {
+		} else if ($published === '') {
 			$query->where('(a.state = 0 OR a.state = 1)');
 		}
 
-		// Filter by category.
+		// Filter by a single or group of categories.
 		$categoryId = $this->getState('filter.category_id');
 		if (is_numeric($categoryId)) {
-			$query->where('a.state = ' . (int) $published);
+			$query->where('a.catid = '.(int) $categoryId);
+		} else if (is_array($categoryId)) {
+			JArrayHelper::toInteger($categoryId);
+			$categoryId = implode(',', $categoryId);
+			$query->where('a.catid IN ('.$categoryId.')');
+		}
+
+		// Filter by author
+		$authorId = $this->getState('filter.author_id');
+		if (is_numeric($authorId)) {
+			$type = $this->getState('filter.author_id.include', true) ? '= ' : '<>';
+			$query->where('a.created_by '.$type.(int) $authorId);
 		}
 
 		// Filter by search in title
@@ -145,21 +145,17 @@ class ContentModelArticles extends JModelList
 		if (!empty($search)) {
 			if (stripos($search, 'id:') === 0) {
 				$query->where('a.id = '.(int) substr($search, 3));
-			}
-			else if (stripos($search, 'author:') === 0)
-			{
-				$search = $this->_db->Quote('%'.$this->_db->getEscaped(substr($search, 7), true).'%');
+			} else if (stripos($search, 'author:') === 0) {
+				$search = $db->Quote('%'.$db->getEscaped(substr($search, 7), true).'%');
 				$query->where('ua.name LIKE '.$search.' OR ua.username LIKE '.$search);
-			}
-			else
-			{
-				$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%');
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
 				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
 			}
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;

@@ -1,10 +1,10 @@
 <?php
 /**
- * @version		$Id: category.php 12274 2009-06-22 01:33:26Z eddieajau $
+ * @version		$Id$
  * @package		Joomla
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access

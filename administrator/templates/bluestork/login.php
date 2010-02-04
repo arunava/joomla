@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: login.php 12807 2009-09-21 08:45:27Z severdia $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	templates.bluestork
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -49,7 +49,7 @@ $app = &JFactory::getApplication();
 	<div id="border-top" class="h_blue">
 		<div>
 			<div>
-				<span class="title"><?php echo $this->params->get('showSiteName') ? $app->getCfg('sitename') : JText::_('Administration'); ?></span>
+				<span class="title"><a href="index.php"><?php echo $this->params->get('showSiteName') ? $app->getCfg('sitename') : JText::_('Administration'); ?></a></span>
 			</div>
 		</div>
 	</div>
@@ -63,12 +63,12 @@ $app = &JFactory::getApplication();
 				</div>
 				<div class="m wbg">
 
-					<h1><?php echo JText::_('Joomla! Administration Login') ?></h1>
+					<h1><?php echo JText::_('JOOMLA_ADMINISTRATION_LOGIN') ?></h1>
 					<jdoc:include type="message" />
 					<jdoc:include type="component" />
 					<p><?php echo JText::_('DESCUSEVALIDLOGIN') ?></p>
 					<p>
-						<a href="<?php echo JURI::root(); ?>"><?php echo JText::_('Return to site Home Page') ?></a>
+						<a href="<?php echo JURI::root(); ?>"><?php echo JText::_('RETURN_TO_SITE_HOME_PAGE') ?></a>
 					</p>
 					<div id="lock"></div>
 					<div class="clr"></div>

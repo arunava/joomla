@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: offline.php 12490 2009-07-06 11:57:32Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -35,16 +35,16 @@ $app = &JFactory::getApplication();
 	<form action="index.php" method="post" name="login" id="form-login">
 	<fieldset class="input">
 		<p id="form-login-username">
-			<label for="username"><?php echo JText::_('Username') ?></label><br />
+			<label for="username"><?php echo JText::_('Username') ?></label>
 			<input name="username" id="username" type="text" class="inputbox" alt="<?php echo JText::_('Username') ?>" size="18" />
 		</p>
 		<p id="form-login-password">
-			<label for="passwd"><?php echo JText::_('Password') ?></label><br />
+			<label for="passwd"><?php echo JText::_('Password') ?></label>
 			<input type="password" name="passwd" class="inputbox" size="18" alt="<?php echo JText::_('Password') ?>" id="passwd" />
 		</p>
 		<p id="form-login-remember">
-			<label for="remember"><?php echo JText::_('Remember me') ?></label>
-			<input type="checkbox" name="remember" class="inputbox" value="yes" alt="<?php echo JText::_('Remember me') ?>" id="remember" />
+			<label for="remember"><?php echo JText::_('REMEMBER_ME') ?></label>
+			<input type="checkbox" name="remember" class="inputbox" value="yes" alt="<?php echo JText::_('REMEMBER_ME') ?>" id="remember" />
 		</p>
 		<input type="submit" name="Submit" class="button" value="<?php echo JText::_('LOGIN') ?>" />
 	</fieldset>

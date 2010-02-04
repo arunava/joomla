@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 12812 2009-09-22 03:58:25Z dextercowley $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -36,7 +36,7 @@ class ContentViewFrontpage extends JView
 	 */
 	function display($tpl = null)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$user		= &JFactory::getUser();
 		$app		= &JFactory::getApplication();
 
@@ -57,7 +57,7 @@ class ContentViewFrontpage extends JView
 		// Get the metrics for the structural page layout.
 		$numLeading	= $params->def('num_leading_articles',	1);
 		$numIntro	= $params->def('num_intro_articles',	4);
-		$numLinks	= $params->def('num_links', 			4);
+		$numLinks	= $params->def('num_links',			4);
 
 		// Compute the article slugs and prepare introtext (runs content plugins).
 		foreach ($items as $i => &$item)

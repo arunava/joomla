@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: helper.php 12397 2009-07-01 23:52:28Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -25,8 +25,8 @@ abstract class JModuleHelper
 	/**
 	 * Get module by name (real, eg 'Breadcrumbs' or folder, eg 'mod_breadcrumbs')
 	 *
-	 * @param	string 	$name	The name of the module
-	 * @param	string	$title	The title of the module, optional
+	 * @param	string	The name of the module
+	 * @param	string	The title of the module, optional
 	 *
 	 * @return	object	The Module object
 	 */
@@ -70,7 +70,7 @@ abstract class JModuleHelper
 	/**
 	 * Get modules by position
 	 *
-	 * @param string 	$position	The position of the module
+	 * @param string	$position	The position of the module
 	 *
 	 * @return array	An array of module objects
 	 */
@@ -106,7 +106,7 @@ abstract class JModuleHelper
 	/**
 	 * Checks if a module is enabled
 	 *
-	 * @param   string 	$module	The module name
+	 * @param	string	The module name
 	 *
 	 * @return	boolean
 	 */
@@ -142,16 +142,16 @@ abstract class JModuleHelper
 
 		// Get module path
 		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
-		$path = JPATH_BASE.DS.'modules'.DS.$module->module.DS.$module->module.'.php';
+		$path = JPATH_BASE.'/modules/'.$module->module.'/'.$module->module.'.php';
 
 		// Load the module
 		if (!$module->user && file_exists($path))
 		{
 			$lang = &JFactory::getLanguage();
-			// 1.5 or Core
-			$lang->load($module->module);
 			// 1.6 3PD
 			$lang->load($module->module, dirname($path));
+			// 1.5 or Core
+			$lang->load($module->module);
 
 			$content = '';
 			ob_start();
@@ -165,8 +165,8 @@ abstract class JModuleHelper
 			$chrome = array();
 		}
 
-		require_once JPATH_BASE.DS.'templates'.DS.'system'.DS.'html'.DS.'modules.php';
-		$chromePath = JPATH_BASE.DS.'templates'.DS.$app->getTemplate().DS.'html'.DS.'modules.php';
+		require_once JPATH_BASE.'/templates/system/html/modules.php';
+		$chromePath = JPATH_BASE.'/templates/'.$app->getTemplate().'/html/modules.php';
 		if (!isset($chrome[$chromePath]))
 		{
 			if (file_exists($chromePath)) {
@@ -220,8 +220,8 @@ abstract class JModuleHelper
 		$app = JFactory::getApplication();
 
 		// Build the template and base path for the layout
-		$tPath = JPATH_BASE.DS.'templates'.DS.$app->getTemplate().DS.'html'.DS.$module.DS.$layout.'.php';
-		$bPath = JPATH_BASE.DS.'modules'.DS.$module.DS.'tmpl'.DS.$layout.'.php';
+		$tPath = JPATH_BASE.'/templates/'.$app->getTemplate().'/html/'.$module.'/'.$layout.'.php';
+		$bPath = JPATH_BASE.'/modules/'.$module.'/tmpl/'.$layout.'.php';
 
 		// If the template has a layout override use it
 		if (file_exists($tPath)) {
@@ -253,7 +253,7 @@ abstract class JModuleHelper
 		$where	= isset($Itemid) ? ' AND (mm.menuid = '. (int) $Itemid .' OR mm.menuid <= 0)' : '';
 
 		$db->setQuery(
-			'SELECT id, title, module, position, content, showtitle, control, params, mm.menuid'
+			'SELECT id, title, module, position, content, showtitle, params, mm.menuid'
 			. ' FROM #__modules AS m'
 			. ' LEFT JOIN #__modules_menu AS mm ON mm.moduleid = m.id'
 			. ' WHERE m.published = 1'
@@ -265,7 +265,7 @@ abstract class JModuleHelper
 
 		if (null === ($modules = $db->loadObjectList()))
 		{
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Error Loading Modules') . $db->getErrorMsg());
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('ERROR_LOADING_MODULES') . $db->getErrorMsg());
 			return false;
 		}
 

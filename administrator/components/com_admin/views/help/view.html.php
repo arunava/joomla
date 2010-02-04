@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -44,7 +44,7 @@ class AdminViewHelp extends JView
 	/**
 	 * @var string url for the latest version check
 	 */
-	protected $latest_version_check= 'http://www.joomla.org/content/blogcategory/57/111/';
+	protected $latest_version_check= 'http://www.joomla.org/download.html';
 
 	/**
 	 * Display the view

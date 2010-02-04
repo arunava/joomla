@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: controller.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -29,8 +29,7 @@ class JInstallationController extends JController
 	{
 		// Get the current URI to redirect to.
 		$uri		= &JURI::getInstance();
-		$redirect	= $uri->toString();
-		$redirect	= base64_encode($redirect);
+		$redirect	= base64_encode($uri);
 
 		// Get the document object.
 		$document = &JFactory::getDocument();

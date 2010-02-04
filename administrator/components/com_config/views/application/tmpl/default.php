@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_config
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -19,11 +19,11 @@ $this->document->setBuffer($this->loadTemplate('navigation'), 'modules', 'submen
 $this->document->addScriptDeclaration("
 	document.switcher = null;
 	window.addEvent('domready', function(){
-	 	toggler = document.id('submenu')
-	  	element = document.id('config-document')
-	  	if (element) {
-	  		document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getAttribute('class')});
-	  	}
+		var toggler = document.id('submenu')
+		var element = document.id('config-document')
+		if (element) {
+			document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getAttribute('class')});
+		}
 	});
 ");
 

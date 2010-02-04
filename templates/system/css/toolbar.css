@@ -1,12 +1,12 @@
 /**
- * @version		$Id: toolbar.css 12591 2009-08-01 05:54:25Z severdia $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 div.toolbar-list {
 	margin-right: 10px;
-	float: right; 
+	float: right;
 	text-align: right;
 }
 

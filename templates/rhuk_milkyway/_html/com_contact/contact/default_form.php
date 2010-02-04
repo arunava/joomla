@@ -1,5 +1,5 @@
 <?php
-/** $Id: default_form.php 12276 2009-06-22 01:54:01Z pasamio $ */
+/** $Id$ */
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 	$script = '<!--
@@ -8,7 +8,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 			if (valid == false) {
 				// do field validation
 				if (frm.email.invalid) {
-					alert( "' . JText::_( 'Please enter a valid e-mail address.', true ) . '" );
+					alert( "' . JText::_( 'PLEASE_ENTER_A_VALID_E_MAIL_ADDRESS', true ) . '" );
 				} else if (frm.text.invalid) {
 					alert( "' . JText::_( 'CONTACT_FORM_NC', true ) . '" );
 				}

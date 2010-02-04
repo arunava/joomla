@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: form.php 13042 2009-10-03 19:24:56Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -11,7 +11,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modelform');
-jimport('joomla.database.query');
 
 /**
  * Content Component Article Model
@@ -27,7 +26,7 @@ class ContentModelForm extends JModelForm
 	 *
 	 * @var		string
 	 */
-	 protected $_context = 'com_content.edit.article';
+	protected $_context = 'com_content.edit.article';
 
 	/**
 	 * Method to auto-populate the model state.
@@ -50,14 +49,14 @@ class ContentModelForm extends JModelForm
 	}
 
 	/**
-	 * Returns a reference to the a Table object, always creating it
+	 * Returns a Table object, always creating it
 	 *
-	 * @param	type 	$type 	 The table type to instantiate
-	 * @param	string 	$prefix	 A prefix for the table class name. Optional.
-	 * @param	array	$options Configuration array for model. Optional.
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
 	 * @return	JTable	A database object
 	*/
-	public function &getTable($type = 'Content', $prefix = 'JTable', $config = array())
+	public function getTable($type = 'Content', $prefix = 'JTable', $config = array())
 	{
 		return JTable::getInstance($type, $prefix, $config);
 	}
@@ -89,7 +88,7 @@ class ContentModelForm extends JModelForm
 	 */
 	public function getItem($itemId = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$itemId = (int) (!empty($itemId)) ? $itemId : $this->getState('article.id');
 
 		// Get a row instance.
@@ -156,7 +155,7 @@ class ContentModelForm extends JModelForm
 		$isNew		= true;
 
 		if (!$form) {
-			JError::raiseError(500, $model->getError());
+			JError::raiseError(500, $this->getError());
 			return false;
 		}
 
@@ -192,7 +191,7 @@ class ContentModelForm extends JModelForm
 
 		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
 		if (in_array(false, $result, true)) {
-			JError::raiseError(500, $row->getError());
+			JError::raiseError(500, $table->getError());
 			return false;
 		}
 
@@ -221,7 +220,7 @@ class ContentModelForm extends JModelForm
 	 */
 	public function checkin($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('article.id');
 
 		// Only attempt to check the row in if it exists.
@@ -260,7 +259,7 @@ class ContentModelForm extends JModelForm
 	 */
 	public function checkout($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$pk		= (!empty($pk)) ? $pk : (int) $this->getState('article.id');
 
 		// Only attempt to check the row in if it exists.

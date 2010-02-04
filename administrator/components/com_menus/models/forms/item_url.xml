@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!-- $Id: item_url.xml 12812 2009-09-22 03:58:25Z dextercowley $ -->
+	<!-- $Id$ -->
 <form>
 	<fields
 		label="Menus_Linktype_Options_Label"
@@ -19,6 +19,14 @@
 			type="text"
 			label="Menus_Item_Anchor_CSS_Label"
 			description="Menus_item_Anchor_CSS_Desc"
+			default=""/>
+
+		<field
+			id="menu_image"
+			name="menu_image"
+			type="text"
+			label="Menus_Item_Menu_Image_Label"
+			description="Menus_Item_Menu_Image_Desc"
 			default=""/>
 
 	</fields>

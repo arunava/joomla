@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Checkin
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -40,8 +40,11 @@ class CheckinViewCheckin extends JView
 	protected function _setToolbar()
 	{
 		JToolBarHelper::title(JText::_('Global Check-in'), 'checkin.png');
-		JToolBarHelper::preferences('com_checkin');
-		JToolBarHelper::divider();
+		if (JFactory::getUser()->authorise('core.admin', 'com_checkin'))
+		{
+			JToolBarHelper::preferences('com_checkin');
+			JToolBarHelper::divider();
+		}
 		JToolBarHelper::help('screen.checkin');
 	}
 }

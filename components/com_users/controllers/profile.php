@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: profile.php 12684 2009-09-10 13:59:40Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -73,7 +73,7 @@ class UsersControllerProfile extends UsersController
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Profile', 'UsersModel');
 		$user	= &JFactory::getUser();
@@ -89,7 +89,14 @@ class UsersControllerProfile extends UsersController
 		}
 
 		// Validate the posted data.
-		$data = $model->validate($data);
+		$form	= &$model->getForm();
+		if (!$form) {
+			JError::raiseError(500, $model->getError());
+			return false;
+		}
+
+		// Validate the posted data.
+		$data = $model->validate($form,$data);
 
 		// Check for errors.
 		if ($data === false)

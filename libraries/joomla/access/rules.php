@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: rules.php 13071 2009-10-06 01:57:33Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -10,7 +10,7 @@ defined('JPATH_BASE') or die;
 jimport('joomla.access.rule');
 
 /**
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Access
  * @since		1.6
  */

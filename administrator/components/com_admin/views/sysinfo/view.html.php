@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -91,7 +91,7 @@ class AdminViewSysinfo extends JView
 	 */
 	protected function _setToolbar()
 	{
-		JToolBarHelper::title(JText::_('Admin_Information'), 'systeminfo.png');
+		JToolBarHelper::title(JText::_('ADMIN_SYSTEM_INFORMATION'), 'systeminfo.png');
 		JToolBarHelper::help('screen.system.info');
 	}
 }

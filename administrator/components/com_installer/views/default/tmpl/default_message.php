@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default_message.php 12344 2009-06-24 11:28:31Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_installer
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,7 +18,7 @@ $message2		= $state->get('extension_message');
 	<tbody>
 		<?php if ($message1) : ?>
 		<tr>
-			<th><?php echo JText::_($message1) ?></th>
+			<th><?php echo $message1 ?></th>
 		</tr>
 		<?php endif; ?>
 		<?php if ($message2) : ?>

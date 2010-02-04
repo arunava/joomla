@@ -3,7 +3,7 @@
  * PHP-XMLRPC "wrapper" functions
  * Generate stubs to transparently access xmlrpc methods as php functions and viceversa
  *
- * @version $Id: xmlrpc_wrappers.php 11845 2009-05-27 23:28:59Z robs $
+ * @version $Id$
  * @copyright G. Giunta (C) 2006
  * @author Gaetano Giunta
  *

@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: item.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -51,7 +51,7 @@ class MenusControllerItem extends JController
 	 */
 	public function add()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication();
 
 		// Clear the row edit information from the session.
@@ -74,7 +74,7 @@ class MenusControllerItem extends JController
 	 */
 	public function edit()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$pks	= JRequest::getVar('cid', array(), '', 'array');
 
@@ -124,7 +124,7 @@ class MenusControllerItem extends JController
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 
 		$app	= &JFactory::getApplication();
 		// Get the previous menu item id (if any) and the current menu item id.
@@ -163,7 +163,7 @@ class MenusControllerItem extends JController
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Item');
 		$task	= $this->getTask();
@@ -218,7 +218,7 @@ class MenusControllerItem extends JController
 
 			// Merge in the user supplied request arguments.
 			$args = array_merge($args, $pData['request']);
-			$iData['link'] = 'index.php?'.http_build_query($args);
+			$iData['link'] = 'index.php?'.http_build_query($args,'','&');
 			unset($pData['request']);
 		}
 
@@ -316,7 +316,7 @@ class MenusControllerItem extends JController
 
 	function setType()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 
 		// Get the type.
@@ -329,9 +329,14 @@ class MenusControllerItem extends JController
 		$app->setUserState('com_menus.edit.item.type',	$title);
 		if ($title=='component'){
 			if (isset($type->request)) {
-
-				$app->setUserState('com_menus.edit.item.link', 'index.php?option='.  $type->request->option.'&view='. $type->request->view);
-
+				if (isset($type->request->layout)) {
+				$app->setUserState('com_menus.edit.item.link', 'index.php?option='.  $type->request->option.'&view='.
+					$type->request->view.'&layout='.$type->request->layout);
+				}
+				else {
+			$app->setUserState('com_menus.edit.item.link', 'index.php?option='.  $type->request->option.'&view='.
+					$type->request->view);
+				}
 				//	$app->setUserState('com_menus.edit.item.id',	$model->getState('item.id'));
 				//	$app->setUserState('com_menus.edit.item.data',	null);
 				//$app->setUserState('com_menus.edit.item.type',	$type->type);
@@ -369,7 +374,7 @@ class MenusControllerItem extends JController
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Item');
 		$vars	= JRequest::getVar('batch', array(), 'post', 'array');

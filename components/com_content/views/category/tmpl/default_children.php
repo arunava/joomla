@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default_children.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -15,25 +15,25 @@ defined('_JEXEC') or die;
 <?php else : ?>
 	<h5>Sub Categories</h5>
 <?php
-	// Initialize the starting level
+	// Initialise the starting level
 	// starting level is the parent level coming in
 	$curLevel = $this->item->level;
 	$difLevel = 0;
 
 	// Loop through each of the children
 	foreach ($this->children as &$item) :
-	// Create an <ol> for every level going deeper
-	// and an </ol> for every level jumping back up
+	// Create an <ul> for every level going deeper
+	// and an </ul> for every level jumping back up
 	// set current level to the new level
 		$difLevel = $item->level - $curLevel;
 		if ($difLevel < 0) :
 			for ($i = 0, $n = -($difLevel); $i < $n; $i++) :
-				echo "</ol>";
+				echo "</ul>";
 			endfor;
 			$curLevel = $item->level;
 		elseif ($difLevel > 0) :
 			for ($i = 0, $n = $difLevel; $i < $n; $i++) : ?>
-				<ol>
+				<ul>
 			<?php endfor;
 			$curLevel = $item->level;
 		endif;
@@ -45,5 +45,5 @@ defined('_JEXEC') or die;
 		</li>
 		<?php endforeach; ?>
 
-	</ol>
+	</ul>
 <?php endif; ?>

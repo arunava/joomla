@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: message.php 12315 2009-06-23 11:49:13Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,7 +26,7 @@ class JDocumentRendererMessage extends JDocumentRenderer
 	 */
 	public function render($name = null, $params = array (), $content = null)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$buffer	= null;
 		$lists	= null;
 

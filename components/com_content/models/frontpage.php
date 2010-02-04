@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: frontpage.php 12416 2009-07-03 08:49:14Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -54,10 +54,9 @@ class ContentModelFrontpage extends ContentModelArticles
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id = parent::_getStoreId($id);
-		$id	.= ':'.$this->getState('filter.frontpage');
+		$id	.= $this->getState('filter.frontpage');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**

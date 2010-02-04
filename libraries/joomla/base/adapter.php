@@ -1,11 +1,14 @@
 <?php
 /**
- * @version		$Id: adapter.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Base
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Adapter Class
@@ -67,7 +70,7 @@ class JAdapter extends JObject {
 	 * @return	object	Database connector object
 	 * @since	1.5
 	 */
-	public function &getDBO()
+	public function getDBO()
 	{
 		return $this->_db;
 	}
@@ -102,7 +105,7 @@ class JAdapter extends JObject {
 	 * @param string name of adapter to return
 	 * @return object Adapter of type 'name' or false
 	 */
-	public function &getAdapter($name) {
+	public function getAdapter($name) {
 		if(!array_key_exists($name, $this->_adapters)) {
 			if(!$this->setAdapter($name)) {
 				$false = false;

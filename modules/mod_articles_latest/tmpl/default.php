@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default.php 13054 2009-10-04 13:16:43Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_articles_latest
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,8 +12,8 @@ defined('_JEXEC') or die;
 ?>
 <ul class="latestnews<?php echo $params->get('moduleclass_sfx'); ?>">
 <?php foreach ($list as $item) :  ?>
-	<li class="latestnews<?php echo $params->get('moduleclass_sfx'); ?>">
-		<a href="<?php echo $item->link; ?>" class="latestnews<?php echo $params->get('moduleclass_sfx'); ?>">
+	<li>
+		<a href="<?php echo $item->link; ?>">
 			<?php echo $item->title; ?></a>
 	</li>
 <?php endforeach; ?>

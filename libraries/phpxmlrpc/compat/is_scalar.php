@@ -13,7 +13,7 @@
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
 //
-// $Id: is_scalar.php 11845 2009-05-27 23:28:59Z robs $
+// $Id$
 
 
 /**

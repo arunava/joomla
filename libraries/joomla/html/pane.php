@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: pane.php 12750 2009-09-15 23:55:01Z severdia $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,6 +17,7 @@ defined('JPATH_BASE') or die;
  * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
+ * @deprecated	in favour of JHtml::_ static helpers
  */
 abstract class JPane extends JObject
 {
@@ -24,14 +25,14 @@ abstract class JPane extends JObject
 	public $useCookies = false;
 
 	/**
-	 * Returns a reference to a JPanel object.
+	 * Returns a JPanel object.
 	 *
-	 * @param	string 	$behavior   The behavior to use.
+	 * @param	string	$behavior	The behavior to use.
 	 * @param	boolean	$useCookies Use cookies to remember the state of the panel.
-	 * @param	array 	$params		Associative array of values.
+	 * @param	array	$params		Associative array of values.
 	 * @return	object
 	 */
-	public static function &getInstance($behavior = 'Tabs', $params = array())
+	public static function getInstance($behavior = 'Tabs', $params = array())
 	{
 		$classname = 'JPane'.$behavior;
 		$instance = new $classname($params);
@@ -90,7 +91,7 @@ class JPaneTabs extends JPane
 	/**
 	 * Constructor.
 	 *
-	 * @param	array 	$params		Associative array of values.
+	 * @param	array	$params		Associative array of values.
 	 */
 	function __construct($params = array())
 	{
@@ -130,7 +131,7 @@ class JPaneTabs extends JPane
 	 */
 	public function startPanel($text, $id)
 	{
-		return '<dt id="'.$id.'"><span>'.$text.'</span></dt><dd>';
+		return '<dt class="'.$id.'"><span>'.$text.'</span></dt><dd>';
 	}
 
 	/**
@@ -144,7 +145,7 @@ class JPaneTabs extends JPane
 	/**
 	 * Load the javascript behavior and attach it to the document.
 	 *
-	 * @param	array 	$params		Associative array of values
+	 * @param	array	$params		Associative array of values
 	 */
 	protected function _loadBehavior($params = array())
 	{
@@ -154,9 +155,9 @@ class JPaneTabs extends JPane
 		$document = &JFactory::getDocument();
 
 		$options = '{';
-		$opt['onActive']	 = (isset($params['onActive'])) ? $params['onActive'] : null ;
+		$opt['onActive']	= (isset($params['onActive'])) ? $params['onActive'] : null ;
 		$opt['onBackground'] = (isset($params['onBackground'])) ? $params['onBackground'] : null ;
-		$opt['display']		 = (isset($params['startOffset'])) ? (int)$params['startOffset'] : null ;
+		$opt['display']		= (isset($params['startOffset'])) ? (int)$params['startOffset'] : null ;
 		foreach ($opt as $k => $v)
 		{
 			if ($v) {
@@ -171,7 +172,7 @@ class JPaneTabs extends JPane
 		$js = '	window.addEvent(\'domready\', function(){ $$(\'dl.tabs\').each(function(tabs){ new JTabs(tabs, '.$options.'); }); });';
 
 		$document->addScriptDeclaration($js);
-		$document->addScript(JURI::root(true). '/media/system/js/tabs.js');
+		JHTML::script('system/tabs.js', false, true);
 	}
 }
 
@@ -243,7 +244,7 @@ class JPaneSliders extends JPane
 	/**
 	 * Load the javascript behavior and attach it to the document.
 	 *
-	 * @param	array 	$params		Associative array of values.
+	 * @param	array	$params		Associative array of values.
 	 */
 	protected function _loadBehavior($params = array())
 	{
@@ -253,13 +254,13 @@ class JPaneSliders extends JPane
 		$document = &JFactory::getDocument();
 
 		$options = '{';
-		$opt['onActive']	 = 'function(toggler, i) { toggler.addClass(\'jpane-toggler-down\'); toggler.removeClass(\'jpane-toggler\'); }';
+		$opt['onActive']	= 'function(toggler, i) { toggler.addClass(\'jpane-toggler-down\'); toggler.removeClass(\'jpane-toggler\'); }';
 		$opt['onBackground'] = 'function(toggler, i) { toggler.addClass(\'jpane-toggler\'); toggler.removeClass(\'jpane-toggler-down\'); }';
-		$opt['duration']	 = (isset($params['duration'])) ? (int)$params['duration'] : 300;
-		$opt['display']		 = (isset($params['startOffset']) && ($params['startTransition'])) ? (int)$params['startOffset'] : null ;
-		$opt['show']		 = (isset($params['startOffset']) && (!$params['startTransition'])) ? (int)$params['startOffset'] : null ;
-		$opt['opacity']		 = (isset($params['opacityTransition']) && ($params['opacityTransition'])) ? 'true' : 'false' ;
-		$opt['alwaysHide']	 = (isset($params['allowAllClose']) && (!$params['allowAllClose'])) ? 'false' : 'true';
+		$opt['duration']	= (isset($params['duration'])) ? (int)$params['duration'] : 300;
+		$opt['display']		= (isset($params['startOffset']) && ($params['startTransition'])) ? (int)$params['startOffset'] : null ;
+		$opt['show']		= (isset($params['startOffset']) && (!$params['startTransition'])) ? (int)$params['startOffset'] : null ;
+		$opt['opacity']		= (isset($params['opacityTransition']) && ($params['opacityTransition'])) ? 'true' : 'false' ;
+		$opt['alwaysHide']	= (isset($params['allowAllClose']) && (!$params['allowAllClose'])) ? 'false' : 'true';
 		foreach ($opt as $k => $v)
 		{
 			if ($v) {

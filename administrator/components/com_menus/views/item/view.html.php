@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -60,20 +60,20 @@ class MenusViewItem extends JView
 		$isNew		= ($this->item->id == 0);
 		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
 
-		JToolBarHelper::title(JText::_($isNew ? 'Menus_View_New_Item_Title' : 'Menus_View_Edit_Item_Title'));
+		JToolBarHelper::title(JText::_($isNew ? 'Menus_View_New_Item_Title' : 'Menus_View_Edit_Item_Title'), 'menu-add');
 
 
 		// If not checked out, can save the item.
 		if ($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'))
 		{
 
-			JToolBarHelper::save('item.save');
-			JToolBarHelper::apply('item.apply');
+			JToolBarHelper::apply('item.apply','JTOOLBAR_APPLY');
+			JToolBarHelper::save('item.save','JTOOLBAR_SAVE');
 			JToolBarHelper::addNew('item.save2new', 'JToolbar_Save_and_new');
 		}
 		// If an existing item, can save to a copy.
 		if (!$isNew) {
-			JToolBarHelper::custom('item.save2copy', 'copy.png', 'copy_f2.png', 'JToolbar_Save_as_copy', false)
+			JToolBarHelper::custom('item.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_copy', false)
 			;}
 		if ($isNew) {
 			JToolBarHelper::cancel('item.cancel','JToolbar_Cancel');
@@ -82,6 +82,6 @@ class MenusViewItem extends JView
 			JToolBarHelper::cancel('item.cancel', 'JToolbar_Close');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.menus.item');
+		JToolBarHelper::help('screen.menus.item','JTOOLBAR_HELP');
 	}
 }

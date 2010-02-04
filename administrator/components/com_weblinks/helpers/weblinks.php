@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: weblinks.php 12269 2009-06-22 00:06:59Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -34,5 +34,35 @@ class WeblinksHelper
 			'index.php?option=com_categories&extension=com_weblinks',
 			$vName == 'categories'
 		);
+	}
+
+	/**
+	 * Gets a list of the actions that can be performed.
+	 *
+	 * @param	int		The category ID.
+	 *
+	 * @return	JObject
+	 */
+	public static function getActions($categoryId = 0)
+	{
+		$user	= JFactory::getUser();
+		$result	= new JObject;
+
+		if (empty($categoryId)) {
+			$assetName = 'com_weblinks';
+		}
+		else {
+			$assetName = 'com_weblinks.category.'.(int) $categoryId;
+		}
+
+		$actions = array(
+			'core.admin', 'core.manage', 'core.create', 'core.edit', 'core.edit.state', 'core.delete'
+		);
+
+		foreach ($actions as $action) {
+			$result->set($action,	$user->authorise($action, $assetName));
+		}
+
+		return $result;
 	}
 }

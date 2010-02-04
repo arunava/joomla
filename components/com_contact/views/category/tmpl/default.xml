@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!-- $Id: default.xml 12812 2009-09-22 03:58:25Z dextercowley $ -->
+	<!-- $Id$ -->
 <metadata>
 	<layout
 		title="com_contact_category_view_default_title">
@@ -16,10 +16,11 @@
 
 		<field
 			name="catid"
-			type="categories"
+			type="category"
 			extension="com_contact"
 			default="0"
-			label="Select Category"
+			required="true"
+			label="SELECT_CATEGORY"
 			description="A contacts category" />
 	</fields>
 	<fields>
@@ -27,7 +28,7 @@
 			name="display_num"
 			type="list"
 			default="20"
-			label="Num Links"
+			label="NUM_LINKS"
 			description="Number of Contacts to display as list.">
 			<option
 				value="5">5</option>
@@ -51,7 +52,7 @@
 		<field
 			name="image"
 			type="imagelist"
-			directory="/images/stories"
+			directory="/images"
 			hide_default="1"
 			default=""
 			label="Image"
@@ -68,7 +69,10 @@
 				value="right">Right</option>
 		</field>
 		<field
-			type="spacer" />
+			name="spacer1"
+			type="spacer"
+			hr="true"
+			/>
 		<field
 			name="show_limit"
 			type="radio"

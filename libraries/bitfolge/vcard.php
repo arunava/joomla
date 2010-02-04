@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: vcard.php 11845 2009-05-27 23:28:59Z robs $
+ * @version $Id$
 * Modified PHP vCard class v2.0
  */
 

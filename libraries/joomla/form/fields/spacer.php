@@ -1,14 +1,13 @@
 <?php
 /**
- * @version		$Id: spacer.php 12774 2009-09-18 04:47:09Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
-jimport('joomla.form.field');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -33,6 +32,20 @@ class JFormFieldSpacer extends JFormField
 	 */
 	protected function _getInput()
 	{
-		return '<hr />';
+		return ' ';
 	}
+
+	/**
+	 * Method to get the field label
+	 *
+	 * @return	string		The field label
+	 */
+	protected function _getLabel()
+	{
+		if((string)$this->_element->attributes()->hr=='true') {
+			$this->labelText = "JFIELD_SPACER_LABEL";
+		}
+		return parent::_getLabel();
+	}
+
 }

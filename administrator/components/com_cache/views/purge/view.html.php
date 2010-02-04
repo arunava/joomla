@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -30,13 +30,16 @@ class CacheViewPurge extends JView
 
 	protected function _setToolbar()
 	{
-		JSubMenuHelper::addEntry(JText::_('Back to Clean Cache Admin'), 'index.php?option=com_cache', false);
+		JSubMenuHelper::addEntry(JText::_('COM_CACHE_BACK_CACHE_MANAGER'), 'index.php?option=com_cache', false);
 
-		JToolBarHelper::title(JText::_('Cache Manager - Purge Cache Admin'), 'purge.png');
-		JToolBarHelper::custom('purge', 'delete.png', 'delete_f2.png', 'Purge expired', false);
+		JToolBarHelper::title(JText::_('CACHE_MANAGER').' - '.JText::_('PURGE_CACHE_ADMIN'), 'purge.png');
+		JToolBarHelper::custom('purge', 'delete.png', 'delete_f2.png', 'PURGE_EXPIRED', false);
 		JToolBarHelper::divider();
-		JToolBarHelper::preferences('com_cache');
-		JToolBarHelper::divider();
+		if (JFactory::getUser()->authorise('core.admin', 'com_cache'))
+		{
+			JToolBarHelper::preferences('com_cache');
+			JToolBarHelper::divider();
+		}
 		JToolBarHelper::help('screen.cache');
 	}
 }

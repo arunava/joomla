@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: controller.php 12286 2009-06-22 04:06:59Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,11 +26,10 @@ class ContentController extends JController
 	 */
 	function display()
 	{
-		// Initialise variables.
-		$document	= &JFactory::getDocument();
+		$document = &JFactory::getDocument();
 
 		// Set the default view name and format from the Request.
-		$vName		= JRequest::getWord('view', 'articles');
+		$vName		= JRequest::getWord('view', 'categories');
 		$vFormat	= $document->getType();
 		$lName		= JRequest::getWord('layout', 'default');
 

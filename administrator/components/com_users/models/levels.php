@@ -1,18 +1,16 @@
 <?php
 /**
- * @version		$Id: levels.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
- * Access Levels model for Users.
+ * Methods supporting a list of user access level records.
  *
  * @package		Joomla.Administrator
  * @subpackage	com_users
@@ -25,51 +23,26 @@ class UsersModelLevels extends JModelList
 	 *
 	 * @var		string
 	 */
-	 protected $_context = 'users.levels';
+	protected $_context = 'com_users.levels';
 
 	/**
-	 * Method to build an SQL query to load the list data.
-	 *
-	 * @return	string	An SQL query
+	 * Method to auto-populate the model state.
 	 */
-	protected function _getListQuery()
+	protected function _populateState()
 	{
-		// Create a new query object.
-		$query = new JQuery;
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		// Select all fields from the table.
-		$query->select($this->getState('list.select', 'a.*'));
-		$query->from('`#__viewlevels` AS a');
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Add the level in the tree.
-		$query->group('a.id');
+		// Load the parameters.
+		$params = JComponentHelper::getParams('com_users');
+		$this->setState('params', $params);
 
-		$query->group('a.id');
-
-		// If the model is set to check item state, add to the query.
-		if ($this->getState('check.state', true)) {
-			//$query->where('a.block = ' . (int)$this->getState('filter.state'));
-		}
-
-		// Filter the items over the section id if set.
-		$sectionId = $this->getState('filter.section_id');
-		if ($sectionId !== null && $sectionId > 0) {
-			$query->where('a.section_id = '.(int) $sectionId);
-		}
-
-		// Filter the items over the search string if set.
-		$search = $this->getState('filter.search');
-		if (!empty($search)) {
-			$query->where('a.title LIKE '.$this->_db->Quote('%'.$search.'%'));
-		}
-
-		$query->group('a.id');
-
-		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.lft')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
-
-		//echo nl2br(str_replace('#__','jos_',$query->toString())).'<hr/>';
-		return $query;
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
@@ -79,65 +52,58 @@ class UsersModelLevels extends JModelList
 	 * different modules that might need different sets of data or different
 	 * ordering requirements.
 	 *
-	 * @param	string		$context	A prefix for the store id.
+	 * @param	string		$id	A prefix for the store id.
+	 *
 	 * @return	string		A store id.
 	 */
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('list.start');
-		$id	.= ':'.$this->getState('list.limit');
-		$id	.= ':'.$this->getState('list.ordering');
-		$id	.= ':'.$this->getState('list.direction');
-		$id	.= ':'.$this->getState('check.state');
-		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.search');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**
-	 * Method to auto-populate the model state.
+	 * Build an SQL query to load the list data.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
-	 *
-	 * @return	void
+	 * @return	JQuery
 	 */
-	protected function _populateState()
+	protected function _getListQuery()
 	{
-		// Initialize variables.
-		$app		= &JFactory::getApplication('administrator');
-		$user		= &JFactory::getUser();
-		$config		= &JFactory::getConfig();
-		$params		= JComponentHelper::getParams('com_users');
-		$context	= 'com_users.levels.';
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
 
-		// Load the filter state.
-		$this->setState('filter.search', $app->getUserStateFromRequest($context.'filter.search', 'filter_search', ''));
-		$this->setState('filter.state', $app->getUserStateFromRequest($context.'filter.state', 'filter_state', 0, 'string'));
-		$this->setState('filter.parent_id', $app->getUserStateFromRequest($context.'filter.parent_id', 'filter_parent_id', 0, 'int'));
-		$this->setState('filter.section_id', $app->getUserStateFromRequest($context.'filter.section_id', 'filter_section_id', 0, 'int'));
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.*'
+			)
+		);
+		$query->from('`#__viewlevels` AS a');
 
-		// Load the list state.
-		$this->setState('list.start', $app->getUserStateFromRequest($context.'list.start', 'limitstart', 0, 'int'));
-		$this->setState('list.limit', $app->getUserStateFromRequest($context.'list.limit', 'limit', $app->getCfg('list_limit', 25), 'int'));
-		$this->setState('list.ordering', 'a.id');
-		$this->setState('list.direction', 'ASC');
+		// Add the level in the tree.
+		$query->group('a.id');
 
-		// Load the user parameters.
-		$this->setState('user',	$user);
-		$this->setState('user.id', (int)$user->id);
-
-		// Load the check parameters.
-		if ($this->_state->get('filter.state') === '*') {
-			$this->setState('check.state', false);
-		} else {
-			$this->setState('check.state', true);
+		// Filter the items over the search string if set.
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.title LIKE '.$search);
+			}
 		}
 
-		// Load the parameters.
-		$this->setState('params', $params);
+		$query->group('a.id');
+
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.lft')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

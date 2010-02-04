@@ -1,5 +1,19 @@
 <?php
 /**
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	FileSystem
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access.
+defined('JPATH_BASE') or die();
+
+jimport('joomla.filesystem.helper');
+jimport('joomla.utilities.utility');
+
+/**
  * Joomla! Stream Interface
  *
  * The Joomla! stream interface is designed to handle files as streams
@@ -9,24 +23,6 @@
  * This class adheres to the stream wrapper operations:
  * http://www.php.net/manual/en/function.stream-get-wrappers.php
  *
- * PHP5
- *
- * Created on Sep 17, 2008
- *
- * @package Joomla!
- * @license GNU General Public License version 2 or later; see LICENSE.txt
- * @copyright 2008 OpenSourceMatters.org
- * @version SVN: $Id: stream.php 13109 2009-10-08 18:15:33Z ian $
- */
-
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
-
-jimport('joomla.filesystem.helper');
-jimport('joomla.utilities.utility');
-
-/**
- * Joomla! Stream Class
  * @see http://au.php.net/manual/en/intro.stream.php PHP Stream Manual
  * @see http://au.php.net/manual/en/wrappers.php Stream Wrappers
  * @see http://au.php.net/manual/en/filters.php Stream Filters
@@ -49,7 +45,7 @@ class JStream extends JObject
 	protected $readprefix;
 	/** @var Read Processing method: gz, bz, f
 	 *			If a scheme is detected, fopen will be defaulted
-	 * 			To use compression with a network stream use a filter
+	 *			To use compression with a network stream use a filter
 	 */
 	protected $processingmethod = 'f';
 	/** @var array Filters applied to the current stream */
@@ -82,7 +78,8 @@ class JStream extends JObject
 	/**
 	 * Destructor
 	 */
-	function __destruct() {
+	function __destruct()
+	{
 		// attempt to close on destruction if there is a file handle
 		if($this->_fh) @$this->close();
 	}
@@ -130,13 +127,13 @@ class JStream extends JObject
 			$ext = strtolower(JFile::getExt($this->filename));
 			switch ($ext)
 			{
-				case 'tgz'  :
-				case 'gz'   :
-				case 'gzip' :
+				case 'tgz':
+				case 'gz':
+				case 'gzip':
 					$this->processingmethod = 'gz';
 					break;
-				case 'tbz2' :
-				case 'bz2'  :
+				case 'tbz2':
+				case 'bz2':
 				case 'bzip2':
 					$this->processingmethod = 'bz';
 					break;
@@ -160,11 +157,11 @@ class JStream extends JObject
 				break;
 			case 'f': // fopen can handle streams
 			default:
-				if($context) { 					//  one supplied at open; overrides everything
+				if($context) {					//  one supplied at open; overrides everything
 					$this->_fh = fopen($filename, $mode, $use_include_path, $context);
-				} else if ($this->_context) { 	// one provided at initialisation
+				} else if ($this->_context) {	// one provided at initialisation
 					$this->_fh = fopen($filename, $mode, $use_include_path, $this->_context);
-				} else { 						// no context; all defaults
+				} else {						// no context; all defaults
 					$this->_fh = fopen($filename, $mode, $use_include_path);
 				}
 				break;
@@ -733,7 +730,7 @@ class JStream extends JObject
 	 * @param
 	 * @see http://www.php.net/manual/en/function.stream-filter-append.php
 	 */
-	function &appendFilter($filtername, $read_write=STREAM_FILTER_READ, $params=Array() )
+	function appendFilter($filtername, $read_write=STREAM_FILTER_READ, $params=Array() )
 	{
 		$res = false;
 		if($this->_fh)
@@ -756,7 +753,7 @@ class JStream extends JObject
 		return $res;
 	}
 
-	function &prependFilter($filtername, $read_write=STREAM_FILTER_READ, $params=Array() )
+	function prependFilter($filtername, $read_write=STREAM_FILTER_READ, $params=Array() )
 	{
 		$res = false;
 		if($this->_fh)
@@ -765,9 +762,16 @@ class JStream extends JObject
 			$php_errormsg = '';
 			$track_errors = ini_get('track_errors');
 			ini_set('track_errors', true);
-			$res = @stream_filter_prepend($this->_fh, $filername, $read_write, $params);
-			if(!$res && $php_errormsg) $this->setError($php_errormsg); // set the error msg
-			else JUtility::array_unshift_ref($res, $this->filters); // push the new resource onto the filter stack
+			$res = @stream_filter_prepend($this->_fh, $filtername, $read_write, $params);
+			if(!$res && $php_errormsg)
+			{
+				$this->setError($php_errormsg); // set the error msg
+			}
+			else
+			{
+				array_unshift($res,'');
+				$res[0] =&$this->filters;
+			}
 			// restore error tracking to what it was before
 			ini_set('track_errors',$track_errors);
 		}

@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: content.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,182 +13,12 @@ jimport('joomla.database.tableasset');
 /**
  * Content table
  *
- * @package 	Joomla.Framework
- * @subpackage		Table
- * @since	1.0
+ * @package		Joomla.Framework
+ * @subpackage	Table
+ * @since		1.0
  */
 class JTableContent extends JTable
 {
-	/**
-	 * @var int Primary key
-	 */
-	public $id = null;
-
-	/**
-	 * @var int Foreign key to #__assets.id
-	 */
-	public $asset_id = null;
-
-	/**
-	 *  @var string
-	 */
-	public $title = null;
-
-	/**
-	 *  @var string
-	 */
-	public $alias= null;
-
-	/**
-	 *  @var string
-	 */
-	public $title_alias= null;
-
-	/**
-	 *  @var string
-	 */
-	public $introtext = null;
-
-	/**
-	 * @var string
-	 */
-	public $fulltext = null;
-
-	/**
-	 *  @var int
-	 */
-	public $state = null;
-
-	/**
-	 *  @var int The id of the category section
-	 */
-	public $sectionid = null;
-
-	/**
-	 *  @var int DEPRECATED
-	 */
-	public $mask = null;
-
-	/**
-	 *  @var int
-	 */
-	public $catid = null;
-
-	/**
-	 *  @var datetime
-	 */
-	public $created = null;
-
-	/**
-	 *  @var int User id
-	 */
-	public $created_by = null;
-
-	/**
-	 *  @var string An alias for the author
-	 */
-	public $created_by_alias = null;
-
-	/**
-	 *  @var datetime
-	 */
-	public $modified = null;
-
-	/**
-	 *  @var int User id
-	 */
-	public $modified_by = null;
-
-	/**
-	 *  @var boolean
-	 */
-	public $checked_out = 0;
-
-	/**
-	 *  @var time
-	 */
-	public $checked_out_time = 0;
-
-	/**
-	 *  @var datetime
-	 */
-	public $publish_up = null;
-
-	/**
-	 *  @var datetime
-	 */
-	public $publish_down = null;
-
-	/**
-	 *  @var string
-	 */
-	public $images = null;
-
-	/**
-	 *  @var string
-	 */
-	public $urls = null;
-
-	/**
-	 *  @var string
-	 */
-	public $attribs = null;
-
-	/**
-	 *  @var int
-	 */
-	public $version = null;
-
-	/**
-	 *  @var int
-	 */
-	public $parentid = null;
-
-	/**
-	 *  @var int
-	 */
-	public $ordering = null;
-
-	/**
-	 *  @var string
-	 */
-	public $metakey = null;
-
-	/**
-	 *  @var string
-	 */
-	public $metadesc = null;
-
-	/**
-	 * @var string
-	 */
-	public $metadata = null;
-
-	/**
-	 * @var int
-	 */
-	public $access = null;
-
-	/**
-	 * @var int
-	 */
-	public $hits = null;
-
-	/**
-	 * @var int
-	 */
-	public $featured = null;
-
-	/**
-	 * @var varchar
-	 */
-	public $language = null;
-
-	/**
-	 * @var varchar
-	 */
-	public $xreference = null;
-
 	/**
 	 * @param database A database connector object
 	 */
@@ -228,14 +58,14 @@ class JTableContent extends JTable
 	 */
 	protected function _getAssetParentId()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$assetId = null;
+		$db		= $this->getDbo();
 
 		// This is a article under a category.
-		if ($this->catid)
-		{
+		if ($this->catid) {
 			// Build the query to get the asset id for the parent category.
-			$query = new JQuery;
+			$query	= $db->getQuery(true);
 			$query->select('asset_id');
 			$query->from('#__categories');
 			$query->where('id = '.(int) $this->catid);
@@ -247,10 +77,9 @@ class JTableContent extends JTable
 			}
 		}
 		// This is an uncategorized article that needs to parent with the extension.
-		elseif ($assetId === null)
-		{
+		elseif ($assetId === null) {
 			// Build the query to get the asset id for the parent category.
-			$query = new JQuery;
+			$query	= $db->getQuery(true);
 			$query->select('id');
 			$query->from('#__assets');
 			$query->where('name = "com_content"');
@@ -265,8 +94,7 @@ class JTableContent extends JTable
 		// Return the asset id.
 		if ($assetId) {
 			return $assetId;
-		}
-		else {
+		} else {
 			return parent::_getAssetParentId();
 		}
 	}
@@ -281,18 +109,28 @@ class JTableContent extends JTable
 	 */
 	public function bind($array, $ignore = '')
 	{
-		if (isset($array['attribs']) && is_array($array['attribs']))
-		{
-			$registry = new JRegistry();
-			$registry->loadArray($array['attribs']);
-			$array['attribs'] = $registry->toString();
+		// Search for the {readmore} tag and split the text up accordingly.
+		if (isset($array['articletext'])) {
+			$pattern = '#<hr\s+id=("|\')system-readmore("|\')\s*\/*>#i';
+			$tagPos	= preg_match($pattern, $array['articletext']);
+
+			if ($tagPos == 0) {
+				$this->introtext	= $array['articletext'];
+			} else {
+				list($this->introtext, $this->fulltext) = preg_split($pattern, $array['articletext'], 2);
+			}
 		}
 
-		if (isset($array['metadata']) && is_array($array['metadata']))
-		{
+		if (isset($array['attribs']) && is_array($array['attribs'])) {
+			$registry = new JRegistry();
+			$registry->loadArray($array['attribs']);
+			$array['attribs'] = (string)$registry;
+		}
+
+		if (isset($array['metadata']) && is_array($array['metadata'])) {
 			$registry = new JRegistry();
 			$registry->loadArray($array['metadata']);
-			$array['metadata'] = $registry->toString();
+			$array['metadata'] = (string)$registry;
 		}
 
 		return parent::bind($array, $ignore);
@@ -307,14 +145,6 @@ class JTableContent extends JTable
 	 */
 	public function check()
 	{
-		/*
-		TODO: This filter is too rigorous,need to implement more configurable solution
-		// specific filters
-		$filter = & JFilterInput::getInstance(null, null, 1, 1);
-		$this->introtext = trim($filter->clean($this->introtext));
-		$this->fulltext =  trim($filter->clean($this->fulltext));
-		*/
-
 		if (empty($this->title)) {
 			$this->setError(JText::_('Article must have a title'));
 			return false;
@@ -323,11 +153,10 @@ class JTableContent extends JTable
 		if (empty($this->alias)) {
 			$this->alias = $this->title;
 		}
-		$this->alias = JFilterOutput::stringURLSafe($this->alias);
+		$this->alias = JApplication::stringURLSafe($this->alias);
 
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$datenow = &JFactory::getDate();
-			$this->alias = $datenow->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
 		}
 
 		if (trim(str_replace('&nbsp;', '', $this->fulltext)) == '') {
@@ -341,15 +170,13 @@ class JTableContent extends JTable
 
 		// clean up keywords -- eliminate extra spaces between phrases
 		// and cr (\r) and lf (\n) characters from string
-		if (!empty($this->metakey))
-		{
+		if (!empty($this->metakey)) {
 			// only process if not empty
 			$bad_characters = array("\n", "\r", "\"", "<", ">"); // array of characters to remove
 			$after_clean = JString::str_ireplace($bad_characters, "", $this->metakey); // remove bad characters
 			$keys = explode(',', $after_clean); // create array using commas as delimiter
 			$clean_keys = array();
-			foreach($keys as $key)
-			{
+			foreach($keys as $key) {
 				if (trim($key)) {  // ignore blank keywords
 					$clean_keys[] = trim($key);
 				}
@@ -358,8 +185,7 @@ class JTableContent extends JTable
 		}
 
 		// clean up description -- eliminate quotes and <> brackets
-		if (!empty($this->metadesc))
-		{
+		if (!empty($this->metadesc)) {
 			// only process if not empty
 			$bad_characters = array("\"", "<", ">");
 			$this->metadesc = JString::str_ireplace($bad_characters, "", $this->metadesc);
@@ -377,16 +203,13 @@ class JTableContent extends JTable
 	 */
 	public function store($updateNulls = false)
 	{
-		$date	= &JFactory::getDate();
-		$user	= &JFactory::getUser();
-		if ($this->id)
-		{
+		$date	= JFactory::getDate();
+		$user	= JFactory::getUser();
+		if ($this->id) {
 			// Existing item
 			$this->modified		= $date->toMySQL();
 			$this->modified_by	= $user->get('id');
-		}
-		else
-		{
+		} else {
 			// New article. An article created and created_by field can be set by the user,
 			// so we don't touch either of these if they are set.
 			if (!intval($this->created)) {
@@ -406,7 +229,7 @@ class JTableContent extends JTable
 	 * to checkin rows that it can after adjustments are made.
 	 *
 	 * @param	mixed	An optional array of primary key values to update.  If not
-	 * 					set the instance property value is used.
+	 *					set the instance property value is used.
 	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published]
 	 * @param	integer The user id of the user performing the operation.
 	 * @return	boolean	True on success.
@@ -414,7 +237,7 @@ class JTableContent extends JTable
 	 */
 	public function publish($pks = null, $state = 1, $userId = 0)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$k = $this->_tbl_key;
 
 		// Sanitize input.
@@ -423,8 +246,7 @@ class JTableContent extends JTable
 		$state  = (int) $state;
 
 		// If there are no primary keys set check to see if the instance key is set.
-		if (empty($pks))
-		{
+		if (empty($pks)) {
 			if ($this->$k) {
 				$pks = array($this->$k);
 			}
@@ -441,8 +263,7 @@ class JTableContent extends JTable
 		// Determine if there is checkin support for the table.
 		if (!property_exists($this, 'checked_out') || !property_exists($this, 'checked_out_time')) {
 			$checkin = '';
-		}
-		else {
+		} else {
 			$checkin = ' AND (checked_out = 0 OR checked_out = '.(int) $userId.')';
 		}
 
@@ -462,11 +283,9 @@ class JTableContent extends JTable
 		}
 
 		// If checkin is supported and all rows were adjusted, check them in.
-		if ($checkin && (count($pks) == $this->_db->getAffectedRows()))
-		{
+		if ($checkin && (count($pks) == $this->_db->getAffectedRows())) {
 			// Checkin the rows.
-			foreach($pks as $pk)
-			{
+			foreach($pks as $pk) {
 				$this->checkin($pk);
 			}
 		}

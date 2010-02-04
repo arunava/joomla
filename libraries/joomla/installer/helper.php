@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: helper.php 12335 2009-06-24 07:11:10Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -73,7 +73,7 @@ class JInstallerHelper
 			$target = $config->getValue('config.tmp_path').DS.basename($target);
 		}
 
-		// Initialize contents buffer
+		// Initialise contents buffer
 		$contents = null;
 
 		while (!feof($inputHandle))
@@ -183,41 +183,35 @@ class JInstallerHelper
 		// Search the install dir for an xml file
 		$files = JFolder::files($p_dir, '\.xml$', 1, true);
 
-		if (count($files) > 0)
-		{
-			foreach ($files as $file)
-			{
-				$xmlDoc = & JFactory::getXMLParser('Simple');
-
-				if (!$xmlDoc->loadFile($file))
-				{
-					// Free up memory
-					unset ($xmlDoc);
-					continue;
-				}
-				$root = & $xmlDoc->document;
-				if (!is_object($root) || ($root->name() != "install" && $root->name() != 'extension'))
-				{
-					unset($xmlDoc);
-					continue;
-				}
-
-				$type = $root->attributes('type');
-				// Free up memory
-				unset ($xmlDoc);
-				return $type;
-			}
-
-			JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
-			// Free up memory.
-			unset ($xmlDoc);
-			return false;
-		}
-		else
+		if ( ! count($files))
 		{
 			JError::raiseWarning(1, JText::_('ERRORNOTFINDXMLSETUPFILE'));
 			return false;
 		}
+
+		foreach ($files as $file)
+		{
+			if( ! $xml = JFactory::getXML($file))
+			{
+				continue;
+			}
+
+			if($xml->getName() != 'install' && $xml->getName() != 'extension')
+			{
+				unset($xml);
+				continue;
+			}
+
+			$type = (string)$xml->attributes()->type;
+			// Free up memory
+			unset ($xml);
+			return $type;
+		}
+
+		JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
+		// Free up memory.
+		unset ($xml);
+		return false;
 	}
 
 	/**

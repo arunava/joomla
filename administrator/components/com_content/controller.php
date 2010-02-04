@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: controller.php 13109 2009-10-08 18:15:33Z ian $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,7 +26,7 @@ class ContentController extends JController
 		require_once JPATH_COMPONENT.DS.'helpers'.DS.'content.php';
 
 		// Get the document object.
-		$document	= &JFactory::getDocument();
+		$document	= JFactory::getDocument();
 
 		// Set the default view name and format from the Request.
 		$vName		= JRequest::getWord('view', 'articles');

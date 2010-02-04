@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
@@ -56,8 +56,6 @@ class CategoriesViewCategories extends JView
 
 	/**
 	 * Display the toolbar
-	 *
-	 * @access	private
 	 */
 	protected function _setToolbar()
 	{
@@ -66,6 +64,7 @@ class CategoriesViewCategories extends JView
 
 		// Need to load the menu language file as mod_menu hasn't been loaded yet.
 		$lang = &JFactory::getLanguage();
+		$lang->load($extension.'.menu',JPATH_ADMINISTRATOR.'/components/'.$extension);
 		$lang->load($extension.'.menu');
 
 		JToolBarHelper::title(
@@ -75,24 +74,25 @@ class CategoriesViewCategories extends JView
 			),
 			'categories.png'
 		);
-		JToolBarHelper::custom('category.edit', 'new.png', 'new_f2.png', 'New', false);
-		JToolBarHelper::custom('category.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
+		JToolBarHelper::custom('category.edit', 'new.png', 'new_f2.png', 'JTOOLBAR_NEW', false);
+		JToolBarHelper::custom('category.edit', 'edit.png', 'edit_f2.png', 'JTOOLBAR_EDIT', true);
 		JToolBarHelper::divider();
-		JToolBarHelper::custom('categories.publish', 'publish.png', 'publish_f2.png', 'Publish', true);
-		JToolBarHelper::custom('categories.unpublish', 'unpublish.png', 'unpublish_f2.png', 'Unpublish', true);
+		JToolBarHelper::custom('categories.publish', 'publish.png', 'publish_f2.png', 'JTOOLBAR_PUBLISH', true);
+		JToolBarHelper::custom('categories.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_UNPUBLISH', true);
 		if ($state->get('filter.published') != -1) {
-			JToolBarHelper::archiveList('categories.archive');
+			JToolBarHelper::divider();
+			JToolBarHelper::archiveList('categories.archive','JTOOLBAR_ARCHIVE');
 		}
 		if ($state->get('filter.published') == -2) {
-			JToolBarHelper::deleteList('', 'categories.delete');
+			JToolBarHelper::deleteList('', 'categories.delete','JTOOLBAR_EMPTY_TRASH');
 		}
 		else {
-			JToolBarHelper::trash('categories.trash');
+			JToolBarHelper::trash('categories.trash','JTOOLBAR_TRASH');
 		}
 		JToolBarHelper::divider();
 		JToolBarHelper::custom('categories.rebuild', 'refresh.png', 'refresh_f2.png', 'JToolbar_Rebuild', false);
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.categories');
+		JToolBarHelper::help('screen.categories','JTOOLBAR_HELP');
 
 	}
 }

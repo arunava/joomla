@@ -1,9 +1,8 @@
 <?php
 /**
- * @version		$Id: featured.php 13109 2009-10-08 18:15:33Z ian $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
- * @link		http://www.theartofjoomla.com
  */
 
 // no direct access

@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: view.html.php 11955 2009-06-01 22:17:54Z louis $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

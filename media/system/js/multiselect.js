@@ -1,6 +1,6 @@
 /**
- * @version		$Id: multiselect.js 12603 2009-08-04 22:40:55Z pentacle $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -8,7 +8,7 @@
  * JavaScript behavior to allow shift select in administrator grids
  */
 (function() {
-	Joomla = Joomla || {}; 
+	Joomla = Joomla || {};
 
 	Joomla.JMultiSelect = new Class({
 		initialize : function(table) {

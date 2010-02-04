@@ -1,17 +1,17 @@
 <?php
 /**
- * @version		$Id: view.html.php 12529 2009-07-12 19:40:48Z erdsiger $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * The HTML Users group view.
+ * View to edit a user group.
  *
  * @package		Joomla.Administrator
  * @subpackage	com_users
@@ -19,6 +19,10 @@ jimport('joomla.application.component.view');
  */
 class UsersViewGroup extends JView
 {
+	protected $state;
+	protected $item;
+	protected $form;
+
 	/**
 	 * Display the view
 	 */
@@ -34,15 +38,15 @@ class UsersViewGroup extends JView
 			return false;
 		}
 
+		// Bind the record to the form.
 		$form->bind($item);
 
 		$this->assignRef('state',	$state);
 		$this->assignRef('item',	$item);
 		$this->assignRef('form',	$form);
 
-		parent::display($tpl);
 		$this->_setToolbar();
-		JRequest::setVar('hidemainmenu', 1);
+		parent::display($tpl);
 	}
 
 	/**
@@ -52,14 +56,33 @@ class UsersViewGroup extends JView
 	 */
 	protected function _setToolbar()
 	{
-		$isNew	= ($this->item->id == 0);
-		JToolBarHelper::title(JText::_($isNew ? 'Users_View_New_Group_Title' : 'Users_View_Edit_Group_Title'), 'groups');
+		JRequest::setVar('hidemainmenu', 1);
 
-		JToolBarHelper::addNew('group.save2new', 'JToolbar_Save_and_new');
-		JToolBarHelper::save('group.save');
-		JToolBarHelper::apply('group.apply');
-		JToolBarHelper::cancel('group.cancel');
+		$user		= JFactory::getUser();
+		$isNew		= ($this->item->id == 0);
+		$canDo		= UsersHelper::getActions();
+
+		JToolBarHelper::title(JText::_($isNew ? 'Users_View_New_Group_Title' : 'Users_View_Edit_Group_Title'), 'groups-add');
+
+		if ($canDo->get('core.edit'))
+		{
+			JToolBarHelper::apply('group.apply','JTOOLBAR_APPLY');
+			JToolBarHelper::save('group.save','JTOOLBAR_SAVE');
+			JToolBarHelper::addNew('group.save2new', 'JToolbar_Save_and_new');
+		}
+		// If an existing item, can save to a copy.
+		if (!$isNew && $canDo->get('core.create')) {
+			JToolBarHelper::custom('group.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_Copy', false);
+		}
+
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('group.cancel');
+		}
+		else {
+			JToolBarHelper::cancel('group.cancel', 'JToolbar_Close');
+		}
+
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.users.group');
+		JToolBarHelper::help('screen.users.group','JTOOLBAR_HELP');
 	}
 }

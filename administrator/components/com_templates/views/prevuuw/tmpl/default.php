@@ -1,4 +1,15 @@
-<?php defined('_JEXEC') or die; ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_templates
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+?>
 
 
 <form action="<?php echo JRoute::_('index.php'); ?>" method="post" name="adminForm">
@@ -6,7 +17,7 @@
 	<h3 class="title fltlft">
 		<?php echo JText::_('Site Preview'); ?>
 	</h3>
-	<h3 class="title fltrt">
+	<h3 class="fltrt">
 		<?php echo JHtml::_('link', $this->url.'index.php?tp='.$this->tp.'&amp;template='.$this->id, JText::_('Open in new window'), array('target' => '_blank')); ?>
 	</h3>
 	<div class="clr"></div>

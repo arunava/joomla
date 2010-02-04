@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: view.html.php 12592 2009-08-01 08:49:56Z hackwar $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,11 +31,11 @@ class TemplatesViewPrevuuw extends JView
 		JToolBarHelper::title(JText::_('Template Manager'), 'thememanager');
 		JToolBarHelper::custom('edit', 'back.png', 'back_f2.png', 'Back', false, false);
 
-		require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
+		require_once JPATH_COMPONENT.DS.'helpers'.DS.'templates.php';
 
-		// Initialize some variables
-		$option 	= JRequest::getCmd('option');
-		$id 		= JRequest::getVar('id', '', 'method', 'int');
+		// Initialise some variables
+		$option		= JRequest::getCmd('option');
+		$id			= JRequest::getVar('id', '', 'method', 'int');
 		$template	= TemplatesHelper::getTemplateName($id);
 		$client		= &JApplicationHelper::getClientInfo(JRequest::getVar('client', '0', '', 'int'));
 		$tp			= true;

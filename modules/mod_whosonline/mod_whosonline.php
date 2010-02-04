@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: mod_whosonline.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_whosonline
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,11 +16,11 @@ require_once dirname(__FILE__).DS.'helper.php';
 $showmode = $params->get('showmode', 0);
 
 if ($showmode == 0 || $showmode == 2) {
-    $count 	= modWhosonlineHelper::getOnlineCount();
+	$count	= modWhosonlineHelper::getOnlineCount();
 }
 
 if ($showmode > 0) {
-    $names 	= modWhosonlineHelper::getOnlineUserNames();
+	$names	= modWhosonlineHelper::getOnlineUserNames();
 }
-
-require JModuleHelper::getLayoutPath('mod_whosonline');
+$linknames = $params->get('linknames', 0);
+require JModuleHelper::getLayoutPath('mod_whosonline', $params->get('layout', 'default'));

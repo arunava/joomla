@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: language.php 12874 2009-09-28 05:15:19Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,7 +22,7 @@ class LanguagesModelLanguage extends JModelForm
 	/**
 	 * Override to get the table
 	 */
-	public function &getTable()
+	public function getTable()
 	{
 		return JTable::getInstance('Language');
 	}
@@ -61,14 +61,13 @@ class LanguagesModelLanguage extends JModelForm
 	/**
 	 * Method to get a member item.
 	 *
-	 * @access	public
 	 * @param	integer	The id of the member to get.
 	 * @return	mixed	User data object on success, false on failure.
 	 * @since	1.0
 	 */
 	public function &getItem($langId = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$langId	= (!empty($langId)) ? $langId : (int) $this->getState('language.id');
 		$false		= false;
 
@@ -91,13 +90,12 @@ class LanguagesModelLanguage extends JModelForm
 	/**
 	 * Method to get the group form.
 	 *
-	 * @access	public
 	 * @return	mixed	JForm object on success, false on failure.
 	 * @since	1.0
 	 */
 	public function getForm()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 
 		// Get the form.

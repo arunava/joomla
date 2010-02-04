@@ -1,7 +1,7 @@
 ##
-# @version		$Id: htaccess.txt 12618 2009-08-12 17:12:51Z erdsiger $
+# @version		$Id$
 # @package		Joomla
-# @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+# @copyright	Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
 # @license		GNU General Public License version 2 or later; see LICENSE.txt
 ##
 

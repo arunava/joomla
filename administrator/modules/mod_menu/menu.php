@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: menu.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -136,7 +136,7 @@ class JAdminCssMenu extends JTree
 	{
 		static $classes;
 
-		// Initialize the known classes array if it does not exist
+		// Initialise the known classes array if it does not exist
 		if (!is_array($classes)) {
 			$classes = array();
 		}
@@ -151,25 +151,18 @@ class JAdminCssMenu extends JTree
 				$class = substr($identifier, 6);
 				$classes[$identifier] = "icon-16-$class";
 			} else {
-				// We were passed an image path... is it a themeoffice one?
-				if (substr($identifier, 0, 15) == 'js/ThemeOffice/') {
-					// Strip the filename without extension and use that for the classname
-					$class = preg_replace('#\.[^.]*$#', '', basename($identifier));
-					$classes[$identifier] = "icon-16-$class";
-				} else {
-					if ($identifier == null) {
-						return null;
-					}
-					// Build the CSS class for the icon
-					$class = preg_replace('#\.[^.]*$#', '', basename($identifier));
-					$class = preg_replace('#\.\.[^A-Za-z0-9\.\_\- ]#', '', $class);
-
-					$this->_css  .= "\n.icon-16-$class {\n" .
-							"\tbackground: url($identifier) no-repeat;\n" .
-							"}\n";
-
-					$classes[$identifier] = "icon-16-$class";
+				if ($identifier == null) {
+					return null;
 				}
+				// Build the CSS class for the icon
+				$class = preg_replace('#\.[^.]*$#', '', basename($identifier));
+				$class = preg_replace('#\.\.[^A-Za-z0-9\.\_\- ]#', '', $class);
+
+				$this->_css  .= "\n.icon-16-$class {\n" .
+						"\tbackground: url($identifier) no-repeat;\n" .
+						"}\n";
+
+				$classes[$identifier] = "icon-16-$class";
 			}
 		}
 		return $classes[$identifier];
@@ -212,12 +205,13 @@ class JMenuNode extends JNode
 	 */
 	public $active = false;
 
-	function __construct($title, $link = null, $class = null, $active = false)
+	public function __construct($title, $link = null, $class = null, $active = false, $target = null)
 	{
 		$this->title	= $title;
 		$this->link		= JFilterOutput::ampReplace($link);
 		$this->class	= $class;
 		$this->active	= $active;
 		$this->id		= str_replace(" ","-",$title);
+		$this->target	= $target;
 	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: apc.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -117,7 +117,7 @@ class JCacheStorageApc extends JCacheStorage
 	 *
 	 * @access private
 	 *
-	 * @param string  $key   Cache key to expire.
+	 * @param string  $key		Cache key to expire.
 	 * @param integer $lifetime  Lifetime of the data in seconds.
 	 */
 	function _setExpire($key)

@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: controllerform.php 13109 2009-10-08 18:15:33Z ian $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -41,11 +41,6 @@ class JControllerForm extends JController
 	protected $_context;
 
 	/**
-	 * @var string	The name of the asset in the form 'extension.type.%d' where %d is replaced with the pk of the item.
-	 */
-	protected $_asset_name;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param	array An optional associative array of configuration settings.
@@ -81,28 +76,23 @@ class JControllerForm extends JController
 
 			// Simple pluralisation based on public domain snippet by Paul Osman
 			// For more complex types, just manually set the variable in your class.
-	        $plural = array(
-			    array( '/(x|ch|ss|sh)$/i',         "$1es"    ),
-			    array( '/([^aeiouy]|qu)y$/i',      "$1ies"   ),
-			    array( '/([^aeiouy]|qu)ies$/i',    "$1y"     ),
-	            array( '/(bu)s$/i',                "$1ses"   ),
-	    	    array( '/s$/i',                    "s"       ),
-	    	    array( '/$/',                      "s"       )
-	        );
+			$plural = array(
+				array( '/(x|ch|ss|sh)$/i',		"$1es"),
+				array( '/([^aeiouy]|qu)y$/i',	"$1ies"),
+				array( '/([^aeiouy]|qu)ies$/i',	"$1y"),
+				array( '/(bu)s$/i',				"$1ses"),
+				array( '/s$/i',					"s"),
+				array( '/$/',					"s")
+			);
 
-		    // check for matches using regular expressions
-		    foreach ($plural as $pattern)
-		    {
-		    	if (preg_match($pattern[0], $this->_view_item)) {
+			// check for matches using regular expressions
+			foreach ($plural as $pattern)
+			{
+				if (preg_match($pattern[0], $this->_view_item)) {
 					$this->_view_list = preg_replace( $pattern[0], $pattern[1], $this->_view_item);
 					break;
-		    	}
-		    }
-		}
-
-		// Guess the list view as the plural of the item view.
-		if (empty($this->_asset_name)) {
-			$this->_asset_name = $this->_option.'.'.$this->_context.'.%d';
+				}
+			}
 		}
 
 		// Apply, Save & New, and Save As copy should be standard on forms.
@@ -117,10 +107,10 @@ class JControllerForm extends JController
 	 * @param	string	The model name. Optional.
 	 * @param	string	The class prefix. Optional.
 	 * @param	array	Configuration array for model. Optional.
+	 *
 	 * @return	object	The model.
-	 * @since	1.5
 	 */
-	public function &getModel($name = '', $prefix = '', $config = array('ignore_request' => true))
+	public function getModel($name = '', $prefix = '', $config = array('ignore_request' => true))
 	{
 		if (empty($name)) {
 			$name = $this->_context;
@@ -131,8 +121,6 @@ class JControllerForm extends JController
 
 	/**
 	 * This controller does not have a display method. Redirect back to the list view of the component.
-	 *
-	 * @return	void
 	 */
 	public function display()
 	{
@@ -142,39 +130,36 @@ class JControllerForm extends JController
 	/**
 	 * Method to check if you can add a new record.
 	 *
-	 * Extended classes should override this if necessary.
+	 * Extended classes can override this if necessary.
 	 *
-	 * @return 	boolean
+	 * @param	array	An array of input data.
+	 *
+	 * @return	boolean
 	 */
-	protected function _allowAdd()
+	protected function _allowAdd($data = array())
 	{
-		// TODO: Do we add a stock category check here "can I create something in this category"?
-
-		// Initialize variables.
-		$user = JFactory::getUser();
-
-		return $user->authorise('core.create', $this->_option);
+		return JFactory::getUser()->authorise('core.create', $this->_option);
 	}
 
 	/**
 	 * Method to add a new record.
-	 *
-	 * @return	void
 	 */
 	public function add()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app		= JFactory::getApplication();
 		$context	= "$this->_option.edit.$this->_context";
 
 		// Access check.
-		if (!$this->_allowAdd()) {
+		if (!$this->_allowAdd())
+		{
+			$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_items, false));
 			return JError::raiseWarning(403, 'JError_Core_Create_not_permitted.');
 		}
 
 		// Clear the record edit information from the session.
 		$app->setUserState($context.'.id', null);
-		$app->setUserState($context.'data', null);
+		$app->setUserState($context.'.data', null);
 
 		// Redirect to the edit screen.
 		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_item.'&layout=edit', false));
@@ -183,38 +168,49 @@ class JControllerForm extends JController
 	/**
 	 * Method to check if you can add a new record.
 	 *
-	 * Extended classes should override this if necessary.
+	 * Extended classes can override this if necessary.
 	 *
-	 * @return 	boolean
+	 * @param	array	An array of input data.
+	 * @param	string	The name of the key for the primary key.
+	 *
+	 * @return	boolean
 	 */
-	protected function _allowEdit($recordId)
+	protected function _allowEdit($data = array(), $key = 'id')
 	{
-		// Initialize variables.
-		$user = JFactory::getUser();
-
-		return $user->authorise('core.edit', sprintf($this->_asset_name, $recordId));
+		return JFactory::getUser()->authorise('core.edit', $this->_option);
 	}
 
 	/**
 	 * Method to edit an existing record.
-	 *
-	 * @return	void
 	 */
 	public function edit()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app		= JFactory::getApplication();
-		$model		= &$this->getModel();
+		$model		= $this->getModel();
+		$table		= $model->getTable();
 		$cid		= JRequest::getVar('cid', array(), 'post', 'array');
 		$context	= "$this->_option.edit.$this->_context";
+		$tmpl		= JRequest::getString('tmpl');
+		$layout		= JRequest::getString('layout', 'edit');
+		$append		= '';
+
+		// Setup redirect info.
+		if ($tmpl) {
+			$append .= '&tmpl='.$tmpl;
+		}
+		if ($layout) {
+			$append .= '&layout='.$layout;
+		}
 
 		// Get the previous record id (if any) and the current record id.
-		$previousId		= (int) $app->getUserState($context.'.id');
-		$recordId		= (int) (count($cid) ? $cid[0] : JRequest::getInt('id'));
-		$checkin		= method_exists($model, 'checkin');
+		$previousId	= (int) $app->getUserState($context.'.id');
+		$recordId	= (int) (count($cid) ? $cid[0] : JRequest::getInt('id'));
+		$checkin	= property_exists($table, 'checked_out');
 
 		// Access check.
-		if (!$this->_allowEdit($recordId)) {
+		$key		= $table->getKeyName();
+		if (!$this->_allowEdit(array($key => $recordId), $key)) {
 			return JError::raiseWarning(403, 'JError_Core_Edit_not_permitted.');
 		}
 
@@ -225,7 +221,7 @@ class JControllerForm extends JController
 			{
 				// Check-in failed, go back to the record and display a notice.
 				$message = JText::sprintf('JError_Checkin_failed', $model->getError());
-				$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.'&layout=edit', $message, 'error');
+				$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.$append, $message, 'error');
 				return false;
 			}
 		}
@@ -235,33 +231,31 @@ class JControllerForm extends JController
 		{
 			// Check-out failed, go back to the list and display a notice.
 			$message = JText::sprintf('JError_Checkout_failed', $model->getError());
-			$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.'&id='.$recordId, $message, 'error');
+			$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.$append.'&id='.$recordId, $message, 'error');
 			return false;
 		}
 		else
 		{
 			// Check-out succeeded, push the new record id into the session.
 			$app->setUserState($context.'.id',	$recordId);
-			$app->setUserState($this->_context.'data', null);
-			$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.'&layout=edit');
+			$app->setUserState($context.'.data', null);
+			$this->setRedirect('index.php?option='.$this->_option.'&view='.$this->_view_item.$append);
 			return true;
 		}
 	}
 
 	/**
 	 * Method to cancel an edit
-	 *
-	 * @return	void
-	 * @since	1.0
 	 */
 	public function cancel()
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app		= JFactory::getApplication();
 		$model		= &$this->getModel();
-		$checkin	= method_exists($model, 'checkin');
+		$table		= $model->getTable();
+		$checkin	= property_exists($table, 'checked_out');
 		$context	= "$this->_option.edit.$this->_context";
 
 		// Get the record id.
@@ -269,8 +263,8 @@ class JControllerForm extends JController
 
 		// Attempt to check-in the current record.
 		if ($checkin && $recordId)
-{
-			if (!$model->checkin($recordId))
+		{
+			if(!$model->checkin($recordId))
 			{
 				// Check-in failed, go back to the record and display a notice.
 				$message = JText::sprintf('JError_Checkin_failed', $model->getError());
@@ -282,68 +276,59 @@ class JControllerForm extends JController
 		// Clean the session data and redirect.
 		$app->setUserState($context.'.id',		null);
 		$app->setUserState($context.'.data',	null);
-		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view=='.$this->_view_list, false));
+		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false));
 	}
 
 	/**
 	 * Method to check if you can save a new or existing record.
 	 *
-	 * Extended classes should override this if necessary.
+	 * Extended classes can override this if necessary.
 	 *
-	 * @return 	boolean
+	 * @param	array	An array of input data.
+	 * @param	string	The name of the key for the primary key.
+	 *
+	 * @return	boolean
 	 */
-	protected function _allowSave($recordId)
+	protected function _allowSave($data, $key = 'id')
 	{
+		// Initialise variables.
+		$recordId	= isset($data[$key]) ? $data[$key] : '0';
+
 		if ($recordId) {
-			return $this->_allowEdit($recordId);
+			return $this->_allowEdit($data, $key);
 		}
 		else {
-			return $this->_allowCreate($recordId);
+			return $this->_allowAdd($data);
 		}
 	}
 
 	/**
 	 * Method to save a record.
-	 *
-	 * @return	void
-	 * @since	1.0
 	 */
 	public function save()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app		= JFactory::getApplication();
 		$model		= $this->getModel();
+		$table		= $model->getTable();
 		$data		= JRequest::getVar('jform', array(), 'post', 'array');
-		$checkin	= method_exists($model, 'checkin');
+		$checkin	= property_exists($table, 'checked_out');
 		$context	= "$this->_option.edit.$this->_context";
 		$task		= $this->getTask();
 		$recordId	= (int) $app->getUserState($context.'.id');
 
-		// Access check.
-		if (!$this->_allowSave($recordId)) {
-			return JError::raiseWarning(403, 'JError_Save_not_permitted.');
-		}
-
-		// Validate the posted data.
-		$form	= &$model->getForm();
-		if (!$form)
-		{
-			JError::raiseError(500, $model->getError());
-			return false;
-		}
-		$data	= $model->validate($form, $data);
-
 		// Populate the row id from the session.
-		$data['id'] = $recordId;
+		$key		= $table->getKeyName();
+		$data[$key] = $recordId;
 
 		// The save2copy task needs to be handled slightly differently.
 		if ($task == 'save2copy')
 		{
 			// Check-in the original row.
-			if (!$model->checkin())
+			if ($checkin  && !$model->checkin($data[$key]))
 			{
 				// Check-in failed, go back to the item and display a notice.
 				$message = JText::sprintf('JError_Checkin_saved', $model->getError());
@@ -355,6 +340,20 @@ class JControllerForm extends JController
 			$data['id']	= 0;
 			$task		= 'apply';
 		}
+
+		// Access check.
+		if (!$this->_allowSave($data)) {
+			return JError::raiseWarning(403, 'JError_Save_not_permitted');
+		}
+
+		// Validate the posted data.
+		$form	= &$model->getForm();
+		if (!$form)
+		{
+			JError::raiseError(500, $model->getError());
+			return false;
+		}
+		$data	= $model->validate($form, $data);
 
 		// Check for validation errors.
 		if ($data === false)
@@ -394,7 +393,7 @@ class JControllerForm extends JController
 		}
 
 		// Save succeeded, check-in the record.
-		if ($checkin && !$model->checkin())
+		if ($checkin && !$model->checkin($data[$key]))
 		{
 			// Check-in failed, go back to the record and display a notice.
 			$message = JText::sprintf('JError_Checkin_saved', $model->getError());
@@ -434,5 +433,7 @@ class JControllerForm extends JController
 				$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false));
 				break;
 		}
+
+		return true;
 	}
 }

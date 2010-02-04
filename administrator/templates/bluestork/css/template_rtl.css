@@ -1,13 +1,10 @@
 /**
- * @version		$Id: template_rtl.css 12529 2009-07-12 19:40:48Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	templates.bluestork
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
-
-
-
 
 /* -- GENERAL STYLES RTL ------------------------------ */
 
@@ -251,11 +248,10 @@ form .inputbox {
 	float: right;
 }
 
-#menu li.hover li.hover ul { left: auto; right: 100%; }
+#menu li:hover li:hover ul { left: auto; right: 100%; }
 
 #menu a, #menu div{
 	background-position: right;
-	margin: 0 0 0 1px;
 }
 
 #menu ul{
@@ -284,4 +280,3 @@ form .inputbox {
 	border-left:1px solid #CCCCCC;
 	display: -moz-inline-box;
 }
-

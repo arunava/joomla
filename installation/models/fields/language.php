@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: language.php 12159 2009-06-19 23:39:31Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -33,7 +33,7 @@ class JFormFieldLanguage extends JFormFieldList
 	 */
 	protected function _getOptions()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = & JFactory::getApplication();
 
 		// Detect the native language.

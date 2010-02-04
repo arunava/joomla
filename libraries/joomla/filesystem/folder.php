@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: folder.php 12740 2009-09-13 15:36:44Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ jimport('joomla.filesystem.path');
  * A Folder handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -34,7 +34,7 @@ class JFolder
 	 */
 	function copy($src, $dest, $path = '', $force = false, $use_streams=false)
 	{
-		// Initialize variables
+		// Initialise variables.
 		jimport('joomla.client.helper');
 		$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -90,7 +90,7 @@ class JFolder
 						// Translate path for the FTP account
 						$dfid = JPath::clean(str_replace(JPATH_ROOT, $FTPOptions['root'], $dfid), '/');
 						if (! $ftp->store($sfid, $dfid)) {
-							return JError::raiseError(-1, JText::_('Copy failed'));
+							return JError::raiseError(-1, JText::_('COPY_FAILED'));
 						}
 						break;
 				}
@@ -117,11 +117,11 @@ class JFolder
 						if($use_streams) {
 							$stream =& JFactory::getStream();
 							if(!$stream->copy($sfid, $dfid)) {
-								return JError::raiseError(-1, JText::_('Copy failed').': '. $stream->getError());
+								return JError::raiseError(-1, JText::_('COPY_FAILED').': '. $stream->getError());
 							}
 						} else {
 						if (!@copy($sfid, $dfid)) {
-							return JError::raiseError(-1, JText::_('Copy failed'));
+							return JError::raiseError(-1, JText::_('COPY_FAILED'));
 						}
 						}
 						break;
@@ -141,7 +141,7 @@ class JFolder
 	 */
 	function create($path = '', $mode = 0755)
 	{
-		// Initialize variables
+		// Initialise variables.
 		jimport('joomla.client.helper');
 		$FTPOptions = JClientHelper::getCredentials('ftp');
 		static $nested = 0;
@@ -234,7 +234,7 @@ class JFolder
 				@umask($origmask);
 				JError::raiseWarning(
 					'SOME_ERROR_CODE',
-					'JFolder::create: ' . JText::_('Could not create directory'),
+					'JFolder::create: ' . JText::_('COULD_NOT_CREATE_DIRECTORY'),
 					'Path: ' . $path
 				);
 				return false;
@@ -258,11 +258,11 @@ class JFolder
 		// Sanity check
 		if (!$path) {
 			// Bad programmer! Bad Bad programmer!
-			JError::raiseWarning(500, 'JFolder::delete: ' . JText::_('Attempt to delete base directory'));
+			JError::raiseWarning(500, 'JFolder::delete: ' . JText::_('ATTEMPT_TO_DELETE_BASE_DIRECTORY'));
 			return false;
 		}
 
-		// Initialize variables
+		// Initialise variables.
 		jimport('joomla.client.helper');
 		$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -271,7 +271,7 @@ class JFolder
 
 		// Is this really a folder?
 		if (!is_dir($path)) {
-			JError::raiseWarning(21, 'JFolder::delete: ' . JText::_('Path is not a folder'), 'Path: ' . $path);
+			JError::raiseWarning(21, 'JFolder::delete: ' . JText::_('PATH_IS_NOT_A_FOLDER'), 'Path: ' . $path);
 			return false;
 		}
 
@@ -322,7 +322,7 @@ class JFolder
 		} else {
 			JError::raiseWarning(
 				'SOME_ERROR_CODE',
-				'JFolder::delete: ' . JText::_('Could not delete folder'),
+				'JFolder::delete: ' . JText::_('COULD_NOT_DELETE_FOLDER'),
 				'Path: ' . $path
 			);
 			$ret = false;
@@ -341,7 +341,7 @@ class JFolder
 	 */
 	function move($src, $dest, $path = '', $use_streams=false)
 	{
-		// Initialize variables
+		// Initialise variables.
 		jimport('joomla.client.helper');
 		$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -418,7 +418,7 @@ class JFolder
 	 */
 	public static function files($path, $filter = '.', $recurse = false, $fullpath = false, $exclude = array('.svn', 'CVS','.DS_Store','__MACOSX'), $excludefilter = array('^\..*','.*~'))
 	{
-		// Initialize variables
+		// Initialise variables.
 		$arr = array();
 
 		// Check to make sure the path valid and clean
@@ -426,7 +426,7 @@ class JFolder
 
 		// Is the path a folder?
 		if (!is_dir($path)) {
-			JError::raiseWarning(21, 'JFolder::files: ' . JText::_('Path is not a folder'), 'Path: ' . $path);
+			JError::raiseWarning(21, 'JFolder::files: ' . JText::_('PATH_IS_NOT_A_FOLDER'), 'Path: ' . $path);
 			return false;
 		}
 
@@ -486,7 +486,7 @@ class JFolder
 	 */
 	public static function folders($path, $filter = '.', $recurse = false, $fullpath = false, $exclude = array('.svn', 'CVS','.DS_Store','__MACOSX'), $excludefilter = array('^\..*'))
 	{
-		// Initialize variables
+		// Initialise variables.
 		$arr = array();
 
 		// Check to make sure the path valid and clean
@@ -494,7 +494,7 @@ class JFolder
 
 		// Is the path a folder?
 		if (!is_dir($path)) {
-			JError::raiseWarning(21, 'JFolder::folder: ' . JText::_('Path is not a folder'), 'Path: ' . $path);
+			JError::raiseWarning(21, 'JFolder::folder: ' . JText::_('PATH_IS_NOT_A_FOLDER'), 'Path: ' . $path);
 			return false;
 		}
 

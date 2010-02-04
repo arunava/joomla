@@ -1,14 +1,14 @@
 <?php
 /**
- * @version		$Id: rules.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -36,30 +36,27 @@ class JFormFieldRules extends JFormField
 		// TODO: Add access check.
 
 		// Get relevant attributes from the field definition.
-		$section = $this->_element->attributes('section') !== null ? $this->_element->attributes('section') : '';
-		$component = $this->_element->attributes('component') !== null ? $this->_element->attributes('component') : '';
-		$assetField = $this->_element->attributes('asset_field') !== null ? $this->_element->attributes('asset_field') : 'asset_id';
+		$section = (string)$this->_element->attributes()->section ? (string)$this->_element->attributes()->section : '';
+		$component = (string)$this->_element->attributes()->component ? (string)$this->_element->attributes()->component : '';
+		$assetField = (string)$this->_element->attributes()->asset_field ? (string)$this->_element->attributes()->asset_field : 'asset_id';
 
 		// Get the actions for the asset.
 		$access = JFactory::getACL();
 		$actions = JAccess::getActions($component, $section);
 
 		// Iterate over the children and add to the actions.
-		foreach ($this->_element->children() as $e)
-		{
-			if ($e->name() == 'action')
-			{
+		foreach ($this->_element->children() as $e) {
+			if ($e->getName() == 'action') {
 				$actions[] = (object) array(
-					'name' => (string) $e->attributes('name'),
-					'title' => (string) $e->attributes('title'),
-					'description' => (string) $e->attributes('description')
+					'name' => (string)$e->attributes()->name,
+					'title' => (string)$e->attributes()->title,
+					'description' => (string)$e->attributes()->description
 				);
 			}
 		}
 
 		// Get the rules for this asset.
-		if ($section == 'component')
-		{
+		if ($section == 'component') {
 			// Need to find the asset id by the name of the component.
 			$db = JFactory::getDbo();
 			$db->setQuery('SELECT id FROM #__assets WHERE name = '.$db->quote($component));
@@ -67,8 +64,7 @@ class JFormFieldRules extends JFormField
 			if ($error = $db->getErrorMsg()) {
 				JError::raiseNotice(500, $error);
 			}
-		}
-		else {
+		} else {
 			$assetId = $this->_form->getValue($assetField);
 		}
 
@@ -85,18 +81,17 @@ class JFormFieldRules extends JFormField
 		$html = array();
 
 		// Open the table.
-		$html[] = '<table>';
+		$html[] = '<table id="acl-config">';
 
 		// The table heading.
 		$html[] = '	<thead>';
 		$html[] = '	<tr>';
 		$html[] = '		<th>';
-		$html[] = '			<span>'.JText::_('User Group').'</span>';
+		$html[] = '			<span class="acl-action">'.JText::_('JAction_User_Group').'</span>';
 		$html[] = '		</th>';
-		foreach ($actions as $action)
-		{
+		foreach ($actions as $action) {
 			$html[] = '		<th>';
-			$html[] = '			<span title="'.JText::_($action->description).'">'.JText::_($action->title).'</span>';
+			$html[] = '			<span class="acl-action" title="'.JText::_($action->description).'">'.JText::_($action->title).'</span>';
 			$html[] = '		</th>';
 		}
 		$html[] = '	</tr>';
@@ -104,20 +99,18 @@ class JFormFieldRules extends JFormField
 
 		// The table body.
 		$html[] = '	<tbody>';
-		foreach ($groups as $group)
-		{
+		foreach ($groups as $group) {
 			$html[] = '	<tr>';
-			$html[] = '		<th style="border-bottom:1px solid #ccc;text-align:left;">';
+			$html[] = '		<th class="acl-groups">';
 			$html[] = '			'.$group->text;
 			$html[] = '		</th>';
-			foreach ($actions as $action)
-			{
-				$html[] = '		<td style="border-bottom:1px solid #ccc">';
+			foreach ($actions as $action) {
+				$html[] = '		<td>';
 				// TODO: Fix this inline style stuff...
 				//$html[] = '			<fieldset class="access_rule">';
 
 				$html[] = '				<select name="'.$this->inputName.'['.$action->name.']['.$group->value.']" id="'.$this->inputId.'_'.$action->name.'_'.$group->value.'">';
-				$html[] = '					<option value=""'.($rules->allow($action->name, $group->value) === null ? ' selected="selected"' : '').'>'.JText::_('JInherit').'</option>';
+				$html[] = '					<option value=""'.($rules->allow($action->name, $group->value) === null ? ' selected="selected"' : '').'>'.JText::_($assetId == 1 ? 'JInherit_Unset' : 'JInherit').'</option>';
 				$html[] = '					<option value="0"'.($rules->allow($action->name, $group->value) === false ? ' selected="selected"' : '').'>'.JText::_('JDeny').'</option>';
 				$html[] = '					<option value="1"'.($rules->allow($action->name, $group->value) === true ? ' selected="selected"' : '').'>'.JText::_('JAllow').'</option>';
 				$html[] = '				</select>';

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: update.php 12490 2009-07-06 11:57:32Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Update
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
 
@@ -13,11 +13,12 @@ defined('JPATH_BASE') or die();
 /**
  * Update class.
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Update
  * @since		1.6
  */
-class JUpdate extends JObject {
+class JUpdate extends JObject
+{
 	protected $name;
 	protected $description;
 	protected $element;
@@ -39,33 +40,35 @@ class JUpdate extends JObject {
 	private $_state_store = Array();
 
 	/**
-     * Gets the reference to the current direct parent
-     *
-     * @return object
-     */
+	 * Gets the reference to the current direct parent
+	 *
+	 * @return object
+	 */
 	protected function _getStackLocation()
-    {
-            return implode('->', $this->_stack);
-    }
+	{
+			return implode('->', $this->_stack);
+	}
 
-    /**
-     * Get the last position in stack count
-     *
-     * @return string
-     */
-    protected function _getLastTag() {
-    	return $this->_stack[count($this->_stack) - 1];
-    }
+	/**
+	 * Get the last position in stack count
+	 *
+	 * @return string
+	 */
+	protected function _getLastTag()
+	{
+		return $this->_stack[count($this->_stack) - 1];
+	}
 
 
-    /**
-     * XML Start Element callback
-     * Note: This is public because it is called externally
-     * @param object parser object
-     * @param string name of the tag found
-     * @param array attributes of the tag
-     */
-	public function _startElement($parser, $name, $attrs = Array()) {
+	/**
+	 * XML Start Element callback
+	 * Note: This is public because it is called externally
+	 * @param object parser object
+	 * @param string name of the tag found
+	 * @param array attributes of the tag
+	 */
+	public function _startElement($parser, $name, $attrs = Array())
+	{
 		array_push($this->_stack, $name);
 		$tag = $this->_getStackLocation();
 		// reset the data
@@ -95,32 +98,39 @@ class JUpdate extends JObject {
 	 * @param object parser object
 	 * @param string name of element that was closed
 	 */
-	public function _endElement($parser, $name) {
+	public function _endElement($parser, $name)
+	{
 		array_pop($this->_stack);
-		switch($name) {
+		switch($name)
+		{
 			case 'UPDATE': // closing update, find the latest version and check
 				$ver = new JVersion();
-				$filter =& JFilterInput::getInstance();
-				$product = strtolower($filter->clean($ver->PRODUCT, 'cmd'));
-				if($product == $this->_current_update->targetplatform->name && $ver->RELEASE == $this->_current_update->targetplatform->version) {
-					if(isset($this->_latest)) {
+				$product = strtolower(JFilterInput::getInstance()->clean($ver->PRODUCT, 'cmd'));
+				if($product == $this->_current_update->targetplatform->name && $ver->RELEASE == $this->_current_update->targetplatform->version)
+				{
+					if(isset($this->_latest))
+					{
 						if(version_compare($this->_current_update->version->_data, $this->_latest->version->_data, '>') == 1) {
 							$this->_latest = $this->_current_update;
 						}
-					} else {
+					}
+					else {
 						$this->_latest = $this->_current_update;
 					}
 				}
 				break;
 			case 'UPDATES':
 				// If the latest item is set then we transfer it to where we want to
-				if(isset($this->_latest)) {
+				if(isset($this->_latest))
+				{
 					foreach(get_object_vars($this->_latest) as $key=>$val) {
 						$this->$key = $val;
 					}
 					unset($this->_latest);
 					unset($this->_current_update);
-				} else if(isset($this->_current_update)) {
+				}
+				else if(isset($this->_current_update))
+				{
 					// the update might be for an older version of j!
 					unset($this->_current_update);
 				}
@@ -141,11 +151,13 @@ class JUpdate extends JObject {
 		$this->_current_update->$tag->_data .= $data;
 	}
 
-	public function loadFromXML($url) {
-		if (!($fp = @fopen($url, "r"))) {
+	public function loadFromXML($url)
+	{
+		if (!($fp = @fopen($url, "r")))
+		{
 			// TODO: Add a 'mark bad' setting here somehow
-		    JError::raiseWarning('101', JText::_('Update') .'::'. JText::_('Extension') .': '. JText::_('Could not open').' '. $url);
-		    return false;
+			JError::raiseWarning('101', JText::_('Update') .'::'. JText::_('Extension') .': '. JText::_('Could not open').' '. $url);
+			return false;
 		}
 
 		$this->xml_parser = xml_parser_create('');
@@ -153,72 +165,16 @@ class JUpdate extends JObject {
 		xml_set_element_handler($this->xml_parser, '_startElement', '_endElement');
 		xml_set_character_data_handler($this->xml_parser, '_characterData');
 
-		while ($data = fread($fp, 8192)) {
-		    if (!xml_parse($this->xml_parser, $data, feof($fp))) {
-		        die(sprintf("XML error: %s at line %d",
-		                    xml_error_string(xml_get_error_code($this->xml_parser)),
-		                    xml_get_current_line_number($this->xml_parser)));
-		    }
+		while ($data = fread($fp, 8192))
+		{
+			if (!xml_parse($this->xml_parser, $data, feof($fp)))
+			{
+				die(sprintf("XML error: %s at line %d",
+							xml_error_string(xml_get_error_code($this->xml_parser)),
+							xml_get_current_line_number($this->xml_parser)));
+			}
 		}
 		xml_parser_free($this->xml_parser);
 		return true;
-	}
-
-	public function install()
-	{
-		$app = &JFactory::getApplication();
-		if(isset($this->downloadurl->_data)) {
-			$url = $this->downloadurl->_data;
-		} else {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Invalid extension update'));
-			return false;
-		}
-
-		jimport('joomla.installer.helper');
-		$p_file = JInstallerHelper::downloadPackage($url);
-
-		// Was the package downloaded?
-		if (!$p_file) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Package download failed').': '. $url);
-			return false;
-		}
-
-		$config =& JFactory::getConfig();
-		$tmp_dest 	= $config->getValue('config.tmp_path');
-
-		// Unpack the downloaded package file
-		$package = JInstallerHelper::unpack($tmp_dest.DS.$p_file);
-
-		// Get an installer instance
-		$installer =& JInstaller::getInstance();
-
-		// Install the package
-		if (!$installer->install($package['dir'])) {
-			// There was an error installing the package
-			$msg = JText::sprintf('INSTALLEXT', JText::_($package['type']), JText::_('Error'));
-			$result = false;
-		} else {
-			// Package installed sucessfully
-			$msg = JText::sprintf('INSTALLEXT', JText::_($package['type']), JText::_('Success'));
-			$result = true;
-		}
-
-		// Set some model state values
-		$app->enqueueMessage($msg);
-
-		$this->setState('name', $installer->get('name'));
-		$this->setState('result', $result);
-		$this->setState('message', $installer->message);
-		$this->setState('extension.message', $installer->get('extension.message'));
-
-		// Cleanup the install files
-		if (!is_file($package['packagefile'])) {
-			$config =& JFactory::getConfig();
-			$package['packagefile'] = $config->getValue('config.tmp_path').DS.$package['packagefile'];
-		}
-
-		JInstallerHelper::cleanupInstall($package['packagefile'], $package['extractdir']);
-
-		return $result;
 	}
 }

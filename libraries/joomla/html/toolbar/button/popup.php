@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: popup.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a popup window button
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -36,7 +36,7 @@ class JButtonPopup extends JButton
 		$doTask	= $this->_getCommand($name, $url, $width, $height, $top, $left);
 
 		$html	= "<a class=\"modal\" href=\"$doTask\" rel=\"{handler: 'iframe', size: {x: $width, y: $height}}\">\n";
-		$html .= "<span class=\"$class\" title=\"$text\">\n";
+		$html .= "<span class=\"$class\">\n";
 		$html .= "</span>\n";
 		$html	.= "$text\n";
 		$html	.= "</a>\n";

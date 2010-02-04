@@ -1,9 +1,8 @@
 <?php
 /**
- * @version
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
- * @link		http://www.theartofjoomla.com
  */
 
 // no direct access
@@ -47,7 +46,8 @@ class ContactControllerContact extends JController
 	 */
 	function &getModel()
 	{
-		return parent::getModel('Contact', '', array('ignore_request' => true));
+		$model = parent::getModel('Contact', '', array('ignore_request' => true));
+		return $model;
 	}
 
 	/**
@@ -57,7 +57,7 @@ class ContactControllerContact extends JController
 	 */
 	public function add()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication();
 
 		// Clear the menu item edit information from the session.
@@ -72,13 +72,10 @@ class ContactControllerContact extends JController
 	 * Method to edit an existing contact
 	 *
 	 * Sets object ID in the session from the request, checks the item out, and then redirects to the edit page.
-	 *
-	 * @access	public
-	 * @return	void
 	 */
 	function edit()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$ids	= JRequest::getVar('cid', array(), '', 'array');
 
@@ -122,14 +119,11 @@ class ContactControllerContact extends JController
 	 * Method to cancel an edit
 	 *
 	 * Checks the item in, sets item ID in the session to null, and then redirects to the list page.
-	 *
-	 * @access	public
-	 * @return	void
 	 */
 	function cancel()
 	{
 		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication();
 
 		// Get the previous  id (if any) and the current  id.
@@ -160,8 +154,6 @@ class ContactControllerContact extends JController
 	/**
 	 * Method to save a contact
 	 *
-	 * @access	public
-	 * @return	void
 	 * @since	1.0
 	 */
 	function save()
@@ -169,7 +161,7 @@ class ContactControllerContact extends JController
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 		$model	= &$this->getModel('Item');
 		$task	= $this->getTask();
@@ -315,8 +307,6 @@ class ContactControllerContact extends JController
 	/**
 	 * Method to publish a list of taxa
 	 *
-	 * @access	public
-	 * @return	void
 	 * @since	1.0
 	 */
 	function publish()

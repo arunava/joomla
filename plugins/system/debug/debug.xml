@@ -1,122 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
 <install
-	version="1.5"
+	version="1.6"
 	type="plugin"
 	group="system">
 	<name>System - Debug</name>
 	<author>Joomla! Project</author>
 	<creationDate>December 2006</creationDate>
-	<copyright>Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-	</copyright>
+	<copyright>Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<authorEmail>admin@joomla.org</authorEmail>
 	<authorUrl>www.joomla.org</authorUrl>
 	<version>1.5</version>
-	<description>Plg_System_Debug_Desc</description>
+	<description>PLG_DEBUG_XML_DESCRIPTION</description>
 	<files>
 		<filename
 			plugin="debug">debug.php</filename>
 	</files>
-	<params>
-		<param
+	<fields>
+		<field
 			name="filter_groups"
 			type="usergroup"
 			multiple="true"
 			size="10"
-			default=""
-			label="Debug_Param_Allowed_groups_Label"
-			description="Debug_Param_Allowed_groups_Desc" />
+			label="PLG_DEBUG_FIELD_ALLOWED_GROUPS_LABEL"
+			description="PLG_DEBUG_FIELD_ALLOWED_GROUPS_DESC" />
 
-		<param
+		<field
 			name="profile"
 			type="radio"
 			default="1"
-			label="Debug_Param_Profiling_Label"
-			description="Debug_Param_Profiling_Desc">
+			label="PLG_DEBUG_FIELD_PROFILING_LABEL"
+			description="PLG_DEBUG_FIELD_PROFILING_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
+		</field>
 
-		<param
+		<field
 			name="queries"
 			type="radio"
 			default="1"
-			label="Debug_Param_Queries_Label"
-			description="Debug_Param_Queries_Desc">
+			label="PLG_DEBUG_FIELD_QUERIES_LABEL"
+			description="PLG_DEBUG_FIELD_QUERIES_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
+		</field>
 
-		<param
+		<field
 			name="memory"
 			type="radio"
 			default="1"
-			label="Debug_Param_Memory_Label"
-			description="Debug_Param_Memory_Desc">
+			label="PLG_DEBUG_FIELD_MEMORY_LABEL"
+			description="PLG_DEBUG_FIELD_MEMORY_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
+		</field>
 
-		<param
+	</fields>
+
+	<fields
+		group="language">
+
+		<field
 			name="language_files"
 			type="radio"
 			default="1"
-			label="Debug_Param_Language_files_Label"
-			description="Debug_Param_Language_files_Desc">
+			label="PLG_DEBUG_FIELD_LANGUAGE_FILES_LABEL"
+			description="PLG_DEBUG_FIELD_LANGUAGE_FILES_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
-
-		<param
-			type="spacer" />
-
-		<param
+		</field>
+		<field
 			name="language_strings"
 			type="radio"
 			default="1"
-			label="Debug_Param_Language_string_Label"
-			description="Debug_Param_Language_string_Desc">
+			label="PLG_DEBUG_FIELD_LANGUAGE_STRING_LABEL"
+			description="PLG_DEBUG_FIELD_LANGUAGE_STRING_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
+		</field>
 
-		<param
+		<field
 			name="strip-first"
 			type="radio"
 			default="1"
-			label="Debug_Param_Strip_First_Label"
-			description="Debug_Param_Strip_First_Desc">
+			label="PLG_DEBUG_FIELD_STRIP_FIRST_LABEL"
+			description="PLG_DEBUG_FIELD_STRIP_FIRST_DESC">
 			<option
 				value="1">JYes</option>
 			<option
 				value="0">JNo</option>
-		</param>
+		</field>
 
-		<param
+		<field
 			name="strip-prefix"
 			type="textarea"
-			label="Debug_Param_Strip_Prefix_Label"
-			description="Debug_Param_Strip_Prefix_Desc"
+			label="PLG_DEBUG_FIELD_STRIP_PREFIX_LABEL"
+			description="PLG_DEBUG_FIELD_STRIP_PREFIX_DESC"
 			rows="4"
 			cols="30" />
 
-		<param
+		<field
 			name="strip-suffix"
 			type="textarea"
-			label="Debug_Param_Strip_Suffix_Label"
-			description="Debug_Param_Strip_Suffix_Desc"
+			label="PLG_DEBUG_FIELD_STRIP_SUFFIX_LABEL"
+			description="PLG_DEBUG_FIELD_STRIP_SUFFIX_DESC"
 			default=""
 			rows="4"
 			cols="30" />
-	</params>
+	</fields>
 </install>

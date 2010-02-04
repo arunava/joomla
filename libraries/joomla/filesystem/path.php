@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: path.php 12740 2009-09-13 15:36:44Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -26,7 +26,7 @@ if (!defined('JPATH_ROOT')) {
  * A Path handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -64,7 +64,7 @@ class JPath
 	 */
 	function setPermissions($path, $filemode = '0644', $foldermode = '0755') {
 
-		// Initialize return value
+		// Initialise return value
 		$ret = true;
 
 		if (is_dir($path))

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: templates.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,13 +18,6 @@ if (!JFactory::getUser()->authorise('core.manage', 'com_templates')) {
 // Include dependancies
 jimport('joomla.application.component.controller');
 
-// TODO: Refactor to support latest MVC pattern.
-
-// Require the base controller
-require_once JPATH_COMPONENT.DS.'controller.php';
-
-$controller	= new TemplatesController();
-
-// Perform the Request task
+$controller	= JController::getInstance('Templates');
 $controller->execute(JRequest::getCmd('task'));
 $controller->redirect();

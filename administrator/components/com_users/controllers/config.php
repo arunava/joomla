@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: config.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,11 +23,10 @@ class UsersControllerConfig extends JController
 	/**
 	 * Method to import the configuration via string or upload.
 	 *
-	 * @access	public
 	 * @return	bool	True on success, false on failure.
 	 * @since	1.0
 	 */
-	function import()
+	public function import()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
@@ -69,31 +68,30 @@ class UsersControllerConfig extends JController
 	/**
 	 * Method to export the configuration via download.
 	 *
-	 * @access	public
 	 * @return	void
 	 * @since	1.0
 	 */
-	function export()
+	public function export()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Get the component configuration values.
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
 		$config = &JComponentHelper::getParams('com_users');
-		$string	= $config->toString();
+		$string	= (string)$config;
 
 		// Send file headers.
 		header('Content-type: application/force-download');
-	    header('Content-Transfer-Encoding: Binary');
-	    header('Content-length: '.strlen($string));
-	    header('Content-disposition: attachment; filename="users.config.ini"');
+		header('Content-Transfer-Encoding: Binary');
+		header('Content-length: '.strlen($string));
+		header('Content-disposition: attachment; filename="users.config.ini"');
 		header('Pragma: no-cache');
 		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 		header('Expires: 0');
 
 		// Print the configuration values.
-	    echo $string;
+		echo $string;
 
 		$app->close();
 	}
@@ -101,11 +99,10 @@ class UsersControllerConfig extends JController
 	/**
 	 * Method to save the configuration.
 	 *
-	 * @access	public
 	 * @return	bool	True on success, false on failure.
 	 * @since	1.0
 	 */
-	function save()
+	public function save()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: format.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Registry
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,21 +14,20 @@ defined('JPATH_BASE') or die;
  * Abstract Format for JRegistry
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Registry
  * @since		1.5
  */
 abstract class JRegistryFormat extends JObject
 {
 	/**
-	 * Returns a reference to a Format object, only creating it
+	 * Returns a Format object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @param	string	$format	The format to load
+	 * @param	string	The format to load
 	 * @return	object	Registry format handler
-	 * @since	1.5
 	 */
-	public static function &getInstance($format)
+	public static function getInstance($format)
 	{
 		static $instances;
 
@@ -36,13 +35,13 @@ abstract class JRegistryFormat extends JObject
 			$instances = array ();
 		}
 
-		$format = strtolower(JFilterInput::clean($format, 'word'));
+		$format = strtolower(JFilterInput::getInstance()->clean($format, 'word'));
 		if (empty ($instances[$format]))
 		{
 			$class = 'JRegistryFormat'.$format;
 			if (!class_exists($class))
 			{
-				$path    = dirname(__FILE__).DS.'format'.DS.$format.'.php';
+				$path	= dirname(__FILE__).DS.'format'.DS.$format.'.php';
 				if (file_exists($path)) {
 					require_once $path;
 				} else {
@@ -71,5 +70,5 @@ abstract class JRegistryFormat extends JObject
 	 * @return	string	Formatted string
 	 * @since	1.5
 	 */
-	abstract public function objectToString(&$object, $params);
+	abstract public function objectToString($object, $params);
 }

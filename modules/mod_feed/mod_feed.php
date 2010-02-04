@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: mod_feed.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_feed
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -21,7 +21,7 @@ $cacheDir = JPATH_BASE.DS.'cache';
 if (!is_writable($cacheDir))
 {
 	echo '<div>';
-	echo JText::_('Please make cache directory writable.');
+	echo JText::_('PLEASE_MAKE_CACHE_DIRECTORY_WRITABLE');
 	echo '</div>';
 	return;
 }
@@ -36,4 +36,4 @@ if (empty ($rssurl))
 }
 
 $feed = modFeedHelper::getFeed($params);
-require JModuleHelper::getLayoutPath('mod_feed');
+require JModuleHelper::getLayoutPath('mod_feed', $params->get('layout', 'default'));

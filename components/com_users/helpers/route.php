@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: route.php 12182 2009-06-19 23:59:03Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -89,13 +89,15 @@ class UsersHelperRoute
 		$itemid	= null;
 
 		// Search for a suitable menu id.
+		//Menu link can only go to users own profile.
+
 		foreach ($items as $item) {
 			if (isset($item->query['view']) && $item->query['view'] === 'profile') {
 				$itemid = $item->id;
 				break;
 			}
-		}
 
+		}
 		return $itemid;
 	}
 

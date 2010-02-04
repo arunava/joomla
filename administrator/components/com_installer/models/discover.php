@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: discover.php 12490 2009-07-06 11:57:32Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -30,9 +30,8 @@ class InstallerModelDiscover extends InstallerModel
 	var $_message = '';
 
 	/**
-	 * Current extension list
+	 * Current discovered extension list
 	 */
-
 	function _loadItems()
 	{
 		jimport('joomla.filesystem.folder');
@@ -76,6 +75,10 @@ class InstallerModelDiscover extends InstallerModel
 		}
 	}
 
+	/**
+	 * Discover extensions
+	 * Finds uninstalled extensions
+	 */
 	function discover() {
 		$installer =& JInstaller::getInstance();
 		$results = $installer->discover();
@@ -89,15 +92,16 @@ class InstallerModelDiscover extends InstallerModel
 			if (!array_key_exists($result->get('element'), $installed)) {
 				// since the element doesn't exist, its definitely new
 				$result->store(); // put it into the table
-				//echo '<p>Added: <pre>'.print_r($result,1).'</pre></p>';
 			} else {
 				// TODO: Add extra checks here to add entries that have conflicting elements
 				// an element exists that matches this
-				//echo '<p>Ignored: '. $result->name .'</p>';
 			}
 		}
 	}
 
+	/**
+	 * Installs a discovered extension
+	 */
 	function discover_install() {
 		$installer =& JInstaller::getInstance();
 		$eid = JRequest::getVar('eid',0);
@@ -112,28 +116,31 @@ class InstallerModelDiscover extends InstallerModel
 				$result = $installer->discover_install($id);
 				if (!$result) {
 					$failed = true;
-					$app->enqueueMessage(JText::_('Discover install failed').': '. $id);
+					$app->enqueueMessage(JText::_('DISCOVER_INSTALL_FAILED').': '. $id);
 				}
 			}
 			$this->setState('action', 'remove');
 			$this->setState('name', $installer->get('name'));
 			$this->setState('message', $installer->message);
 			$this->setState('extension_message', $installer->get('extension_message'));
-			if (!$failed) $app->enqueueMessage(JText::_('Discover install successful'));
+			if (!$failed) $app->enqueueMessage(JText::_('DISCOVER_INSTALL_SUCCESSFUL'));
 		} else {
 			$app =& JFactory::getApplication();
-			$app->enqueueMessage(JText::_('No extension selected'));
+			$app->enqueueMessage(JText::_('No_extension_selected'));
 		}
 	}
 
+	/**
+	 * Cleans out the list of discovered extensions
+	 */
 	function purge() {
 		$db =& JFactory::getDBO();
 		$db->setQuery('DELETE FROM #__extensions WHERE state = -1');
 		if ($db->Query()) {
-			$this->_message = JText::_('Purged discovered extensions');
+			$this->_message = JText::_('PURGED_DISCOVERED_EXTENSIONS');
 			return true;
 		} else {
-			$this->_message = JText::_('Failed to purge extensions');
+			$this->_message = JText::_('FAILED_TO_PURGE_EXTENSIONS');
 			return false;
 		}
 	}

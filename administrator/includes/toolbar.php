@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: toolbar.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -336,7 +336,7 @@ abstract class JToolBarHelper
 	 * @param	string	$alt	An override for the alt text.
 	 * @since	1.0
 	 */
-	public static function editHtml($task = 'edit_source', $alt = 'Edit HTML')
+	public static function editHtml($task = 'edit_source', $alt = 'EDIT_HTML')
 	{
 		$bar = &JToolBar::getInstance('toolbar');
 		// Add an edit html button.
@@ -352,7 +352,7 @@ abstract class JToolBarHelper
 	 * @since	1.0
 	 * @deprecated
 	 */
-	public static function editHtmlX($task = 'edit_source', $alt = 'Edit HTML')
+	public static function editHtmlX($task = 'edit_source', $alt = 'EDIT_HTML')
 	{
 		self::editHtml($task, $alt);
 	}
@@ -364,7 +364,7 @@ abstract class JToolBarHelper
 	 * @param	string	$alt	An override for the alt text.
 	 * @since	1.0
 	 */
-	public static function editCss($task = 'edit_css', $alt = 'Edit CSS')
+	public static function editCss($task = 'edit_css', $alt = 'EDIT_CSS')
 	{
 		$bar = &JToolBar::getInstance('toolbar');
 		// Add an edit css button (hide).
@@ -380,7 +380,7 @@ abstract class JToolBarHelper
 	 * @since	1.0
 	 * @deprecated
 	 */
-	public static function editCssX($task = 'edit_css', $alt = 'Edit CSS')
+	public static function editCssX($task = 'edit_css', $alt = 'EDIT_CSS')
 	{
 		self::editCss($task, $alt);
 	}
@@ -490,11 +490,6 @@ abstract class JToolBarHelper
 	 */
 	public static function preferences($component, $height = '450', $width = '800', $alt = 'JToolbar_Options', $path = '')
 	{
-		$user = &JFactory::getUser();
-		if (!$user->authorise('core.manage', 'com_config')) {
-			return;
-		}
-
 		$component = urlencode($component);
 		$path = urlencode($path);
 		$bar = &JToolBar::getInstance('toolbar');

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!-- $Id: article.xml 13109 2009-10-08 18:15:33Z ian $ -->
+	<!-- $Id$ -->
 <form>
 	<fields>
 		<field
@@ -39,23 +39,14 @@
 			default="" />
 
 		<field
-			id="introtext"
-			name="introtext"
+			id="articletext"
+			name="articletext"
 			type="editor"
 			class="inputbox"
-			label="Content_Introtext_Label"
-			description="Content_Introtext_Desc"
+			label="Content_Articletext_Label"
+			description="Content_Articletext_Desc"
 			filter="safehtml"
-			default="" />
-
-		<field
-			id="fulltext"
-			name="fulltext"
-			type="editor"
-			label="Content_Fulltext_Label"
-			description="Content_Fulltext_Desc"
-			class="inputbox"
-			filter="safehtml"
+			buttons="true"
 			default="" />
 
 		<field
@@ -65,6 +56,7 @@
 			label="JField_Published_Label"
 			description="JField_Published_Desc"
 			class="inputbox"
+			filter="intval"
 			size="1"
 			default="1">
 			<option
@@ -84,7 +76,7 @@
 		<field
 			id="catid"
 			name="catid"
-			type="Categories"
+			type="category"
 			extension="com_content"
 			label="JField_Category_Label"
 			description="JField_Category_Desc"
@@ -102,13 +94,13 @@
 			description="Content_Created_Desc"
 			class="inputbox"
 			size="16"
-			format="%Y-%m-%d %H-%M-%S"
+			format="%Y-%m-%d %H:%M:%S"
 			filter="server_utc" />
 
 		<field
 			id="created_by"
 			name="created_by"
-			type="text"
+			type="user"
 			label="Content_Created_by_Label"
 			description="Content_Created_by_Desc" />
 
@@ -155,7 +147,7 @@
 			label="Content_Publish_up_Label"
 			description="Content_Publish_up_Desc"
 			class="inputbox"
-			format="%Y-%m-%d %H-%M-%S"
+			format="%Y-%m-%d %H:%M:%S"
 			size="30"
 			default=""
 			filter="server_utc" />
@@ -167,7 +159,7 @@
 			label="Content_Publish_down_Label"
 			description="Content_Publish_down_Desc"
 			class="inputbox"
-			format="%Y-%m-%d %H-%M-%S"
+			format="%Y-%m-%d %H:%M:%S"
 			size="30"
 			default=""
 			filter="server_utc" />
@@ -218,7 +210,7 @@
 		<field
 			id="access"
 			name="access"
-			type="accesslevels"
+			type="accesslevel"
 			label="JField_Access_Label"
 			description="JField_Access_Desc"
 			class="inputbox"
@@ -249,11 +241,26 @@
 
 		<field
 			name="language"
-			type="contentlanguages"
+			type="contentlanguage"
 			label="JField_Language_Label"
 			description="JField_Language_Desc"
 			class="inputbox"
-			default="" />
+			default="">
+			<option value="">JOption_Default_Language</option>
+		</field>
+		<field
+			id="featured"
+			name="featured"
+			type="radio"
+			label="Content_Featured_Label"
+			description="Content_Featured_Desc"
+			default="0">
+			<option
+				value="0">JOFF</option>
+			<option
+				value="1">JON</option>
+		</field>
+
 
 		<field
 			id="xreference"
@@ -289,7 +296,7 @@
 			label="Content_Attribs_Show_Title_Label"
 			description="Content_Attribs_Show_Title_Desc">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">JNo</option>
 			<option
@@ -303,7 +310,7 @@
 			description="Content_Attribs_Linked_Titles_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">JNo</option>
 			<option
@@ -316,7 +323,7 @@
 			description="Content_Attribs_Show_Intro_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -330,7 +337,7 @@
 			description="Content_Attribs_Show_Category_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -344,7 +351,7 @@
 			description="Content_Attribs_Link_Category_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">JNo</option>
 			<option
@@ -358,7 +365,7 @@
 			description="Content_Attribs_Show_Author_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -372,7 +379,7 @@
 			description="Content_Attribs_Show_Create_Date_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -386,7 +393,21 @@
 			description="Content_Attribs_Show_Modify_Date_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
+			<option
+				value="0">Hide</option>
+			<option
+				value="1">Show</option>
+		</field>
+
+		<field
+			name="show_publish_date"
+			type="list"
+			label="Content_Attribs_Show_Publish_Date_Label"
+			description="Content_Attribs_Show_Publish_Date_Desc"
+			default="">
+			<option
+				value="">JCOMMON_USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -395,11 +416,17 @@
 
 		<field
 			name="show_readmore"
-			type="text"
+			type="list"
 			label="Content_Attribs_Show_Readmore_Label"
 			description="Content_Attribs_Show_Readmore_Desc"
-			size="25"
-			default="" />
+			default="" >
+			<option
+				value="">USE_GLOBAL</option>
+			<option
+				value="0">Hide</option>
+			<option
+				value="1">Show</option>
+		</field>
 
 		<field
 			name="show_print_icon"
@@ -408,7 +435,7 @@
 			description="Content_Attribs_Show_Print_Icon_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -422,7 +449,7 @@
 			description="Content_Attribs_Show_Email_Icon_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -436,10 +463,18 @@
 			description="JField_Alt_Page_title_Desc"
 			size="25"
 			default="" />
-
+		<field
+			id="alternative_readmore"
+			name="alternative_readmore"
+			type="inputbox"
+			label="JField_Readmore_Label"
+			description="JField_Readmore_Desc"
+			class="inputbox"
+			size="25"
+			default="" />
 		<field
 			name="layout"
-			type="componentlayouts"
+			type="componentlayout"
 			label="JField_Alt_Layout_Label"
 			description="JField_Alt_Component_Layout_Desc"
 			extension="com_content"
@@ -452,7 +487,7 @@
 			description="Content_Attribs_Allow_Ratings_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -466,7 +501,7 @@
 			description="Content_Attribs_Allow_Comments_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">Hide</option>
 			<option
@@ -487,7 +522,7 @@
 			description="JField_Metadata_Robots_Desc"
 			default="">
 			<option
-				value="">Use Global</option>
+				value="">USE_GLOBAL</option>
 			<option
 				value="0">index, follow</option>
 			<option

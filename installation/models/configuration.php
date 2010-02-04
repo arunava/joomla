@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: configuration.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -112,6 +112,7 @@ class JInstallationModelConfiguration extends JModel
 		$registry->setValue('sef', 1);
 		$registry->setValue('sef_rewrite', 0);
 		$registry->setValue('sef_suffix', 1);
+		$registry->setValue('unicodeslugs', 0);
 
 		/* Feed Settings */
 		$registry->setValue('feed_limit', 10);
@@ -199,7 +200,7 @@ class JInstallationModelConfiguration extends JModel
 
 		// Check for errors.
 		if (JError::isError($db)) {
-			$this->setError(JText::sprintf('WARNNOTCONNECTDB', $db->toString()));
+			$this->setError(JText::sprintf('WARNNOTCONNECTDB', (string)$db));
 			return false;
 		}
 
@@ -215,11 +216,11 @@ class JInstallationModelConfiguration extends JModel
 		$cryptpass = $crypt.':'.$salt;
 
 		// create the admin user
-		$installdate 	= date('Y-m-d H:i:s');
-		$nullDate 		= $db->getNullDate();
+		$installdate	= date('Y-m-d H:i:s');
+		$nullDate		= $db->getNullDate();
 		$query	= 'INSERT INTO #__users SET'
 				. ' id = 42'
-				. ', name = '.$db->quote('Administrator')
+				. ', name = '.$db->quote('Super User')
 				. ', username = '.$db->quote($options->admin_user)
 				. ', email = '.$db->quote($options->admin_email)
 				. ', password = '.$db->quote($cryptpass)

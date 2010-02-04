@@ -1,10 +1,9 @@
 <?php
 /**
- * @version		$Id: email.php 12774 2009-09-18 04:47:09Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -25,7 +24,6 @@ class JFormRuleEmail extends JFormRule
 	 * The regular expression.
 	 *
 	 * @var		string
-	 * @since	1.6
 	 */
 	protected $_regex = '[\w\.\-]+@\w+[\w\.\-]*?\.\w{1,4}';
 
@@ -40,12 +38,11 @@ class JFormRuleEmail extends JFormRule
 	public function test(&$field, &$values)
 	{
 		$return = false;
-		$name	= $field->attributes('name');
-		$check	= ($field->attributes('unique') == 'true' || $field->attributes('unique') == 'unique');
+		$name	= (string)$field->attributes()->name;
+		$check	= ((string)$field->attributes()->unique == 'true' || (string)$field->attributes()->unique == 'unique');
 
 		// If the field is empty and not required, the field is valid.
-		if ($field->attributes('required') != 'true')
-		{
+		if ((string)$field->attributes()->required != 'true') {
 			// Get the data for the field.
 			$value = array_key_exists($name, $values) ? $values[$name] : null;
 
@@ -56,9 +53,8 @@ class JFormRuleEmail extends JFormRule
 		}
 
 		// Check if we should test for uniqueness.
-		if ($check)
-		{
-			$key	= $field->attributes('field');
+		if ($check) {
+			$key	= (string)$field->attributes()->field;
 			$value	= isset($values[$key]) ? $values[$key] : 0;
 
 			// Check the rule.
@@ -84,9 +80,7 @@ class JFormRuleEmail extends JFormRule
 			if (parent::test($field, $values) && !$duplicate) {
 				$return = true;
 			}
-		}
-		else
-		{
+		} else {
 			// Test the value against the regular expression.
 			if (parent::test($field, $values)) {
 				$return = true;

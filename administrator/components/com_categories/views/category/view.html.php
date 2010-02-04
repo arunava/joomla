@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
@@ -27,7 +27,6 @@ class CategoriesViewCategory extends JView
 		$state		= $this->get('State');
 		$item		= $this->get('Item');
 		$form		= $this->get('Form');
-		$modules	= $this->get('Modules');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -57,20 +56,22 @@ class CategoriesViewCategory extends JView
 		$isNew		= ($this->item->id == 0);
 		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
 
-		JToolBarHelper::title(JText::_($isNew ? 'Categories_Category_Add_Title' : 'Categories_Category_Edit_Title'));
+		JToolBarHelper::title(JText::_($isNew ? 'Categories_Category_Add_Title' : 'Categories_Category_Edit_Title'), 'category-add');
 
-		// If an existing item, can save to a copy.
-		if (!$isNew) {
-			JToolBarHelper::custom('category.save2copy', 'copy.png', 'copy_f2.png', 'JToolbar_Save_as_copy', false);
-		}
 
 		// If not checked out, can save the item.
 		if ($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'))
 		{
-			JToolBarHelper::save('category.save');
-			JToolBarHelper::apply('category.apply');
+			JToolBarHelper::apply('category.apply', 'JToolbar_Apply');
+			JToolBarHelper::save('category.save', 'JToolbar_Save');
 			JToolBarHelper::addNew('category.save2new', 'JToolbar_Save_and_new');
 		}
+
+		// If an existing item, can save to a copy.
+		if (!$isNew) {
+			JToolBarHelper::custom('category.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_copy', false);
+		}
+
 		if (empty($this->item->id))  {
 			JToolBarHelper::cancel('category.cancel');
 		}
@@ -78,6 +79,6 @@ class CategoriesViewCategory extends JView
 			JToolBarHelper::cancel('category.cancel', 'JToolbar_Close');
 		}
 			JToolBarHelper::divider();
-			JToolBarHelper::help('screen.categories.edit');
+			JToolBarHelper::help('screen.categories.edit','JTOOLBAR_HELP');
 	}
 }

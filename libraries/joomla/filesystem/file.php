@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: file.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ jimport('joomla.filesystem.path');
  * A File handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -88,7 +88,7 @@ class JFile
 			}
 			return true;
 		} else {
-			// Initialize variables
+			// Initialise variables.
 			jimport('joomla.client.helper');
 			$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -112,7 +112,7 @@ class JFile
 			$ret = true;
 		} else {
 			if (!@ copy($src, $dest)) {
-				JError::raiseWarning(21, JText::_('Copy failed'));
+				JError::raiseWarning(21, JText::_('COPY_FAILED'));
 				return false;
 			}
 			$ret = true;
@@ -130,7 +130,7 @@ class JFile
 	 */
 	function delete($file)
 	{
-		// Initialize variables
+		// Initialise variables.
 		jimport('joomla.client.helper');
 		$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -195,7 +195,7 @@ class JFile
 
 		//Check src path
 		if (!is_readable($src)) { // && !is_writable($src)) { // file may not be writable by php if via ftp!
-			return JText::_('Cannot find source file');
+			return JText::_('CANNOT_FIND_SOURCE_FILE');
 		}
 
 		if($use_streams) {
@@ -206,7 +206,7 @@ class JFile
 			}
 			return true;
 		} else {
-			// Initialize variables
+			// Initialise variables.
 			jimport('joomla.client.helper');
 			$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -247,7 +247,7 @@ class JFile
 	 */
 	function read($filename, $incpath = false, $amount = 0, $chunksize = 8192, $offset = 0)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$data = null;
 		if ($amount && $chunksize > $amount) { $chunksize = $amount; }
 		if (false === $fh = fopen($filename, 'rb', $incpath)) {
@@ -304,7 +304,7 @@ class JFile
 			}
 			return true;
 		} else {
-			// Initialize variables
+			// Initialise variables.
 			jimport('joomla.client.helper');
 			$FTPOptions = JClientHelper::getCredentials('ftp');
 
@@ -353,7 +353,7 @@ class JFile
 			}
 			return true;
 		} else {
-			// Initialize variables
+			// Initialise variables.
 			jimport('joomla.client.helper');
 			$FTPOptions = JClientHelper::getCredentials('ftp');
 			$ret		= false;

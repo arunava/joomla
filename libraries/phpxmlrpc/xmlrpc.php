@@ -1,7 +1,7 @@
 <?php
 // by Edd Dumbill (C) 1999-2002
 // <edd@usefulinc.com>
-// $Id: xmlrpc.php 11845 2009-05-27 23:28:59Z robs $
+// $Id$
 
 // Copyright (c) 1999,2000,2002 Edd Dumbill.
 // All rights reserved.

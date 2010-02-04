@@ -5,8 +5,8 @@
 			name="enabled"
 			type="radio"
 			default="0"
-			label="Gather Search Statistics"
-			description="TIPSEARCHSTATISTICS">
+			label="Search_Config_Gather_Search_Statistics_Label"
+			description="Search_Config_Gather_Search_Statistics_Desc">
 			<option
 				value="0">JNo</option>
 			<option
@@ -17,8 +17,8 @@
 			name="show_date"
 			type="radio"
 			default="1"
-			label="Show Created Date"
-			description="TIPIFSETTOSHOWDATETIMECREATED">
+			label="Search_Config_Show_Created_Date_Label"
+			description="Search_Config_Show_Created_Date_Desc">
 			<option
 				value="0">Hide</option>
 			<option
@@ -40,9 +40,13 @@
 			component="com_search"
 			section="component">
 			<action
+				name="core.admin"
+				title="JAction_Admin"
+				description="JAction_Manage_Component_Desc" />
+			<action
 				name="core.manage"
 				title="JAction_Manage"
-				description="JAction_Manage_Desc" />
+				description="JAction_Manage_Component_Desc" />
 		</field>
 	</fields>
 </config>

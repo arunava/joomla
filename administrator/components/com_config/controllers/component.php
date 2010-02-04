@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: component.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_config
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -37,23 +37,24 @@ class ConfigControllerComponent extends JController
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('Invalid_Token'));
 
-		// Check if the user is authorized to do this.
-		// TODO: This permission need to change based on the extension.
-		if (!JFactory::getUser()->authorize('core.manage', 'com_config')) {
-			JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
-		}
-
 		// Set FTP credentials, if given.
 		jimport('joomla.client.helper');
 		JClientHelper::setCredentialsFromRequest('ftp');
 
-		// Initialize variables.
+		// Initialise variables.
 		$app	= JFactory::getApplication();
 		$model	= $this->getModel('Component');
 		$form	= $model->getForm();
 		$data	= JRequest::getVar('jform', array(), 'post', 'array');
 		$id		= JRequest::getInt('id');
 		$option	= JRequest::getWord('component');
+
+		// Check if the user is authorized to do this.
+		if (!JFactory::getUser()->authorize('core.admin', $option))
+		{
+			JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
+			return;
+		}
 
 		// Validate the posted data.
 		$return = $model->validate($form, $data);
@@ -83,7 +84,8 @@ class ConfigControllerComponent extends JController
 		// Attempt to save the configuration.
 		$data	= array(
 					'params'	=> $return,
-					'id'		=> $id
+					'id'		=> $id,
+					'option'	=> $option
 					);
 		$return = $model->save($data);
 

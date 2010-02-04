@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: list.php 12739 2009-09-13 10:30:03Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage		HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
  * Utility class for creating different select lists
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
  */
@@ -39,12 +39,12 @@ abstract class JHtmlList
 		}
 
 		if (!$javascript) {
-			$javascript = "onchange=\"javascript:if (document.forms.adminForm." . $name . ".options[selectedIndex].value!='') {document.imagelib.src='..$directory' + document.forms.adminForm." . $name . ".options[selectedIndex].value} else {document.imagelib.src='../images/blank.png'}\"";
+			$javascript = "onchange=\"javascript:if (document.forms.adminForm." . $name . ".options[selectedIndex].value!='') {document.imagelib.src='..$directory' + document.forms.adminForm." . $name . ".options[selectedIndex].value} else {document.imagelib.src='templates/bluestork/images/admin/blank.png'}\"";
 		}
 
 		jimport('joomla.filesystem.folder');
 		$imageFiles	= JFolder::files(JPATH_SITE.DS.$directory);
-		$images		= array(JHtml::_('select.option',  '', '- '. JText::_('Select Image') .' -'));
+		$images		= array(JHtml::_('select.option',  '', '- '. JText::_('SELECT_IMAGE') .' -'));
 		foreach ($imageFiles as $file) {
 			if (preg_match('#('.$extensions.')$#', $file)) {
 				$images[] = JHtml::_('select.option', $file);
@@ -65,12 +65,12 @@ abstract class JHtmlList
 	/**
 	 * Returns an array of options
 	 *
- 	 * @param	string $sql		SQL with ordering As value and 'name field' AS text
- 	 * @param	integer	$chop	The length of the truncated headline
- 	 *
- 	 * @return	array	An array of objects formatted for JHtml list processing
- 	 * @since	1.5
- 	 */
+	 * @param	string $sql		SQL with ordering As value and 'name field' AS text
+	 * @param	integer	$chop	The length of the truncated headline
+	 *
+	 * @return	array	An array of objects formatted for JHtml list processing
+	 * @since	1.5
+	 */
 	public static function genericordering($sql, $chop = '30')
 	{
 		$db = &JFactory::getDbo();
@@ -190,7 +190,7 @@ abstract class JHtmlList
 		;
 		$db->setQuery($query);
 		if ($nouser) {
-			$users[] = JHtml::_('select.option',  '0', '- '. JText::_('No User') .' -');
+			$users[] = JHtml::_('select.option',  '0', '- '. JText::_('No_User') .' -');
 			$users = array_merge($users, $db->loadObjectList());
 		} else {
 			$users = $db->loadObjectList();
@@ -221,7 +221,7 @@ abstract class JHtmlList
 	{
 		$pos = array();
 		if ($none) {
-			$pos[''] = JText::_('None');
+			$pos[''] = JText::_('JNone');
 		}
 		if ($center) {
 			$pos['center'] = JText::_('Center');

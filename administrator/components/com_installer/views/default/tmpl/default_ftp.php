@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default_ftp.php 12344 2009-06-24 11:28:31Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_installer
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -19,7 +19,7 @@ defined('_JEXEC') or die;
 		<p><?php echo JText::_($this->ftp->message); ?></p>
 	<?php endif; ?>
 
-	<table class="adminform nospace">
+	<table class="adminform">
 		<tbody>
 			<tr>
 				<td width="120">

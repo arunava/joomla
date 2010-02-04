@@ -1,11 +1,15 @@
 <?php
 /**
- * @version		$Id: response.php 12740 2009-09-13 15:36:44Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Environment
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+
+// No direct access
+defined('JPATH_BASE') or die();
 
 /**
  * Create the response global object
@@ -13,7 +17,7 @@
 $GLOBALS['_JRESPONSE'] = new stdClass();
 $GLOBALS['_JRESPONSE']->cachable = false;
 $GLOBALS['_JRESPONSE']->headers  = array();
-$GLOBALS['_JRESPONSE']->body	 = array();
+$GLOBALS['_JRESPONSE']->body	= array();
 
 /**
  * JResponse Class.
@@ -34,7 +38,7 @@ class JResponse
 	 * If $allow is set, sets the cachable state of the response.  Always returns current state.
 	 *
 	 * @param	boolean	$allow
-	 * @return	boolean 	True of browser caching should be allowed
+	 * @return	boolean	True of browser caching should be allowed
 	 * @since	1.5
 	 */
 	public static function allowCache($allow = null)
@@ -51,9 +55,9 @@ class JResponse
 	 * If $replace is true, replaces any headers already defined with that
 	 * $name.
 	 *
-	 * @param string 	$name
-	 * @param string 	$value
-	 * @param boolean 	$replace
+	 * @param string	$name
+	 * @param string	$value
+	 * @param boolean	$replace
 	 */
 	public static function setHeader($name, $value, $replace = false)
 	{
@@ -124,7 +128,7 @@ class JResponse
 		$GLOBALS['_JRESPONSE']->body = array((string) $content);
 	}
 
-	 /**
+	/**
 	 * Prepend content to the body content
 	 *
 	 * @param string $content
@@ -166,7 +170,7 @@ class JResponse
 	 * Sends all headers prior to returning the string
 	 *
 	 * @access public
-	 * @param boolean 	$compress	If true, compress the data
+	 * @param boolean	$compress	If true, compress the data
 	 * @return string
 	 */
 	public static function toString($compress = false)
@@ -180,10 +184,10 @@ class JResponse
 
 		if (self::allowCache() === false)
 		{
-			self::setHeader('Expires', 'Mon, 1 Jan 2001 00:00:00 GMT', true); 				// Expires in the past
-			self::setHeader('Last-Modified', gmdate("D, d M Y H:i:s") . ' GMT', true); 		// Always modified
+			self::setHeader('Expires', 'Mon, 1 Jan 2001 00:00:00 GMT', true);				// Expires in the past
+			self::setHeader('Last-Modified', gmdate("D, d M Y H:i:s") . ' GMT', true);		// Always modified
 			self::setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0', false);
-			self::setHeader('Pragma', 'no-cache'); 											// HTTP 1.0
+			self::setHeader('Pragma', 'no-cache');											// HTTP 1.0
 		}
 
 		self::sendHeaders();
@@ -226,8 +230,8 @@ class JResponse
 		$gzdata		= "\x1f\x8b\x08\x00\x00\x00\x00\x00";
 		$gzdata		.= gzcompress($data, $level);
 
-		$gzdata 	= substr($gzdata, 0, strlen($gzdata) - 4);
-		$gzdata 	.= pack("V",$crc) . pack("V", $size);
+		$gzdata	= substr($gzdata, 0, strlen($gzdata) - 4);
+		$gzdata	.= pack("V",$crc) . pack("V", $size);
 		*/
 
 		$gzdata = gzencode($data, $level);

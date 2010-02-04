@@ -1,10 +1,9 @@
 <?php
 /**
- * @version		$Id: formvalidator.php 12774 2009-09-18 04:47:09Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -15,7 +14,7 @@ defined('JPATH_BASE') or die;
  *
  * @package		Joomla.Framework
  * @subpackage	Forms
- * @version		1.6
+ * @since		1.6
  */
 class JFormValidator extends JObject
 {
@@ -25,28 +24,24 @@ class JFormValidator extends JObject
 	 * @param	array		$fields		An array of fields to validate.
 	 * @param	array		$data		The data to validate.
 	 * @return	mixed		Array on success, JException on error.
-	 * @since	1.6
 	 */
 	public function validate(&$fields, &$data)
 	{
 		$results = array();
 
-		foreach ($fields as $name => $field)
-		{
+		foreach ($fields as $name => $field) {
 			// Get the data for the field.
 			$value = array_key_exists($name, $data) ? $data[$name] : null;
 
 			// Check if the field is required.
-			if ($field->attributes('required') == 'true')
-			{
+			if ((string)$field->attributes()->required == 'true') {
 				// Check if the field value is empty.
-				if ($value === '')
-				{
+				if ($value === '') {
 					// The required field is empty!
-					if ($message = $field->attributes('message')) {
+					if ($message = (string)$field->attributes()->message) {
 						$results[] = new JException(JText::_($message), 0, E_WARNING);
 					} else {
-						$results[] = new JException(JText::sprintf('Libraries_Form_Validator_Field_Required', JText::_($field->attributes('name'))), 0, E_WARNING);
+						$results[] = new JException(JText::sprintf('Libraries_Form_Validator_Field_Required', JText::_((string)$field->attributes()->name)), 0, E_WARNING);
 					}
 
 					// We don't want to display more than one message per field so continue to the next one.
@@ -63,13 +58,12 @@ class JFormValidator extends JObject
 			}
 
 			// Check if the field is valid.
-			if ($return === false)
-			{
+			if ($return === false) {
 				// The field failed validation.
-				if ($message = $field->attributes('message')) {
+				if ($message = (string)$field->attributes()->message) {
 					$results[] = new JException(JText::_($message), 0, E_WARNING);
 				} else {
-					$results[] = new JException(JText::sprintf('Libraries_Form_Validator_Field_Invalid', $field->attributes('name')), 0, E_WARNING);
+					$results[] = new JException(JText::sprintf('Libraries_Form_Validator_Field_Invalid', (string)$field->attributes()->name), 0, E_WARNING);
 				}
 			}
 		}
@@ -83,20 +77,17 @@ class JFormValidator extends JObject
 	 * @param	object		$field		The field to validate.
 	 * @param	array		$values		The values to validate.
 	 * @return	mixed		Boolean on success, JException on error.
-	 * @since	1.6
 	 */
 	protected function _isValid(&$field, $values)
 	{
 		$result = true;
 
 		// Get the validator type.
-		if ($type = $field->attributes('validate'))
-		{
+		if ($type = (string)$field->attributes()->validate) {
 			// Get the validator class.
 			$class = 'JFormRule'.$type;
 
-			if (!class_exists($class))
-			{
+			if (!class_exists($class)) {
 				jimport('joomla.filesystem.path');
 
 				// Attempt to load the rule file.
@@ -122,7 +113,6 @@ class JFormValidator extends JObject
 	 *
 	 * @param	mixed		$new		A path or array of paths to add.
 	 * @return	array		The list of paths that have been added.
-	 * @since	1.6
 	 * @static
 	 */
 	public function addRulePath($new = null)

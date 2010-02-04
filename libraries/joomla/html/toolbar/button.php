@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: button.php 12590 2009-08-01 05:37:44Z severdia $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ defined('JPATH_BASE') or die;
  * The JButton is the base class for all JButton types
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -64,7 +64,7 @@ abstract class JButton extends JObject
 	public function render(&$definition)
 	{
 		/*
-		 * Initialize some variables
+		 * Initialise some variables
 		 */
 		$html	= null;
 		$id		= call_user_func_array(array(&$this, 'fetchId'), $definition);

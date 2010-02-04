@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: ordering.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -34,7 +34,6 @@ class JFormFieldOrdering extends JFormField
 	 */
 	protected function _getInput()
 	{
-
 		$size		= $this->_element->attributes('size');
 		$class		= $this->_element->attributes('class') ? 'class="'.$this->_element->attributes('class').'"' : 'class="inputbox"';
 		$disabled	= $this->_element->attributes('disabled') == 'true' ? true : false;
@@ -48,7 +47,6 @@ class JFormFieldOrdering extends JFormField
 					. ' FROM #__newsfeeds'
 					. ' WHERE catid = ' . $categoryId
 					. ' ORDER BY ordering';
-
 
 		// Handle a read only list.
 		if ($readonly) {

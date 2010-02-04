@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: element.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Parameter
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ defined('JPATH_BASE') or die;
  * The JElement is the base class for all JElement types
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */

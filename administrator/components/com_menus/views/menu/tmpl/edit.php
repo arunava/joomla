@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: edit.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_menus
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -30,7 +30,7 @@ JHtml::_('behavior.formvalidation');
 
 <form action="<?php JRoute::_('index.php?option=com_menus'); ?>" method="post" name="adminForm" id="item-form">
 <div class="width-40">
-	<fieldset>
+	<fieldset class="adminform">
 		<legend><?php echo JText::_('Menus_Menu_Details');?></legend>
 
 				<?php echo $this->form->getLabel('title'); ?>

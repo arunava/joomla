@@ -1,10 +1,9 @@
 <?php
 /**
- * @version		$Id: edit_groups.php 12986 2009-10-01 14:07:56Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -66,11 +65,11 @@ window.addEvent('domready', function(){
 			}.bind(this));
 		}.bind(i));
 
-		// Initialize the widget.
+		// Initialise the widget.
 		if (i.getProperty('checked')) {
 			i.fireEvent('click');
 		}
 	});
 });
 </script>
-<?php echo JHtml::_('access.usergroups', 'groups', array_keys($this->groups)); ?>
+<?php echo JHtml::_('access.usergroups', 'jform[groups]', array_keys($this->groups)); ?>

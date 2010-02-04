@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: helper.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_whosonline
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,16 +14,16 @@ class modWhosonlineHelper
 {
 	// show online count
 	function getOnlineCount() {
-	    $db		  = &JFactory::getDbo();
+		$db		= &JFactory::getDbo();
 		$sessions = null;
 		// calculate number of guests and users
-		$result      = array();
+		$result	= array();
 		$user_array  = 0;
 		$guest_array = 0;
-
-		$query = 'SELECT guest, usertype, client_id' .
-					' FROM #__session' .
-					' WHERE client_id = 0';
+		$query	= $db->getQuery(true);
+		$query->select('guest, usertype, client_id');
+		$query->from('#__session');
+		$query->where('client_id = 0');
 		$db->setQuery($query);
 		$sessions = $db->loadObjectList();
 
@@ -32,10 +32,10 @@ class modWhosonlineHelper
 		}
 
 		if (count($sessions)) {
-		    foreach ($sessions as $session) {
-			    // if guest increase guest count by 1
+			foreach ($sessions as $session) {
+				// if guest increase guest count by 1
 				if ($session->guest == 1 && !$session->usertype) {
-				    $guest_array ++;
+					$guest_array ++;
 				}
 				// if member increase member count by 1
 				if ($session->guest == 0) {
@@ -52,16 +52,15 @@ class modWhosonlineHelper
 
 	// show online member names
 	function getOnlineUserNames() {
-	    $db		= &JFactory::getDbo();
+		$db		= JFactory::getDbo();
 		$result	= null;
-
-		$query = 'SELECT DISTINCT a.username' .
-				 ' FROM #__session AS a' .
-				 ' WHERE client_id = 0' .
-				 ' AND a.guest = 0';
+		$query	= $db->getQuery(true);
+		$query->select('a.username, a.time, a.userid, a.usertype, a.client_id');
+		$query->from('#__session AS a');
+		$query->where('a.userid != 0');
+		$query->group('a.userid');
 		$db->setQuery($query);
 		$result = $db->loadObjectList();
-
 		if ($db->getErrorNum()) {
 			JError::raiseWarning(500, $db->stderr());
 		}

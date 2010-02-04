@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: toolbar.php 12638 2009-08-13 20:11:03Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ JLoader::register('JButton', dirname(__FILE__).DS.'toolbar'.DS.'button.php');
 /**
  * ToolBar handler
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
  */
@@ -65,17 +65,14 @@ class JToolBar extends JObject
 	}
 
 	/**
-	 * Returns a reference to a global JToolBar object, only creating it if it
+	 * Returns the global JToolBar object, only creating it if it
 	 * doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $toolbar = & JToolBar::getInstance($name);</pre>
 	 *
 	 * @access	public
 	 * @param	string		$name  The name of the toolbar.
 	 * @return	JToolBar	The JToolBar object.
 	 */
-	public static function &getInstance($name = 'toolbar')
+	public static function getInstance($name = 'toolbar')
 	{
 		static $instances;
 
@@ -197,7 +194,7 @@ class JToolBar extends JObject
 	 * @return	object
 	 * @since	1.5
 	 */
-	public function &loadButtonType($type, $new = false)
+	public function loadButtonType($type, $new = false)
 	{
 		$signature = md5($type);
 		if (isset ($this->_buttons[$signature]) && $new === false) {
@@ -219,7 +216,7 @@ class JToolBar extends JObject
 				$dirs = array ();
 			}
 
-			$file = JFilterInput::clean(str_replace('_', DS, strtolower($type)).'.php', 'path');
+			$file = JFilterInput::getInstance()->clean(str_replace('_', DS, strtolower($type)).'.php', 'path');
 
 			jimport('joomla.filesystem.path');
 			if ($buttonFile = JPath::find($dirs, $file)) {

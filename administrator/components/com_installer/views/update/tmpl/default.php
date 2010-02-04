@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default.php 12344 2009-06-24 11:28:31Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_installer
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -23,14 +23,14 @@ defined('_JEXEC') or die;
 	<table class="adminlist" cellspacing="1">
 		<thead>
 			<tr>
-				<th class="title" width="10px"><?php echo JText::_('Num'); ?></th>
-				<th class="title" nowrap="nowrap"><?php echo JText::_('Extension'); ?></th>
-				<th class="title"><?php echo JText::_('Install Type') ?></th>
-				<th class="title"><?php echo JText::_('Extension Type') ?></th>
-				<th class="title" width="10%" align="center"><?php echo JText::_('Version'); ?></th>
-				<th class="title" ><?php echo JText::_('Folder') ?></th>
-				<th class="title" ><?php echo JText::_('Client') ?></th>
-				<th class="title" width="25%"><?php echo JText::_('Details URL'); ?></th>
+				<th width="10"><?php echo JText::_('Num'); ?></th>
+				<th class="nowrap"><?php echo JText::_('Extension'); ?></th>
+				<th><?php echo JText::_('INSTALL_TYPE') ?></th>
+				<th><?php echo JText::_('EXTENSION_TYPE') ?></th>
+				<th width="10%" class="center"><?php echo JText::_('Version'); ?></th>
+				<th><?php echo JText::_('Folder') ?></th>
+				<th><?php echo JText::_('Client') ?></th>
+				<th width="25%"><?php echo JText::_('DETAILS_URL'); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -48,12 +48,12 @@ defined('_JEXEC') or die;
 		</tbody>
 	</table>
 	<?php else : ?>
-		<?php echo JText::_('ERRNOUPDATES'); ?>
+		<p class="nowarning"><?php echo JText::_('ERRNOUPDATES'); ?></p>
 	<?php endif; ?>
 
-	<input type="hidden" name="task" value="manage" />
+	<input type="hidden" name="view" value="update" />
+	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="option" value="com_installer" />
-	<input type="hidden" name="type" value="update" />
 	<?php echo JHTML::_('form.token'); ?>
 </form>

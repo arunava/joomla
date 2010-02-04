@@ -1,17 +1,20 @@
 <?php
 /**
- * @version		$Id: arrayhelper.php 12746 2009-09-13 22:04:27Z hackwar $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Utilities
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * JArrayHelper is an array utility class for doing all sorts of odds and ends with arrays.
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Utilities
  * @since		1.5
  */
@@ -48,7 +51,7 @@ class JArrayHelper
 	 *
 	 * @static
 	 * @param	array	$array		The array to map.
-	 * @param	string	$calss 		Name of the class to create
+	 * @param	string	$calss		Name of the class to create
 	 * @return	object	The object mapped from the given array
 	 * @since	1.5
 	 */
@@ -179,7 +182,7 @@ class JArrayHelper
 	 */
 	function getValue(&$array, $name, $default=null, $type='')
 	{
-		// Initialize variables
+		// Initialise variables.
 		$result = null;
 
 		if (isset ($array[$name])) {

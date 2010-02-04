@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: componentlayouts.php 12881 2009-09-28 07:23:19Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -35,8 +35,8 @@ class JElementComponentLayouts extends JElementList
 		// Load template entries for each menuid
 		$db			=& JFactory::getDBO();
 		$query		= 'SELECT template'
-			. ' FROM #__templates_menu'
-			. ' WHERE client_id = 0 AND menuid = 0';
+			. ' FROM #__template_styles'
+			. ' WHERE client_id = 0 AND home = 1';
 		$db->setQuery($query);
 		$template	= $db->loadResult();
 

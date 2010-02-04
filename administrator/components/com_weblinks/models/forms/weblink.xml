@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<!-- $Id: weblink.xml 13109 2009-10-08 18:15:33Z ian $ -->
+	<!-- $Id$ -->
 <form>
 	<fields>
 		<field
@@ -9,17 +9,6 @@
 			default="0"
 			required="true"
 			readonly="true"/>
-
-		<field
-			id="catid"
-			name="catid"
-			type="Categories"
-			extension="com_weblinks"
-			label="Weblinks_Category_Label"
-			description="Weblinks_Category_Desc"
-			class="inputbox">
-			<option>JOption_No_Category</option>
-		</field>
 
 		<field
 			id="title"
@@ -41,6 +30,17 @@
 			size="40"
 			label="Weblinks_Alias_Label"
 			description="Weblinks_Alias_Desc"/>
+
+		<field
+			id="catid"
+			name="catid"
+			type="category"
+			extension="com_weblinks"
+			label="Weblinks_Category_Label"
+			description="Weblinks_Category_Desc"
+			class="inputbox">
+			<option>JOption_No_Category</option>
+		</field>
 
 		<field
 			id="url"
@@ -136,18 +136,23 @@
 			label="Weblinks_Ordering_Label"
 			description="Weblinks_Ordering_Desc"/>
 
-		<field
-			id="archived"
-			name="archived"
-			type="radio"
+			<field
+			name="access"
+			type="accesslevel"
+			label="JField_Access_Label"
+			description="JField_Access_Desc"
 			class="inputbox"
-			default=""
-			label="Weblinks_Archived_Label"
-			description="Weblinks_Archived_Desc">
-			<option
-				value="0">JNo</option>
-			<option
-				value="1">JYes</option>
+			size="1"
+			default="" />
+
+		<field
+			name="language"
+			type="contentlanguage"
+			label="JField_Language_Label"
+			description="JField_Weblinks_Language_Desc"
+			class="inputbox"
+			default="">
+			<option value="">JOption_Default_Language</option>
 		</field>
 
 		<field

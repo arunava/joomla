@@ -1,15 +1,14 @@
 <?php
 /**
- * @version		$Id: languages.php 12880 2009-09-28 07:18:31Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
  * Languages Model Class
@@ -23,10 +22,9 @@ class LanguagesModelLanguages extends JModelList
 	/**
 	 * Model context string.
 	 *
-	 * @access	protected
 	 * @var		string
 	 */
-	 protected $_context = 'com_languages.languages';
+	protected $_context = 'com_languages.languages';
 
 	/**
 	 * Method to auto-populate the model state.
@@ -40,9 +38,8 @@ class LanguagesModelLanguages extends JModelList
 	 */
 	protected function _populateState()
 	{
-		// Initialize variables.
-		$app		= &JFactory::getApplication('administrator');
-		$params		= JComponentHelper::getParams('com_languages');
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
 		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
@@ -51,21 +48,12 @@ class LanguagesModelLanguages extends JModelList
 		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
 		$this->setState('filter.published', $published);
 
-		// List state information.
-		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->getCfg('list_limit'));
-		$this->setState('list.limit', $limit);
-
-		$limitstart = $app->getUserStateFromRequest($this->_context.'.limitstart', 'limitstart', 0);
-		$this->setState('list.limitstart', $limitstart);
-
-		$orderCol	= $app->getUserStateFromRequest($this->_context.'.ordercol', 'filter_order', 'a.title');
-		$this->setState('list.ordering', $orderCol);
-
-		$orderDirn	= $app->getUserStateFromRequest($this->_context.'.orderdirn', 'filter_order_Dir', 'asc');
-		$this->setState('list.direction', $orderDirn);
-
 		// Load the parameters.
+		$params		= JComponentHelper::getParams('com_languages');
 		$this->setState('params', $params);
+
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
@@ -82,14 +70,10 @@ class LanguagesModelLanguages extends JModelList
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('list.start');
-		$id	.= ':'.$this->getState('list.limit');
-		$id	.= ':'.$this->getState('list.ordering');
-		$id	.= ':'.$this->getState('list.direction');
 		$id	.= ':'.$this->getState('filter.search');
 		$id	.= ':'.$this->getState('filter.published');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**
@@ -101,7 +85,8 @@ class LanguagesModelLanguages extends JModelList
 	protected function _getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		// Select all fields from the users table.
 		$query->select($this->getState('list.select', 'a.*'));
@@ -111,20 +96,19 @@ class LanguagesModelLanguages extends JModelList
 		$published = $this->getState('filter.published');
 		if (is_numeric($published)) {
 			$query->where('a.published = '.(int) $published);
-		}
-		else if ($published === '') {
+		} else if ($published === '') {
 			$query->where('(a.published IN (0, 1))');
 		}
 
 		// Filter by search in title
 		$search = $this->getState('filter.search');
 		if (!empty($search)) {
-			$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%', false);
+			$search = $db->Quote('%'.$db->getEscaped($search, true).'%', false);
 			$query->where('(a.title LIKE '.$search.')');
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		return $query;
 	}

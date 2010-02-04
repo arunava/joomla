@@ -3,7 +3,7 @@
  * @version		$Id: featured.php 12450 2009-07-05 03:45:24Z eddieajau $
  * @package		Joomla.Site
  * @subpackage	com_content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,61 +17,79 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
 $pageClass = $this->params->get('pageclass_sfx');
 ?>
 
-<div class="jarticles-featured<?php echo $pageClass;?>">
+<div class="blog-featured<?php echo $pageClass;?>">
 
 <?php if ($this->params->get('show_page_title', 1)) : ?>
-<h2>
-	<?php echo $this->escape($this->params->get('page_title')); ?>
-</h2>
+<h1>
+	<?php if ($this->escape($this->params->get('page_heading'))) :?>
+		<?php echo $this->escape($this->params->get('page_heading')); ?>
+	<?php else : ?>
+		<?php echo $this->escape($this->params->get('page_title')); ?>
+	<?php endif; ?>
+</h1>
 <?php endif; ?>
-
-<!-- Leading Articles -->
+<?php $leadingcount=0 ; ?>
 <?php if (!empty($this->lead_items)) : ?>
-<ol class="jarticles-lead">
+<div class="items-leading">
 	<?php foreach ($this->lead_items as &$item) : ?>
-	<li<?php echo $item->state == 0 ? ' class="system-unpublished"' : null; ?>>
+		<div class="leading-<?php echo $leadingcount; ?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
+			<?php
+				$this->item = &$item;
+				echo $this->loadTemplate('item');
+			?>
+		</div>
 		<?php
-			$this->item = &$item;
-			echo $this->loadTemplate('item');
+			$leadingcount=$leadingcount +1;
 		?>
-	</li>
 	<?php endforeach; ?>
-</ol>
+</div>
 <?php endif; ?>
-
-<!-- Intro'd Articles -->
-
+<?php
+	$introcount=(count($this->intro_items));
+	$counter=0;
+?>
 <?php if (!empty($this->intro_items)) : ?>
-<ol class="jarticles-intro jcols-<?php echo (int) $this->columns;?>">
 	<?php foreach ($this->intro_items as $key => &$item) : ?>
-	<li class="jcolumn-<?php echo (((int)$key - 1) % (int) $this->columns)+1;?><?php echo $item->state == 0 ? ' system-unpublished"' : null; ?>">
+	<?php
+		$key= ($key-$leadingcount)+1;
+		$rowcount=( ((int)$key-1) %	(int) $this->columns) +1;
+		$row = $counter / $this->columns ;
+
+		if($rowcount==1) : ?>
+	<div class="items-row cols-<?php echo (int) $this->columns;?> <? echo 'row-'.$row ; ?>">
+	<?php endif; ?>
+
+	<div class="item column-<?php echo $rowcount;?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
 		<?php
 			$this->item = &$item;
 			echo $this->loadTemplate('item');
 		?>
-	</li>
+	</div>
+	<?php $counter=$counter +1; ?>
+	<?php if (($rowcount == $this->columns) or ($counter ==$introcount)): ?>
+				<span class="row-separator"></span>
+				</div>
+
+			<?php endif; ?>
 	<?php endforeach; ?>
-</ol>
 
 <?php endif; ?>
 
 <?php if (!empty($this->link_items)) : ?>
-	<div class="jarticles-more">
-	<?php echo $this->loadTemplate('links'); ?>
+	<div class="items-more">
+		<?php echo $this->loadTemplate('links'); ?>
 	</div>
 <?php endif; ?>
 
-
 <?php if ($this->params->def('show_pagination', 2) == 1  || ($this->params->get('show_pagination') == 2 && $this->pagination->get('pages.total') > 1)) : ?>
-	<div class="jpagination">
-		<?php echo $this->pagination->getPagesLinks(); ?>
-		<?php if ($this->params->def('show_pagination_results', 1)) : ?>
-			<div class="jpag-results">
-				<?php echo $this->pagination->getPagesCounter(); ?>
-			</div>
-		<?php endif; ?>
-	</div>
+		<div class="pagination">
+				<?php  if ($this->params->def('show_pagination_results', 1)) : ?>
+						<p class="counter">
+								<?php  echo $this->pagination->getPagesCounter(); ?>
+						</p>
+				<?php  endif; ?>
+				<?php echo $this->pagination->getPagesLinks(); ?>
+		</div>
 <?php endif; ?>
 
 </div>
-

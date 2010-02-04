@@ -1,22 +1,20 @@
 <?php
 /**
- * @version		$Id: access.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Access
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
 jimport('joomla.access.rules');
-jimport('joomla.database.query');
 
 /**
  * Class that handles all access authorization routines.
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	User
  * @since		1.6
  */
@@ -94,21 +92,19 @@ class JAccess
 		$db = JFactory::getDbo();
 
 		// Build the database query to get the rules for the asset.
-		$query	= new JQuery;
+		$query	= $db->getQuery(true);
 		$query->select($recursive ? 'b.rules' : 'a.rules');
 		$query->from('#__assets AS a');
 
 		// If the asset identifier is numeric assume it is a primary key, else lookup by name.
 		if (is_numeric($asset)) {
 			$query->where('a.id = '.(int) $asset);
-		}
-		else {
+		} else {
 			$query->where('a.name = '.$db->quote($asset));
 		}
 
 		// If we want the rules cascading up to the global asset node we need a self-join.
-		if ($recursive)
-		{
+		if ($recursive) {
 			$query->leftJoin('#__assets AS b ON b.lft <= a.lft AND b.rgt >= a.rgt');
 			$query->order('b.lft');
 		}
@@ -140,7 +136,7 @@ class JAccess
 		$db = JFactory::getDbo();
 
 		// Build the database query to get the rules for the asset.
-		$query	= new JQuery;
+		$query	= $db->getQuery(true);
 		$query->select($recursive ? 'b.id' : 'a.id');
 		$query->from('#__user_usergroup_map AS map');
 		$query->where('map.user_id = '.(int) $userId);
@@ -159,10 +155,43 @@ class JAccess
 		JArrayHelper::toInteger($result);
 		if (empty($result)) {
 			$result = array('1');
-		}
-		else {
+		} else {
 			$result = array_unique($result);
 		}
+
+		return $result;
+	}
+
+	/**
+	 * Method to return a list of user Ids contained in a Group
+	 *
+	 * @param	int		The group Id
+	 * @param	boolean	Recursively include all child groups (optional)
+	 *
+	 * @return	array
+	 * @todo	This method should move somewhere else.
+	 */
+	public function getUsersByGroup($groupId, $recursive = false)
+	{
+		// Get a database object.
+		$db	= JFactory::getDbo();
+
+		$test = $recursive ? '>=' : '=';
+		// First find the users contained in the group
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
+		$query->select('DISTINCT(user_id)');
+		$query->from('#__usergroups as ug1');
+		$query->join('INNER','#__usergroups AS ug2 ON ug2.lft'.$test.'ug1.lft AND ug1.rgt'.$test.'ug2.rgt');
+		$query->join('INNER','#__user_usergroup_map AS m ON ug2.id=m.group_id');
+		$query->where('ug1.id='.$db->Quote($groupId));
+
+		$db->setQuery($query);
+
+		$result = $db->loadResultArray();
+
+		// Clean up any NULL values, just in case
+		JArrayHelper::toInteger($result);
 
 		return $result;
 	}
@@ -180,13 +209,12 @@ class JAccess
 		$groups = self::getGroupsByUser($userId);
 
 		// Only load the view levels once.
-		if (empty(self::$viewLevels))
-		{
+		if (empty(self::$viewLevels)) {
 			// Get a database object.
 			$db	= JFactory::getDBO();
 
 			// Build the base query.
-			$query	= new JQuery;
+			$query	= $db->getQuery(true);
 			$query->select('id, rules');
 			$query->from('`#__viewlevels`');
 
@@ -194,29 +222,18 @@ class JAccess
 			$db->setQuery((string) $query);
 
 			// Build the view levels array.
-			foreach ($db->loadAssocList() as $level)
-			{
+			foreach ($db->loadAssocList() as $level) {
 				self::$viewLevels[$level['id']] = (array) json_decode($level['rules']);
 			}
 		}
 
-		// Initialize the authorised array.
+		// Initialise the authorised array.
 		$authorised = array(1);
-		$config = new JConfig;
 
 		// Find the authorized levels.
-		foreach (self::$viewLevels as $level => $rule)
-		{
-			foreach ($rule as $id)
-			{
-				// Root user check.
-				if ($userId == $config->root_user) {
-					$authorised[] = $level;
-					break;
-				}
-				// Check to see if the user is mapped to the level.
-				else if (($id < 0) && (($id * -1) == $userId))
-				{
+		foreach (self::$viewLevels as $level => $rule) {
+			foreach ($rule as $id) {
+				if (($id < 0) && (($id * -1) == $userId)) {
 					$authorised[] = $level;
 					break;
 				}
@@ -244,16 +261,12 @@ class JAccess
 	{
 		$actions = array();
 
-		if (is_file(JPATH_ADMINISTRATOR.'/components/'.$component.'/access.xml'))
-		{
+		if (is_file(JPATH_ADMINISTRATOR.'/components/'.$component.'/access.xml')) {
 			$xml = simplexml_load_file(JPATH_ADMINISTRATOR.'/components/'.$component.'/access.xml');
 
-			foreach ($xml->children() as $child)
-			{
-				if ($section == (string) $child['name'])
-				{
-					foreach ($child->children() as $action)
-					{
+			foreach ($xml->children() as $child) {
+				if ($section == (string) $child['name']) {
+					foreach ($child->children() as $action) {
 						$actions[] = (object) array('name' => (string) $action['name'], 'title' => (string) $action['title'], 'description' => (string) $action['description']);
 					}
 

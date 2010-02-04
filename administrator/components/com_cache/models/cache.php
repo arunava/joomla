@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: cache.php 12113 2009-06-16 12:08:12Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,7 +22,6 @@ class CacheModelCache extends JModel
 	/**
 	 * An Array of CacheItems indexed by cache group ID
 	 *
-	 * @access protected
 	 * @var Array
 	 */
 	protected $_data = null;
@@ -76,7 +75,6 @@ class CacheModelCache extends JModel
 	 * Parse $path for cache file groups
 	 *
 	 * @return	array
-	 * @access	protected
 	 */
 	protected function _parse($path = null)
 	{
@@ -103,7 +101,6 @@ class CacheModelCache extends JModel
 	/**
 	 * Method to get cache data
 	 *
-	 * @access public
 	 * @return array
 	 */
 	public function getData()
@@ -118,7 +115,6 @@ class CacheModelCache extends JModel
 	/**
 	 * Method to get client data
 	 *
-	 * @access public
 	 * @return array
 	 */
 	public function getClient()
@@ -129,7 +125,6 @@ class CacheModelCache extends JModel
 	/**
 	 * Get the number of current Cache Groups
 	 *
-	 * @access public
 	 * @return int
 	 */
 	public function getTotal()
@@ -144,7 +139,6 @@ class CacheModelCache extends JModel
 	/**
 	 * Method to get a pagination object for the cache
 	 *
-	 * @access public
 	 * @return integer
 	 */
 	public function getPagination()
@@ -192,9 +186,9 @@ class CacheModelCache extends JModel
  */
 class CacheItem
 {
-	public $group 	= '';
-	public $size 	= 0;
-	public $count 	= 0;
+	public $group = '';
+	public $size = 0;
+	public $count = 0;
 
 	public function __construct($group)
 	{

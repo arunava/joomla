@@ -1,15 +1,13 @@
 <?php
 /**
- * @version		$Id: edit.php 13046 2009-10-03 19:50:46Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_menus
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
-jimport('joomla.html.pane');
-$pane = &JPane::getInstance('sliders');
 
 // Include the component HTML helpers.
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
@@ -17,6 +15,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 // Load the tooltip behavior.
 JHtml::_('behavior.tooltip');
 JHtml::_('behavior.formvalidation');
+JHTML::_('behavior.modal');
 ?>
 
 <script type="text/javascript">
@@ -32,8 +31,8 @@ JHtml::_('behavior.formvalidation');
 
 <form action="<?php JRoute::_('index.php?option=com_menus'); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
 
-<div class="width-50 fltlft">
-	<fieldset>
+<div class="width-60 fltlft">
+	<fieldset class="adminform">
 		<legend><?php echo JText::_('Menus_Item_Details');?></legend>
 
 			<?php echo $this->form->getLabel('title'); ?>
@@ -50,6 +49,11 @@ JHtml::_('behavior.formvalidation');
 				<?php echo $this->form->getInput('link'); ?>
 			<?php } ?>
 
+			<?php if ($this->item->type !=='url'){ ?>
+				<?php echo $this->form->getLabel('link'); ?>
+				<?php echo $this->form->getInput('link'); ?>
+			<?php } ?>
+
 			<?php echo $this->form->getLabel('published'); ?>
 			<?php echo $this->form->getInput('published'); ?>
 
@@ -62,44 +66,38 @@ JHtml::_('behavior.formvalidation');
 			<?php echo $this->form->getLabel('parent_id'); ?>
 			<?php echo $this->form->getInput('parent_id'); ?>
 
-			<?php if ($this->item->type !=='url'){ ?>
-				<?php echo $this->form->getLabel('link'); ?>
-				<?php echo $this->form->getInput('link'); ?>
-			<?php } ?>
-
 			<?php echo $this->form->getLabel('browserNav'); ?>
 			<?php echo $this->form->getInput('browserNav'); ?>
 
 			<?php echo $this->form->getLabel('home'); ?>
 			<?php echo $this->form->getInput('home'); ?>
 
-			<?php echo $this->form->getLabel('template_id'); ?>
-			<?php echo $this->form->getInput('template_id'); ?>
+			<?php echo $this->form->getLabel('template_style_id'); ?>
+			<?php echo $this->form->getInput('template_style_id'); ?>
 
-			<?php echo $this->loadTemplate('required'); ?>
+
 	</fieldset>
 </div>
 
-<div class="width-50 fltrt">
-<?php echo $pane->startPane('menu-pane'); ?>
+<div class="width-40 fltrt">
+	<?php echo JHtml::_('sliders.start','menu-sliders-'.$this->item->id); ?>
+	<?php //Load  parameters.
+			echo $this->loadTemplate('options'); ?>
 
-	<?php //get the menu parameters that are automatically set but may be modified.
-		echo $this->loadTemplate('options'); ?>
+		<div class="clr"></div>
 
-	<div class="clr"></div>
-
-	<?php //sliders for module selection
-		 echo $pane->startPanel(JText::_('Menu_Item_Module_Assignment'), 'module-options'); ?>
+		<?php if (!empty($this->modules)) : ?>
+			<?php echo JHtml::_('sliders.panel',JText::_('Menu_Item_Module_Assignment'), 'module-options'); ?>
 			<fieldset>
 				<?php echo $this->loadTemplate('modules'); ?>
 			</fieldset>
-			<?php echo $pane->endPanel(); ?>
+		<?php endif; ?>
 
-	<?php echo $pane->endPane(); ?>
+	<?php echo JHtml::_('sliders.end'); ?>
 </div>
 	<input type="hidden" name="task" value="" />
 	<?php echo $this->form->getInput('component_id'); ?>
 	<?php echo JHtml::_('form.token'); ?>
 </form>
-<div class="clr"></div>
+
 

@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: items.php 12686 2009-09-10 14:17:11Z pentacle $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -47,7 +47,8 @@ class MenusControllerItems extends JController
 	 */
 	function &getModel($name = 'Item', $prefix = 'MenusModel')
 	{
-		return parent::getModel($name, $prefix, array('ignore_request' => true));
+		$model = parent::getModel($name, $prefix, array('ignore_request' => true));
+		return $model;
 	}
 
 	/**
@@ -127,7 +128,7 @@ class MenusControllerItems extends JController
 	{
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize variables.
+		// Initialise variables.
 		$pks	= JRequest::getVar('cid', null, 'post', 'array');
 		$model	= &$this->getModel();
 

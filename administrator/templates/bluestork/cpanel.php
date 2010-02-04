@@ -1,15 +1,16 @@
 <?php
 /**
- * @version		$Id: cpanel.php 12576 2009-07-27 21:09:50Z severdia $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	templates.bluestork
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
+// No direct access.
 defined('_JEXEC') or die;
-$app	= &JFactory::getApplication();
+
+$app = JFactory::getApplication();
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo  $this->language; ?>" lang="<?php echo  $this->language; ?>" dir="<?php echo  $this->direction; ?>" id="minwidth" >
@@ -44,18 +45,6 @@ $app	= &JFactory::getApplication();
 <?php if ($this->params->get('highContrast')) : ?>
 	<link rel="stylesheet" type="text/css" href="templates/<?php echo  $this->template ?>/css/highcontrast.css" />
 <?php endif; ?>
-
-
-
-<?php if (JModuleHelper::isEnabled('menu')) : ?>
-	<script type="text/javascript" src="templates/<?php echo  $this->template ?>/js/menu.js"></script>
-<?php endif; ?>
-<script type="text/javascript">
-	//For IE6 - Background flicker fix
-	try {
-	  document.execCommand('BackgroundImageCache', false, true);
-	} catch(e) {}
-</script>
 
 </head>
 <body id="minwidth-body">

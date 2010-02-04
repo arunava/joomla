@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: controller.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Site
- * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @subpackage	com_contact
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,7 +17,7 @@ jimport('joomla.application.component.controller');
  *
  * @static
  * @package		Joomla.Site
- * @subpackage	Contact
+ * @subpackage	com_contact
  * @since 1.5
  */
 class ContactController extends JController
@@ -29,8 +29,10 @@ class ContactController extends JController
 	{
 		$document = &JFactory::getDocument();
 
-		$viewName	= JRequest::getVar('view', 'category', 'default', 'cmd');
-		$viewType	= $document->getType();
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'categories');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
 
 		// interceptors to support legacy urls
 		switch ($this->getTask())
@@ -46,25 +48,26 @@ class ContactController extends JController
 				break;
 		}
 
-		// Set the default view name from the Request
-		$view = &$this->getView($viewName, $viewType);
+			// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
+		{
+			// Get the model for the view.
+			$model	= &$this->getModel($vName);
 
-		// Push a model into the view
-		$model	= &$this->getModel($viewName);
-		if (!JError::isError($model)) {
+			// Push the model into the view (as default).
 			$view->setModel($model, true);
-		}
+			$view->setLayout($lName);
 
+			// Push document object into the view.
+			$view->assignRef('document', $document);
 		// Workaround for the item view
-		if ($viewName == 'contact')
+		if ($vName == 'contact')
 		{
 			$modelCat	= &$this->getModel('category');
 			$view->setModel($modelCat);
 		}
-
-		// Display the view
-		$view->assign('error', $this->getError());
-		$view->display();
+			$view->display();
+		}
 	}
 
 	/**
@@ -78,7 +81,7 @@ class ContactController extends JController
 		// Check for request forgeries
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
-		// Initialize some variables
+		// Initialise some variables
 		$app		= &JFactory::getApplication();
 		$db			= & JFactory::getDbo();
 		$SiteName	= $app->getCfg('sitename');
@@ -89,9 +92,9 @@ class ContactController extends JController
 		$email		= JRequest::getVar('email',			'',			'post');
 		$subject	= JRequest::getVar('subject',		$default,	'post');
 		$body		= JRequest::getVar('text',			'',			'post');
-		$emailCopy	= JRequest::getInt('email_copy', 	0,			'post');
+		$emailCopy	= JRequest::getInt('email_copy',	0,			'post');
 
-		 // load the contact details
+		// load the contact details
 		$model		= &$this->getModel('contact');
 
 		// query options
@@ -143,12 +146,12 @@ class ContactController extends JController
 		$pparams = &$app->getParams('com_contact');
 		if (!$pparams->get('custom_reply'))
 		{
-			$MailFrom 	= $app->getCfg('mailfrom');
-			$FromName 	= $app->getCfg('fromname');
+			$MailFrom	= $app->getCfg('mailfrom');
+			$FromName	= $app->getCfg('fromname');
 
 			// Prepare email body
 			$prefix = JText::sprintf('ENQUIRY_TEXT', JURI::base());
-			$body 	= $prefix."\n".$name.' <'.$email.'>'."\r\n\r\n".stripslashes($body);
+			$body	= $prefix."\n".$name.' <'.$email.'>'."\r\n\r\n".stripslashes($body);
 
 			$mail = JFactory::getMailer();
 
@@ -169,9 +172,9 @@ class ContactController extends JController
 			// check whether email copy function activated
 			if ($emailCopy && $emailcopyCheck)
 			{
-				$copyText 		= JText::sprintf('Copy of:', $contact->name, $SiteName);
-				$copyText 		.= "\r\n\r\n".$body;
-				$copySubject 	= JText::_('Copy of:')." ".$subject;
+				$copyText		= JText::sprintf('Copy of:', $contact->name, $SiteName);
+				$copyText		.= "\r\n\r\n".$body;
+				$copySubject	= JText::_('Copy of:')." ".$subject;
 
 				$mail = JFactory::getMailer();
 
@@ -207,7 +210,7 @@ class ContactController extends JController
 	 */
 	function vcard()
 	{
-		// Initialize some variables
+		// Initialise some variables
 		$app	= &JFactory::getApplication();
 		$db		= &JFactory::getDbo();
 		$user	= &JFactory::getUser();
@@ -228,9 +231,9 @@ class ContactController extends JController
 		if (($params->get('allow_vcard', 0)) && (in_array($contact->access, $groups)))
 		{
 			// Parse the contact name field and build the nam information for the vcard.
-			$firstname 	= null;
+			$firstname	= null;
 			$middlename = null;
-			$surname 	= null;
+			$surname	= null;
 
 			// How many parts do we have?
 			$parts = explode(' ', $contact->name);
@@ -316,7 +319,7 @@ class ContactController extends JController
 		$pparams	= &$app->getParams('com_contact');
 
 		// check for session cookie
-		$sessionCheck 	= $pparams->get('validate_session', 1);
+		$sessionCheck	= $pparams->get('validate_session', 1);
 		$sessionName	= $session->getName();
 		if  ($sessionCheck) {
 			if (!isset($_COOKIE[$sessionName])) {
@@ -328,7 +331,7 @@ class ContactController extends JController
 		// Determine banned e-mails
 		$configEmail	= $pparams->get('banned_email', '');
 		$paramsEmail	= $params->get('banned_mail', '');
-		$bannedEmail 	= $configEmail . ($paramsEmail ? ';'.$paramsEmail : '');
+		$bannedEmail	= $configEmail . ($paramsEmail ? ';'.$paramsEmail : '');
 
 		// Prevent form submission if one of the banned text is discovered in the email field
 		if (false === $this->_checkText($email, $bannedEmail)) {
@@ -339,7 +342,7 @@ class ContactController extends JController
 		// Determine banned subjects
 		$configSubject	= $pparams->get('banned_subject', '');
 		$paramsSubject	= $params->get('banned_subject', '');
-		$bannedSubject 	= $configSubject . ($paramsSubject ? ';'.$paramsSubject : '');
+		$bannedSubject	= $configSubject . ($paramsSubject ? ';'.$paramsSubject : '');
 
 		// Prevent form submission if one of the banned text is discovered in the subject field
 		if (false === $this->_checkText($subject, $bannedSubject)) {
@@ -350,7 +353,7 @@ class ContactController extends JController
 		// Determine banned Text
 		$configText		= $pparams->get('banned_text', '');
 		$paramsText		= $params->get('banned_text', '');
-		$bannedText 	= $configText . ($paramsText ? ';'.$paramsText : '');
+		$bannedText	= $configText . ($paramsText ? ';'.$paramsText : '');
 
 		// Prevent form submission if one of the banned text is discovered in the text field
 		if (false === $this->_checkText($body, $bannedText)) {

@@ -1,33 +1,52 @@
 <?php
 /**
- * @version		$Id: search.php 13031 2009-10-02 21:54:22Z louis $
- * @package  Joomla
- * @subpackage	Search
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
+defined('_JEXEC') or die;
+
 /**
+ * Search component helper.
+ *
  * @package		Joomla.Administrator
- * @subpackage	Search
+ * @subpackage	com_search
  */
 class SearchHelper
 {
-
-
 	/**
 	 * Configure the Linkbar.
 	 *
 	 * @param	string	The name of the active view.
+	 * @since	1.6
 	 */
 	public static function addSubmenu($vName)
 	{
-		JSubMenuHelper::addEntry(
-			JText::_('Search_Submenu'),
-			'index.php?option=com_search',
-			$vName == 'view'
+		// Not required.
+	}
+
+	/**
+	 * Gets a list of the actions that can be performed.
+	 *
+	 * @return	JObject
+	 */
+	public static function getActions()
+	{
+		$user	= JFactory::getUser();
+		$result	= new JObject;
+		$assetName = 'com_search';
+
+		$actions = array(
+			'core.admin', 'core.manage', 'core.create', 'core.edit', 'core.edit.state', 'core.delete'
 		);
 
+		foreach ($actions as $action) {
+			$result->set($action,	$user->authorise($action, $assetName));
+		}
+
+		return $result;
 	}
 
 	function santiseSearchWord(&$searchword, $searchphrase)
@@ -43,7 +62,7 @@ class SearchHelper
 			include $ignoreFile;
 		}
 
-	 	// check for words to ignore
+		// check for words to ignore
 		$aterms = explode(' ', JString::strtolower($searchword));
 
 		// first case is single ignored word
@@ -73,14 +92,14 @@ class SearchHelper
 
 		// limit searchword to 20 characters
 		if (JString::strlen($searchword) > 20) {
-			$searchword 	= JString::substr($searchword, 0, 19);
-			$restriction 	= true;
+			$searchword		= JString::substr($searchword, 0, 19);
+			$restriction	= true;
 		}
 
 		// searchword must contain a minimum of 3 characters
 		if ($searchword && JString::strlen($searchword) < 3) {
-			$searchword 	= '';
-			$restriction 	= true;
+			$searchword		= '';
+			$restriction	= true;
 		}
 
 		return $restriction;

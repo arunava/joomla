@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: install.php 12856 2009-09-26 01:16:09Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,6 +12,9 @@ jimport('joomla.application.component.model');
 jimport('joomla.installer.installer');
 jimport('joomla.installer.helper');
 
+// Import library dependencies
+require_once dirname(__FILE__).DS.'extension.php';
+
 /**
  * Extension Manager Install Model
  *
@@ -19,7 +22,7 @@ jimport('joomla.installer.helper');
  * @subpackage	com_installer
  * @since		1.5
  */
-class InstallerModelInstall extends JModel
+class InstallerModelInstall extends InstallerModel
 {
 	/**
 	 * @var object JTable object
@@ -36,7 +39,7 @@ class InstallerModelInstall extends JModel
 	 *
 	 * @var		string
 	 */
-	 protected $_context = 'com_installer.install';
+	protected $_context = 'com_installer.install';
 
 	/**
 	 * Method to auto-populate the model state.
@@ -49,14 +52,19 @@ class InstallerModelInstall extends JModel
 	 */
 	protected function _populateState()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app = &JFactory::getApplication('administrator');
 
 		// Remember the 'Install from Directory' path.
 		$path = $app->getUserStateFromRequest($this->_context.'.install_directory', 'install_directory', $app->getCfg('config.tmp_path'));
 		$this->setState('install.directory', $path);
+		parent::_populateState();
 	}
 
+	/**
+	 * Install an extension from either folder, url or upload
+	 * @return boolean result of install
+	 */
 	function install()
 	{
 		$this->setState('action', 'install');
@@ -76,14 +84,14 @@ class InstallerModelInstall extends JModel
 				break;
 
 			default:
-				$this->setState('message', 'No Install Type Found');
+				$this->setState('message', 'JNo_Install_Type_Found');
 				return false;
 				break;
 		}
 
 		// Was the package unpacked?
 		if (!$package) {
-			$this->setState('message', 'Unable to find install package');
+			$this->setState('message', 'UNABLE_TO_FIND_INSTALL_PACKAGE');
 			return false;
 		}
 
@@ -124,7 +132,8 @@ class InstallerModelInstall extends JModel
 	}
 
 	/**
-	 * @param string The class name for the installer
+	 * Works out an installation package from a HTTP upload
+	 * @return package definition or false on failure
 	 */
 	function _getPackageFromUpload()
 	{
@@ -145,7 +154,7 @@ class InstallerModelInstall extends JModel
 
 		// If there is no uploaded file, we have a problem...
 		if (!is_array($userfile)) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('No file selected'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('JNo_file_selected'));
 			return false;
 		}
 
@@ -158,7 +167,7 @@ class InstallerModelInstall extends JModel
 
 		// Build the appropriate paths
 		$config = &JFactory::getConfig();
-		$tmp_dest 	= $config->getValue('config.tmp_path').DS.$userfile['name'];
+		$tmp_dest	= $config->getValue('config.tmp_path').DS.$userfile['name'];
 		$tmp_src	= $userfile['tmp_name'];
 
 		// Move uploaded file
@@ -175,7 +184,7 @@ class InstallerModelInstall extends JModel
 	 * Install an extension from a directory
 	 *
 	 * @static
-	 * @return boolean True on success
+	 * @return Package details or false on failure
 	 * @since 1.0
 	 */
 	function _getPackageFromFolder()
@@ -186,7 +195,7 @@ class InstallerModelInstall extends JModel
 
 		// Did you give us a valid directory?
 		if (!is_dir($p_dir)) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Please enter a package directory'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('PLEASE_ENTER_A_PACKAGE_DIRECTORY'));
 			return false;
 		}
 
@@ -195,7 +204,7 @@ class InstallerModelInstall extends JModel
 
 		// Did you give us a valid package?
 		if (!$type) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Path does not have a valid package'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('PATH_DOES_NOT_HAVE_A_VALID_PACKAGE'));
 			return false;
 		}
 
@@ -211,7 +220,7 @@ class InstallerModelInstall extends JModel
 	 * Install an extension from a URL
 	 *
 	 * @static
-	 * @return boolean True on success
+	 * @return Package details or false on failure
 	 * @since 1.5
 	 */
 	function _getPackageFromUrl()
@@ -224,7 +233,7 @@ class InstallerModelInstall extends JModel
 
 		// Did you give us a URL?
 		if (!$url) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Please enter a URL'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('PLEASE_ENTER_A_URL'));
 			return false;
 		}
 
@@ -233,12 +242,12 @@ class InstallerModelInstall extends JModel
 
 		// Was the package downloaded?
 		if (!$p_file) {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('Invalid URL'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('INVALID_URL'));
 			return false;
 		}
 
 		$config = &JFactory::getConfig();
-		$tmp_dest 	= $config->getValue('config.tmp_path');
+		$tmp_dest	= $config->getValue('config.tmp_path');
 
 		// Unpack the downloaded package file
 		$package = JInstallerHelper::unpack($tmp_dest.DS.$p_file);

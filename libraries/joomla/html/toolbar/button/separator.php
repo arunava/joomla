@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: separator.php 12590 2009-08-01 05:37:44Z severdia $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a button separator
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -29,7 +29,7 @@ class JButtonSeparator extends JButton
 
 	public function render(&$definition)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$class	= null;
 		$style	= null;
 

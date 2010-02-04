@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: default.php 12794 2009-09-20 18:51:14Z severdia $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_admin
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

@@ -1,32 +1,35 @@
 <?php
 /**
- * @version		$Id: helper.php 11952 2009-06-01 03:21:19Z robs $
- * @package		Joomla.Administrator
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-/** ensure this file is being included by a parent file */
+// No direct access.
 defined('_JEXEC') or die;
 
-class modFeedHelper
+/**
+ * @package		Joomla.Administrator
+ * @subpackage	mod_feed
+ */
+abstract class modFeedHelper
 {
-	function render($params)
+	public static function render($params)
 	{
 		// module params
 		$rssurl				= $params->get('rssurl', '');
 		$rssitems			= $params->get('rssitems', 5);
-		$rssdesc				= $params->get('rssdesc', 1);
+		$rssdesc			= $params->get('rssdesc', 1);
 		$rssimage			= $params->get('rssimage', 1);
-		$rssitemdesc			= $params->get('rssitemdesc', 1);
+		$rssitemdesc		= $params->get('rssitemdesc', 1);
 		$words				= $params->def('word_count', 0);
 		$rsstitle			= $params->get('rsstitle', 1);
 		$rssrtl				= $params->get('rssrtl', 0);
-		$moduleclass_sfx		= $params->get('moduleclass_sfx', '');
+		$moduleclass_sfx	= $params->get('moduleclass_sfx', '');
 
 		//  get RSS parsed object
 		$options = array();
-		$options['rssUrl'] 		= $rssurl;
+		$options['rssUrl']		= $rssurl;
 		if ($params->get('cache')) {
 			$options['cache_time']  = $params->get('cache_time', 15) ;
 			$options['cache_time']	*= 60;
@@ -48,7 +51,7 @@ class modFeedHelper
 			$image['title'] = $rssDoc->get_image_title();
 
 			//image handling
-			$iUrl 	= isset($image['url']) ? $image['url'] : null;
+			$iUrl	= isset($image['url']) ? $image['url'] : null;
 			$iTitle = isset($image['title']) ? $image['title'] : null;
 
 			// items
@@ -126,7 +129,7 @@ class modFeedHelper
 					if ($rssitemdesc)
 					{
 						// item description
-						$text = html_entity_decode($currItem->get_description());
+						$text = html_entity_decode($currItem->get_description(), ENT_COMPAT, 'UTF-8');
 						$text = str_replace('&apos;', "'", $text);
 
 						// word limit check
@@ -143,7 +146,7 @@ class modFeedHelper
 							}
 						}
 						?>
-						<div style="text-align: <?php echo $rssrtl ? 'right': 'left'; ?> ! important">
+						<div style="text-align: <?php echo $rssrtl ? 'right': 'left'; ?> !important">
 							<?php echo $text; ?>
 						</div>
 						<?php

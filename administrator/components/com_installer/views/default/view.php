@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.php 12344 2009-06-24 11:28:31Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -30,11 +30,11 @@ class InstallerViewDefault extends JView
 		/*
 		 * Set toolbar items for the page
 		 */
-		JToolBarHelper::title(JText::_('Extension Manager'), 'install.png');
+		JToolBarHelper::title(JText::_('EXTENSION_MANAGER'), 'install.png');
 
 		// Document
 		$document = & JFactory::getDocument();
-		$document->setTitle(JText::_('Extension Manager').' : '.JText::_($this->getName()));
+		$document->setTitle(JText::_('EXTENSION_MANAGER').' : '.JText::_($this->getName()));
 
 		// Get data from the model
 		$state		= &$this->get('State');

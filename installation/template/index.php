@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: index.php 12576 2009-07-27 21:09:50Z severdia $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,7 +24,7 @@ defined('_JEXEC') or die;
 
 		<script type="text/javascript">
 			window.addEvent('domready', function(){ new Accordion($$('h3.moofx-toggler'), $$('div.moofx-slider'), {onActive: function(toggler, i) { toggler.addClass('moofx-toggler-down'); },onBackground: function(toggler, i) { toggler.removeClass('moofx-toggler-down'); },duration: 300,opacity: false, alwaysHide:true, show: 1}); });
-  		</script>
+		</script>
 	</head>
 	<body>
 		<div id="header1">
@@ -47,7 +47,7 @@ defined('_JEXEC') or die;
 			</div>
 		</div>
 		<div id="copyright"><a href="http://www.joomla.org" target="_blank">Joomla</a>
-			<?php echo JText::_('ISFREESOFTWARE') ?> <br />
+			<?php echo JText::_('ISFREESOFTWARE') ?>
 		</div>
 	</body>
 </html>

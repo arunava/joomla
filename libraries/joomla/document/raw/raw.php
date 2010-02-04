@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: raw.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Document
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,6 +17,8 @@ defined('JPATH_BASE') or die;
  * @subpackage	Document
  * @since		1.5
  */
+
+jimport('joomla.document.document');
 
 class JDocumentRAW extends JDocument
 {
@@ -42,9 +44,9 @@ class JDocumentRAW extends JDocument
 	 * Render the document.
 	 *
 	 * @access public
-	 * @param boolean 	$cache		If true, cache the output
+	 * @param boolean	$cache		If true, cache the output
 	 * @param array		$params		Associative array of attributes
-	 * @return 	The rendered data
+	 * @return	The rendered data
 	 */
 	function render($cache = false, $params = array())
 	{

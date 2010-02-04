@@ -1,15 +1,16 @@
 <?php
 /**
- * @version		$Id: index.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	templates.bluestork
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
+// No direct access.
 defined('_JEXEC') or die;
-$app	= &JFactory::getApplication();
+
+$app = JFactory::getApplication();
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo  $this->language; ?>" lang="<?php echo  $this->language; ?>" dir="<?php echo  $this->direction; ?>" id="minwidth" >
@@ -45,18 +46,6 @@ $app	= &JFactory::getApplication();
 	<link rel="stylesheet" type="text/css" href="templates/<?php echo  $this->template ?>/css/highcontrast.css" />
 <?php endif; ?>
 
-
-
-<?php if (JModuleHelper::isEnabled('menu')) : ?>
-	<script type="text/javascript" src="templates/<?php echo  $this->template ?>/js/menu.js"></script>
-<?php endif; ?>
-<script type="text/javascript">
-	//For IE6 - Background flicker fix
-	try {
-	  document.execCommand('BackgroundImageCache', false, true);
-	} catch(e) {}
-</script>
-
 </head>
 <body id="minwidth-body">
 	<div id="border-top" class="h_blue">
@@ -80,7 +69,7 @@ $app	= &JFactory::getApplication();
 		<div class="border">
 			<div class="padding">
 				<div id="toolbar-box">
-   			<div class="t">
+				<div class="t">
 				<div class="t">
 					<div class="t"></div>
 				</div>
@@ -95,17 +84,17 @@ $app	= &JFactory::getApplication();
 					<div class="b"></div>
 				</div>
 			</div>
-  		</div>
-   		<div class="clr"></div>
+		</div>
+		<div class="clr"></div>
 		<?php if (!JRequest::getInt('hidemainmenu')): ?>
 		<jdoc:include type="modules" name="submenu" style="rounded" id="submenu-box" />
 		<?php endif; ?>
 		<jdoc:include type="message" />
 		<div id="element-box">
 			<div class="t">
-		 		<div class="t">
+				<div class="t">
 					<div class="t"></div>
-		 		</div>
+				</div>
 			</div>
 			<div class="m">
 				<jdoc:include type="component" />
@@ -116,7 +105,7 @@ $app	= &JFactory::getApplication();
 					<div class="b"></div>
 				</div>
 			</div>
-   		</div>
+		</div>
 		<noscript>
 			<?php echo  JText::_('WARNJAVASCRIPT') ?>
 		</noscript>

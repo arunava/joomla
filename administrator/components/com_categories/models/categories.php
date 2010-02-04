@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: categories.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -24,7 +24,7 @@ class CategoriesModelCategories extends JModelList
 	 *
 	 * @var		string
 	 */
-	public $_context = 'com_categories.articles';
+	public $_context = 'com_categories';
 
 	/**
 	 * Method to auto-populate the model state.
@@ -33,32 +33,23 @@ class CategoriesModelCategories extends JModelList
 	 */
 	protected function _populateState()
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
+
+		$extension = $app->getUserStateFromRequest($this->_context.'.filter.extension', 'extension');
+		$this->setState('filter.extension', $extension);
+		if (!empty($extension)) $this->_context.=".$extension";
 
 		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$extension = $app->getUserStateFromRequest($this->_context.'.filter.extension', 'extension');
-		$this->setState('filter.extension', $extension);
-
 		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
 		$this->setState('filter.access', $access);
 
-		$published 	= $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
 		$this->setState('filter.published', $published);
 
-		// List state information
-		$limit 		= $app->getUserStateFromRequest('global.list.limit', 'limit', $app->getCfg('list_limit'));
-		$this->setState('list.limit', $limit);
-
-		$limitstart = $app->getUserStateFromRequest($this->_context.'.limitstart', 'limitstart', 0);
-		$this->setState('list.limitstart', $limitstart);
-
-		$orderCol	= $app->getUserStateFromRequest($this->_context.'.ordercol', 'filter_order', 'a.lft');
-		$this->setState('list.ordering', $orderCol);
-
-		$orderDirn	= $app->getUserStateFromRequest($this->_context.'.orderdirn', 'filter_order_Dir', 'asc');
-		$this->setState('list.direction', $orderDirn);
+		// List state information.
+		parent::_populateState('a.lft', 'asc');
 	}
 
 	/**
@@ -75,15 +66,11 @@ class CategoriesModelCategories extends JModelList
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('list.start');
-		$id	.= ':'.$this->getState('list.limit');
-		$id	.= ':'.$this->getState('list.ordering');
-		$id	.= ':'.$this->getState('list.direction');
 		$id	.= ':'.$this->getState('filter.search');
 		$id	.= ':'.$this->getState('filter.extension');
 		$id	.= ':'.$this->getState('filter.published');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**
@@ -94,7 +81,8 @@ class CategoriesModelCategories extends JModelList
 	function _getListQuery($resolveFKs = true)
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		// Select the required fields from the table.
 		$query->select(
@@ -121,7 +109,7 @@ class CategoriesModelCategories extends JModelList
 
 		// Filter by extension
 		if ($extension = $this->getState('filter.extension')) {
-			$query->where('a.extension = '.$this->_db->quote($extension));
+			$query->where('a.extension = '.$db->quote($extension));
 		}
 
 		// Filter by access level.
@@ -133,8 +121,7 @@ class CategoriesModelCategories extends JModelList
 		$published = $this->getState('filter.published');
 		if (is_numeric($published)) {
 			$query->where('a.published = ' . (int) $published);
-		}
-		else if ($published === '') {
+		} else if ($published === '') {
 			$query->where('(a.published IN (0, 1))');
 		}
 
@@ -143,21 +130,17 @@ class CategoriesModelCategories extends JModelList
 		if (!empty($search)) {
 			if (stripos($search, 'id:') === 0) {
 				$query->where('a.id = '.(int) substr($search, 3));
-			}
-			else if (stripos($search, 'author:') === 0)
-			{
-				$search = $this->_db->Quote('%'.$this->_db->getEscaped(substr($search, 7), true).'%');
-				$query->where('ua.name LIKE '.$search.' OR ua.username LIKE '.$search);
-			}
-			else
-			{
-				$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%');
-				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
+			} else if (stripos($search, 'author:') === 0) {
+				$search = $db->Quote('%'.$db->getEscaped(substr($search, 7), true).'%');
+				$query->where('(ua.name LIKE '.$search.' OR ua.username LIKE '.$search.')');
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('(a.title LIKE '.$search.' OR a.alias LIKE '.$search.')');
 			}
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;

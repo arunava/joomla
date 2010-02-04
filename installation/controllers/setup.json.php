@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: setup.json.php 12772 2009-09-18 02:23:53Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -41,7 +41,7 @@ class JInstallationControllerSetup extends JController
 
 		// Create a response body.
 		$r = new JObject();
-		$r->text = 'Sample Data Loaded Successfully.';
+		$r->text = JText::_('Instl_Success_Sample_data_loaded');
 
 		// Send the response.
 		$this->sendResponse($r);

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: profiler.php 12740 2009-09-13 15:36:44Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Error
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -14,7 +14,7 @@ defined('JPATH_BASE') or die;
  * Utility class to assist in the process of benchmarking the execution
  * of sections of code to understand where time is being spent.
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Error
  * @since		1.0
  */
@@ -75,16 +75,13 @@ class JProfiler extends JObject
 	}
 
 	/**
-	 * Returns a reference to the global Profiler object, only creating it
+	 * Returns the global Profiler object, only creating it
 	 * if it doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $browser = & JProfiler::getInstance($prefix);</pre>
 	 *
 	 * @param	string		Prefix used to distinguish profiler objects.
 	 * @return	JProfiler	The Profiler object.
 	 */
-	public static function &getInstance($prefix = '')
+	public static function getInstance($prefix = '')
 	{
 		static $instances;
 
@@ -164,7 +161,7 @@ class JProfiler extends JObject
 		}
 		else
 		{
-			// Initialize variables
+			// Initialise variables.
 			$output	= array();
 			$pid	= getmypid();
 

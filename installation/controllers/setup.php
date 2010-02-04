@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: setup.php 12687 2009-09-10 14:25:03Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -108,8 +108,8 @@ class JInstallationControllerSetup extends JController
 		// Get the database model.
 		$database = & $this->getModel('Database', 'JInstallationModel', array('dbo' => null));
 
-		// Attempt to initialize the database.
-		$return = $database->initialize($vars);
+		// Attempt to initialise the database.
+		$return = $database->initialise($vars);
 
 		// Ensure a language was set.
 		if (!$return) {

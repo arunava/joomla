@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: controller.php 12268 2009-06-22 00:05:11Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,8 +22,10 @@ class WeblinksController extends JController
 	 */
 	function display()
 	{
+		require_once JPATH_COMPONENT.DS.'helpers'.DS.'weblinks.php';
+
 		// Get the document object.
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 
 		// Set the default view name and format from the Request.
 		$vName		= JRequest::getWord('view', 'weblinks');
@@ -46,7 +48,6 @@ class WeblinksController extends JController
 			$view->display();
 
 			// Load the submenu.
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'weblinks.php';
 			WeblinksHelper::addSubmenu($vName);
 		}
 	}

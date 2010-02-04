@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: directory.php 12472 2009-07-06 00:44:52Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -27,10 +27,10 @@ abstract class JHtmlDirectory
 	public static function writable($writable)
 	{
 		if ($writable) {
-			return '<b><span style="color:green;">'. JText::_('Admin_Writable') .'</span></b>';
+			return '<span class="writable">'. JText::_('Admin_Writable') .'</span>';
 		}
 		else {
-			return '<b><span style="color:red;">'. JText::_('Admin_Unwritable') .'</span></b>';
+			return '<span class="unwritable">'. JText::_('Admin_Unwritable') .'</span>';
 		}
 	}
 

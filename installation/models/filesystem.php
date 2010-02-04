@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: filesystem.php 12490 2009-07-06 11:57:32Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Installation
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -106,7 +106,7 @@ class JInstallationModelFilesystem extends JModel
 
 		// Return an error if no root path was found.
 		if ($rootPath === false) {
-			$this->setError(JText::_('Unable to autodetect the FTP root folder.'));
+			$this->setError(JText::_('UNABLE_TO_AUTODETECT_THE_FTP_ROOT_FOLDER'));
 			return false;
 		}
 
@@ -400,7 +400,7 @@ class JInstallationModelFilesystem extends JModel
 		// Get the options as a JObject for easier handling.
 		$options = JArrayHelper::toObject($options, 'JObject');
 
-		// Initialize variables.
+		// Initialise variables.
 		$ftpFlag = false;
 		$ftpRoot = $options->ftpRoot;
 
@@ -476,7 +476,7 @@ class JInstallationModelFilesystem extends JModel
 		$app	= &JFactory::getApplication();
 		$ret = false;
 
-		// Initialize variables
+		// Initialise variables.
 		$ftpFlag = true;
 		$ftpRoot = $app->getCfg('ftp_root');
 

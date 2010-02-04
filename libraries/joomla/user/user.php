@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: user.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	User
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,7 +16,7 @@ jimport('joomla.html.parameter');
 /**
  * User class.  Handles all application interaction with a user
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	User
  * @since		1.5
  */
@@ -107,31 +107,31 @@ class JUser extends JObject
 	 * @since	1.6
 	 * @var		array
 	 */
-	var $groups;
+	var $groups = array();
 
 	/**
 	 * Description
 	 * @var boolean
 	 */
-	var $guest     = null;
+	var $guest = null;
 
 	/**
 	 * User parameters
 	 * @var object
 	 */
-	protected $_params 	= null;
+	protected $_params	= null;
 
 	/**
 	 * Authorised access levels
 	 * @var array
 	 */
-	protected $_authLevels 	= null;
+	protected $_authLevels	= null;
 
 	/**
 	 * Authorised access actions
 	 * @var array
 	 */
-	protected $_authActions 	= null;
+	protected $_authActions	= null;
 
 	/**
 	 * Error message
@@ -143,7 +143,7 @@ class JUser extends JObject
 	/**
 	* Constructor activating the default information of the language
 	*
-	* @access 	protected
+	* @access	protected
 	*/
 	function __construct($identifier = 0)
 	{
@@ -165,18 +165,15 @@ class JUser extends JObject
 	}
 
 	/**
-	 * Returns a reference to the global User object, only creating it if it
+	 * Returns the global User object, only creating it if it
 	 * doesn't already exist.
 	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $user = &JUser::getInstance($id);</pre>
-	 *
-	 * @access 	public
-	 * @param 	int 	$id 	The user to load - Can be an integer or string - If string, it is converted to ID automatically.
-	 * @return 	JUser  			The User object.
-	 * @since 	1.5
+	 * @access	public
+	 * @param	int	$id	The user to load - Can be an integer or string - If string, it is converted to ID automatically.
+	 * @return	JUser			The User object.
+	 * @since	1.5
 	 */
-	static function &getInstance($id = 0)
+	static function getInstance($id = 0)
 	{
 		static $instances;
 
@@ -206,9 +203,9 @@ class JUser extends JObject
 	/**
 	 * Method to get a parameter value
 	 *
-	 * @access 	public
-	 * @param 	string 	$key 		Parameter key
-	 * @param 	mixed	$default	Parameter default value
+	 * @access	public
+	 * @param	string	$key		Parameter key
+	 * @param	mixed	$default	Parameter default value
 	 * @return	mixed				The value or the default if it did not exist
 	 * @since	1.5
 	 */
@@ -220,9 +217,9 @@ class JUser extends JObject
 	/**
 	 * Method to set a parameter
 	 *
-	 * @access 	public
-	 * @param 	string 	$key 	Parameter key
-	 * @param 	mixed	$value	Parameter value
+	 * @access	public
+	 * @param	string	$key	Parameter key
+	 * @param	mixed	$value	Parameter value
 	 * @return	mixed			Set parameter value
 	 * @since	1.5
 	 */
@@ -234,9 +231,9 @@ class JUser extends JObject
 	/**
 	 * Method to set a default parameter if it does not exist
 	 *
-	 * @access 	public
-	 * @param 	string 	$key 	Parameter key
-	 * @param 	mixed	$value	Parameter value
+	 * @access	public
+	 * @param	string	$key	Parameter key
+	 * @param	mixed	$value	Parameter value
 	 * @return	mixed			Set parameter value
 	 * @since	1.5
 	 */
@@ -257,7 +254,7 @@ class JUser extends JObject
 	 * Method to check JUser object authorisation against an access control
 	 * object and optionally an access extension object
 	 *
-	 * @access 	public
+	 * @access	public
 	 * @param	string	The name of the action to check for permission.
 	 * @param	string	The name of the asset on which to perform the action.
 	 * @return	boolean	True if authorised
@@ -291,7 +288,7 @@ class JUser extends JObject
 	/**
 	 * Pass through method to the table for setting the last visit date
 	 *
-	 * @access 	public
+	 * @access	public
 	 * @param	int		$timestamp	The timestamp, defaults to 'now'
 	 * @return	boolean	True on success
 	 * @since	1.5
@@ -299,7 +296,7 @@ class JUser extends JObject
 	function setLastVisit($timestamp=null)
 	{
 		// Create the user table object
-		$table 	= &$this->getTable();
+		$table	= &$this->getTable();
 		$table->load($this->id);
 
 		return $table->setLastVisit($timestamp);
@@ -312,13 +309,13 @@ class JUser extends JObject
 	 * file is the same as the usertype. The functionals has a static variable to store the parameters
 	 * setup file base path. You can call this function statically to set the base path if needed.
 	 *
-	 * @access 	public
+	 * @access	public
 	 * @param	boolean	If true, loads the parameters setup file. Default is false.
 	 * @param	path	Set the parameters setup file base path to be used to load the user parameters.
 	 * @return	object	The user parameters object
 	 * @since	1.5
 	 */
-	function &getParameters($loadsetupfile = false, $path = null)
+	function getParameters($loadsetupfile = false, $path = null)
 	{
 		static $parampath;
 
@@ -349,7 +346,7 @@ class JUser extends JObject
 	/**
 	 * Method to get the user parameters
 	 *
-	 * @access 	public
+	 * @access	public
 	 * @param	object	The user parameters object
 	 * @since	1.5
 	 */
@@ -365,39 +362,38 @@ class JUser extends JObject
 	 * it instantiates. You can call this function statically to set the table name if
 	 * needed.
 	 *
-	 * @access 	public
+	 * @access	public
 	 * @param	string	The user table name to be used
 	 * @param	string	The user table prefix to be used
 	 * @return	object	The user table object
 	 * @since	1.5
 	 */
-	function &getTable($type = null, $prefix = 'JTable')
+	function getTable($type = null, $prefix = 'JTable')
 	{
 		static $tabletype;
 
 		//Set the default tabletype;
 		if (!isset($tabletype)) {
-			$tabletype['name'] 		= 'user';
+			$tabletype['name']		= 'user';
 			$tabletype['prefix']	= 'JTable';
 		}
 
 		//Set a custom table type is defined
 		if (isset($type)) {
-			$tabletype['name'] 		= $type;
+			$tabletype['name']		= $type;
 			$tabletype['prefix']	= $prefix;
 		}
 
 		// Create the user table object
-		$table 	= &JTable::getInstance($tabletype['name'], $tabletype['prefix']);
-		return $table;
+		return JTable::getInstance($tabletype['name'], $tabletype['prefix']);
 	}
 
 	/**
 	 * Method to bind an associative array of data to a user object
 	 *
-	 * @access 	public
-	 * @param 	array 	$array 	The associative array to bind to the object
-	 * @return 	boolean 		True on success
+	 * @access	public
+	 * @param	array	$array	The associative array to bind to the object
+	 * @return	boolean		True on success
 	 * @since 1.5
 	 */
 	function bind(& $array)
@@ -426,8 +422,7 @@ class JUser extends JObject
 
 			// Set the registration timestamp
 
-			$now = &JFactory::getDate();
-			$this->set('registerDate', $now->toMySQL());
+			$this->set('registerDate', JFactory::getDate()->toMySQL());
 
 			// Check that username is not greater than 150 characters
 			$username = $this->get('username');
@@ -475,7 +470,7 @@ class JUser extends JObject
 			$params	= '';
 			$this->_params->bind($array['params']);
 			if (is_array($array['params'])) {
-				$params	= $this->_params->toString();
+				$params	= (string)$this->_params;
 			} else {
 				$params = $array['params'];
 			}
@@ -498,16 +493,16 @@ class JUser extends JObject
 	/**
 	 * Method to save the JUser object to the database
 	 *
-	 * @access 	public
-	 * @param 	boolean $updateOnly Save the object only if not a new user
-	 * @return 	boolean 			True on success
+	 * @access	public
+	 * @param	boolean $updateOnly Save the object only if not a new user
+	 * @return	boolean			True on success
 	 * @since 1.5
 	 */
 	function save($updateOnly = false)
 	{
 		// Create the user table object
-		$table 	= &$this->getTable();
-		$this->params = $this->_params->toString();
+		$table	= &$this->getTable();
+		$this->params = (string)$this->_params;
 		$table->bind($this->getProperties());
 
 		// Check and store the object.
@@ -571,9 +566,9 @@ class JUser extends JObject
 	/**
 	 * Method to delete the JUser object from the database
 	 *
-	 * @access 	public
-	 * @param 	boolean $updateOnly Save the object only if not a new user
-	 * @return 	boolean 			True on success
+	 * @access	public
+	 * @param	boolean $updateOnly Save the object only if not a new user
+	 * @return	boolean			True on success
 	 * @since 1.5
 	 */
 	function delete()
@@ -585,7 +580,7 @@ class JUser extends JObject
 		$dispatcher->trigger('onBeforeDeleteUser', array($this->getProperties()));
 
 		// Create the user table object
-		$table 	= &$this->getTable();
+		$table	= &$this->getTable();
 
 		$result = false;
 		if (!$result = $table->delete($this->id)) {
@@ -601,16 +596,16 @@ class JUser extends JObject
 	/**
 	 * Method to load a JUser object by user id number
 	 *
-	 * @access 	public
-	 * @param 	mixed 	$identifier The user id of the user to load
-	 * @param 	string 	$path 		Path to a parameters xml file
-	 * @return 	boolean 			True on success
+	 * @access	public
+	 * @param	mixed	$identifier The user id of the user to load
+	 * @param	string	$path		Path to a parameters xml file
+	 * @return	boolean			True on success
 	 * @since 1.5
 	 */
 	function load($id)
 	{
 		// Create the user table object
-		$table 	= &$this->getTable();
+		$table	= &$this->getTable();
 
 		// Load the JUserModel object based on the user id or throw a warning.
 		if (!$table->load($id)) {
@@ -623,7 +618,7 @@ class JUser extends JObject
 		 * extend this in the future to allow for the ability to have custom
 		 * user parameters, but for right now we'll leave it how it is.
 		 */
-		$this->_params->loadINI($table->params);
+		$this->_params->loadJSON($table->params);
 
 		// Assuming all is well at this point lets bind the data
 		$this->setProperties($table->getProperties());

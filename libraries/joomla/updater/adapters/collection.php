@@ -25,29 +25,30 @@ class JUpdaterCollection extends JUpdateAdapter {
 	protected $updates;
 
 	/**
-     * Gets the reference to the current direct parent
-     *
-     * @return object
-     */
-    protected function _getStackLocation()
-    {
-            /*$return = '';
+	 * Gets the reference to the current direct parent
+	 *
+	 * @return object
+	 */
+	protected function _getStackLocation()
+	{
+			/*$return = '';
 
-            foreach($this->_stack as $stack) {
-                    $return .= $stack.'->';
-            }
+			foreach($this->_stack as $stack) {
+					$return .= $stack.'->';
+			}
 
-            return rtrim($return, '->');*/
-            return implode('->', $this->_stack);
-    }
+			return rtrim($return, '->');*/
+			return implode('->', $this->_stack);
+	}
 
 	/**
 	 * Get the parent tag
 	 * @return string parent
 	 */
-    protected function _getParent() {
-    	return end($this->parent);
-    }
+	protected function _getParent()
+	{
+		return end($this->parent);
+	}
 
 	/**
 	 * Opening an XML element
@@ -55,7 +56,8 @@ class JUpdaterCollection extends JUpdateAdapter {
 	 * @param string name of element that is opened
 	 * @param array array of attributes for the element
 	 */
-	public function _startElement($parser, $name, $attrs = Array()) {
+	public function _startElement($parser, $name, $attrs = Array())
+	{
 		array_push($this->_stack, $name);
 		$tag = $this->_getStackLocation();
 		// reset the data
@@ -90,14 +92,13 @@ class JUpdaterCollection extends JUpdateAdapter {
 
 				// only add the update if it is on the same platform and release as we are
 				$ver = new JVersion();
-				$filter =& JFilterInput::getInstance();
-				$product = strtolower($filter->clean($ver->PRODUCT, 'cmd')); // lower case and remove the exclamation mark
+				$product = strtolower(JFilterInput::getInstance()->clean($ver->PRODUCT, 'cmd')); // lower case and remove the exclamation mark
 				// set defaults, the extension file should clarify in case but it may be only available in one version
 				// this allows an update site to specify a targetplatform
 				// targetplatformversion can be a regexp, so 1.[56] would be valid for an extension that supports 1.5 and 1.6
 				// Note: whilst the version is a regexp here, the targetplatform is not (new extension per platform)
-				//       Additionally, the version is a regexp here and it may also be in an extension file if the extension is
-				//       compatible against multiple versions of the same platform (e.g. a library)
+				//		Additionally, the version is a regexp here and it may also be in an extension file if the extension is
+				//		compatible against multiple versions of the same platform (e.g. a library)
 				if(!isset($values['targetplatform'])) $values['targetplatform'] = $product; // set this to ourself as a default
 				if(!isset($values['targetplatformversion'])) $values['targetplatformversion'] = $ver->RELEASE; // set this to ourself as a default
 				// validate that we can install the extension
@@ -135,7 +136,8 @@ class JUpdaterCollection extends JUpdateAdapter {
 	 * @param array options to use; update_site_id: the unique ID of the update site to look at
 	 * @return array update_sites and updates discovered
 	 */
-	public function findUpdate($options) {
+	public function findUpdate($options)
+	{
 		$url = $options['location'];
 		$this->_update_site_id = $options['update_site_id'];
 		if(substr($url, -4) != '.xml') {
@@ -152,8 +154,8 @@ class JUpdaterCollection extends JUpdateAdapter {
 
 		if (!($fp = @fopen($url, "r"))) {
 			// TODO: Add a 'mark bad' setting here somehow
-		    JError::raiseWarning('101', JText::_('Update') .'::'. JText::_('Collection') .': '. JText::_('Could not open').' '. $url);
-		    return false;
+			JError::raiseWarning('101', JText::_('Update') .'::'. JText::_('Collection') .': '. JText::_('Could not open').' '. $url);
+			return false;
 		}
 
 		$this->xml_parser = xml_parser_create('');
@@ -162,11 +164,11 @@ class JUpdaterCollection extends JUpdateAdapter {
 		//xml_set_character_data_handler($this->xml_parser, '_characterData');
 
 		while ($data = fread($fp, 8192)) {
-		    if (!xml_parse($this->xml_parser, $data, feof($fp))) {
-		        die(sprintf("XML error: %s at line %d",
-		                    xml_error_string(xml_get_error_code($this->xml_parser)),
-		                    xml_get_current_line_number($this->xml_parser)));
-		    }
+			if (!xml_parse($this->xml_parser, $data, feof($fp))) {
+				die(sprintf("XML error: %s at line %d",
+							xml_error_string(xml_get_error_code($this->xml_parser)),
+							xml_get_current_line_number($this->xml_parser)));
+			}
 		}
 		// TODO: Decrement the bad counter if non-zero
 		return Array('update_sites'=>$this->update_sites,'updates'=>$this->updates);

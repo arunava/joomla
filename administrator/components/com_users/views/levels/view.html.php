@@ -1,8 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -49,15 +48,30 @@ class UsersViewLevels extends JView
 	 */
 	protected function _setToolbar()
 	{
+		$canDo	= UsersHelper::getActions();
+
 		JToolBarHelper::title(JText::_('Users_View_Levels_Title'), 'levels');
 
-		JToolBarHelper::custom('level.add', 'new.png', 'new_f2.png', 'New', false);
-		JToolBarHelper::custom('level.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
-		JToolBarHelper::deleteList('', 'level.delete');
+		if ($canDo->get('core.create'))
+		{
+			JToolBarHelper::custom('level.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
+		}
+		if ($canDo->get('core.edit'))
+		{
+			JToolBarHelper::custom('level.edit', 'edit.png', 'edit_f2.png','JTOOLBAR_EDIT', true);
+		}
+		if ($canDo->get('core.delete'))
+		{
+			JToolBarHelper::deleteList('', 'level.delete','JTOOLBAR_TRASH');
+		}
 
 		JToolBarHelper::divider();
 
-		JToolBarHelper::preferences('com_users');
-		JToolBarHelper::help('screen.users.levels');
+		if ($canDo->get('core.admin'))
+		{
+			JToolBarHelper::preferences('com_users');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.users.levels','JTOOLBAR_HELP');
 	}
 }

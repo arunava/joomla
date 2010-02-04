@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: newsfeed.php 12182 2009-06-19 23:59:03Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -54,9 +54,9 @@ class NewsfeedsModelNewsfeed extends JModel
 	 */
 	function setId($id)
 	{
-		// Set weblink id and wipe data
-		$this->_id	 = $id;
-		$this->_data = null;
+		// Set newsfeed id and wipe data
+		$this->_id		= $id;
+		$this->_data	= null;
 	}
 
 	/**
@@ -66,10 +66,10 @@ class NewsfeedsModelNewsfeed extends JModel
 	 */
 	function &getData()
 	{
-		// Load the weblink data
+		// Load the newsfeed data
 		if ($this->_loadData())
 		{
-			// Initialize some variables
+			// Initialise some variables
 			$user = &JFactory::getUser();
 
 			// Make sure the category is published

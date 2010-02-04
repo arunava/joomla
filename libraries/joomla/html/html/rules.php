@@ -1,14 +1,11 @@
 <?php
 /**
- * @version		$Id: rules.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
-
-jimport('joomla.database.query');
 
 /**
  * Extended Utility class for all HTML drawing classes.
@@ -51,65 +48,67 @@ abstract class JHtmlRules
 
 		$html[] = '<div class="acl-options">';
 		$html[] = '	<dl class="tabs">';
-		$html[] = '		<dt>'.JText::_('CONTENT_ACCESS_SUMMARY').'</dt>';
+		$html[] = '		<dt><a href="#">'.JText::_('CONTENT_ACCESS_SUMMARY').'</a></dt>';
 		$html[] = '		<dd>';
 		$html[] = '			<p>'.JText::_('CONTENT_ACCESS_SUMMARY_DESC').'</p>';
 		$html[] = '			<table class="aclsummary-table" summary="'.JText::_('CONTENT_ACCESS_SUMMARY_DESC').'">';
-		$html[] = ' 			<caption>'.JText::_('CONTENT_ACCESS_SUMMARY_DESC_CAPTION').'</caption>';
-		$html[] = ' 			<tr>';
-		$html[] = ' 				<th class="col1"></th>';
+		$html[] = '			<caption>'.JText::_('CONTENT_ACCESS_SUMMARY_DESC_CAPTION').'</caption>';
+		$html[] = '			<tr>';
+		$html[] = '				<th class="col1 hidelabeltxt">'.JText::_('JGROUPS').'</th>';
 		foreach ($actions as $i => $action)
 		{
-			$html[] = ' 				<th class="col'.($i+2).'">'.JText::_($action->title).'</th>';
+			$html[] = '				<th class="col'.($i+2).'">'.JText::_($action->title).'</th>';
 		}
-		$html[] = ' 			</tr>';
+		$html[] = '			</tr>';
 
 		foreach ($groups as $i => $group)
 		{
-			$html[] = ' 			<tr class="row'.($i%2).'">';
-			$html[] = ' 				<td class="col1">'.$group->text.'</td>';
+			$html[] = '			<tr class="row'.($i%2).'">';
+			$html[] = '				<td class="col1">'.$group->text.'</td>';
 			foreach ($actions as $i => $action)
 			{
-				$html[] = ' 				<td class="col'.($i+2).'">'.($inherited->allow($action->name, $group->value) ? $images['allow-l'] : $images['deny-l']).'</td>';
+				$html[] = '				<td class="col'.($i+2).'">'.($assetId ? ($inherited->allow($action->name, $group->identities) ? $images['allow'] : $images['deny']) : ($inheriting->allow($action->name, $group->identities) ? $images['allow'] : $images['deny'])).'</td>';
 			}
-			$html[] = ' 			</tr>';
+			$html[] = '			</tr>';
 		}
 
-		$html[] = ' 		</table>';
-		$html[] = ' 	</dd>';
+		$html[] = '		</table>';
+		$html[] = '	</dd>';
 
 		foreach ($actions as $action)
 		{
-			$html[] = '		<dt>'.JText::_($action->title).'</dt>';
+			$html[] = '		<dt><a href="#">'.JText::_($action->title).'</a></dt>';
 			$html[] = '		<dd>';
 			$html[] = '			<p>'.JText::_($action->description).'</p>';
 			$html[] = '			<table class="aclmodify-table" summary="'.JText::_($action->description).'">';
-			$html[] = ' 			<caption>'.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_ACL').' '.JText::_($action->title).' '.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_TABLE').'</caption>';
-			$html[] = ' 			<tr>';
-			$html[] = ' 				<th class="col1"></th>';
-			$html[] = ' 				<th class="col2">'.JText::_('JINHERIT').'</th>';
-			$html[] = ' 				<th class="col3"></th>';
-			$html[] = ' 				<th class="col4">'.JText::_('JCURRENT').'</th>';
-			$html[] = ' 			</tr>';
+			$html[] = '			<caption>'.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_ACL').' '.JText::_($action->title).' '.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_TABLE').'</caption>';
+			$html[] = '			<tr>';
+			$html[] = '				<th class="col1 hidelabeltxt">'.JText::_('JGROUPS').'</th>';
+			$html[] = '				<th class="col2">'.JText::_('JINHERIT').'</th>';
+			$html[] = '				<th class="col3 hidelabeltxt">'.JText::_('JMODIFY').'</th>';
+			$html[] = '				<th class="col4">'.JText::_('JCURRENT').'</th>';
+			$html[] = '			</tr>';
 
 			foreach ($groups as $i => $group)
 			{
-				$html[] = ' 			<tr class="row'.($i%2).'">';
-				$html[] = ' 				<td class="col1">'.$group->text.'</td>';
-				$html[] = ' 				<td class="col2">'.($inheriting->allow($action->name, $group->value) ? $images['allow-i'] : $images['deny-i']).'</td>';
-				$html[] = ' 				<td class="col3">';
-				$html[] = ' 					<select id="'.$idPrefix.'_'.$action->name.'_'.$group->value.'" class="inputbox" size="1" name="'.$control.'['.$action->name.']['.$group->value.']">';
-				$html[] = ' 						<option value=""'.($rules->allow($action->name, $group->value) === null ? ' selected="selected"' : '').'>'.JText::_('JINHERIT').'</option>';
-				$html[] = ' 						<option value="1"'.($rules->allow($action->name, $group->value) === true ? ' selected="selected"' : '').'>'.JText::_('JALLOW').'</option>';
-				$html[] = ' 						<option value="0"'.($rules->allow($action->name, $group->value) === false ? ' selected="selected"' : '').'>'.JText::_('JDENY').'</option>';
-				$html[] = ' 					</select>';
-				$html[] = ' 				</td>';
-				$html[] = ' 				<td class="col4">'.($inherited->allow($action->name, $group->value) ? $images['allow'] : $images['deny']).'</td>';
-				$html[] = ' 			</tr>';
+				$selected = $rules->allow($action->name, $group->value);
+
+				$html[] = '			<tr class="row'.($i%2).'">';
+				$html[] = '				<td class="col1">'.$group->text.'</td>';
+				$html[] = '				<td class="col2">'.($inheriting->allow($action->name, $group->identities) ? $images['allow-i'] : $images['deny-i']).'</td>';
+				$html[] = '				<td class="col3">';
+				$html[] = '					<select id="'.$idPrefix.'_'.$action->name.'_'.$group->value.'" class="inputbox" size="1" name="'.$control.'['.$action->name.']['.$group->value.']" title="'.JText::_('JMODIFY')." ".$group->text.'">';
+				$html[] = '						<option value=""'.($selected === null ? ' selected="selected"' : '').'>'.JText::_('JINHERIT').'</option>';
+				$html[] = '						<option value="1"'.($selected === true ? ' selected="selected"' : '').'>'.JText::_('JALLOW').'</option>';
+				$html[] = '						<option value="0"'.($selected === false ? ' selected="selected"' : '').'>'.JText::_('JDENY').'</option>';
+				$html[] = '					</select>';
+				$html[] = '				</td>';
+				$html[] = '				<td class="col4">'.($assetId ? ($inherited->allow($action->name, $group->identities) ? $images['allow'] : $images['deny']) : ($inheriting->allow($action->name, $group->identities) ? $images['allow'] : $images['deny'])).'</td>';
+				$html[] = '			</tr>';
 			}
 
-			$html[] = ' 		</table>';
-			$html[] = ' 	</dd>';
+			$html[] = '		</table>';
+			$html[] = '	</dd>';
 		}
 
 		$html[] = ' </dl>';
@@ -151,6 +150,7 @@ abstract class JHtmlRules
 		// Get the user groups from the database.
 		$db->setQuery(
 			'SELECT a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level' .
+			' , GROUP_CONCAT(b.id SEPARATOR \',\') AS parents' .
 			' FROM #__usergroups AS a' .
 			' LEFT JOIN `#__usergroups` AS b ON a.lft > b.lft AND a.rgt < b.rgt' .
 			' GROUP BY a.id' .
@@ -158,17 +158,21 @@ abstract class JHtmlRules
 		);
 		$options = $db->loadObjectList();
 
-		// Pad the option text with spaces using depth level as a multiplier.
-//		foreach ($options as $option) {
-//			$option->text = str_repeat('&nbsp;&nbsp;',$option->level).$option->text;
-//		}
+		// Pre-compute additional values.
+		foreach ($options as &$option)
+		{
+			// Pad the option text with spaces using depth level as a multiplier.
+			//$option->text = str_repeat('&nbsp;&nbsp;',$option->level).$option->text;
+
+			$option->identities = ($option->parents) ? explode(',', $option->parents.','.$option->value) : array($option->value);
+		}
 
 		return $options;
 	}
 
 	protected static function _loadBehavior()
 	{
-		JHtml::script('rules.js');
+		JHtml::script('system/rules.js', false, true);
 	}
 
 	protected static function _getImagesArray()

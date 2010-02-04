@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: import.php 13109 2009-10-08 18:15:33Z ian $
+ * @version		$Id$
  * @package		Joomla.Framework
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
  * Load the loader class.
  */
 if (!class_exists('JLoader')) {
-    require_once JPATH_LIBRARIES.DS.'loader.php';
+	require_once JPATH_LIBRARIES.DS.'loader.php';
 }
 
 /*

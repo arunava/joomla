@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: helper.php 12640 2009-08-13 21:21:07Z erdsiger $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_search
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,8 +12,8 @@ defined('_JEXEC') or die;
 
 class modSearchHelper
 {
-    function getSearchImage($button_text) {
-	    $img = JHtml::_('image.site', 'searchButton.gif', '/images/system/', NULL, NULL, $button_text, null, 0);
+	function getSearchImage($button_text) {
+		$img = JHtml::_('image', 'system/searchButton.gif', $button_text, NULL, true);
 		return $img;
 	}
 }

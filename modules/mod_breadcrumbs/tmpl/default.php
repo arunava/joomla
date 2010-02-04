@@ -1,16 +1,16 @@
 <?php
 /**
- * @version		$Id: default.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_breadcrumbs
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
 defined('_JEXEC') or die;
 ?>
-<span class="breadcrumbs pathway">
+<span class="breadcrumbs<?php echo $params->get('moduleclass_sfx'); ?> pathway">
 <?php for ($i = 0; $i < $count; $i ++) :
 
 	// If not the last item in the breadcrumbs add the separator
@@ -22,7 +22,7 @@ defined('_JEXEC') or die;
 		}
 		echo ' '.$separator.' ';
 	}  else if ($params->get('showLast', 1)) { // when $i == $count -1 and 'showLast' is true
-	    echo $list[$i]->name;
+		echo $list[$i]->name;
 	}
 endfor; ?>
 </span>

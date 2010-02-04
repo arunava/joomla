@@ -1,10 +1,10 @@
 <?php
 /**
- * @version		$Id: category.php 12276 2009-06-22 01:54:01Z pasamio $
+ * @version		$Id$
  * @package		Joomla
  * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License <http://www.gnu.org/copyleft/gpl.html>
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
@@ -19,7 +19,7 @@ jimport('joomla.application.categories');
  *
  * @static
  * @package		Joomla
- * @subpackage	Content
+ * @subpackage	Com_newsfeeds
  * @since 1.6
  */
 class NewsfeedsCategories extends JCategories

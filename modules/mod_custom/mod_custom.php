@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: mod_custom.php 12316 2009-06-23 11:50:29Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_custom
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,4 +16,4 @@ if ($params->def('prepare_content', 1))
 	$module->content = JHtml::_('content.prepare', $module->content);
 }
 
-require JModuleHelper::getLayoutPath('mod_custom');
+require JModuleHelper::getLayoutPath('mod_custom', $params->get('layout', 'default'));

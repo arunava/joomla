@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: dispatcher.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Event
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,7 +17,7 @@ jimport('joomla.base.observable');
  * This is the Observable part of the Observer design pattern
  * for the event architecture.
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Event
  * @since		1.5
  * @see			JPlugin
@@ -26,19 +26,14 @@ jimport('joomla.base.observable');
 class JDispatcher extends JObservable
 {
 	/**
-	 * Returns a reference to the global Event Dispatcher object, only creating it
+	 * Returns the global Event Dispatcher object, only creating it
 	 * if it doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * <pre>
-	 *		$dispatcher = &JDispatcher::getInstance();
-	 * </pre>
 	 *
 	 * @access	public
 	 * @return	JDispatcher		The EventDispatcher object.
 	 * @since	1.5
 	 */
-	public static function &getInstance()
+	public static function getInstance()
 	{
 		static $instance;
 
@@ -69,7 +64,7 @@ class JDispatcher extends JObservable
 		}
 		elseif (class_exists($handler))
 		{
-			 // Ok, class type event handler... lets instantiate and attach it.
+			// Ok, class type event handler... lets instantiate and attach it.
 			$this->attach(new $handler($this));
 		}
 		else
@@ -90,7 +85,7 @@ class JDispatcher extends JObservable
 	 */
 	public function trigger($event, $args = array())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$result = array();
 
 		/*

@@ -1,8 +1,8 @@
 /**
- * @version		$Id: installation.js 12253 2009-06-21 21:22:04Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Installation
  * @subpackage	JavaScript
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -16,6 +16,7 @@ if (typeof(Install) === 'undefined') {
  */
 Install.sampleData = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
 		url: 'index.php?'+document.id(el.form).toQueryString(),
@@ -40,6 +41,7 @@ Install.sampleData = function(el) {
  */
 Install.detectFtpRoot = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
 		url: 'index.php?'+document.id(el.form).toQueryString(),
@@ -64,6 +66,7 @@ Install.detectFtpRoot = function(el) {
  */
 Install.verifyFtpSettings = function(el) {
 	// make the ajax call
+	el = $(el);
 	var req = new Request({
 		method: 'get',
 		url: 'index.php?'+document.id(el.form).toQueryString(),

@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: framework.php 12866 2009-09-26 07:12:12Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Application
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

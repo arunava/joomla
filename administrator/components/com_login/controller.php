@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: controller.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
 
@@ -64,11 +64,12 @@ class LoginController extends JController
 
 		$model = &$this->getModel('login');
 		$credentials = $model->getState('credentials');
+		$return = $model->getState('return');
 
-		$result = $app->login($credentials, array('action' => 'core.login'));
+		$result = $app->login($credentials, array('action' => 'core.login.admin'));
 
 		if (!JError::isError($result)) {
-			$app->redirect('index.php');
+			$app->redirect($return);
 		}
 
 		parent::display();

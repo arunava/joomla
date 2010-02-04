@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: modules.php 12418 2009-07-04 00:45:00Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	templates.bluestork
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -36,15 +36,15 @@ function modChrome_rounded($module, &$params, &$attribs)
 			<div class="t">
 				<div class="t">
 					<div class="t"></div>
-		 		</div>
-	 		</div>
+				</div>
+			</div>
 			<div class="m">
 				<?php echo $module->content; ?>
 				<div class="clr"></div>
 			</div>
 			<div class="b">
 				<div class="b">
-		 			<div class="b"></div>
+					<div class="b"></div>
 				</div>
 			</div>
 		</div>

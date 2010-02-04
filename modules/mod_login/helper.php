@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: helper.php 12746 2009-09-13 22:04:27Z hackwar $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_login
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

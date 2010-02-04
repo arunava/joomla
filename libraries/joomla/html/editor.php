@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: editor.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	HTML
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -46,16 +46,13 @@ class JEditor extends JObservable
 	}
 
 	/**
-	 * Returns a reference to a global Editor object, only creating it
+	 * Returns the global Editor object, only creating it
 	 * if it doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $editor = &JEditor::getInstance([$editor);</pre>
 	 *
 	 * @param	string	$editor  The editor to use.
 	 * @return	JEditor	The Editor object.
 	 */
-	public static function &getInstance($editor = 'none')
+	public static function getInstance($editor = 'none')
 	{
 		static $instances;
 
@@ -73,7 +70,7 @@ class JEditor extends JObservable
 	}
 
 	/**
-	 * Initialize the editor
+	 * Initialise the editor
 	 */
 	public function initialise()
 	{
@@ -98,18 +95,19 @@ class JEditor extends JObservable
 	}
 
 	/**
-	 * Present a text area
+	 * Display the editor area.
 	 *
-	 * @param	string	The control name
-	 * @param	string	The contents of the text area
-	 * @param	string	The width of the text area (px or %)
-	 * @param	string	The height of the text area (px or %)
-	 * @param	int		The number of columns for the textarea
-	 * @param	int		The number of rows for the textarea
-	 * @param	boolean	True and the editor buttons will be displayed
-	 * @param	array	Associative array of editor parameters
+	 * @param	string	The control name.
+	 * @param	string	The contents of the text area.
+	 * @param	string	The width of the text area (px or %).
+	 * @param	string	The height of the text area (px or %).
+	 * @param	int		The number of columns for the textarea.
+	 * @param	int		The number of rows for the textarea.
+	 * @param	boolean	True and the editor buttons will be displayed.
+	 * @param	string	An optional ID for the textarea (note: since 1.6). If not supplied the name is used.
+	 * @param	array	Associative array of editor parameters.
 	 */
-	public function display($name, $html, $width, $height, $col, $row, $buttons = true, $params = array())
+	public function display($name, $html, $width, $height, $col, $row, $buttons = true, $id = null, $params = array())
 	{
 		$this->_loadEditor($params);
 
@@ -123,22 +121,22 @@ class JEditor extends JObservable
 		$width	= str_replace(';', '', $width);
 		$height	= str_replace(';', '', $height);
 
-		// Initialize variables
+		// Initialise variables.
 		$return = null;
 
-		$args['name'] 		 = $name;
-		$args['content']	 = $html;
-		$args['width'] 		 = $width;
-		$args['height'] 	 = $height;
-		$args['col'] 		 = $col;
-		$args['row'] 		 = $row;
-		$args['buttons']	 = $buttons;
-		$args['event'] 		 = 'onDisplay';
+		$args['name']		= $name;
+		$args['content']	= $html;
+		$args['width']		= $width;
+		$args['height']		= $height;
+		$args['col']		= $col;
+		$args['row']		= $row;
+		$args['buttons']	= $buttons;
+		$args['id']			= $id ? $id : $name;
+		$args['event']		= 'onDisplay';
 
 		$results[] = $this->_editor->update($args);
 
-		foreach ($results as $result)
-		{
+		foreach ($results as $result) {
 			if (trim($result)) {
 				$return .= $result;
 			}
@@ -225,8 +223,8 @@ class JEditor extends JObservable
 	 * @param	mixed	$buttons Can be boolean or array, if boolean defines if the buttons are displayed, if array defines a list of buttons not to show.
 	 * @since 1.5
 	 */
-	 public function getButtons($editor, $buttons = true)
-	 {
+	public function getButtons($editor, $buttons = true)
+	{
 		$result = array();
 
 		if (is_bool($buttons) && !$buttons) {
@@ -236,8 +234,7 @@ class JEditor extends JObservable
 		// Get plugins
 		$plugins = JPluginHelper::getPlugin('editors-xtd');
 
-		foreach($plugins as $plugin)
-		{
+		foreach($plugins as $plugin) {
 			if (is_array($buttons) &&  in_array($plugin->name, $buttons)) {
 				continue;
 			}
@@ -256,7 +253,7 @@ class JEditor extends JObservable
 		}
 
 		return $result;
-	 }
+	}
 
 	/**
 	 * Load the editor
@@ -274,29 +271,30 @@ class JEditor extends JObservable
 		jimport('joomla.filesystem.file');
 
 		// Build the path to the needed editor plugin
-		$name = JFilterInput::clean($this->_name, 'cmd');
-		$path = JPATH_SITE.DS.'plugins'.DS.'editors'.DS.$name.'.php';
+		$name = JFilterInput::getInstance()->clean($this->_name, 'cmd');
+		$path = JPATH_SITE.DS.'plugins/editors/'.$name.'.php';
 
-		if (! JFile::exists($path))
-		{
-			$message = JText::_('Cannot load the editor');
-			JError::raiseWarning(500, $message);
-			return false;
+		if (!JFile::exists($path)) {
+			$path = JPATH_SITE.DS.'plugins/editors/'.$name.'/'.$name.'.php';
+			if (!JFile::exists($path)) {
+				$message = JText::_('Cannot load the editor');
+				JError::raiseWarning(500, $message);
+				return false;
+			}
 		}
 
 		// Require plugin file
 		require_once $path;
 
 		// Get the plugin
-		$plugin   = &JPluginHelper::getPlugin('editors', $this->_name);
-		$params   = new JParameter($plugin->params);
+		$plugin	= &JPluginHelper::getPlugin('editors', $this->_name);
+		$params	= new JParameter($plugin->params);
 		$params->loadArray($config);
 		$plugin->params = $params;
 
 		// Build editor plugin classname
 		$name = 'plgEditor'.$this->_name;
-		if ($this->_editor = new $name ($this, (array)$plugin))
-		{
+		if ($this->_editor = new $name ($this, (array)$plugin)) {
 			// load plugin parameters
 			$this->initialise();
 			JPluginHelper::importPlugin('editors-xtd');

@@ -1,8 +1,8 @@
 <?php
 /**
- * @version		$Id: index.php 13049 2009-10-03 22:52:08Z pentacle $
+ * @version		$Id$
  * @package		Joomla.Site
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -45,4 +45,4 @@ $app->render();
 JDEBUG ? $_PROFILER->mark('afterRender') : null;
 
 // Return the response.
-echo JResponse::toString($app->getCfg('gzip'));
+echo $app;

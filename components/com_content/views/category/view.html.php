@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 12812 2009-09-22 03:58:25Z dextercowley $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -22,7 +22,6 @@ class ContentViewCategory extends JView
 	protected $state = null;
 	protected $item = null;
 	protected $articles = null;
-	// Note: pagination works in frontpage view, but not set up in this view yet
 	protected $pagination = null;
 
 	protected $lead_items = array();
@@ -37,17 +36,19 @@ class ContentViewCategory extends JView
 	 */
 	function display($tpl = null)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$user		= &JFactory::getUser();
 		$app		= &JFactory::getApplication();
+		$uri		=& JFactory::getURI();
 
 		$state		= $this->get('State');
 		$item		= $this->get('Item');
 		$articles	= $this->get('Articles');
-		$siblings	= $this->get('Siblings');
+//		$siblings	= $this->get('Siblings');
 		$children	= $this->get('Children');
-		$parents	= $this->get('Parents');
+//		$parents	= $this->get('Parents');
 		$pagination	= $this->get('Pagination');
+
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -62,11 +63,11 @@ class ContentViewCategory extends JView
 		// Get the metrics for the structural page layout.
 		$numLeading	= $params->def('num_leading_articles',	1);
 		$numIntro	= $params->def('num_intro_articles',	4);
-		$numLinks	= $params->def('num_links', 			4);
+		$numLinks	= $params->def('num_links',			4);
 
 		// Compute the category slug and prepare description (runs content plugins).
-		 $item->slug			= $item->path ? ($item->id.':'.$item->path) : $item->id;
-		 $item->description	= JHtml::_('content.prepare', $item->description);
+		$item->slug			= $item->path ? ($item->id.':'.$item->path) : $item->id;
+		$item->description	= JHtml::_('content.prepare', $item->description);
 
 		// Compute the article slugs and prepare introtext (runs content plugins).
 		foreach ($articles as $i => &$article)
@@ -135,13 +136,6 @@ class ContentViewCategory extends JView
 			$this->link_items[$i] = &$articles[$i];
 		}
 
-		// Compute the sibling category slugs and prepare description (runs content plugins).
-		foreach ($siblings as $i => &$sibling)
-		{
-			$sibling->slug			= $sibling->route ? ($sibling->id.':'.$sibling->route) : $item->id;
-			$sibling->description	= JHtml::_('content.prepare', $sibling->description);
-		}
-
 		// Compute the children category slugs and prepare description (runs content plugins).
 		foreach ($children as $i => &$child)
 		{
@@ -149,11 +143,7 @@ class ContentViewCategory extends JView
 			$child->description	= JHtml::_('content.prepare', $child->description);
 		}
 
-		// Compute the parent category slugs.
-		 foreach ($parents as $i => &$parent)
-		 {
-			$parent->slug = $parent->route ? ($parent->id.':'.$parent->route) : $parent->id;
-		 }
+		$this->assign('action',	str_replace('&', '&amp;', $uri));
 
 		$this->assignRef('params',		$params);
 		$this->assignRef('item',		$item);
@@ -163,6 +153,7 @@ class ContentViewCategory extends JView
 		$this->assignRef('parents',		$parents);
 		$this->assignRef('pagination',	$pagination);
 		$this->assignRef('user',		$user);
+		$this->assignRef('state',		$state);
 
 		$this->_prepareDocument();
 
@@ -215,13 +206,13 @@ class ContentViewCategory extends JView
 
 			if ($view != 'category' || ($view == 'category' && $id != $this->item->id))
 			{
-				foreach($this->parents as $parent)
-				{
-					$pathway->addItem(
-						$parent->title,
-						ContentRoute::category($parent->slug)
-					);
-				}
+				// foreach($this->parents as $parent)
+				// {
+					// $pathway->addItem(
+					//	$parent->title,
+					//	ContentRoute::category($parent->slug)
+					// );
+				//}
 				$pathway->addItem($this->item->title);
 			}
 		}

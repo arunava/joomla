@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: item.php 13031 2009-10-02 21:54:22Z louis $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -10,8 +10,7 @@ defined('_JEXEC') or die;
 
 // Include dependancies.
 jimport('joomla.application.component.modelform');
-jimport('joomla.database.query');
-require_once JPATH_COMPONENT.DS.'helpers'.DS.'menus.php';
+require_once JPATH_COMPONENT.'/helpers/menus.php';
 
 /**
  * Menu Item Model for Menus.
@@ -27,17 +26,17 @@ class MenusModelItem extends JModelForm
 	 *
 	 * @var		string
 	 */
-	 protected $_context		= 'com_menus.item';
+	protected $_context		= 'com_menus.item';
 
 	/**
-	 * Returns a reference to the a Table object, always creating it
+	 * Returns a Table object, always creating it
 	 *
-	 * @param	type 	$type 	 The table type to instantiate
-	 * @param	string 	$prefix	 A prefix for the table class name. Optional.
-	 * @param	array	$options Configuration array for model. Optional.
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
 	 * @return	JTable	A database object
 	*/
-	public function &getTable($type = 'Menu', $prefix = 'JTable', $config = array())
+	public function getTable($type = 'Menu', $prefix = 'JTable', $config = array())
 	{
 		return JTable::getInstance($type, $prefix, $config);
 	}
@@ -49,7 +48,7 @@ class MenusModelItem extends JModelForm
 	 */
 	protected function _populateState()
 	{
-		$app	= &JFactory::getApplication('administrator');
+		$app = JFactory::getApplication('administrator');
 
 		// Load the User state.
 		if (!($pk = (int) $app->getUserState('com_menus.edit.item.id'))) {
@@ -90,7 +89,7 @@ class MenusModelItem extends JModelForm
 	 */
 	public function &getItem($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$pk = (!empty($pk)) ? $pk : (int)$this->getState('item.id');
 
 		// Get a level row instance.
@@ -100,8 +99,7 @@ class MenusModelItem extends JModelForm
 		$table->load($pk);
 
 		// Check for a table object error.
-		if ($error = $table->getError())
-		{
+		if ($error = $table->getError()) {
 			$this->setError($error);
 			$false = false;
 			return $false;
@@ -109,8 +107,7 @@ class MenusModelItem extends JModelForm
 
 		// Prime required properties.
 
-		if (empty($table->id))
-		{
+		if (empty($table->id)) {
 			$table->parent_id	= $this->getState('item.parent_id');
 			$table->menutype	= $this->getState('item.menutype');
 			$table->type		= $this->getState('item.type');
@@ -118,8 +115,7 @@ class MenusModelItem extends JModelForm
 		}
 
 		// If the link has been set in the state, possibly changing link type.
-		if ($link = $this->getState('item.link'))
-		{
+		if ($link = $this->getState('item.link')) {
 			// Check if we are changing away from the actual link type.
 			if (MenusHelper::getLinkKey($table->link) != MenusHelper::getLinkKey($link)) {
 				$table->link = $link;
@@ -154,10 +150,11 @@ class MenusModelItem extends JModelForm
 				// Ensure the integrity of the component_id field is maintained, particularly when changing the menu item type.
 				$args = array();
 				parse_str(parse_url($table->link, PHP_URL_QUERY), $args);
-				if (isset($args['option']))
-				{
+
+				if (isset($args['option'])) {
 					// Load the language file for the component.
 					$lang = &JFactory::getLanguage();
+					$lang->load($args['option'],JPATH_ADMINISTRATOR.'/components/'.$args['option']);
 					$lang->load($args['option']);
 
 					// Determine the component id.
@@ -167,43 +164,43 @@ class MenusModelItem extends JModelForm
 					}
 				}
 
+
 				break;
 		}
 
 		// We have a valid type, inject it into the state for forms to use.
 		$this->setState('item.type', $table->type);
 
+		// Convert to the JObject before adding the params.
+		$result = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
 		// Convert the params field to an array.
-		$params = new JParameter($table->params);
-		$table->params = $params->toArray();
+		$registry = new JRegistry;
+		$registry->loadJSON($table->params);
+		$result->params = $registry->toArray();
 
 		// Merge the request arguments in to the params for a component.
-		if ($table->type == 'component')
-		{
+		if ($table->type == 'component') {
 			// Note that all request arguments become reserved parameter names.
 			$args = array();
 			parse_str(parse_url($table->link, PHP_URL_QUERY), $args);
-
-			$table->params = array_merge($table->params, $args);
+			$result->params = array_merge($result->params, $args);
 		}
-		if ($table->type == 'alias')
-		{
+
+		if ($table->type == 'alias') {
 			// Note that all request arguments become reserved parameter names.
 			$args = array();
 			parse_str(parse_url($table->link, PHP_URL_QUERY), $args);
-			$table->params = array_merge($table->params, $args);
+			$result->params = array_merge($result->params, $args);
 
 		}
-		if ($table->type == 'url')
-		{
+
+		if ($table->type == 'url') {
 			// Note that all request arguments become reserved parameter names.
 			$args = array();
 			parse_str(parse_url($table->link, PHP_URL_QUERY), $args);
-			$table->params = array_merge($table->params, $args);
+			$result->params = array_merge($result->params, $args);
 		}
-
-
-		$result = JArrayHelper::toObject($table->getProperties(1), 'JObject');
 
 		return $result;
 	}
@@ -216,7 +213,7 @@ class MenusModelItem extends JModelForm
 	 */
 	public function getForm()
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$app	= &JFactory::getApplication();
 
 		// Get the form.
@@ -270,8 +267,7 @@ class MenusModelItem extends JModelForm
 			$type = $this->getState('item.type');
 		}
 
-		if (empty($link))
-		{
+		if (empty($link)) {
 			// If the link not supplied, try to load it.
 			if ($item = &$this->getItem()) {
 				$link = htmlspecialchars_decode($item->link);
@@ -280,33 +276,41 @@ class MenusModelItem extends JModelForm
 
 		// Initialise form with component view params if available.
 
-		if ($type == 'component')
-		{
+		if ($type == 'component') {
 			// Parse the link arguments.
 			$args = array();
 			parse_str(parse_url(htmlspecialchars_decode($link), PHP_URL_QUERY), $args);
 
 			// Confirm that the option is defined.
-			if (isset($args['option']))
-			{
+			$option = '';
+			if (isset($args['option'])) {
 				// The option determines the base path to work with.
 				$option = $args['option'];
 				$base	= JPATH_SITE.DS.'components'.DS.$option;
 			}
-				// Confirm a view is defined.
-				if (isset($args['view']))
-				{
-					$view = $args['view'];
 
-					// Determine the layout to search for.
-					if (isset($args['layout'])) {
-						$layout = $args['layout'];
-					}
-					else {
-						$layout = 'default';
-					}
+			// Confirm a view is defined.
+			if (isset($args['view'])) {
+				$view = $args['view'];
 
-					$formFile = false;
+				// Determine the layout to search for.
+				if (isset($args['layout'])) {
+					$layout = $args['layout'];
+				} else {
+					$layout = 'default';
+				}
+
+				$formFile = false;
+
+				// Check for the layout XML file. Use standard xml file if it exists.
+				$path = JPath::clean($base.DS.'views'.DS.$view.DS.'tmpl'.DS.$layout.'.xml');
+				if (JFile::exists($path)) {
+					$formFile = $path;
+				}
+
+				// if custom layout, get the xml file from the template folder
+				// TODO: only look in the template folder for the menu item's template
+				if (!$formFile) {
 					$folders = JFolder::folders(JPATH_SITE.DS.'templates','',false,true);
 					foreach($folders as $folder)
 					{
@@ -315,22 +319,15 @@ class MenusModelItem extends JModelForm
 							break;
 						}
 					}
-
-					if(!$formFile)
-					{
-					// Check for the layout XML file.
-						$path = JPath::clean($base.DS.'views'.DS.$view.DS.'tmpl'.DS.$layout.'.xml');
-						if (JFile::exists($path)) {
-							$formFile = $path;
-						}
-				//	}
-					// TODO: Now check for a view manifest file
-					// TODO: Now check for a component manifest file
-					}
 				}
 
-			if ($formFile)
-			{
+
+			//	}
+				// TODO: Now check for a view manifest file
+				// TODO: Now check for a component manifest file
+			}
+
+			if ($formFile) {
 				// If an XML file was found in the component, load it first.
 				// We need to qualify the full path to avoid collisions with component file names.
 				$form = parent::getForm($formFile, $formName, $formOptions, true);
@@ -343,13 +340,14 @@ class MenusModelItem extends JModelForm
 			}
 
 			// Now load the component params.
-			if ($isNew=false){
-			$path = JPath::clean(JPATH_ADMINISTRATOR.DS.'components'.DS. $option.DS.'config.xml');}
-			else $path='null';
-			if (JFile::exists($path))
-			{
-				if (empty($form))
-				{
+			if ($isNew = false) {
+				$path = JPath::clean(JPATH_ADMINISTRATOR.DS.'components'.DS. $option.DS.'config.xml');
+			} else {
+				$path='null';
+			}
+
+			if (JFile::exists($path)) {
+				if (empty($form)) {
 					// It's possible the form hasn't been defined yet.
 					$form = parent::getForm($path, $formName, $formOptions, true);
 
@@ -358,9 +356,7 @@ class MenusModelItem extends JModelForm
 						$this->setError($form->getMessage());
 						return false;
 					}
-				}
-				else
-				{
+				} else {
 					// Add the component params last of all to the existing form.
 					$form->load($path, true, false);
 				}
@@ -369,8 +365,7 @@ class MenusModelItem extends JModelForm
 
 
 		// If no component file found, or not a component, create the form.
-		if (empty($form))
-		{
+		if (empty($form)) {
 			$form = parent::getForm('item_'.$type, $formName, $formOptions, true);
 
 			// Check for an error.
@@ -378,8 +373,7 @@ class MenusModelItem extends JModelForm
 				$this->setError($form->getMessage());
 				return false;
 			}
-		}
-		else {
+		} else {
 			$form->load('item_'.$type, true, false);
 		}
 
@@ -394,7 +388,8 @@ class MenusModelItem extends JModelForm
 	 */
 	public function getModules()
 	{
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		$query->select('a.id, a.title, a.position, a.published');
 		$query->from('#__modules AS a');
@@ -411,11 +406,10 @@ class MenusModelItem extends JModelForm
 		$query->where('a.client_id = 0');
 		$query->order('a.position, a.ordering');
 
-		$this->_db->setQuery($query);
-		$result = $this->_db->loadObjectList();
+		$db->setQuery($query);
+		$result = $db->loadObjectList();
 
-		if ($error = $this->_db->getError())
-		{
+		if ($error = $db->getError()) {
 			$this->setError($error);
 			return false;
 		}
@@ -431,12 +425,11 @@ class MenusModelItem extends JModelForm
 	 */
 	public function checkin($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('item.id');
 
 		// Only attempt to check the row in if it exists.
-		if ($pk)
-		{
+		if ($pk) {
 			$user	= &JFactory::getUser();
 
 			// Get an instance of the row to checkin.
@@ -471,12 +464,11 @@ class MenusModelItem extends JModelForm
 	 */
 	public function checkout($pk = null)
 	{
-		// Initialize variables.
+		// Initialise variables.
 		$pk = (!empty($pk)) ? $pk : (int) $this->getState('item.id');
 
 		// Only attempt to check the row in if it exists.
-		if ($pk)
-		{
+		if ($pk) {
 			// Get a row instance.
 			$table = &$this->getTable();
 
@@ -502,11 +494,11 @@ class MenusModelItem extends JModelForm
 	 */
 	public function save($data)
 	{
+		// Initialise variables.
 		$pk		= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('item.id');
 		$isNew	= true;
-
-		// Get a row instance.
-		$table = &$this->getTable();
+		$db		= $this->getDbo();
+		$table	= $this->getTable();
 
 		// Load the row if saving an existing item.
 		if ($pk > 0) {
@@ -556,8 +548,7 @@ class MenusModelItem extends JModelForm
 		$drops	= array();
 		$adds	= array();
 
-		foreach ($map as $moduleId => $menuId)
-		{
+		foreach ($map as $moduleId => $menuId) {
 			$moduleId	= (int) $moduleId;
 
 			// Check that we have a module id.
@@ -566,21 +557,17 @@ class MenusModelItem extends JModelForm
 			}
 
 			// Check if the menuid is set to ALL
-			if (is_numeric($menuId) && (int) $menuId == 0)
-			{
+			if (is_numeric($menuId) && (int) $menuId == 0) {
 				// Drop all other maps for this module.
 				$drops[]	= '(moduleid = '.$moduleId.')';
 
 				// Add the map for this module to show on all pages.
 				$adds[]		= '('.$moduleId.', 0)';
-			}
-			else
-			{
+			} else {
 				// Drop all other maps for this module to ALL pages.
 				$drops[] = '(moduleid = '.$moduleId.' AND menuid = 0)';
 
-				if ($menuId == 1 || $menuId == -1)
-				{
+				if ($menuId == 1 || $menuId == -1) {
 					// Add the map for this module to show/hide on this page.
 					$adds[] = '('.$moduleId.', '.(int) $table->id * $menuId.')';
 				}
@@ -588,31 +575,27 @@ class MenusModelItem extends JModelForm
 		}
 
 		// Preform the drops.
-		if (!empty($drops))
-		{
-			$this->_db->setQuery(
+		if (!empty($drops)) {
+			$db->setQuery(
 				'DELETE FROM #__modules_menu' .
 				' WHERE '.implode(' OR ', $drops)
 			);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+			if (!$db->query()) {
+				$this->setError($db->getErrorMsg());
 				return false;
 			}
-			echo $this->_db->getQuery();
 		}
 
 		// Perform the inserts.
-		if (!empty($adds))
-		{
-			$this->_db->setQuery(
+		if (!empty($adds)) {
+			$db->setQuery(
 				'INSERT INTO #__modules_menu (moduleid, menuid)' .
 				' VALUES '.implode(',', $adds)
 			);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+			if (!$db->query()) {
+				$this->setError($db->getErrorMsg());
 				return false;
 			}
-			echo $this->_db->getQuery();
 		}
 
 		return true;
@@ -633,10 +616,8 @@ class MenusModelItem extends JModelForm
 		$table = &$this->getTable();
 
 		// Iterate the items to delete each one.
-		foreach ($pks as $pk)
-		{
-			if (!$table->delete((int) $pk))
-			{
+		foreach ($pks as $pk) {
+			if (!$table->delete((int) $pk)) {
 				$this->setError($table->getError());
 				return false;
 			}
@@ -664,8 +645,7 @@ class MenusModelItem extends JModelForm
 		$table = &$this->getTable();
 
 		// Attempt to publish the items.
-		if (!$table->publish($pks, $value, $user->get('id')))
-		{
+		if (!$table->publish($pks, $value, $user->get('id'))) {
 			$this->setError($table->getError());
 			return false;
 		}
@@ -694,17 +674,13 @@ class MenusModelItem extends JModelForm
 		$table = &$this->getTable();
 
 		// Move the row down in the ordering.
-		if ($direction > 0)
-		{
+		if ($direction > 0) {
 			if (!$table->orderDown($pk)) {
 				$this->setError($table->getError());
 				return false;
 			}
-		}
-
-		// Move the row up in the ordering.
-		else
-		{
+		} else {
+			// Move the row up in the ordering.
 			if (!$table->orderUp($pk)) {
 				$this->setError($table->getError());
 				return false;
@@ -721,43 +697,40 @@ class MenusModelItem extends JModelForm
 	 */
 	public function rebuild()
 	{
-		// Get an instance of the table obejct.
+		// Initialiase variables.
+		$db = $this->getDbo();
 		$table = &$this->getTable();
 
-		if (!$table->rebuild())
-		{
+		if (!$table->rebuild()) {
 			$this->setError($table->getError());
 			return false;
 		}
 
 		// Convert the parameters not in JSON format.
-		$this->_db->setQuery(
+		$db->setQuery(
 			'SELECT id, params' .
 			' FROM #__menu' .
-			' WHERE params NOT LIKE '.$this->_db->quote('{%') .
-			'  AND params <> '.$this->_db->quote('')
+			' WHERE params NOT LIKE '.$db->quote('{%') .
+			'  AND params <> '.$db->quote('')
 		);
 
-		$items = $this->_db->loadObjectList();
-		if ($error = $this->_db->getErrorMsg())
-		{
+		$items = $db->loadObjectList();
+		if ($error = $db->getErrorMsg()) {
 			$this->setError($error);
 			return false;
 		}
 
-		foreach ($items as &$item)
-		{
+		foreach ($items as &$item) {
 			$registry = new JRegistry;
 			$registry->loadJSON($item->params);
-			$params = $registry->toString();
+			$params = (string)$registry;
 
-			$this->_db->setQuery(
+			$db->setQuery(
 				'UPDATE #__menu' .
-				' SET params = '.$this->_db->quote($params).
+				' SET params = '.$db->quote($params).
 				' WHERE id = '.(int) $item->id
 			);
-			if (!$this->_db->query())
-			{
+			if (!$db->query()) {
 				$this->setError($error);
 				return false;
 			}
@@ -793,29 +766,25 @@ class MenusModelItem extends JModelForm
 
 		$done = false;
 
-		if (!empty($commands['assetgroup_id']))
-		{
+		if (!empty($commands['assetgroup_id'])) {
 			if (!$this->_batchAccess($commands['assetgroup_id'], $pks)) {
 				return false;
 			}
 			$done = true;
 		}
 
-		if (!empty($commands['menu_id']))
-		{
+		if (!empty($commands['menu_id'])) {
 			$cmd = JArrayHelper::getValue($commands, 'move_copy', 'c');
 
 			if ($cmd == 'c' && !$this->_batchCopy($commands['menu_id'], $pks)) {
 				return false;
-			}
-			else if ($cmd == 'm' && !$this->_batchMove($commands['menu_id'], $pks)) {
+			} else if ($cmd == 'm' && !$this->_batchMove($commands['menu_id'], $pks)) {
 				return false;
 			}
 			$done = true;
 		}
 
-		if (!$done)
-		{
+		if (!$done) {
 			$this->setError('Menus_Error_Insufficient_batch_information');
 			return false;
 		}
@@ -833,14 +802,13 @@ class MenusModelItem extends JModelForm
 	 */
 	protected function _batchAccess($value, $pks)
 	{
-		$table = &$this->getTable();
-		foreach ($pks as $pk)
-		{
+		$table = $this->getTable();
+		foreach ($pks as $pk) {
 			$table->reset();
 			$table->load($pk);
 			$table->access = (int) $value;
-			if (!$table->store())
-			{
+
+			if (!$table->store()) {
 				$this->setError($table->getError());
 				return false;
 			}
@@ -868,16 +836,13 @@ class MenusModelItem extends JModelForm
 		$db		= &$this->getDbo();
 
 		// Check that the parent exists.
-		if ($parentId)
-		{
-			if (!$table->load($parentId))
-			{
+		if ($parentId) {
+			if (!$table->load($parentId)) {
 				if ($error = $table->getError()) {
 					// Fatal error
 					$this->setError($error);
 					return false;
-				}
-				else {
+				} else {
 					// Non-fatal error
 					$this->setError(JText::_('Menus_Batch_Move_parent_not_found'));
 					$parentId = 0;
@@ -889,17 +854,14 @@ class MenusModelItem extends JModelForm
 		$children = array();
 
 		// Parent exists so we let's proceed
-		foreach ($pks as $pk)
-		{
+		foreach ($pks as $pk) {
 			// Check that the row actually exists
-			if (!$table->load($pk))
-			{
+			if (!$table->load($pk)) {
 				if ($error = $table->getError()) {
 					// Fatal error
 					$this->setError($error);
 					return false;
-				}
-				else {
+				} else {
 					// Not fatal error
 					$this->setError(JText::sprintf('Menus_Batch_Move_row_not_found', $pk));
 					continue;
@@ -910,8 +872,7 @@ class MenusModelItem extends JModelForm
 			$table->setLocation($parentId, 'last-child');
 
 			// Check if we are moving to a different menu
-			if ($menuType != $table->menutype)
-			{
+			if ($menuType != $table->menutype) {
 				// Add the child node ids to the children array.
 				$db->setQuery(
 					'SELECT `id`' .
@@ -935,8 +896,7 @@ class MenusModelItem extends JModelForm
 		}
 
 		// Process the child rows
-		if (!empty($children))
-		{
+		if (!empty($children)) {
 			// Remove any duplicates and sanitize ids.
 			$children = array_unique($children);
 			JArrayHelper::toInteger($children);
@@ -974,22 +934,17 @@ class MenusModelItem extends JModelForm
 		$menuType	= $parts[0];
 		$parentId	= (int) JArrayHelper::getValue($parts, 1, 0);
 
-		$table	= &$this->getTable();
-		$db		= &$this->getDbo();
+		$table	= $this->getTable();
+		$db		= $this->getDbo();
 
 		// Check that the parent exists
-		if ($parentId)
-		{
-			if (!$table->load($parentId))
-			{
-				if ($error = $table->getError())
-				{
+		if ($parentId) {
+			if (!$table->load($parentId)) {
+				if ($error = $table->getError()) {
 					// Fatal error
 					$this->setError($error);
 					return false;
-				}
-				else
-				{
+				} else {
 					// Non-fatal error
 					$this->setError(JText::_('Menus_Batch_Move_parent_not_found'));
 					$parentId = 0;
@@ -998,10 +953,9 @@ class MenusModelItem extends JModelForm
 		}
 
 		// If the parent is 0, set it to the ID of the root item in the tree
-		if (empty($parentId))
-		{
+		if (empty($parentId)) {
 			if (!$parentId = $table->getRootId()) {
-				$this->setError($this->_db->getErrorMsg());
+				$this->setError($db->getErrorMsg());
 				return false;
 			}
 		}
@@ -1016,31 +970,25 @@ class MenusModelItem extends JModelForm
 		);
 		$count = $db->loadResult();
 
-		if ($error = $db->getErrorMsg())
-		{
+		if ($error = $db->getErrorMsg()) {
 			$this->setError($error);
 			return false;
 		}
 
 		// Parent exists so we let's proceed
-		while (!empty($pks) && $count > 0)
-		{
+		while (!empty($pks) && $count > 0) {
 			// Pop the first id off the stack
 			$pk = array_shift($pks);
 
 			$table->reset();
 
 			// Check that the row actually exists
-			if (!$table->load($pk))
-			{
-				if ($error = $table->getError())
-				{
+			if (!$table->load($pk)) {
+				if ($error = $table->getError()) {
 					// Fatal error
 					$this->setError($error);
 					return false;
-				}
-				else
-				{
+				} else {
 					// Not fatal error
 					$this->setError(JText::sprintf('Menus_Batch_Move_row_not_found', $pk));
 					continue;
@@ -1056,8 +1004,7 @@ class MenusModelItem extends JModelForm
 			$childIds = $db->loadResultArray();
 
 			// Add child ID's to the array only if they aren't already there.
-			foreach ($childIds as $childId)
-			{
+			foreach ($childIds as $childId) {
 				if (!in_array($childId, $pks)) {
 					array_push($pks, $childId);
 				}
@@ -1092,7 +1039,7 @@ class MenusModelItem extends JModelForm
 		}
 
 		// Rebuild the hierarchy.
-		if (!$table->rebuildTree()) {
+		if (!$table->rebuild()) {
 			$this->setError($table->getError());
 			return false;
 		}

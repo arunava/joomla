@@ -1,9 +1,9 @@
 <?php
 /**
- * @version		$Id: contact.php 12812 2009-09-22 03:58:25Z dextercowley $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 

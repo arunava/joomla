@@ -1,7 +1,7 @@
 <?php
 /**
- * @version		$Id: view.html.php 12416 2009-07-03 08:49:14Z eddieajau $
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -31,7 +31,7 @@ class ContentViewCategories extends JView
 	 */
 	function display($tpl = null)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$user		= &JFactory::getUser();
 		$app		= &JFactory::getApplication();
 
@@ -49,7 +49,7 @@ class ContentViewCategories extends JView
 
 		// PREPARE THE DATA
 
-		// Compute the weblink slug and prepare description (runs content plugins).
+		// Compute the content slug and prepare description (runs content plugins).
 		foreach ($items as $i => &$item)
 		{
 			$item->slug			= $item->route ? ($item->id.':'.$item->route) : $item->id;
