@@ -1,75 +1,102 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @subpackage	Weblinks
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id: view.html.php 12416 2009-07-03 08:49:14Z eddieajau $
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * Content categories view.
  *
- * @static
- * @package		Joomla
- * @subpackage	Weblinks
- * @since 1.0
+ * @package		Joomla.Site
+ * @subpackage	com_weblinks
+ * @since 1.5
  */
 class WeblinksViewCategories extends JView
 {
-	function display( $tpl = null)
+	protected $state = null;
+	protected $item = null;
+	protected $items = null;
+	protected $pagination = null;
+
+	/**
+	 * Display the view
+	 *
+	 * @return	mixed	False on error, null otherwise.
+	 */
+	function display($tpl = null)
 	{
-		global $mainframe;
+		// Initialise variables.
+		$user		= &JFactory::getUser();
+		$app		= &JFactory::getApplication();
 
-		$document =& JFactory::getDocument();
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
-		$categories	=& $this->get('data');
-		$total		=& $this->get('total');
-		$state		=& $this->get('state');
-
-		// Get the page/component configuration
-		$params = &$mainframe->getParams();
-
-		// Set some defaults if not set for params
-		$params->def('comp_description', JText::_('WEBLINKS_DESC'));
-
-		// Define image tag attributes
-		if ($params->get('image') != -1)
-		{
-			if($params->get('image_align')!="")
-				$attribs['align'] = $params->get('image_align');
-			else
-				$attribs['align'] = '';
-			$attribs['hspace'] = 6;
-
-			// Use the static HTML library to build the image tag
-			$image = JHTML::_('image', 'images/stories/'.$params->get('image'), JText::_('Web Links'), $attribs);
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseWarning(500, implode("\n", $errors));
+			return false;
 		}
 
-		for($i = 0; $i < count($categories); $i++)
-		{
-			$category =& $categories[$i];
-			$category->link = JRoute::_('index.php?option=com_weblinks&view=category&id='. $category->slug);
+		$params = &$state->params;
 
-			// Prepare category description
-			$category->description = JHTML::_('content.prepare', $category->description);
+		// PREPARE THE DATA
+
+		// Compute the weblink slug and prepare description (runs content plugins).
+		foreach ($items as $i => &$item)
+		{
+			$item->slug			= $item->route ? ($item->id.':'.$item->route) : $item->id;
+			$item->description	= JHtml::_('content.prepare', $item->description);
 		}
 
-		$this->assignRef('image',		$image);
 		$this->assignRef('params',		$params);
-		$this->assignRef('categories',	$categories);
+		$this->assignRef('items',		$items);
+		$this->assignRef('pagination',	$pagination);
+		$this->assignRef('user',		$user);
+
+		$this->_prepareDocument();
 
 		parent::display($tpl);
 	}
+
+	/**
+	 * Prepares the document
+	 */
+	protected function _prepareDocument()
+	{
+		$app	= &JFactory::getApplication();
+		$menus	= &JSite::getMenu();
+		$title	= null;
+
+		// Because the application sets a default page title,
+		// we need to get it from the menu item itself
+		if ($menu = $menus->getActive())
+		{
+			$menuParams = new JParameter($menu->params);
+			$title = $menuParams->get('page_title');
+		}
+		if (empty($title)) {
+			$title	= htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		$this->document->setTitle($title);
+
+		// Add feed links
+		if ($this->params->get('show_feed_link', 1))
+		{
+			$link = '&format=feed&limitstart=';
+
+			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
+
+			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
+		}
+	}
 }
-?>

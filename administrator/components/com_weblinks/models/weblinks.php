@@ -1,190 +1,149 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Weblinks Component Weblink Model
+ * Methods supporting a list of weblink records.
  *
- * @package		Joomla
- * @subpackage	Content
- * @since 1.5
+ * @package		Joomla.Administrator
+ * @subpackage	com_weblinks
+ * @since		1.6
  */
-class WeblinksModelWeblinks extends JModel
+class WeblinksModelWeblinks extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	protected $_context = 'com_weblinks.weblinks';
 
 	/**
-	 * Category total
-	 *
-	 * @var integer
+	 * Method to auto-populate the model state.
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		global $mainframe, $option;
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int' );
-		$limitstart	= $mainframe->getUserStateFromRequest( $option.'.limitstart', 'limitstart', 0, 'int' );
+		$accessId = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', null, 'int');
+		$this->setState('filter.access', $accessId);
 
-		// In case limit has been changed, adjust limitstart accordingly
-		$limitstart = ($limit != 0 ? (floor($limitstart / $limit) * $limit) : 0);
+		$published = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '', 'string');
+		$this->setState('filter.state', $published);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id', '');
+		$this->setState('filter.category_id', $categoryId);
+
+		// Load the parameters.
+		$params = JComponentHelper::getParams('com_weblinks');
+		$this->setState('params', $params);
+
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
-	 * Method to get weblinks item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
-		}
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.access');
+		$id	.= ':'.$this->getState('filter.state');
+		$id	.= ':'.$this->getState('filter.category_id');
 
-		return $this->_data;
+		return parent::_getStoreId($id);
 	}
 
 	/**
-	 * Method to get the total number of weblink items
+	 * Build an SQL query to load the list data.
 	 *
-	 * @access public
-	 * @return integer
+	 * @return	JQuery
 	 */
-	function getTotal()
+	protected function _getListQuery()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.title, a.alias, a.checked_out, a.checked_out_time, a.catid,' .
+				'a.hits,' .
+				' a.state, a.access, a.ordering, a.language'
+			)
+		);
+		$query->from('`#__weblinks` AS a');
+
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+
+		// Join over the asset groups.
+		$query->select('ag.title AS access_level');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+
+		// Join over the categories.
+		$query->select('c.title AS category_title');
+		$query->join('LEFT', '#__categories AS c ON c.id = a.catid');
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$query->where('a.access = '.(int) $access);
 		}
 
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get a pagination object for the weblinks
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
+		// Filter by published state
+		$published = $this->getState('filter.state');
+		if (is_numeric($published)) {
+			$query->where('a.state = '.(int) $published);
+		} else if ($published === '') {
+			$query->where('(a.state IN (0, 1))');
 		}
 
-		return $this->_pagination;
-	}
-
-	function _buildQuery()
-	{
-		// Get the WHERE and ORDER BY clauses for the query
-		$where		= $this->_buildContentWhere();
-		$orderby	= $this->_buildContentOrderBy();
-
-		$query = ' SELECT a.*, cc.title AS category, u.name AS editor '
-			. ' FROM #__weblinks AS a '
-			. ' LEFT JOIN #__categories AS cc ON cc.id = a.catid '
-			. ' LEFT JOIN #__users AS u ON u.id = a.checked_out '
-			. $where
-			. $orderby
-		;
-
-		return $query;
-	}
-
-	function _buildContentOrderBy()
-	{
-		global $mainframe, $option;
-
-		$filter_order		= $mainframe->getUserStateFromRequest( $option.'filter_order',		'filter_order',		'a.ordering',	'cmd' );
-		$filter_order_Dir	= $mainframe->getUserStateFromRequest( $option.'filter_order_Dir',	'filter_order_Dir',	'',				'word' );
-
-		if ($filter_order == 'a.ordering'){
-			$orderby 	= ' ORDER BY category, a.ordering '.$filter_order_Dir;
-		} else {
-			$orderby 	= ' ORDER BY '.$filter_order.' '.$filter_order_Dir.' , category, a.ordering ';
+		// Filter by category.
+		$categoryId = $this->getState('filter.category_id');
+		if (is_numeric($categoryId)) {
+			$query->where('a.catid = '.(int) $categoryId);
 		}
 
-		return $orderby;
-	}
-
-	function _buildContentWhere()
-	{
-		global $mainframe, $option;
-		$db					=& JFactory::getDBO();
-		$filter_state		= $mainframe->getUserStateFromRequest( $option.'filter_state',		'filter_state',		'',				'word' );
-		$filter_catid		= $mainframe->getUserStateFromRequest( $option.'filter_catid',		'filter_catid',		0,				'int' );
-		$filter_order		= $mainframe->getUserStateFromRequest( $option.'filter_order',		'filter_order',		'a.ordering',	'cmd' );
-		$filter_order_Dir	= $mainframe->getUserStateFromRequest( $option.'filter_order_Dir',	'filter_order_Dir',	'',				'word' );
-		$search				= $mainframe->getUserStateFromRequest( $option.'search',			'search',			'',				'string' );
-		$search				= JString::strtolower( $search );
-
-		$where = array();
-
-		if ($filter_catid > 0) {
-			$where[] = 'a.catid = '.(int) $filter_catid;
-		}
-		if ($search) {
-			$where[] = 'LOWER(a.title) LIKE '.$db->Quote( '%'.$db->getEscaped( $search, true ).'%', false );
-		}
-		if ( $filter_state ) {
-			if ( $filter_state == 'P' ) {
-				$where[] = 'a.published = 1';
-			} else if ($filter_state == 'U' ) {
-				$where[] = 'a.published = 0';
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
 			}
 		}
 
-		$where 		= ( count( $where ) ? ' WHERE '. implode( ' AND ', $where ) : '' );
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
-		return $where;
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

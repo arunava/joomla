@@ -1,46 +1,56 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Search
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.controller');
 
 /**
- * @package		Joomla
- * @subpackage	Search
+ * Search master display controller.
+ *
+ * @package		Joomla.Administrator
+ * @subpackage	com_search
+ * @since		1.6
  */
 class SearchController extends JController
 {
 	/**
-	 * Show Search Statistics
+	 * Method to display a view.
 	 */
-	function display()
+	public function display()
 	{
-		$model	=& $this->getModel( 'Search' );
-		$view   =& $this->getView( 'Search' );
-		$view->setModel( $model, true );
-		$view->display();
-	}
+		require_once JPATH_COMPONENT.'/helpers/search.php';
 
-	/**
-	 * Reset Statistics
-	 */
-	function reset()
-	{
-		$model	=& $this->getModel( 'Search' );
-		$model->reset();
-		$this->setRedirect('index.php?option=com_search');
+		// Get the document object.
+		$document	= JFactory::getDocument();
+
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'searches');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
+
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
+		{
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
+
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
+
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+
+			$view->display();
+
+			// Load the submenu.
+			SearchHelper::addSubmenu($vName);
+		}
 	}
 }

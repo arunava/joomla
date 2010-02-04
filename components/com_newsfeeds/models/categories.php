@@ -1,113 +1,194 @@
 <?php
 /**
- * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @version		$Id:
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Newsfeeds Component Categories Model
+ * This models supports retrieving lists of newsfeed categories.
  *
- * @author	Johan Janssens <johan.janssens@joomla.org>
- * @package		Joomla
- * @subpackage	Newsfeeds
- * @since 1.5
+ * @package		Joomla.Administrator
+ * @subpackage	com_newsfeeds
+ * @since		1.6
  */
-class NewsfeedsModelCategories extends JModel
+class NewsfeedsModelCategories extends JModelList
 {
 	/**
-	 * Frontpage data array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	public $_context = 'com_newsfeeds.categories';
 
 	/**
-	 * Frontpage total
+	 * The category context (allows other extensions to derived from this model).
 	 *
-	 * @var integer
+	 * @var		string
 	 */
-	var $_total = null;
-
+	protected $_extension = 'com_newsfeeds';
 
 	/**
-	 * Constructor
+	 * Method to auto-populate the model state.
 	 *
-	 * @since 1.5
+	 * @since	1.6
 	 */
-	function __construct()
+
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = &JFactory::getApplication();
+		$this->setState('filter.extension', $this->_extension);
 
+		// Get the parent id if defined.
+		$parentId = JRequest::getInt('id');
+		$this->setState('filter.parentId', $parentId);
+
+		// List state information
+		//$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->getCfg('list_limit'));
+		$limit = JRequest::getInt('limit', $app->getCfg('list_limit', 0));
+		$this->setState('list.limit', $limit);
+
+		//$limitstart = $app->getUserStateFromRequest($this->_context.'.limitstart', 'limitstart', 0);
+		$limitstart = JRequest::getInt('limitstart', 0);
+		$this->setState('list.start', $limitstart);
+
+		//$orderCol = $app->getUserStateFromRequest($this->_context.'.ordercol', 'filter_order', 'a.lft');
+		$orderCol = JRequest::getCmd('filter_order', 'a.lft');
+		$this->setState('list.ordering', $orderCol);
+
+		//$orderDirn = $app->getUserStateFromRequest($this->_context.'.orderdirn', 'filter_order_Dir', 'asc');
+		$orderDirn = JRequest::getWord('filter_order_Dir', 'asc');
+		$this->setState('list.direction', $orderDirn);
+
+		$params = $app->getParams();
+		$this->setState('params', $params);
+
+		$this->setState('filter.published',	1);
+		$this->setState('filter.access',	true);
 	}
 
 	/**
-	 * Method to get newsfeed item data for the categories
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query);
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.extension');
+		$id	.= ':'.$this->getState('filter.published');
+		$id	.= ':'.$this->getState('filter.access');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * @param	boolean	True to join selected foreign information
+	 *
+	 * @return	string
+	 */
+	function _getListQuery($resolveFKs = true)
+	{
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.title, a.alias, a.access, a.published' .
+				', a.path AS route, a.parent_id, a.level, a.lft, a.rgt' .
+				', a.description'
+			)
+		);
+		$query->from('#__categories AS a');
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$user	= &JFactory::getUser();
+			$groups	= implode(',', $user->authorisedLevels());
+			$query->where('a.access IN ('.$groups.')');
 		}
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the total number of newsfeed items for the categories
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		// Filter by published state.
+		$published = $this->getState('filter.published');
+		if (is_numeric($published)) {
+			$query->where('a.published = ' . (int) $published);
+		} else if (is_array($published)) {
+			JArrayHelper::toInteger($published);
+			$published = implode(',', $published);
+			$query->where('a.published IN ('.$published.')');
 		}
 
-		return $this->_total;
-	}
+		// Filter by extension.
+		$query->where('a.extension = '.$db->quote($this->_extension));
 
-	function _buildQuery()
-	{
-		$user =& JFactory::getUser();
-		$gid = $user->get('aid', 0);
+		// Retrieve a sub tree or lineage.
+		if ($parentId = $this->getState('filter.parent_id')) {
+			if ($levels = $this->getState('filter.get_children')) {
+				// Optionally get all the child categories for given parent.
+				$query->leftJoin('#__categories AS p ON p.id = '.(int) $parentId);
+				$query->where('a.lft > p.lft AND a.rgt < p.rgt');
+				if ((int) $levels > 0) {
+					// Only go to a certain depth.
+					$query->where('a.level <= p.level + '.(int) $levels);
+				}
+			} else if ($this->getState('filter.get_parents')) {
+				// Optionally get all the parents to the category.
+				$query->leftJoin('#__categories AS p ON p.id = '.(int) $parentId);
+				$query->where('a.lft < p.lft AND a.rgt > p.rgt');
+			} else {
+				// Only looking for categories with this parent.
+				$query->where('a.parent_id = '.(int) $parentId);
+			}
+		}
 
-		/* Query to retrieve all categories that belong under the newsfeeds section and that are published. */
-		$query = 'SELECT cc.*, a.catid, COUNT(a.id) AS numlinks,'
-			. ' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(\':\', cc.id, cc.alias) ELSE cc.id END as slug'
-			. ' FROM #__categories AS cc'
-			. ' LEFT JOIN #__newsfeeds AS a ON a.catid = cc.id'
-			. ' WHERE a.published = 1'
-			. ' AND cc.section = \'com_newsfeeds\''
-			. ' AND cc.published = 1'
-			. ' AND cc.access <= '.(int) $gid
-			. ' GROUP BY cc.id'
-			. ' ORDER BY cc.ordering'
-		;
+		// Inclusive/exclusive filters (-ve id's are to be excluded).
+		$categoryId = $this->getState('filter.category_id');
+		if (is_numeric($categoryId)) {
+			if ($categoryId > 0) {
+				$query->where('a.id = ' . (int) $categoryId);
+			} else {
+				$query->where('a.id <> ' . -(int) $categoryId);
+			}
+		} else if (is_array($categoryId)) {
+			JArrayHelper::toInteger($categoryId);
+			// Find the include/excludes
+			$include = array();
+			$exclude = array();
+			foreach ($categoryId as $id) {
+				if ($id > 0) {
+					$include[] = $id;
+				} else {
+					$exclude[] = $id;
+				}
+			}
 
+			if (!empty($include)) {
+				$include = implode(',', $include);
+				$query->where('a.id IN ('.$include.')');
+			} else {
+				$include = implode(',', $include);
+				$query->where('a.id NOT IN ('.$include.')');
+			}
+		}
+
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.lft')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
 	}
 }
-?>

@@ -1,43 +1,37 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @subpackage	Media
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * HTML View class for the Media component
  *
- * @static
- * @package		Joomla
- * @subpackage	Media
+ * @package		Joomla.Administrator
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewImagesList extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
-
 		// Do not allow cache
 		JResponse::allowCache(false);
 
-		JHTML::_('behavior.mootools');
-		JHTML::_('stylesheet', 'popup-imagelist.css', 'administrator/components/com_media/assets/');
+		$app = JFactory::getApplication();
+		$append = '';
+		// if ($app->getClientId() == 1) $append = 'administrator/';
 
-		$document =& JFactory::getDocument();
+		JHtml::_('behavior.framework', true);
+		JHtml::_('stylesheet', 'popup-imagelist.css', $append .'media/media/');
+
+		$document = &JFactory::getDocument();
 		$document->addScriptDeclaration("var ImageManager = window.parent.ImageManager;");
 
 		$this->assign('baseURL', COM_MEDIA_BASEURL);

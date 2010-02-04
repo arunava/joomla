@@ -3,13 +3,8 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant
- * to the GNU General Public License, and as distributed it includes or
- * is derivative of works licensed under the GNU General Public License or
- * other free or open source software licenses.
- * See COPYRIGHT.php for copyright notices and details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /** boolean True if a Windows based host */
@@ -31,7 +26,7 @@ if (!defined('JPATH_ROOT')) {
  * A Path handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -69,7 +64,7 @@ class JPath
 	 */
 	function setPermissions($path, $filemode = '0644', $foldermode = '0755') {
 
-		// Initialize return value
+		// Initialise return value
 		$ret = true;
 
 		if (is_dir($path))
@@ -143,15 +138,15 @@ class JPath
 	 * @return	string	A cleaned version of the path
 	 * @since	1.5
 	 */
-	function check($path)
+	public static function check($path)
 	{
 		if (strpos($path, '..') !== false) {
-			JError::raiseError( 20, 'JPath::check Use of relative paths not permitted'); // don't translate
+			JError::raiseError(20, 'JPath::check Use of relative paths not permitted'); // don't translate
 			jexit();
 		}
 		$path = JPath::clean($path);
 		if (strpos($path, JPath::clean(JPATH_ROOT)) !== 0) {
-			JError::raiseError( 20, 'JPath::check Snooping out of bounds @ '.$path); // don't translate
+			JError::raiseError(20, 'JPath::check Snooping out of bounds @ '.$path); // don't translate
 			jexit();
 		}
 	}
@@ -159,13 +154,12 @@ class JPath
 	/**
 	 * Function to strip additional / or \ in a path name
 	 *
-	 * @static
 	 * @param	string	$path	The path to clean
 	 * @param	string	$ds		Directory separator (optional)
 	 * @return	string	The cleaned path
 	 * @since	1.5
 	 */
-	function clean($path, $ds=DS)
+	public static function clean($path, $ds=DS)
 	{
 		$path = trim($path);
 
@@ -182,12 +176,11 @@ class JPath
 	/**
 	 * Method to determine if script owns the path
 	 *
-	 * @static
 	 * @param	string	$path	Path to check ownership
 	 * @return	boolean	True if the php script owns the path passed
 	 * @since	1.5
 	 */
-	function isOwner($path)
+	public static function isOwner($path)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.user.helper');
@@ -206,7 +199,8 @@ class JPath
 			$test = $dir.DS.$tmp;
 
 			// Create the test file
-			JFile::write($test, '');
+			$blank = '';
+			JFile::write($test, $blank, false);
 
 			// Test ownership
 			$return = (fileowner($test) == fileowner($path));
@@ -223,13 +217,12 @@ class JPath
 	/**
 	 * Searches the directory paths for a given file.
 	 *
-	 * @access	protected
-	  * @param	array|string	$path	An path or array of path to search in
+	 * @param	array|string	$path	An path or array of path to search in
 	 * @param	string	$file	The file name to look for.
 	 * @return	mixed	The full path and file name for the target file, or boolean false if the file is not found in any of the paths.
 	 * @since	1.5
 	 */
-	function find($paths, $file)
+	public static function find($paths, $file)
 	{
 		settype($paths, 'array'); //force to array
 

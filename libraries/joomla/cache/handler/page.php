@@ -1,31 +1,40 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Cache page type object
  *
- * @author		Johan Janssens <johan.janssens@joomla.org>
- * @author		Louis Landry <louis.landry@joomla.org>
  * @package		Joomla.Framework
  * @subpackage	Cache
  * @since		1.5
  */
 class JCachePage extends JCache
 {
+	/**
+	 * ID property for the cache page object.
+	 *
+	 * @var		integer
+	 * @since	1.6
+	 */
+	protected $id;
+
+	/**
+	 * Cache group
+	 *
+	 * @var		string
+	 * @since	1.6
+	 */
+	protected $group;
+
 	/**
 	 * Get the cached page data
 	 *
@@ -35,9 +44,9 @@ class JCachePage extends JCache
 	 * @return	boolean	True if the cache is hit (false else)
 	 * @since	1.5
 	 */
-	function get( $id=false, $group='page' )
+	function get($id=false, $group='page')
 	{
-		// Initialize variables
+		// Initialise variables.
 		$data = false;
 
 		// If an id is not given generate it from the request
@@ -47,9 +56,9 @@ class JCachePage extends JCache
 
 
 		// If the etag matches the page id ... sent a no change header and exit : utilize browser cache
-		if ( !headers_sent() && isset($_SERVER['HTTP_IF_NONE_MATCH']) ){
+		if (!headers_sent() && isset($_SERVER['HTTP_IF_NONE_MATCH'])){
 			$etag = stripslashes($_SERVER['HTTP_IF_NONE_MATCH']);
-			if( $etag == $id) {
+			if ($etag == $id) {
 				$browserCache = isset($this->_options['browsercache']) ? $this->_options['browsercache'] : false;
 				if ($browserCache) {
 					$this->_noChange();
@@ -65,8 +74,8 @@ class JCachePage extends JCache
 		}
 
 		// Set id and group placeholders
-		$this->_id		= $id;
-		$this->_group	= $group;
+		$this->id		= $id;
+		$this->group	= $group;
 		return false;
 	}
 
@@ -83,10 +92,10 @@ class JCachePage extends JCache
 		$data = JResponse::getBody();
 
 		// Get id and group and reset them placeholders
-		$id		= $this->_id;
-		$group	= $this->_group;
-		$this->_id		= null;
-		$this->_group	= null;
+		$id		= $this->id;
+		$group	= $this->group;
+		$this->id		= null;
+		$this->group	= null;
 
 		// Only attempt to store if page data exists
 		if ($data) {
@@ -117,11 +126,11 @@ class JCachePage extends JCache
 	 */
 	function _noChange()
 	{
-		global $mainframe;
+		$app = &JFactory::getApplication();
 
 		// Send not modified header and exit gracefully
-		header( 'HTTP/1.x 304 Not Modified', true );
-		$mainframe->close();
+		header('HTTP/1.x 304 Not Modified', true);
+		$app->close();
 	}
 
 	/**
@@ -133,6 +142,6 @@ class JCachePage extends JCache
 	 */
 	function _setEtag($etag)
 	{
-		JResponse::setHeader( 'ETag', $etag, true );
+		JResponse::setHeader('ETag', $etag, true);
 	}
 }

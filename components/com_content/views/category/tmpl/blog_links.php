@@ -1,13 +1,22 @@
-<?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
-<div>
-	<strong><?php echo JText::_( 'More Articles...' ); ?></strong>
-</div>
-<ul>
-<?php foreach ($this->links as $link) : ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+?>
+<h3><?php echo JText::_('MORE_ARTICLES'); ?></h3>
+
+<ol>
+<?php foreach ($this->link_items as &$item) : ?>
 	<li>
-			<a class="blogsection" href="<?php echo JRoute::_('index.php?option=com_content&view=article&id='.$link->slug); ?>">
-			<?php echo $link->title; ?></a>
+		<a href="<?php echo JRoute::_(ContentRoute::article($item->slug, $item->catslug)); ?>">
+			<?php echo $item->title; ?></a>
 	</li>
 <?php endforeach; ?>
-</ul>
+</ol>

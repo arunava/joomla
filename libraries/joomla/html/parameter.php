@@ -1,111 +1,416 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Parameter
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant
- * to the GNU General Public License, and as distributed it includes or
- * is derivative of works licensed under the GNU General Public License or
- * other free or open source software licenses.
- * See COPYRIGHT.php for copyright notices and details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+// No direct access
+defined('JPATH_BASE') or die;
 
-jimport( 'joomla.html.form' );
+jimport('joomla.registry.registry');
 
-//Register the element class with the loader
-JLoader::register('JElement', dirname(__FILE__).DS.'parameter'.DS.'element.php');
+//Register the element class with the loader.
+JLoader::register('JElement', dirname(__FILE__).'/parameter/element.php');
 
 /**
  * Parameter handler
  *
- * @author 		Johan Janssens <johan.janssens@joomla.org>
- * @package 	Joomla.Framework
- * @subpackage		Parameter
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
  * @since		1.5
  */
-class JParameter extends JForm
+class JParameter extends JRegistry
 {
+	/**
+	 * The raw params string
+	 *
+	 * @var		string
+	 * @since	1.5
+	 */
+	protected $_raw = null;
+
+	/**
+	 * The xml params element
+	 *
+	 * @var		object
+	 * @since	1.5
+	 */
+	protected $_xml = null;
+
+	/**
+	* loaded elements
+	*
+	* @var		array
+	* @since	1.5
+	*/
+	protected $_elements = array();
+
+	/**
+	* directories, where element types can be stored
+	*
+	* @var		array
+	* @since	1.5
+	*/
+	protected $_elementPath = array();
+
 	/**
 	 * Constructor
 	 *
-	 * @access	protected
 	 * @param	string The raw parms text
 	 * @param	string Path to the xml setup file
 	 * @since	1.5
 	 */
-	function __construct($data, $path = '')
+	public function __construct($data = '', $path = '')
 	{
-		parent::__construct($data, $path, 'param');
+		parent::__construct('_default');
+
+		// Set base path.
+		$this->_elementPath[] = dirname(__FILE__).DS.'parameter'.DS.'element';
+
+		if ($data = trim($data)) {
+			if (strpos($data, '{') === 0) {
+				$this->loadJSON($data);
+			} else {
+				$this->loadINI($data);
+			}
+		}
+
+		if ($path) {
+			$this->loadSetupFile($path);
+		}
+
+		$this->_raw = $data;
 	}
 
 	/**
-	 * Render
+	 * Set a value.
 	 *
-	 * @access	public
-	 * @param	string	The name of the control, or the default text area if a setup file is not found
+	 * @param	string	The name of the param.
+	 * @param	string	The value of the parameter.
+	 * @return	string	The set value.
+	 * @since	1.5
+	 */
+	public function set($key, $value = '', $group = '_default')
+	{
+		return $this->setValue($group.'.'.$key, (string) $value);
+	}
+
+	/**
+	 * Get a value.
+	 *
+	 * @param	string	The name of the param.
+	 * @param	mixed	The default value if not found.
+	 * @return	string
+	 * @since	1.5
+	 */
+	public function get($key, $default = '', $group = '_default')
+	{
+		$value = $this->getValue($group.'.'.$key);
+		$result = (empty($value) && ($value !== 0) && ($value !== '0')) ? $default : $value;
+		return $result;
+	}
+
+	/**
+	 * Sets a default value if not alreay assigned.
+	 *
+	 * @param	string	The name of the param.
+	 * @param	string	The value of the parameter.
+	 * @param	string	The parameter group to modify.
+	 * @return	string	The set value.
+	 * @since	1.5
+	 */
+	public function def($key, $default = '', $group = '_default')
+	{
+		$value = $this->get($key, (string) $default, $group);
+		return $this->set($key, $value);
+	}
+
+	/**
+	 * Sets the XML object from custom xml files.
+	 *
+	 * @param	object	An XML object.
+	 * @since	1.5
+	 */
+	public function setXML(&$xml)
+	{
+		if (is_object($xml)) {
+			if ($group = $xml->attributes('group')) {
+				$this->_xml[$group] = $xml;
+			} else {
+				$this->_xml['_default'] = $xml;
+			}
+
+			if ($dir = $xml->attributes('addpath')) {
+				$this->addElementPath(JPATH_ROOT . str_replace('/', DS, $dir));
+			}
+		}
+	}
+
+	/**
+	 * Bind data to the parameter.
+	 *
+	 * @param	mixed	$data Array or Object.
+	 * @return	boolean	True if the data was successfully bound.
+	 * @since	1.5
+	 */
+	public function bind($data, $group = '_default')
+	{
+		if (is_array($data)) {
+			return $this->loadArray($data, $group);
+		} elseif (is_object($data)) {
+			return $this->loadObject($data, $group);
+		} else {
+			return $this->loadJSON($data, $group);
+		}
+	}
+
+	/**
+	 * Render.
+	 *
+	 * @param	string	The name of the control, or the default text area if a setup file is not found.
 	 * @return	string	HTML
 	 * @since	1.5
 	 */
-	function render($name = 'params', $group = '_default', $chrome = 'params', $form = true)
+	public function render($name = 'params', $group = '_default')
 	{
-		return parent::render($name, $group, $chrome, $form);
+		if (!isset($this->_xml[$group])) {
+			return false;
+		}
+
+		$params = $this->getParams($name, $group);
+		$html = array ();
+
+		if ($description = $this->_xml[$group]->attributes('description')) {
+			// add the params description to the display
+			$desc	= JText::_($description);
+			$html[]	= '<p class="paramrow_desc">'.$desc.'</p>';
+		}
+
+		foreach ($params as $param) {
+			if ($param[0]) {
+				$html[] = $param[0];
+				$html[] = $param[1];
+			} else {
+				$html[] = $param[1];
+			}
+		}
+
+		if (count($params) < 1) {
+			$html[] = "<p class=\"noparams\">".JText::_('THERE_ARE_NO_PARAMETERS_FOR_THIS_ITEM')."</p>";
+		}
+
+		return implode(PHP_EOL, $html);
 	}
 
 	/**
 	 * Render all parameters to an array
 	 *
-	 * @access	public
 	 * @param	string	The name of the control, or the default text area if a setup file is not found
 	 * @return	array	Array of all parameters, each as array Any array of the label, the form element and the tooltip
 	 * @since	1.5
 	 */
-	function renderToArray($name = 'params', $group = '_default')
+	public function renderToArray($name = 'params', $group = '_default')
 	{
-		return parent::renderToArray($name, $group);
+		if (!isset($this->_xml[$group])) {
+			return false;
+		}
+		$results = array();
+		foreach ($this->_xml[$group]->children() as $param)  {
+			$result = $this->getParam($param, $name, $group);
+			$results[$result[5]] = $result;
+		}
+		return $results;
 	}
 
 	/**
-	 * Return number of params to render
+	 * Return number of params to render.
 	 *
-	 * @access	public
-	 * @return	mixed	Boolean falst if no params exist or integer number of params that exist
+	 * @return	mixed	Boolean falst if no params exist or integer number of params that exist.
 	 * @since	1.5
 	 */
-	function getNumParams($group = '_default')
+	public function getNumParams($group = '_default')
 	{
-		return parent::getNumElements($group);
+		if (!isset($this->_xml[$group]) || !count($this->_xml[$group]->children())) {
+			return false;
+		} else {
+			return count($this->_xml[$group]->children());
+		}
 	}
 
 	/**
-	 * Render all parameters
-	 * Notice: This function does not support the conditional parameters introduced in 1.6.
-	 * This functionality is implemented in the JParameter::render() function directly.
+	 * Get the number of params in each group.
 	 *
-	 * @access	public
-	 * @param	string	The name of the control, or the default text area if a setup file is not found
-	 * @return	array	Aarray of all parameters, each as array Any array of the label, the form element and the tooltip
+	 * @return	array	Array of all group names as key and param count as value.
 	 * @since	1.5
 	 */
-	function getParams($name = 'params', $group = '_default')
+	public function getGroups()
 	{
-		return parent::getElements($name, $group);
+		if (!is_array($this->_xml)) {
+			return false;
+		}
+
+		$results = array();
+		foreach ($this->_xml as $name => $group)  {
+			$results[$name] = $this->getNumParams($name);
+		}
+		return $results;
 	}
 
 	/**
-	 * Render a parameter type
+	 * Render all parameters.
 	 *
-	 * @param	object	A param tag node
-	 * @param	string	The control name
-	 * @return	array	Any array of the label, the form element and the tooltip
+	 * @param	string	The name of the control, or the default text area if a setup file is not found.
+	 * @return	array	Aarray of all parameters, each as array Any array of the label, the form element and the tooltip.
 	 * @since	1.5
 	 */
-	function getParam(&$node, $control_name = 'params', $group = '_default')
+	public function getParams($name = 'params', $group = '_default')
 	{
-		return parent::getElement($node, $control_name, $group);
+		if (!isset($this->_xml[$group])) {
+			return false;
+		}
+
+		$results = array();
+		foreach ($this->_xml[$group]->children() as $param)  {
+			$results[] = $this->getParam($param, $name, $group);
+		}
+		return $results;
+	}
+
+	/**
+	 * Render a parameter type.
+	 *
+	 * @param	object	A param tag node.
+	 * @param	string	The control name.
+	 * @return	array	Any array of the label, the form element and the tooltip.
+	 * @since	1.5
+	 */
+	public function getParam(&$node, $control_name = 'params', $group = '_default')
+	{
+		// Get the type of the parameter.
+		$type = $node->attributes('type');
+
+		$element = &$this->loadElement($type);
+
+		// Check for an error.
+		if ($element === false) {
+			$result = array();
+			$result[0] = $node->attributes('name');
+			$result[1] = JText::_('Element not defined for type').' = '.$type;
+			$result[5] = $result[0];
+			return $result;
+		}
+
+		// Get value.
+		$value = $this->get($node->attributes('name'), $node->attributes('default'), $group);
+
+		return $element->render($node, $value, $control_name);
+	}
+
+	/**
+	 * Loads an xml setup file and parses it.
+	 *
+	 * @param	string	path to xml setup file.
+	 * @return	object
+	 * @since	1.5
+	 */
+	public function loadSetupFile($path)
+	{
+		$result = false;
+
+		if ($path) {
+			$xml = &JFactory::getXMLParser('Simple');
+
+			if ($xml->loadFile($path)) {
+				if ($params = &$xml->document->params) {
+					foreach ($params as $param) {
+						$this->setXML($param);
+						$result = true;
+					}
+				}
+			}
+		} else {
+			$result = true;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Loads a element type.
+	 *
+	 * @param	string	elementType
+	 * @return	object
+	 * @since	1.5
+	 */
+	public function loadElement($type, $new = false)
+	{
+		$signature = md5($type);
+
+		if ((isset($this->_elements[$signature]) && !($this->_elements[$signature] instanceof __PHP_Incomplete_Class))  && $new === false) {
+			return	$this->_elements[$signature];
+		}
+
+		$elementClass	=	'JElement'.$type;
+		if (!class_exists($elementClass)) {
+			if (isset($this->_elementPath)) {
+				$dirs = $this->_elementPath;
+			} else {
+				$dirs = array();
+			}
+
+			$file = JFilterInput::getInstance()->clean(str_replace('_', DS, $type).'.php', 'path');
+
+			jimport('joomla.filesystem.path');
+			if ($elementFile = JPath::find($dirs, $file)) {
+				include_once $elementFile;
+			} else {
+				$false = false;
+				return $false;
+			}
+		}
+
+		if (!class_exists($elementClass)) {
+			$false = false;
+			return $false;
+		}
+
+		$this->_elements[$signature] = new $elementClass($this);
+
+		return $this->_elements[$signature];
+	}
+
+	/**
+	 * Add a directory where JParameter should search for element types.
+	 *
+	 * You may either pass a string or an array of directories.
+	 *
+	 * JParameter will be searching for a element type in the same
+	 * order you added them. If the parameter type cannot be found in
+	 * the custom folders, it will look in
+	 * JParameter/types.
+	 *
+	 * @param	string|array	Directory or directories to search.
+	 * @since	1.5
+	 */
+	public function addElementPath($path)
+	{
+		// Just force path to array.
+		settype($path, 'array');
+
+		// Loop through the path directories.
+		foreach ($path as $dir) {
+			// No surrounding spaces allowed!
+			$dir = trim($dir);
+
+			// Add trailing separators as needed.
+			if (substr($dir, -1) != DIRECTORY_SEPARATOR) {
+				// Directory
+				$dir .= DIRECTORY_SEPARATOR;
+			}
+
+			// Add to the top of the search dirs.
+			array_unshift($this->_elementPath, $dir);
+		}
 	}
 }

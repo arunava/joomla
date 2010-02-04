@@ -1,28 +1,20 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.model');
 
 /**
  * Newsfeeds Component Newsfeed Model
  *
- * @author Johan Janssens <johan.janssens@joomla.org>
- * @package		Joomla
- * @subpackage	Newsfeeds
+ * @package		Joomla.Site
+ * @subpackage	com_newsfeeds
  * @since 1.5
  */
 class NewsfeedsModelNewsfeed extends JModel
@@ -62,9 +54,9 @@ class NewsfeedsModelNewsfeed extends JModel
 	 */
 	function setId($id)
 	{
-		// Set weblink id and wipe data
-		$this->_id	 = $id;
-		$this->_data = null;
+		// Set newsfeed id and wipe data
+		$this->_id		= $id;
+		$this->_data	= null;
 	}
 
 	/**
@@ -74,10 +66,10 @@ class NewsfeedsModelNewsfeed extends JModel
 	 */
 	function &getData()
 	{
-		// Load the weblink data
+		// Load the newsfeed data
 		if ($this->_loadData())
 		{
-			// Initialize some variables
+			// Initialise some variables
 			$user = &JFactory::getUser();
 
 			// Make sure the category is published
@@ -88,13 +80,13 @@ class NewsfeedsModelNewsfeed extends JModel
 
 			// Check to see if the category is published
 			if (!$this->_data->cat_pub) {
-				JError::raiseError( 404, JText::_("Resource Not Found") );
+				JError::raiseError(404, JText::_("Resource Not Found"));
 				return;
 			}
 
 			// Check whether category access level allows access
-			if ($this->_data->cat_access > $user->get('aid', 0)) {
-				JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
+			if (!in_array($this->_data->cat_access, $user->authorisedLevels())) {
+				JError::raiseError(403, JText::_('ALERTNOTAUTH'));
 				return;
 			}
 

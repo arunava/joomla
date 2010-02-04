@@ -1,28 +1,24 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Document
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * DocumentRAW class, provides an easy interface to parse and display raw output
  *
- * @author		Johan Janssens <johan.janssens@joomla.org>
  * @package		Joomla.Framework
  * @subpackage	Document
  * @since		1.5
  */
+
+jimport('joomla.document.document');
 
 class JDocumentRAW extends JDocument
 {
@@ -48,11 +44,11 @@ class JDocumentRAW extends JDocument
 	 * Render the document.
 	 *
 	 * @access public
-	 * @param boolean 	$cache		If true, cache the output
+	 * @param boolean	$cache		If true, cache the output
 	 * @param array		$params		Associative array of attributes
-	 * @return 	The rendered data
+	 * @return	The rendered data
 	 */
-	function render( $cache = false, $params = array())
+	function render($cache = false, $params = array())
 	{
 		parent::render();
 		return $this->getBuffer();

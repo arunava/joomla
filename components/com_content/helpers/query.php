@@ -1,26 +1,21 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 /**
  * Content Component Query Helper
  *
  * @static
- * @package		Joomla
- * @subpackage	Content
+ * @package		Joomla.Site
+ * @subpackage	com_content
  * @since 1.5
  */
 class ContentHelperQuery
@@ -30,15 +25,15 @@ class ContentHelperQuery
 		switch ($orderby)
 		{
 			case 'alpha' :
-				$orderby = 'cc.title, ';
+				$orderby = 'c.title, ';
 				break;
 
 			case 'ralpha' :
-				$orderby = 'cc.title DESC, ';
+				$orderby = 'c.title DESC, ';
 				break;
 
 			case 'order' :
-				$orderby = 'cc.ordering, ';
+				$orderby = 'c.ordering, ';
 				break;
 
 			default :
@@ -49,16 +44,33 @@ class ContentHelperQuery
 		return $orderby;
 	}
 
-	function orderbySecondary($orderby)
+	function orderbySecondary($orderby, $orderDate = 'created')
 	{
+		switch ($orderDate)
+		{
+			case 'modifed' :
+				$queryDate = ' a.modified ';
+				break;
+
+			// use created if publish_up is not set
+			case 'published' :
+				$queryDate = ' CASE WHEN a.publish_up = 0 THEN a.created ELSE a.publish_up END ';
+				break;
+
+			case 'created' :
+			default :
+				$queryDate = ' a.created ';
+				break;
+		}
+
 		switch ($orderby)
 		{
 			case 'date' :
-				$orderby = 'a.created';
+				$orderby = $queryDate;
 				break;
 
 			case 'rdate' :
-				$orderby = 'a.created DESC';
+				$orderby = $queryDate . ' DESC ';
 				break;
 
 			case 'alpha' :
@@ -82,11 +94,11 @@ class ContentHelperQuery
 				break;
 
 			case 'author' :
-				$orderby = 'a.created_by_alias, u.name';
+				$orderby = 'author_name';
 				break;
 
 			case 'rauthor' :
-				$orderby = 'a.created_by_alias DESC, u.name DESC';
+				$orderby = 'author_name DESC';
 				break;
 
 			case 'front' :
@@ -104,13 +116,13 @@ class ContentHelperQuery
 	function buildVotingQuery($params=null)
 	{
 		if (!$params) {
-			$params = &JComponentHelper::getParams( 'com_content' );
+			$params = &JComponentHelper::getParams('com_content');
 		}
 		$voting = $params->get('show_vote');
 
 		if ($voting) {
 			// calculate voting count
-			$select = ' , ROUND( v.rating_sum / v.rating_count ) AS rating, v.rating_count';
+			$select = ' , ROUND(v.rating_sum / v.rating_count) AS rating, v.rating_count';
 			$join = ' LEFT JOIN #__content_rating AS v ON a.id = v.content_id';
 		} else {
 			$select = '';

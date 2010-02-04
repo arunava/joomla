@@ -1,142 +1,150 @@
-<?php defined('_JEXEC') or die('Restricted access'); ?>
-
-<?php JHTML::_('behavior.tooltip'); ?>
-
 <?php
-	// Set toolbar items for the page
-	JToolBarHelper::title(   JText::_( 'Weblink Manager' ), 'generic.png' );
-	JToolBarHelper::publishList();
-	JToolBarHelper::unpublishList();
-	JToolBarHelper::deleteList();
-	JToolBarHelper::editListX();
-	JToolBarHelper::addNewX();
-	JToolBarHelper::preferences('com_weblinks', '380');
-	JToolBarHelper::help( 'screen.weblink' );
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_weblinks
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+
+JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
+JHtml::_('behavior.tooltip');
+JHtml::_('script', 'multiselect.js');
+$user	= JFactory::getUser();
+$userId	= $user->get('id');
 ?>
-<form action="index.php" method="post" name="adminForm">
-<table>
-<tr>
-	<td align="left" width="100%">
-		<?php echo JText::_( 'Filter' ); ?>:
-		<input type="text" name="search" id="search" value="<?php echo $this->lists['search'];?>" class="text_area" onchange="document.adminForm.submit();" />
-		<button onclick="this.form.submit();"><?php echo JText::_( 'Go' ); ?></button>
-		<button onclick="document.getElementById('search').value='';this.form.getElementById('filter_catid').value='0';this.form.getElementById('filter_state').value='';this.form.submit();"><?php echo JText::_( 'Reset' ); ?></button>
-	</td>
-	<td nowrap="nowrap">
-		<?php
-			echo $this->lists['catid'];
-			echo $this->lists['state'];
-		?>
-	</td>
-</tr>
-</table>
-<div id="editcell">
+
+<form action="<?php echo JRoute::_('index.php?option=com_weblinks&view=weblinks'); ?>" method="post" name="adminForm" id="adminForm">
+	<fieldset id="filter-bar">
+		<div class="filter-search fltlft">
+			<label class="filter-search-lbl" for="search"><?php echo JText::_('JSearch_Filter_Label'); ?>:</label>
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('Weblinks_Search_in_title'); ?>" />
+			<button type="submit"><?php echo JText::_('JSearch_Filter_Submit'); ?></button>
+			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSearch_Filter_Clear'); ?></button>
+		</div>
+		<div class="filter-select fltrt">
+			<select name="filter_access" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Access');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('access.assetgroups'), 'value', 'text', $this->state->get('filter.access'));?>
+			</select>
+
+			<select name="filter_published" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Published');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions'), 'value', 'text', $this->state->get('filter.state'), true);?>
+			</select>
+
+			<select name="filter_category_id" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Category');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('category.options', 'com_weblinks'), 'value', 'text', $this->state->get('filter.category_id'));?>
+			</select>
+		</div>
+	</fieldset>
+	<div class="clr"> </div>
+
 	<table class="adminlist">
-	<thead>
-		<tr>
-			<th width="5">
-				<?php echo JText::_( 'NUM' ); ?>
-			</th>
-			<th width="20">
-				<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count( $this->items ); ?>);" />
-			</th>
-			<th class="title">
-				<?php echo JHTML::_('grid.sort',  'Title', 'a.title', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-			</th>
-			<th width="5%" nowrap="nowrap">
-				<?php echo JHTML::_('grid.sort',  'Published', 'a.published', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-			</th>
-			<th width="8%" nowrap="nowrap">
-				<?php echo JHTML::_('grid.sort',  'Order', 'a.ordering', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-				<?php echo JHTML::_('grid.order',  $this->items ); ?>
-			</th>
-			<th width="15%"  class="title">
-				<?php echo JHTML::_('grid.sort',  'Category', 'category', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-			</th>
-			<th width="5%">
-				<?php echo JHTML::_('grid.sort',  'Hits', 'a.hits', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-			</th>
-			<th width="1%" nowrap="nowrap">
-				<?php echo JHTML::_('grid.sort',  'ID', 'a.id', $this->lists['order_Dir'], $this->lists['order'] ); ?>
-			</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<tr>
-			<td colspan="9">
-				<?php echo $this->pagination->getListFooter(); ?>
-			</td>
-		</tr>
-	</tfoot>
-	<tbody>
-	<?php
-	$k = 0;
-	for ($i=0, $n=count( $this->items ); $i < $n; $i++)
-	{
-		$row = &$this->items[$i];
-
-		$link 	= JRoute::_( 'index.php?option=com_weblinks&view=weblink&task=edit&cid[]='. $row->id );
-
-		$checked 	= JHTML::_('grid.checkedout',   $row, $i );
-		$published 	= JHTML::_('grid.published', $row, $i );
-
-		$ordering = ($this->lists['order'] == 'a.ordering');
-
-		$row->cat_link 	= JRoute::_( 'index.php?option=com_categories&section=com_weblinks&task=edit&type=other&cid[]='. $row->catid );
-		?>
-		<tr class="<?php echo "row$k"; ?>">
-			<td>
-				<?php echo $this->pagination->getRowOffset( $i ); ?>
-			</td>
-			<td>
-				<?php echo $checked; ?>
-			</td>
-			<td>
-				<?php
-				if (  JTable::isCheckedOut($this->user->get ('id'), $row->checked_out ) ) {
-					echo $this->escape($row->title);
-				} else {
-				?>
-				<span class="editlinktip hasTip" title="<?php echo JText::_( 'Edit Weblinks' );?>::<?php echo $this->escape($row->title); ?>">
-					<a href="<?php echo $link; ?>">
-						<?php echo $this->escape($row->title); ?></a></span>
-				<?php
-				}
-				?>
-			</td>
-			<td align="center">
-				<?php echo $published;?>
-			</td>
-			<td class="order">
-				<span><?php echo $this->pagination->orderUpIcon( $i, ($row->catid == @$this->items[$i-1]->catid),'orderup', 'Move Up', $ordering ); ?></span>
-				<span><?php echo $this->pagination->orderDownIcon( $i, $n, ($row->catid == @$this->items[$i+1]->catid), 'orderdown', 'Move Down', $ordering ); ?></span>
-				<?php $disabled = $ordering ?  '' : 'disabled="disabled"'; ?>
-				<input type="text" name="order[]" size="5" value="<?php echo $row->ordering;?>" <?php echo $disabled ?> class="text_area" style="text-align: center" />
-			</td>
-			<td>
-				<span class="editlinktip hasTip" title="<?php echo JText::_( 'Edit Category' );?>::<?php echo $this->escape($row->category); ?>">
-				<a href="<?php echo $row->cat_link; ?>" >
-				<?php echo $this->escape($row->category); ?></a></span>
-			</td>
-			<td align="center">
-				<?php echo $row->hits; ?>
-			</td>
-			<td align="center">
-				<?php echo $row->id; ?>
-			</td>
-		</tr>
-		<?php
-		$k = 1 - $k;
-	}
-	?>
-	</tbody>
+		<thead>
+			<tr>
+				<th width="20">
+					<input type="checkbox" name="toggle" value="" onclick="checkAll(this)" />
+				</th>
+				<th class="title">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Title', 'a.title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Published', 'a.state', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="20%">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Category', 'category_title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="10%" nowrap="nowrap">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Ordering', 'a.ordering', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.order',  $this->items, 'filesave.png', 'weblinks.saveorder'); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Access', 'a.access', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort',  'Weblinks_Hits_Heading', 'a.hits', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Language', 'a.language', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="1%" class="nowrap">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<td colspan="10">
+					<?php echo $this->pagination->getListFooter(); ?>
+				</td>
+			</tr>
+		</tfoot>
+		<tbody>
+		<?php foreach ($this->items as $i => $item) :
+			$ordering	= ($this->state->get('list.ordering') == 'a.ordering');
+			$item->cat_link	= JRoute::_('index.php?option=com_categories&extension=com_weblinks&task=edit&type=other&cid[]='. $item->catid);
+			$canCreate	= $user->authorise('core.create',		'com_weblinks.category.'.$item->catid);
+			$canEdit	= $user->authorise('core.edit',			'com_weblinks.category.'.$item->catid);
+			$canChange	= $user->authorise('core.edit.state',	'com_weblinks.category.'.$item->catid);
+			?>
+			<tr class="row<?php echo $i % 2; ?>">
+				<td class="center">
+					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
+				</td>
+				<td>
+					<?php if ($item->checked_out) : ?>
+						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+					<?php endif; ?>
+					<?php if ($canCreate || $canEdit) : ?>
+						<a href="<?php echo JRoute::_('index.php?option=com_weblinks&task=weblink.edit&id='.(int) $item->id); ?>">
+							<?php echo $this->escape($item->title); ?></a>
+					<?php else : ?>
+							<?php echo $this->escape($item->title); ?>
+					<?php endif; ?>
+					<p class="smallsub">
+						(<span><?php echo JText::_('JFIELD_ALIAS_LABEL'); ?>:</span> <?php echo $this->escape($item->alias);?>)</p>
+				</td>
+				<td class="center">
+					<?php echo JHtml::_('jgrid.published', $item->state, $i, 'weblinks.', $canChange);?>
+				</td>
+				<td class="center">
+					<?php echo $this->escape($item->category_title); ?>
+				</td>
+				<td class="order">
+					<?php if ($canChange) : ?>
+						<span><?php echo $this->pagination->orderUpIcon($i, true, 'weblinks.orderup', 'JGrid_Move_Up', $ordering); ?></span>
+						<span><?php echo $this->pagination->orderDownIcon($i, $this->pagination->total, true, 'weblinks.orderdown', 'JGrid_Move_Down', $ordering); ?></span>
+						<?php $disabled = $ordering ?  '' : 'disabled="disabled"'; ?>
+						<input type="text" name="order[]" size="5" value="<?php echo $item->ordering;?>" <?php echo $disabled ?> class="text-area-order" />
+					<?php else : ?>
+						<?php echo $item->ordering; ?>
+					<?php endif; ?>
+				</td>
+				<td class="center">
+					<?php echo $this->escape($item->access_level); ?>
+				</td>
+				<td class="center">
+					<?php echo $item->hits; ?>
+				</td>
+				<td class="center">
+					<?php echo $item->language ? $this->escape($item->language) : JText::_('JDefault'); ?>
+				</td>
+				<td class="center">
+					<?php echo (int) $item->id; ?>
+				</td>
+			</tr>
+			<?php endforeach; ?>
+		</tbody>
 	</table>
-</div>
 
-	<input type="hidden" name="option" value="com_weblinks" />
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->lists['order']; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->lists['order_Dir']; ?>" />
-	<?php echo JHTML::_( 'form.token' ); ?>
+	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

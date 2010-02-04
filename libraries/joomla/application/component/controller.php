@@ -1,19 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+// No direct access.
+defined('JPATH_BASE') or die;
 
 /**
  * Base class for a Joomla Controller
@@ -32,7 +27,7 @@ class JController extends JObject
 	 * The base path of the controller
 	 *
 	 * @var		string
-	 * @access 	protected
+	 * @access	protected
 	 */
 	var $_basePath = null;
 
@@ -50,7 +45,7 @@ class JController extends JObject
 	 * @var	array
 	 * @access	protected
 	 */
-	var $_methods 	= null;
+	var $_methods	= null;
 
 	/**
 	 * Array of class methods to call for a given task.
@@ -58,7 +53,7 @@ class JController extends JObject
 	 * @var	array
 	 * @access	protected
 	 */
-	var $_taskMap 	= null;
+	var $_taskMap	= null;
 
 	/**
 	 * Current or most recent task to be performed.
@@ -66,7 +61,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_task 		= null;
+	var $_task		= null;
 
 	/**
 	 * The mapped task that was performed.
@@ -74,7 +69,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_doTask 	= null;
+	var $_doTask	= null;
 
 	/**
 	 * The set of search directories for resources (views).
@@ -92,7 +87,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_redirect 	= null;
+	var $_redirect	= null;
 
 	/**
 	 * Redirect message.
@@ -100,7 +95,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_message 	= null;
+	var $_message	= null;
 
 	/**
 	 * Redirect message type.
@@ -108,7 +103,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_messageType 	= null;
+	var $_messageType	= null;
 
 	/**
 	 * ACO Section for the controller.
@@ -116,7 +111,7 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_acoSection 		= null;
+	var $_acoSection		= null;
 
 	/**
 	 * Default ACO Section value for the controller.
@@ -124,7 +119,73 @@ class JController extends JObject
 	 * @var	string
 	 * @access	protected
 	 */
-	var $_acoSectionValue 	= null;
+	var $_acoSectionValue	= null;
+
+	/**
+	 * Method to get a singleton controller instance.
+	 *
+	 * @param	string		$name		The prefix for the controller.
+	 * @param	array		$config		An array of optional constructor options.
+	 * @return	mixed		JController derivative class or JException on error.
+	 * @since	1.6
+	 */
+	public static function getInstance($prefix, $config = array())
+	{
+		static $instance;
+
+		if (!empty($instance)) {
+			return $instance;
+		}
+
+		// Get the environment configuration.
+		$basePath	= array_key_exists('base_path', $config) ? $config['base_path'] : JPATH_COMPONENT;
+		$protocol	= JRequest::getWord('protocol');
+		$command	= JRequest::getCmd('task', 'display');
+
+		// Check for a controller.task command.
+		if (strpos($command, '.') !== false) {
+			// Explode the controller.task command.
+			list($type, $task) = explode('.', $command);
+
+			// Define the controller filename and path.
+			$file	= self::_createFileName('controller', array('name' => $type, 'protocol' => $protocol));
+			$path	= $basePath.DS.'controllers'.DS.$file;
+
+			// Reset the task without the contoller context.
+			JRequest::setVar('task', $task);
+		} else {
+			// Base controller.
+			$type	= null;
+			$task	= $command;
+
+			// Define the controller filename and path.
+			$file	= self::_createFileName('controller', array('name' => 'controller', 'protocol' => $protocol));
+			$path	= $basePath.DS.$file;
+		}
+
+		// Get the controller class name.
+		$class = ucfirst($prefix).'Controller'.ucfirst($type);
+
+		// Include the class if not present.
+		if (!class_exists($class)) {
+			// If the controller file path exists, include it.
+			if (file_exists($path)) {
+				require_once $path;
+			} else {
+				throw new JException(JText::sprintf('INVALID CONTROLLER', $type), 1056, E_ERROR, $type, true);
+			}
+		}
+
+		// Instantiate the class.
+		if (class_exists($class)) {
+			$instance = new $class($config);
+		} else {
+			throw new JException(JText::sprintf('INVALID CONTROLLER CLASS', $class), 1057, E_ERROR, $class, true);
+		}
+
+		return $instance;
+	}
+
 
 	/**
 	 * Constructor.
@@ -135,9 +196,9 @@ class JController extends JObject
 	 * 'view_path' (this list is not meant to be comprehensive).
 	 * @since	1.5
 	 */
-	function __construct( $config = array() )
+	function __construct($config = array())
 	{
-		//Initialize private variables
+		// Initialize variables.
 		$this->_redirect	= null;
 		$this->_message		= null;
 		$this->_messageType = 'message';
@@ -146,26 +207,24 @@ class JController extends JObject
 		$this->_data		= array();
 
 		// Get the methods only for the final controller class
-		$thisMethods	= get_class_methods( get_class( $this ) );
-		$baseMethods	= get_class_methods( 'JController' );
-		$methods		= array_diff( $thisMethods, $baseMethods );
+		$thisMethods	= get_class_methods(get_class($this));
+		$baseMethods	= get_class_methods('JController');
+		$methods		= array_diff($thisMethods, $baseMethods);
 
 		// Add default display method
 		$methods[] = 'display';
 
 		// Iterate through methods and map tasks
-		foreach ( $methods as $method )
-		{
-			if ( substr( $method, 0, 1 ) != '_' ) {
-				$this->_methods[] = strtolower( $method );
+		foreach ($methods as $method) {
+			if (substr($method, 0, 1) != '_') {
+				$this->_methods[] = strtolower($method);
 				// auto register public methods as tasks
-				$this->_taskMap[strtolower( $method )] = $method;
+				$this->_taskMap[strtolower($method)] = $method;
 			}
 		}
 
 		//set the view name
-		if (empty( $this->_name ))
-		{
+		if (empty($this->_name)) {
 			if (array_key_exists('name', $config))  {
 				$this->_name = $config['name'];
 			} else {
@@ -181,14 +240,14 @@ class JController extends JObject
 		}
 
 		// If the default task is set, register it as such
-		if ( array_key_exists( 'default_task', $config ) ) {
-			$this->registerDefaultTask( $config['default_task'] );
+		if (array_key_exists('default_task', $config)) {
+			$this->registerDefaultTask($config['default_task']);
 		} else {
-			$this->registerDefaultTask( 'display' );
+			$this->registerDefaultTask('display');
 		}
 
 		// set the default model search path
-		if ( array_key_exists( 'model_path', $config ) ) {
+		if (array_key_exists('model_path', $config)) {
 			// user-defined dirs
 			$this->addModelPath($config['model_path']);
 		} else {
@@ -196,11 +255,11 @@ class JController extends JObject
 		}
 
 		// set the default view search path
-		if ( array_key_exists( 'view_path', $config ) ) {
+		if (array_key_exists('view_path', $config)) {
 			// user-defined dirs
-			$this->_setPath( 'view', $config['view_path'] );
+			$this->_setPath('view', $config['view_path']);
 		} else {
-			$this->_setPath( 'view', $this->_basePath.DS.'views' );
+			$this->_setPath('view', $this->_basePath.DS.'views');
 		}
 	}
 
@@ -214,31 +273,28 @@ class JController extends JObject
 	 * error case.
 	 * @since	1.5
 	 */
-	function execute( $task )
+	function execute($task)
 	{
 		$this->_task = $task;
 
-		$task = strtolower( $task );
-		if (isset( $this->_taskMap[$task] )) {
+		$task = strtolower($task);
+		if (isset($this->_taskMap[$task])) {
 			$doTask = $this->_taskMap[$task];
-		} elseif (isset( $this->_taskMap['__default'] )) {
+		} elseif (isset($this->_taskMap['__default'])) {
 			$doTask = $this->_taskMap['__default'];
 		} else {
-			return JError::raiseError( 404, JText::_('Task ['.$task.'] not found') );
+			return JError::raiseError(404, JText::_('Task ['.$task.'] not found'));
 		}
 
 		// Record the actual task being fired
 		$this->_doTask = $doTask;
 
 		// Make sure we have access
-		if ($this->authorize( $doTask ))
-		{
+		if ($this->authorize($doTask)) {
 			$retval = $this->$doTask();
 			return $retval;
-		}
-		else
-		{
-			return JError::raiseError( 403, JText::_('Access Forbidden') );
+		} else {
+			return JError::raiseError(403, JText::_('ACCESS_FORBIDDEN'));
 		}
 
 	}
@@ -251,11 +307,10 @@ class JController extends JObject
 	 * @return	boolean	True if authorized
 	 * @since	1.5
 	 */
-	function authorize( $task )
+	function authorize($task)
 	{
 		// Only do access check if the aco section is set
-		if ($this->_acoSection)
-		{
+		if ($this->_acoSection) {
 			// If we have a section value set that trumps the passed task ???
 			if ($this->_acoSectionValue) {
 				// We have one, so set it and lets do the check
@@ -263,10 +318,8 @@ class JController extends JObject
 			}
 			// Get the JUser object for the current user and return the authorization boolean
 			$user = & JFactory::getUser();
-			return $user->authorize( $this->_acoSection, $task );
-		}
-		else
-		{
+			return $user->authorize($this->_acoSection, $task);
+		} else {
 			// Nothing set, nothing to check... so obviously its ok :)
 			return true;
 		}
@@ -278,19 +331,18 @@ class JController extends JObject
 	 * This function is provide as a default implementation, in most cases
 	 * you will need to override it in your own controllers.
 	 *
-	 * @access	public
 	 * @param	string	$cachable	If true, the view output will be cached
 	 * @since	1.5
 	 */
-	function display($cachable=false)
+	public function display($cachable = false)
 	{
-		$document =& JFactory::getDocument();
+		$document = &JFactory::getDocument();
 
 		$viewType	= $document->getType();
-		$viewName	= JRequest::getCmd( 'view', $this->getName() );
-		$viewLayout	= JRequest::getCmd( 'layout', 'default' );
+		$viewName	= JRequest::getCmd('view', $this->getName());
+		$viewLayout	= JRequest::getCmd('layout', 'default');
 
-		$view = & $this->getView( $viewName, $viewType, '', array( 'base_path'=>$this->_basePath));
+		$view = & $this->getView($viewName, $viewType, '', array('base_path'=>$this->_basePath));
 
 		// Get/Create the model
 		if ($model = & $this->getModel($viewName)) {
@@ -302,9 +354,9 @@ class JController extends JObject
 		$view->setLayout($viewLayout);
 
 		// Display the view
-		if ($cachable) {
+		if ($cachable && $viewType != 'feed') {
 			global $option;
-			$cache =& JFactory::getCache($option, 'view');
+			$cache = &JFactory::getCache($option, 'view');
 			$cache->get($view, 'display');
 		} else {
 			$view->display();
@@ -321,8 +373,8 @@ class JController extends JObject
 	function redirect()
 	{
 		if ($this->_redirect) {
-			global $mainframe;
-			$mainframe->redirect( $this->_redirect, $this->_message, $this->_messageType );
+			$app = &JFactory::getApplication();
+			$app->redirect($this->_redirect, $this->_message, $this->_messageType);
 		}
 		return false;
 	}
@@ -337,31 +389,30 @@ class JController extends JObject
 	 * @return	object	The model.
 	 * @since	1.5
 	 */
-	function &getModel( $name = '', $prefix = '', $config = array() )
+	function getModel($name = '', $prefix = '', $config = array())
 	{
-		if ( empty( $name ) ) {
+		if (empty($name)) {
 			$name = $this->getName();
 		}
 
-		if ( empty( $prefix ) ) {
+		if (empty($prefix)) {
 			$prefix = $this->getName() . 'Model';
 		}
 
-		if ( $model = & $this->_createModel( $name, $prefix, $config ) )
-		{
+		if ($model = & $this->_createModel($name, $prefix, $config)) {
 			// task is a reserved state
-			$model->setState( 'task', $this->_task );
+			$model->setState('task', $this->_task);
 
 			// Lets get the application object and set menu information if its available
 			$app	= &JFactory::getApplication();
 			$menu	= &$app->getMenu();
-			if (is_object( $menu ))
+			if (is_object($menu))
 			{
 				if ($item = $menu->getActive())
 				{
-					$params	=& $menu->getParams($item->id);
+					$params	= &$menu->getParams($item->id);
 					// Set Default State Data
-					$model->setState( 'parameters.menu', $params );
+					$model->setState('parameters.menu', $params);
 				}
 			}
 		}
@@ -372,11 +423,10 @@ class JController extends JObject
 	 * Adds to the stack of model paths in LIFO order.
 	 *
 	 * @static
-	 * @param	string|array The directory (string), or list of directories
-	 *                       (array) to add.
+	 * @param	string|array The directory (string), or list of directories (array) to add.
 	 * @return	void
 	 */
-	function addModelPath( $path )
+	function addModelPath($path)
 	{
 		jimport('joomla.application.component.model');
 		JModel::addIncludePath($path);
@@ -397,7 +447,7 @@ class JController extends JObject
 	 * Get the last task that is or was to be performed.
 	 *
 	 * @access	public
-	 * @return	 string The task that was or is being performed.
+	 * @return	string The task that was or is being performed.
 	 * @since	1.5
 	 */
 	function getTask()
@@ -419,13 +469,12 @@ class JController extends JObject
 	{
 		$name = $this->_name;
 
-		if (empty( $name ))
-		{
+		if (empty($name)) {
 			$r = null;
-			if ( !preg_match( '/(.*)Controller/i', get_class( $this ), $r ) ) {
+			if (!preg_match('/(.*)Controller/i', get_class($this), $r)) {
 				JError::raiseError(500, "JController::getName() : Cannot get or parse class name.");
 			}
-			$name = strtolower( $r[1] );
+			$name = strtolower($r[1]);
 		}
 
 		return $name;
@@ -443,29 +492,25 @@ class JController extends JObject
 	 * @return	object	Reference to the view or an error.
 	 * @since	1.5
 	 */
-	function &getView( $name = '', $type = '', $prefix = '', $config = array() )
+	function getView($name = '', $type = '', $prefix = '', $config = array())
 	{
 		static $views;
 
-		if ( !isset( $views ) ) {
+		if (!isset($views)) {
 			$views = array();
 		}
-
-		if ( empty( $name ) ) {
+		if (empty($name)) {
 			$name = $this->getName();
 		}
-
-		if ( empty( $prefix ) ) {
+		if (empty($prefix)) {
 			$prefix = $this->getName() . 'View';
 		}
-
-		if ( empty( $views[$name] ) )
-		{
-			if ( $view = & $this->_createView( $name, $prefix, $type, $config ) ) {
+		if (empty($views[$name])) {
+			if ($view = & $this->_createView($name, $prefix, $type, $config)) {
 				$views[$name] = & $view;
 			} else {
 				$result = JError::raiseError(
-					500, JText::_( 'View not found [name, type, prefix]:' )
+					500, JText::_('View not found [name, type, prefix]:')
 						. ' ' . $name . ',' . $type . ',' . $prefix
 				);
 				return $result;
@@ -483,9 +528,9 @@ class JController extends JObject
 	 * (array) to add.
 	 * @return	void
 	 */
-	function addViewPath( $path )
+	function addViewPath($path)
 	{
-		$this->_addPath( 'view', $path );
+		$this->_addPath('view', $path);
 	}
 
 	/**
@@ -493,15 +538,14 @@ class JController extends JObject
 	 *
 	 * @access	public
 	 * @param	string	The task.
-	 * @param	string	The name of the method in the derived class to perform
-	 *                  for this task.
+	 * @param	string	The name of the method in the derived class to perform for this task.
 	 * @return	void
 	 * @since	1.5
 	 */
-	function registerTask( $task, $method )
+	function registerTask($task, $method)
 	{
-		if ( in_array( strtolower( $method ), $this->_methods ) ) {
-			$this->_taskMap[strtolower( $task )] = $method;
+		if (in_array(strtolower($method), $this->_methods)) {
+			$this->_taskMap[strtolower($task)] = $method;
 		}
 	}
 
@@ -514,9 +558,9 @@ class JController extends JObject
 	 * @return	void
 	 * @since	1.5
 	 */
-	function registerDefaultTask( $method )
+	function registerDefaultTask($method)
 	{
-		$this->registerTask( '__default', $method );
+		$this->registerTask('__default', $method);
 	}
 
 	/**
@@ -527,7 +571,7 @@ class JController extends JObject
 	 * @return	string	Previous message
 	 * @since	1.5
 	 */
-	function setMessage( $text )
+	function setMessage($text)
 	{
 		$previous		= $this->_message;
 		$this->_message = $text;
@@ -540,12 +584,12 @@ class JController extends JObject
 	 * @access	public
 	 * @param	string URL to redirect to.
 	 * @param	string	Message to display on redirect. Optional, defaults to
-	 * 			value set internally by controller, if any.
+	 *			value set internally by controller, if any.
 	 * @param	string	Message type. Optional, defaults to 'message'.
 	 * @return	void
 	 * @since	1.5
 	 */
-	function setRedirect( $url, $msg = null, $type = 'message' )
+	function setRedirect($url, $msg = null, $type = 'message')
 	{
 		$this->_redirect = $url;
 		if ($msg !== null) {
@@ -564,7 +608,7 @@ class JController extends JObject
 	 * @return	void
 	 * @since	1.5
 	 */
-	function setAccessControl( $section, $value = null )
+	function setAccessControl($section, $value = null)
 	{
 		$this->_acoSection = $section;
 		$this->_acoSectionValue = $value;
@@ -581,15 +625,13 @@ class JController extends JObject
 	 * failure.
 	 * @since	1.5
 	 */
-	function &_createModel( $name, $prefix = '', $config = array())
+	function _createModel($name, $prefix = '', $config = array())
 	{
-		$result = null;
-
 		// Clean the model name
-		$modelName	 = preg_replace( '/[^A-Z0-9_]/i', '', $name );
-		$classPrefix = preg_replace( '/[^A-Z0-9_]/i', '', $prefix );
+		$modelName		= preg_replace('/[^A-Z0-9_]/i', '', $name);
+		$classPrefix	= preg_replace('/[^A-Z0-9_]/i', '', $prefix);
 
-		$result =& JModel::getInstance($modelName, $classPrefix, $config);
+		$result = &JModel::getInstance($modelName, $classPrefix, $config);
 		return $result;
 	}
 
@@ -609,41 +651,37 @@ class JController extends JObject
 	 * @return	mixed	View object on success; null or error result on failure.
 	 * @since	1.5
 	 */
-	function &_createView( $name, $prefix = '', $type = '', $config = array() )
+	function _createView($name, $prefix = '', $type = '', $config = array())
 	{
-		$result = null;
-
 		// Clean the view name
-		$viewName	 = preg_replace( '/[^A-Z0-9_]/i', '', $name );
-		$classPrefix = preg_replace( '/[^A-Z0-9_]/i', '', $prefix );
-		$viewType	 = preg_replace( '/[^A-Z0-9_]/i', '', $type );
+		$viewName		= preg_replace('/[^A-Z0-9_]/i', '', $name);
+		$classPrefix	= preg_replace('/[^A-Z0-9_]/i', '', $prefix);
+		$viewType		= preg_replace('/[^A-Z0-9_]/i', '', $type);
 
 		// Build the view class name
 		$viewClass = $classPrefix . $viewName;
 
-		if ( !class_exists( $viewClass ) )
-		{
-			jimport( 'joomla.filesystem.path' );
+		if (!class_exists($viewClass)) {
+			jimport('joomla.filesystem.path');
 			$path = JPath::find(
 				$this->_path['view'],
-				$this->_createFileName( 'view', array( 'name' => $viewName, 'type' => $viewType) )
+				$this->_createFileName('view', array('name' => $viewName, 'type' => $viewType))
 			);
 			if ($path) {
 				require_once $path;
 
-				if ( !class_exists( $viewClass ) ) {
+				if (!class_exists($viewClass)) {
 					$result = JError::raiseError(
-						500, JText::_( 'View class not found [class, file]:' )
-						. ' ' . $viewClass . ', ' . $path );
-					return $result;
+						500, JText::_('View class not found [class, file]:')
+						. ' ' . $viewClass . ', ' . $path);
+					return null;
 				}
 			} else {
-				return $result;
+				return null;
 			}
 		}
 
-		$result = new $viewClass($config);
-		return $result;
+		return new $viewClass($config);
 	}
 
 	/**
@@ -654,13 +692,13 @@ class JController extends JObject
 	* @param	string|array	The new set of search paths. If null or false,
 	* resets to the current directory only.
 	*/
-	function _setPath( $type, $path )
+	function _setPath($type, $path)
 	{
 		// clear out the prior search dirs
 		$this->_path[$type] = array();
 
 		// actually add the user-specified directories
-		$this->_addPath( $type, $path );
+		$this->_addPath($type, $path);
 	}
 
 	/**
@@ -671,45 +709,51 @@ class JController extends JObject
 	* @param	string|array The directory or stream to search.
 	* @return	void
 	*/
-	function _addPath( $type, $path )
+	function _addPath($type, $path)
 	{
 		// just force path to array
-		settype( $path, 'array' );
+		settype($path, 'array');
 
 		// loop through the path directories
-		foreach ( $path as $dir )
-		{
+		foreach ($path as $dir) {
 			// no surrounding spaces allowed!
-			$dir = trim( $dir );
+			$dir = trim($dir);
 
 			// add trailing separators as needed
-			if ( substr( $dir, -1 ) != DIRECTORY_SEPARATOR ) {
+			if (substr($dir, -1) != DIRECTORY_SEPARATOR) {
 				// directory
 				$dir .= DIRECTORY_SEPARATOR;
 			}
 
 			// add to the top of the search dirs
-			array_unshift( $this->_path[$type], $dir );
+			array_unshift($this->_path[$type], $dir);
 		}
 	}
 
 	/**
 	 * Create the filename for a resource.
 	 *
-	 * @access	private
 	 * @param	string	The resource type to create the filename for.
 	 * @param	array	An associative array of filename information. Optional.
 	 * @return	string	The filename.
 	 * @since	1.5
 	 */
-	function _createFileName( $type, $parts = array() )
+	private static function _createFileName($type, $parts = array())
 	{
 		$filename = '';
 
-		switch ( $type )
+		switch ($type)
 		{
+			case 'controller':
+				if (!empty($parts['protocol'])) {
+					$parts['protocol'] = '.'.$parts['protocol'];
+				}
+
+				$filename = strtolower($parts['name']).$parts['protocol'].'.php';
+				break;
+
 			case 'view':
-				if ( !empty( $parts['type'] ) ) {
+				if (!empty($parts['type'])) {
 					$parts['type'] = '.'.$parts['type'];
 				}
 

@@ -1,32 +1,28 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @subpackage	Plugins
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
-
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
-
-/*
- * Make sure the user is authorized to view this page
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_plugins
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
-$user = & JFactory::getUser();
-if (!$user->authorize( 'com_plugins', 'manage' )) {
-		$mainframe->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
+
+// No direct access.
+defined('_JEXEC') or die;
+
+// Access check.
+if (!JFactory::getUser()->authorise('core.manage', 'com_plugins')) {
+	return JError::raiseWarning(404, JText::_('ALERTNOTAUTH'));
 }
 
-require_once( JPATH_COMPONENT.DS.'controller.php' );
+// Include dependancies
+jimport('joomla.application.component.controller');
+
+// TODO: Refactor to support latest MVC pattern.
+
+require_once JPATH_COMPONENT.DS.'controller.php';
 
 // Create the controller
-$controller	= new PluginsController( );
-
-$controller->execute( JRequest::getCmd( 'task' ) );
+$controller	= JController::getInstance('Plugins');
+$controller->execute(JRequest::getCmd('task'));
 $controller->redirect();

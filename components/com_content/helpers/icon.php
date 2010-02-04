@@ -1,92 +1,67 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 /**
  * Content Component HTML Helper
  *
  * @static
- * @package		Joomla
- * @subpackage	Content
+ * @package		Joomla.Site
+ * @subpackage	com_content
  * @since 1.5
  */
 class JHTMLIcon
 {
-	function create($article, $params, $access, $attribs = array())
+	static function create($article, $params)
 	{
-		$url = 'index.php?task=new&id=0&sectionid='.$article->sectionid;
+		$uri = &JFactory::getURI();
+
+		$url = 'index.php?option=com_contenttask=article.add&return='.base64_encode($uri).'&id=0&sectionid='.$article->sectionid;
 
 		if ($params->get('show_icons')) {
-			$text = JHTML::_('image.site', 'new.png', '/images/M_images/', NULL, NULL, JText::_('New') );
+			$text = JHtml::_('image', 'system/new.png', JText::_('New'), NULL, true);
 		} else {
 			$text = JText::_('New').'&nbsp;';
 		}
 
-		$attribs	= array( 'title' => JText::_( 'New' ));
-		return JHTML::_('link', JRoute::_($url), $text, $attribs);
+		$attribs	= array('title' => JText::_('New'));
+		return JHtml::_('link', JRoute::_($url), $text, $attribs);
 	}
 
-	function pdf($article, $params, $access, $attribs = array())
+	static function email($article, $params, $attribs = array())
 	{
-		$url  = 'index.php?view=article';
-		$url .=  @$article->catslug ? '&catid='.$article->catslug : '';
-		$url .= '&id='.$article->slug.'&format=pdf';
+		$uri	= &JURI::getInstance();
+		$base	= $uri->toString(array('scheme', 'host', 'port'));
+		$link	= $base.JRoute::_(ContentRoute::article($article->slug, $article->catslug) , false);
+		$url	= 'index.php?option=com_mailto&tmpl=component&link='.base64_encode($link);
 
-		$status = 'status=no,toolbar=no,scrollbars=yes,titlebar=no,menubar=no,resizable=yes,width=640,height=480,directories=no,location=no';
+		$status = 'width=400,height=350,menubar=yes,resizable=yes';
 
-		// checks template image directory for image, if non found default are loaded
 		if ($params->get('show_icons')) {
-			$text = JHTML::_('image.site', 'pdf_button.png', '/images/M_images/', NULL, NULL, JText::_('PDF'));
-		} else {
-			$text = JText::_('PDF').'&nbsp;';
-		}
-
-		$attribs['title']	= JText::_( 'PDF' );
-		$attribs['onclick'] = "window.open(this.href,'win2','".$status."'); return false;";
-		$attribs['rel']     = 'nofollow';
-
-		return JHTML::_('link', JRoute::_($url), $text, $attribs);
-	}
-
-	function email($article, $params, $access, $attribs = array())
-	{
-		//$link	= JURI::base()."index.php?view=article&id=".$article->slug;
-		$uri     =& JURI::getInstance();
-		$base  = $uri->toString( array('scheme', 'host', 'port'));
-		$link    = $base.JRoute::_( "index.php?view=article&id=".$article->slug, false );
-		$url	= 'index.php?option=com_mailto&tmpl=component&link='.base64_encode( $link );
-
-		$status = 'width=400,height=300,menubar=yes,resizable=yes';
-
-		if ($params->get('show_icons')) 	{
-			$text = JHTML::_('image.site', 'emailButton.png', '/images/M_images/', NULL, NULL, JText::_('Email'));
+			$text = JHtml::_('image', 'system/emailButton.png', JText::_('Email'), NULL, true);
 		} else {
 			$text = '&nbsp;'.JText::_('Email');
 		}
 
-		$attribs['title']	= JText::_( 'Email' );
+		$attribs['title']	= JText::_('Email');
 		$attribs['onclick'] = "window.open(this.href,'win2','".$status."'); return false;";
 
-		$output = JHTML::_('link', JRoute::_($url), $text, $attribs);
+		$output = JHtml::_('link', JRoute::_($url), $text, $attribs);
 		return $output;
 	}
 
-	function edit($article, $params, $access, $attribs = array())
+	static function edit($article, $params, $attribs = array())
 	{
-		$user =& JFactory::getUser();
+		$user = &JFactory::getUser();
+		$uri = &JFactory::getURI();
 
 		if ($params->get('popup')) {
 			return;
@@ -96,66 +71,65 @@ class JHTMLIcon
 			return;
 		}
 
-		if (!$access->canEdit && !($access->canEditOwn && $article->created_by == $user->get('id'))) {
+		if (!$user->authorise('core.edit', 'com_content.article.'.$article->id)) {
 			return;
 		}
 
-		JHTML::_('behavior.tooltip');
+		JHtml::_('behavior.tooltip');
 
-		$url = 'index.php?view=article&id='.$article->slug.'&task=edit';
+		$url = 'index.php?task=article.edit&id='.$article->id.'&return='.base64_encode($uri);
 		$icon = $article->state ? 'edit.png' : 'edit_unpublished.png';
-		$text = JHTML::_('image.site', $icon, '/images/M_images/', NULL, NULL, JText::_('Edit'));
+		$text = JHtml::_('image', 'system/'.$icon, JText::_('Edit'), NULL, true);
 
 		if ($article->state == 0) {
 			$overlib = JText::_('Unpublished');
 		} else {
 			$overlib = JText::_('Published');
 		}
-		$date = JHTML::_('date', $article->created);
-		$author = $article->created_by_alias ? $article->created_by_alias : $article->author;
+		$date = JHtml::_('date', $article->created);
+		$author = $article->created_by_alias ? $article->created_by_alias : $article->created_by;
 
-		$overlib .= '&lt;br /&gt;';
-		$overlib .= JText::_($article->groups);
 		$overlib .= '&lt;br /&gt;';
 		$overlib .= $date;
 		$overlib .= '&lt;br /&gt;';
 		$overlib .= $author;
 
-		$button = JHTML::_('link', JRoute::_($url), $text);
+		$button = JHtml::_('link', JRoute::_($url), $text);
 
-		$output = '<span class="hasTip" title="'.JText::_( 'Edit Item' ).' :: '.$overlib.'">'.$button.'</span>';
+		$output = '<span class="hasTip" title="'.JText::_('EDIT_ITEM').' :: '.$overlib.'">'.$button.'</span>';
 		return $output;
 	}
 
 
-	function print_popup($article, $params, $access, $attribs = array())
+	static function print_popup($article, $params, $attribs = array())
 	{
 		$url  = 'index.php?view=article';
 		$url .=  @$article->catslug ? '&catid='.$article->catslug : '';
-		$url .= '&id='.$article->slug.'&tmpl=component&print=1&page='.@ $request->limitstart;
+		$url .= '&id='.$article->slug.'&tmpl=component&print=1&layout=default&page='.@ $request->limitstart;
 
 		$status = 'status=no,toolbar=no,scrollbars=yes,titlebar=no,menubar=no,resizable=yes,width=640,height=480,directories=no,location=no';
 
 		// checks template image directory for image, if non found default are loaded
-		if ( $params->get( 'show_icons' ) ) {
-			$text = JHTML::_('image.site',  'printButton.png', '/images/M_images/', NULL, NULL, JText::_( 'Print' ) );
+		if ($params->get('show_icons')) {
+			$text = JHtml::_('image',  'system/printButton.png', JText::_('Print'), NULL, true);
 		} else {
-			$text = JText::_( 'ICON_SEP' ) .'&nbsp;'. JText::_( 'Print' ) .'&nbsp;'. JText::_( 'ICON_SEP' );
+			$text = JText::_('ICON_SEP') .'&nbsp;'. JText::_('Print') .'&nbsp;'. JText::_('ICON_SEP');
 		}
 
-		$attribs['title']	= JText::_( 'Print' );
+		$attribs['title']	= JText::_('Print');
 		$attribs['onclick'] = "window.open(this.href,'win2','".$status."'); return false;";
+		$attribs['rel']		= 'nofollow';
 
-		return JHTML::_('link', JRoute::_($url), $text, $attribs);
+		return JHtml::_('link', JRoute::_($url), $text, $attribs);
 	}
 
-	function print_screen($article, $params, $access, $attribs = array())
+	static function print_screen($article, $params, $attribs = array())
 	{
 		// checks template image directory for image, if non found default are loaded
-		if ( $params->get( 'show_icons' ) ) {
-			$text = JHTML::_('image.site',  'printButton.png', '/images/M_images/', NULL, NULL, JText::_( 'Print' ) );
+		if ($params->get('show_icons')) {
+			$text = JHtml::_('image',  'system/printButton.png', JText::_('Print'), NULL, true);
 		} else {
-			$text = JText::_( 'ICON_SEP' ) .'&nbsp;'. JText::_( 'Print' ) .'&nbsp;'. JText::_( 'ICON_SEP' );
+			$text = JText::_('ICON_SEP') .'&nbsp;'. JText::_('Print') .'&nbsp;'. JText::_('ICON_SEP');
 		}
 		return '<a href="#" onclick="window.print();return false;">'.$text.'</a>';
 	}

@@ -1,68 +1,64 @@
 <?php
 /**
-* @version		$Id: pathway.php 8180 2007-07-23 05:52:29Z eddieajau $
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is within the rest of the framework
-defined('JPATH_BASE') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
 /**
- * Class to manage the site application pathway
+ * Class to manage the site application pathway.
  *
- * @author		Johan Janssens <johan.janssens@joomla.org>
- * @package 	Joomla
+ * @package		Joomla.Site
+ * @subpackage	Application
  * @since		1.5
  */
 class JPathwaySite extends JPathway
 {
 	/**
-	 * Class constructor
+	 * Class constructor.
+	 *
+	 * @param	array
 	 */
-	function __construct($options = array())
+	public function __construct($options = array())
 	{
-		//Initialise the array
+		//Initialise the array.
 		$this->_pathway = array();
 
-		$menu   =& JSite::getMenu();
+		$menu = &JSite::getMenu();
 
-		if($item = $menu->getActive())
+		if ($item = $menu->getActive())
 		{
-			$menus	= $menu->getMenu();
-			$home	= $menu->getDefault();
+			$menus = $menu->getMenu();
+			$home = $menu->getDefault();
 
-			if(is_object($home) && ($item->id != $home->id))
+			if (is_object($home) && ($item->id != $home->id))
 			{
 				foreach($item->tree as $menupath)
 				{
-					$url  = '';
+					$url = '';
 					$link = $menu->getItem($menupath);
 
 					switch($link->type)
 					{
-						case 'menulink' :
-						case 'url' :
+						case 'menulink':
+						case 'url':
 							$url = $link->link;
 							break;
-						case 'separator' :
+
+						case 'separator':
 							$url = null;
 							break;
-						default      :
+
+						default:
 							$url = 'index.php?Itemid='.$link->id;
 					}
 
-					$this->addItem( $menus[$menupath]->name, $url);
-
-				} // end foreach
+					$this->addItem($menus[$menupath]->title, $url);
+				}
 			}
-		} // end if getActive
+		}
 	}
 }

@@ -1,389 +1,490 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Weblinks Component Weblink Model
+ * Weblinks model.
  *
- * @package		Joomla
- * @subpackage	Weblinks
- * @since 1.5
+ * @package		Joomla.Administrator
+ * @subpackage	com_weblinks
+ * @since		1.5
  */
-class WeblinksModelWeblink extends JModel
+class WeblinksModelWeblink extends JModelForm
 {
 	/**
-	 * Weblink id
-	 *
-	 * @var int
+	 * Method to auto-populate the model state.
 	 */
-	var $_id = null;
-
-	/**
-	 * Weblink data
-	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if($edit)
-			$this->setId((int)$array[0]);
-	}
-
-	/**
-	 * Method to set the weblink identifier
-	 *
-	 * @access	public
-	 * @param	int Weblink identifier
-	 */
-	function setId($id)
-	{
-		// Set weblink id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
-
-	/**
-	 * Method to get a weblink
-	 *
-	 * @since 1.5
-	 */
-	function &getData()
-	{
-		// Load the weblink data
-		if ($this->_loadData())
-		{
-			// Initialize some variables
-			$user = &JFactory::getUser();
-
-			// Check to see if the category is published
-			if (!$this->_data->cat_pub) {
-				JError::raiseError( 404, JText::_("Resource Not Found") );
-				return;
-			}
-
-			// Check whether category access level allows access
-			if ($this->_data->cat_access > $user->get('aid', 0)) {
-				JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
-				return;
-			}
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_weblinks.edit.weblink.id'))) {
+			$pk = (int) JRequest::getInt('id');
 		}
-		else  $this->_initData();
+		$this->setState('weblink.id', $pk);
 
-		return $this->_data;
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_weblinks');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Tests if weblink is checked out
+	 * Returns a reference to the a Table object, always creating it.
 	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.5
-	 */
-	function isCheckedOut( $uid=0 )
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Weblink', $prefix = 'WeblinksTable', $config = array())
 	{
-		if ($this->_loadData())
-		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
-			}
+		return JTable::getInstance($type, $prefix, $config);
+	}
+
+	/**
+	 * Method to override check-out a row for editing.
+	 *
+	 * @param	int		The ID of the primary key.
+	 * @return	boolean
+	 */
+	public function checkout($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('weblink.id');
+
+		return parent::checkout($pk);
+	}
+
+	/**
+	 * Method to checkin a row.
+	 *
+	 * @param	integer	The ID of the primary key.
+	 *
+	 * @return	boolean
+	 */
+	public function checkin($pk = null)
+	{
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('weblink.id');
+
+		return parent::checkin($pk);
+	}
+
+	/**
+	 * Method to get a single record.
+	 *
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
+	 */
+	public function &getItem($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('weblink.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Attempt to load the row.
+		$return = $table->load($pk);
+
+		// Check for a table object error.
+		if ($return === false && $table->getError()) {
+			$this->setError($table->getError());
+			return $false;
 		}
-	}
 
-	/**
-	 * Method to checkin/unlock the weblink
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkin()
-	{
-		if ($this->_id)
+		// Prime required properties.
+		if (empty($table->id))
 		{
-			$weblink = & $this->getTable();
-			if(! $weblink->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
+			// Prepare data for a new record.
 		}
-		return false;
+
+		// Convert to the JObject before adding other data.
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		$registry->loadJSON($table->params);
+		$value->params = $registry->toArray();
+
+		return $value;
 	}
 
 	/**
-	 * Method to checkout/lock the weblink
+	 * Method to get the record form.
 	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the article out
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @return	mixed	JForm object on success, false on failure.
+	 * @since	1.6
 	 */
-	function checkout($uid = null)
+	public function getForm()
 	{
-		if ($this->_id)
-		{
-			// Make sure we have a user id to checkout the article with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$weblink = & $this->getTable();
-			if(!$weblink->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
+		// Initialise variables.
+		$app	= JFactory::getApplication();
 
-			return true;
-		}
-		return false;
-	}
+		// Get the form.
+		$form = parent::getForm('weblink', 'com_weblinks.weblink', array('array' => 'jform', 'event' => 'onPrepareForm'));
 
-	/**
-	 * Method to store the weblink
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function store($data)
-	{
-		$row =& $this->getTable();
-
-		// Bind the form fields to the web link table
-		if (!$row->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
 			return false;
 		}
 
-		// Create the timestamp for the date
-		$row->date = gmdate('Y-m-d H:i:s');
-
-		// if new item, order last in appropriate group
-		if (!$row->id) {
-			$where = 'catid = ' . (int) $row->catid ;
-			$row->ordering = $row->getNextOrder( $where );
+		// Determine correct permissions to check.
+		if ($this->getState('weblink.id'))
+		{
+			// Existing record. Can only edit in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.edit');
+		}
+		else
+		{
+			// New record. Can only create in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.create');
 		}
 
-		// Make sure the web link table is valid
-		if (!$row->check()) {
-			$this->setError($this->_db->getErrorMsg());
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_weblinks.edit.weblink.data', array());
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		// Initialise variables;
+		$dispatcher = JDispatcher::getInstance();
+		$table		= $this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('weblink.id');
+		$isNew		= true;
+
+		// Include the content plugins for the onSave events.
+		JPluginHelper::importPlugin('content');
+
+		// Load the row if saving an existing record.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// Bind the data.
+		if (!$table->bind($data)) {
+			$this->setError(JText::sprintf('JTable_Error_Bind_failed', $table->getError()));
 			return false;
 		}
 
-		// Store the web link table to the database
-		if (!$row->store()) {
-			$this->setError($this->_db->getErrorMsg());
+		// Prepare the row for saving
+		$this->_prepareTable($table);
+
+		// Check the data.
+		if (!$table->check()) {
+			$this->setError($table->getError());
 			return false;
 		}
+
+		// Trigger the onBeforeSaveContent event.
+		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Store the data.
+		if (!$table->store()) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Clean the cache.
+		$cache = JFactory::getCache('com_weblinks');
+		$cache->clean();
+
+		// Trigger the onAfterContentSave event.
+		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
+
+		$this->setState('weblink.id', $table->id);
 
 		return true;
 	}
 
 	/**
-	 * Method to remove a weblink
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * Prepare and sanitise the table prior to saving.
 	 */
-	function delete($cid = array())
+	protected function _prepareTable(&$table)
 	{
-		$result = false;
+		jimport('joomla.filter.output');
+		$date = JFactory::getDate();
+		$user = JFactory::getUser();
 
-		if (count( $cid ))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-			$query = 'DELETE FROM #__weblinks'
-				. ' WHERE id IN ( '.$cids.' )';
-			$this->_db->setQuery( $query );
-			if(!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
+		$table->title		= htmlspecialchars_decode($table->title, ENT_QUOTES);
+		$table->alias		= JApplication::stringURLSafe($table->alias);
+
+		if (empty($table->alias)) {
+			$table->alias = JApplication::stringURLSafe($table->title);
+		}
+
+		if (empty($table->id)) {
+			// Set the values
+			//$table->created	= $date->toMySQL();
+
+			// Set ordering to the last item if not set
+			if (empty($table->ordering)) {
+				$db = JFactory::getDbo();
+				$db->setQuery('SELECT MAX(ordering) FROM #__weblinks');
+				$max = $db->loadResult();
+
+				$table->ordering = $max+1;
 			}
 		}
-
-		return true;
+		else {
+			// Set the values
+			//$table->modified	= $date->toMySQL();
+			//$table->modified_by	= $user->get('id');
+		}
 	}
 
 	/**
-	 * Method to (un)publish a weblink
+	 * Method to delete rows.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
 	 */
-	function publish($cid = array(), $publish = 1)
+	public function delete(&$pks)
 	{
-		$user 	=& JFactory::getUser();
+		// Typecast variable.
+		$pks = (array) $pks;
 
-		if (count( $cid ))
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $i => $pk)
 		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-
-			$query = 'UPDATE #__weblinks'
-				. ' SET published = '.(int) $publish
-				. ' WHERE id IN ( '.$cids.' )'
-				. ' AND ( checked_out = 0 OR ( checked_out = '.(int) $user->get('id').' ) )'
-			;
-			$this->_db->setQuery( $query );
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a weblink
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function move($direction)
-	{
-		$row =& $this->getTable();
-		if (!$row->load($this->_id)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if (!$row->move( $direction, ' catid = '.(int) $row->catid.' AND published >= 0 ' )) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a weblink
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function saveorder($cid = array(), $order)
-	{
-		$row =& $this->getTable();
-		$groupings = array();
-
-		// update ordering values
-		for( $i=0; $i < count($cid); $i++ )
-		{
-			$row->load( (int) $cid[$i] );
-			// track categories
-			$groupings[] = $row->catid;
-
-			if ($row->ordering != $order[$i])
+			if ($table->load($pk))
 			{
-				$row->ordering = $order[$i];
-				if (!$row->store()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
+				// Access checks.
+				if ($table->catid) {
+					$allow = $user->authorise('core.edit.state', 'com_weblinks.category.'.(int) $table->catid);
+				}
+				else {
+					$allow = $user->authorise('core.edit.state', 'com_weblinks');
+				}
+
+				if ($allow)
+				{
+					if (!$table->delete($pk))
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+				}
+				else
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+				}
+			}
+			else
+			{
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to publish records.
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function publish(&$pks, $value = 1)
+	{
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$table	= $this->getTable();
+		$pks	= (array) $pks;
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				if ($table->catid) {
+					$allow = $user->authorise('core.edit.state', 'com_weblinks.category.'.(int) $table->catid);
+				}
+				else {
+					$allow = $user->authorise('core.edit.state', 'com_weblinks');
+				}
+
+				if (!$allow)
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
 				}
 			}
 		}
 
-		// execute updateOrder for each parent group
-		$groupings = array_unique( $groupings );
-		foreach ($groupings as $group){
-			$row->reorder('catid = '.(int) $group);
+		// Attempt to change the state of the records.
+		if (!$table->publish($pks, $value, $user->get('id'))) {
+			$this->setError($table->getError());
+			return false;
 		}
 
 		return true;
 	}
 
 	/**
-	 * Method to load content weblink data
+	 * Method to adjust the ordering of a row.
 	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	int		The ID of the primary key to move.
+	 * @param	integer	Increment, usually +1 or -1
+	 * @return	boolean	False on failure or error, true otherwise.
 	 */
-	function _loadData()
+	public function reorder($pk, $direction = 0)
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT w.*, cc.title AS category,'.
-					' cc.published AS cat_pub, cc.access AS cat_access'.
-					' FROM #__weblinks AS w' .
-					' LEFT JOIN #__categories AS cc ON cc.id = w.catid' .
-					' WHERE w.id = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			return (boolean) $this->_data;
+		// Sanitize the id and adjustment.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('weblink.id');
+
+		// Get an instance of the record's table.
+		$table = $this->getTable();
+
+		// Attempt to check-out and move the row.
+		if (!$this->checkout($pk)) {
+			return false;
 		}
+
+		// Load the row.
+		if (!$table->load($pk)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Access checks.
+		if ($table->catid) {
+			$allow = $user->authorise('core.edit.state', 'com_weblinks.category.'.(int) $table->catid);
+		}
+		else {
+			$allow = $user->authorise('core.edit.state', 'com_weblinks');
+		}
+
+		if (!$allow)
+		{
+			$this->setError(JText::_('JError_Core_Edit_State_not_permitted'));
+			return false;
+		}
+
+		// Move the row.
+		// TODO: Where clause to restrict category.
+		$table->move($pk);
+
+		// Check-in the row.
+		if (!$this->checkin($pk)) {
+			return false;
+		}
+
 		return true;
 	}
 
 	/**
-	 * Method to initialise the weblink data
+	 * Saves the manually set order of records.
 	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	array	An array of primary key ids.
+	 * @param	int		+/-1
 	 */
-	function _initData()
+	function saveorder(&$pks, $order)
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$weblink = new stdClass();
-			$weblink->id					= 0;
-			$weblink->catid				= 0;
-			$weblink->sid				= 0;
-			$weblink->title				= null;
-			$weblink->alias               = null;
-			$weblink->url				= null;
-			$weblink->description			= null;
-			$weblink->date				= null;
-			$weblink->hits				= 0;
-			$weblink->published			= 0;
-			$weblink->checked_out			= 0;
-			$weblink->checked_out_time	= 0;
-			$weblink->ordering			= 0;
-			$weblink->archived			= 0;
-			$weblink->approved			= 0;
-			$weblink->params				= null;
-			$weblink->category			= null;
-			$this->_data					= $weblink;
-			return (boolean) $this->_data;
+		// Initialise variables.
+		$table		= $this->getTable();
+		$conditions	= array();
+
+		if (empty($pks)) {
+			return JError::raiseWarning(500, JText::_('JError_No_items_selected'));
 		}
+
+		// update ordering values
+		foreach ($pks as $i => $pk)
+		{
+			$table->load((int) $pk);
+
+			// Access checks.
+			if ($table->catid) {
+				$allow = $user->authorise('core.edit.state', 'com_weblinks.category.'.(int) $table->catid);
+			}
+			else {
+				$allow = $user->authorise('core.edit.state', 'com_weblinks');
+			}
+
+			if (!$allow)
+			{
+				// Prune items that you can't change.
+				unset($pks[$i]);
+				JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+			}
+			else if ($table->ordering != $order[$i])
+			{
+				$table->ordering = $order[$i];
+				if (!$table->store())
+				{
+					$this->setError($table->getError());
+					return false;
+				}
+				// remember to reorder this category
+				$condition = 'catid = '.(int) $table->catid;
+				$found = false;
+				foreach ($conditions as $cond)
+				{
+					if ($cond[1] == $condition)
+					{
+						$found = true;
+						break;
+					}
+				}
+				if (!$found) {
+					$conditions[] = array ($table->id, $condition);
+				}
+			}
+		}
+
+		// Execute reorder for each category.
+		foreach ($conditions as $cond)
+		{
+			$table->load($cond[0]);
+			$table->reorder($cond[1]);
+		}
+
+		// Clear the component's cache
+		$cache = JFactory::getCache('com_weblinks');
+		$cache->clean();
+
 		return true;
 	}
 }

@@ -1,220 +1,239 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.helper');
 
 /**
-* Joomla! Application class
-*
-* Provide many supporting API functions
-*
-* @package		Joomla
-* @final
-*/
-class JSite extends JApplication
+ * Joomla! Application class
+ *
+ * Provide many supporting API functions
+ *
+ * @package		Joomla.Site
+ * @subpackage	Application
+ */
+final class JSite extends JApplication
 {
 	/**
-	* Class constructor
-	*
-	* @access protected
-	* @param	array An optional associative array of configuration settings.
-	* Recognized key values include 'clientId' (this list is not meant to be comprehensive).
-	*/
-	function __construct($config = array())
+	 * Currently active template
+	 * @var object
+	 */
+	private $template = null;
+
+	/**
+	 * Class constructor
+	 *
+	 * @param	array An optional associative array of configuration settings.
+	 * Recognized key values include 'clientId' (this list is not meant to be comprehensive).
+	 */
+	public function __construct($config = array())
 	{
 		$config['clientId'] = 0;
 		parent::__construct($config);
 	}
 
 	/**
-	* Initialise the application.
-	*
-	* @access public
-	*/
-	function initialise( $options = array())
+	 * Initialise the application.
+	 *
+	 * @param	array
+	 */
+	public function initialise($options = array())
 	{
+		$config =& JFactory::getConfig();
 		// if a language was specified it has priority
 		// otherwise use user or default language settings
 		if (empty($options['language']))
 		{
 			$user = & JFactory::getUser();
-			$lang	= $user->getParam( 'language' );
+			$lang	= $user->getParam('language');
 
 			// Make sure that the user's language exists
-			if ( $lang && JLanguage::exists($lang) ) {
+			if ($lang && JLanguage::exists($lang)) {
 				$options['language'] = $lang;
-			} else {
-				$params =  JComponentHelper::getParams('com_languages');
-				$client	=& JApplicationHelper::getClientInfo($this->getClientId());
-				$options['language'] = $params->get($client->name, 'en-GB');
 			}
-
+			else
+			{
+				$params =  JComponentHelper::getParams('com_languages');
+				$client	= &JApplicationHelper::getClientInfo($this->getClientId());
+				$options['language'] = $params->get($client->name, $config->getValue('config.language','en-GB'));
+			}
 		}
 
 		// One last check to make sure we have something
-		if ( ! JLanguage::exists($options['language']) ) {
-			$options['language'] = 'en-GB';
+		if (!JLanguage::exists($options['language']))
+		{
+			$lang = $config->getValue('config.language','en-GB');
+			if (JLanguage::exists($lang)) {
+				$options['language'] = $lang;
+			}
+			else {
+				$options['language'] = 'en-GB'; // as a last ditch fail to english
+			}
 		}
 
 		parent::initialise($options);
 	}
 
 	/**
-	* Route the application
-	*
-	* @access public
-	*/
-	function route() {
+	 * Route the application.
+	 *
+	 */
+	public function route()
+	{
 		parent::route();
+
+		$Itemid = JRequest::getInt('Itemid');
+		$this->authorize($Itemid);
 	}
 
 	/**
-	* Dispatch the application
-	*
-	* @access public
-	*/
-	function dispatch($component)
+	 * Dispatch the application
+	 *
+	 * @param	string
+	 */
+	public function dispatch($component = null)
 	{
-		$document	=& JFactory::getDocument();
-		$user		=& JFactory::getUser();
-		$router     =& $this->getRouter();
-		$params     =& $this->getParams();
+		// Get the component if not set.
+		if (!$component) {
+			$component = JRequest::getCmd('option');
+		}
+
+		$document	= &JFactory::getDocument();
+		$user		= &JFactory::getUser();
+		$router		= &$this->getRouter();
+		$params		= &$this->getParams();
 
 		switch($document->getType())
 		{
 			case 'html':
-			{
 				//set metadata
-				$document->setMetaData( 'keywords', $this->getCfg('MetaKeys') );
+				$document->setMetaData('keywords', $this->getCfg('MetaKeys'));
 
-				if ( $user->get('id') ) {
-					$document->addScript( JURI::root(true).'/includes/js/joomla.javascript.js');
-				}
-
-				if($router->getMode() == JROUTER_MODE_SEF) {
+				if ($router->getMode() == JROUTER_MODE_SEF) {
 					$document->setBase(JURI::current());
 				}
-			} break;
+				break;
 
 			case 'feed':
-			{
 				$document->setBase(JURI::current());
-			} break;
-
-			default: break;
+				break;
 		}
 
-
-		$document->setTitle( $params->get('page_title') );
-		$document->setDescription( $params->get('page_description') );
+		$document->setTitle($params->get('page_title'));
+		$document->setDescription($params->get('page_description'));
 
 		$contents = JComponentHelper::renderComponent($component);
-		$document->setBuffer( $contents, 'component');
+		$document->setBuffer($contents, 'component');
+
+		// Trigger the onAfterDispatch event.
+		JPluginHelper::importPlugin('system');
+		$this->triggerEvent('onAfterDispatch');
 	}
 
 	/**
-	* Display the application.
-	*
-	* @access public
-	*/
-	function render()
+	 * Display the application.
+	 */
+	public function render()
 	{
-		$document =& JFactory::getDocument();
-		$user     =& JFactory::getUser();
+		$document	= &JFactory::getDocument();
+		$user		= &JFactory::getUser();
 
 		// get the format to render
 		$format = $document->getType();
 
-		switch($format)
+		switch ($format)
 		{
-			case 'feed' :
-			{
+			case 'feed':
 				$params = array();
-			} break;
+				break;
 
-			case 'html' :
-			default     :
-			{
-				$template	= $this->getTemplate();
-				$file 		= JRequest::getCmd('tmpl', 'index');
+			case 'html':
+			default:
+				$template	= $this->getTemplate(true);
+				$file		= JRequest::getCmd('tmpl', 'index');
 
-				if ($this->getCfg('offline') && $user->get('gid') < '23' ) {
+				if ($this->getCfg('offline') && $user->get('gid') < '23') {
 					$file = 'offline';
 				}
-				if (!is_dir( JPATH_THEMES.DS.$template ) && !$this->getCfg('offline')) {
+				if (!is_dir(JPATH_THEMES.DS.$template->template) && !$this->getCfg('offline')) {
 					$file = 'component';
 				}
 				$params = array(
-					'template' 	=> $template,
+					'template'	=> $template->template,
 					'file'		=> $file.'.php',
-					'directory'	=> JPATH_THEMES
+					'directory'	=> JPATH_THEMES,
+					'params'	=> $template->params
 				);
-			} break;
- 		}
+				break;
+		}
 
-		$data = $document->render( $this->getCfg('caching'), $params);
-		JResponse::setBody($data);
+		// Parse the document.
+		$document = &JFactory::getDocument();
+		$document->parse($params);
+
+		// Trigger the onBeforeRender event.
+		JPluginHelper::importPlugin('system');
+		$this->triggerEvent('onBeforeRender');
+
+		// Render the document.
+		JResponse::setBody($document->render($this->getCfg('caching'), $params));
+
+		// Trigger the onAfterRender event.
+		$this->triggerEvent('onAfterRender');
 	}
 
-   /**
-	* Login authentication function
-	*
-	* @param	array 	Array( 'username' => string, 'password' => string )
-	* @param	array 	Array( 'remember' => boolean )
-	* @access public
-	* @see JApplication::login
-	*/
-	function login($credentials, $options = array())
+	/**
+	 * Login authentication function
+	 *
+	 * @param	array	Array('username' => string, 'password' => string)
+	 * @param	array	Array('remember' => boolean)
+	 *
+	 * @see JApplication::login
+	 */
+	public function login($credentials, $options = array())
 	{
-		 //Set the application login entry point
-		 if(!array_key_exists('entry_url', $options)) {
-			 $options['entry_url'] = JURI::base().'index.php?option=com_user&task=login';
-		 }
+		 // Set the application login entry point
+		if (!array_key_exists('entry_url', $options)) {
+			$options['entry_url'] = JURI::base().'index.php?option=com_users&task=user.login';
+		}
+
+		// Set the access control action to check.
+		$options['action'] = 'core.login.site';
 
 		return parent::login($credentials, $options);
 	}
 
 	/**
-	* Check if the user can access the application
-	*
-	* @access public
-	*/
-	function authorize($itemid)
+	 * Check if the user can access the application
+	 */
+	public function authorize($itemid)
 	{
-		$menus	=& JSite::getMenu();
-		$user	=& JFactory::getUser();
-		$aid	= $user->get('aid');
+		$menus	= &JSite::getMenu();
+		$user	= &JFactory::getUser();
 
-		if(!$menus->authorize($itemid, $aid))
+		if (!$menus->authorise($itemid))
 		{
-			if ( ! $aid )
+			if ($user->get('id') == 0)
 			{
 				// Redirect to login
 				$uri		= JFactory::getURI();
-				$return		= $uri->toString();
+				$return		= (string)$uri;
 
-				$url  = 'index.php?option=com_user&view=login';
-				$url .= '&return='.base64_encode($return);;
+				$this->setUserState('users.login.form.data',array( 'return' => $return ) );
 
-				//$url	= JRoute::_($url, false);
-				$this->redirect($url, JText::_('You must login first') );
+				$url	= 'index.php?option=com_users&view=login';
+				$url	= JRoute::_($url, false);
+
+				$this->redirect($url, JText::_('YOU_MUST_LOGIN_FIRST'));
 			}
-			else
-			{
-				JError::raiseError( 403, JText::_('Not Authorised') );
+			else {
+				JError::raiseError(403, JText::_('ALERTNOTAUTH'));
 			}
 		}
 	}
@@ -226,50 +245,54 @@ class JSite extends JApplication
 	 * @return	object	The parameters object
 	 * @since	1.5
 	 */
-	function &getParams($option = null)
+	public function &getParams($option = null)
 	{
-		static $params;
+		static $params = array();
 
-		if (!is_object($params))
+		$hash = '__default';
+		if (!empty($option)) {
+			$hash = $option;
+		}
+		if (!isset($params[$hash]))
 		{
 			// Get component parameters
 			if (!$option) {
 				$option = JRequest::getCmd('option');
 			}
-			$params = &JComponentHelper::getParams($option);
+			$params[$hash] = &JComponentHelper::getParams($option);
 
 			// Get menu parameters
 			$menus	= &JSite::getMenu();
 			$menu	= $menus->getActive();
 
-			$title       = htmlspecialchars_decode($this->getCfg('sitename' ));
+			$title = htmlspecialchars_decode($this->getCfg('sitename'));
 			$description = $this->getCfg('MetaDesc');
 
 			// Lets cascade the parameters if we have menu item parameters
 			if (is_object($menu))
 			{
-				$params->merge(new JParameter($menu->params));
-				$title = $menu->name;
-
+				$params[$hash]->merge(new JParameter($menu->params));
+				$title = $menu->title;
 			}
 
-			$params->def( 'page_title'      , $title );
-			$params->def( 'page_description', $description );
+			$params[$hash]->def('page_title', $title);
+			$params[$hash]->def('page_description', $description);
 		}
 
-		return $params;
+		return $params[$hash];
 	}
 
 	/**
 	 * Get the appliaction parameters
 	 *
 	 * @param	string	The component option
+	 *
 	 * @return	object	The parameters object
 	 * @since	1.5
 	 */
-	function &getPageParameters( $option = null )
+	public function &getPageParameters($option = null)
 	{
-		return $this->getParams( $option );
+		return $this->getParams($option);
 	}
 
 	/**
@@ -278,45 +301,62 @@ class JSite extends JApplication
 	 * @return string The template name
 	 * @since 1.0
 	 */
-	function getTemplate()
+	public function getTemplate($params = false)
 	{
-		// Allows for overriding the active template from a component, and caches the result of this function
-		// e.g. $mainframe->setTemplate('solar-flare-ii');
-		if ($template = $this->get('setTemplate')) {
-			return $template;
+		if(is_object($this->template))
+		{
+			if ($params) {
+				return $this->template;
+			}
+			return $this->template->template;
 		}
-
 		// Get the id of the active menu item
-		$menu =& JSite::getMenu();
+		$menu = &$this->getMenu();
 		$item = $menu->getActive();
 
 		$id = 0;
-		if(is_object($item)) { // valid item retrieved
-			$id = $item->id;
+		if (is_object($item)) { // valid item retrieved
+			$id = $item->template_style_id;
+		}
+		$condition = '';
+
+		$tid = JRequest::getInt('template', 0);
+		if ((int) $tid > 0) {
+			$id = (int) $tid;
+		}
+		if ($id == 0) {
+			$condition = 'home = 1';
+		}
+		else {
+			$condition = 'id = '.(int) $id;
 		}
 
 		// Load template entries for the active menuid and the default template
-		$db =& JFactory::getDBO();
-		$query = 'SELECT template'
-			. ' FROM #__templates_menu'
-			. ' WHERE client_id = 0 AND (menuid = 0 OR menuid = '.(int) $id.')'
-			. ' ORDER BY menuid DESC'
+		$db = &JFactory::getDbo();
+		$query = 'SELECT template, params'
+			. ' FROM #__template_styles'
+			. ' WHERE client_id = 0 AND '.$condition
 			;
 		$db->setQuery($query, 0, 1);
-		$template = $db->loadResult();
+		$template = $db->loadObject();
 
 		// Allows for overriding the active template from the request
-		$template = JRequest::getCmd('template', $template);
-		$template = JFilterInput::clean($template, 'cmd'); // need to filter the default value as well
+		$template->template = JRequest::getCmd('template', $template->template);
+		$template->template = JFilterInput::getInstance()->clean($template->template, 'cmd'); // need to filter the default value as well
 
 		// Fallback template
-		if (!file_exists(JPATH_THEMES.DS.$template.DS.'index.php')) {
-			$template = 'rhuk_milkyway';
+		if (!file_exists(JPATH_THEMES.DS.$template->template.DS.'index.php')) {
+			$template->template = 'rhuk_milkyway';
 		}
 
+		$template->params = new JParameter($template->params);
+
 		// Cache the result
-		$this->set('setTemplate', $template);
-		return $template;
+		$this->template = $template;
+		if ($params) {
+			return $template;
+		}
+		return $template->template;
 	}
 
 	/**
@@ -324,53 +364,52 @@ class JSite extends JApplication
 	 *
 	 * @param string The template name
 	 */
-	function setTemplate( $template )
+	public function setTemplate($template)
 	{
 		if (is_dir(JPATH_THEMES.DS.$template)) {
-			$this->set('setTemplate', $template);
+			$this->template = new stdClass();
+			$this->template->params = new JParameter();
+			$this->template->template = $template;
 		}
 	}
 
 	/**
 	 * Return a reference to the JPathway object.
 	 *
-	 * @access public
 	 * @return object JPathway.
 	 * @since 1.5
 	 */
-	function &getMenu()
+	public function &getMenu()
 	{
-		$options = array();
-		$menu =& parent::getMenu('site', $options);
+		$options	= array();
+		$menu		= &parent::getMenu('site', $options);
 		return $menu;
 	}
 
 	/**
 	 * Return a reference to the JPathway object.
 	 *
-	 * @access public
 	 * @return object JPathway.
 	 * @since 1.5
 	 */
-	function &getPathWay()
+	public function &getPathWay()
 	{
 		$options = array();
-		$pathway =& parent::getPathway('site', $options);
+		$pathway = &parent::getPathway('site', $options);
 		return $pathway;
 	}
 
 	/**
 	 * Return a reference to the JRouter object.
 	 *
-	 * @access	public
 	 * @return	JRouter.
 	 * @since	1.5
 	 */
-	function &getRouter()
+	static public function &getRouter()
 	{
-		$config =& JFactory::getConfig();
+		$config = &JFactory::getConfig();
 		$options['mode'] = $config->getValue('config.sef');
-		$router =& parent::getRouter('site', $options);
+		$router = &parent::getRouter('site', $options);
 		return $router;
 	}
 }

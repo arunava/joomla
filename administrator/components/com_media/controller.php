@@ -1,27 +1,20 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.controller' );
+jimport('joomla.application.component.controller');
 
 /**
  * Media Manager Component Controller
  *
- * @package		Joomla
- * @subpackage	Media
+ * @package		Joomla.Administrator
+ * @subpackage	com_media
  * @version 1.5
  */
 class MediaController extends JController
@@ -31,33 +24,32 @@ class MediaController extends JController
 	 */
 	function display()
 	{
-		global $mainframe;
-
 		$vName = JRequest::getCmd('view', 'media');
 		switch ($vName)
 		{
 			case 'images':
-				$vLayout = JRequest::getCmd( 'layout', 'default' );
+				$vLayout = JRequest::getCmd('layout', 'default');
 				$mName = 'manager';
 
 				break;
 
 			case 'imagesList':
 				$mName = 'list';
-				$vLayout = JRequest::getCmd( 'layout', 'default' );
+				$vLayout = JRequest::getCmd('layout', 'default');
 
 				break;
 
 			case 'mediaList':
+				$app	= &JFactory::getApplication();
 				$mName = 'list';
-				$vLayout = $mainframe->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
+				$vLayout = $app->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
 
 				break;
 
 			case 'media':
 			default:
 				$vName = 'media';
-				$vLayout = JRequest::getCmd( 'layout', 'default' );
+				$vLayout = JRequest::getCmd('layout', 'default');
 				$mName = 'manager';
 				break;
 		}
@@ -66,7 +58,7 @@ class MediaController extends JController
 		$vType		= $document->getType();
 
 		// Get/Create the view
-		$view = &$this->getView( $vName, $vType);
+		$view = &$this->getView($vName, $vType);
 
 		// Get/Create the model
 		if ($model = &$this->getModel($mName)) {
@@ -79,6 +71,7 @@ class MediaController extends JController
 
 		// Display the view
 		$view->display();
+
 	}
 
 	function ftpValidate()

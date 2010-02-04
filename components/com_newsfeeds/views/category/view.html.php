@@ -1,88 +1,140 @@
 <?php
 /**
-* version $Id$
-* @package		Joomla
-* @subpackage	Newsfeeds
-* @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-*
-* Joomla! is free software. This version may have been modified pursuant
-* to the GNU General Public License, and as distributed it includes or
-* is derivative of works licensed under the GNU General Public License or
-* other free or open source software licenses.
-* See COPYRIGHT.php for copyright notices and details.
-*/
+ * version $Id$
+ * @package		Joomla
+ * @subpackage	Newsfeeds
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ *
+ */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the Newsfeeds component
  *
- * @static
- * @package		Joomla
- * @subpackage	Newsfeeds
- * @since 1.0
+ * @package		Joomla.Site
+ * @subpackage	com_newsfeeds
+ * @since		1.0
  */
 class NewsfeedsViewCategory extends JView
 {
+	protected $state;
+	protected $items;
+	protected $category;
+	protected $categories;
+	protected $pagination;
+
 	function display($tpl = null)
 	{
-		global $mainframe;
+		$app		= &JFactory::getApplication();
+		$params		= &$app->getParams();
 
-		$pathway 	= & $mainframe->getPathway();
-		$document	= & JFactory::getDocument();
+		// Get some data from the models
+		$state		= &$this->get('State');
+		$items		= &$this->get('Items');
+		$category	= &$this->get('Category');
+		$categories	= &$this->get('Categories');
+		$pagination	= &$this->get('Pagination');
 
-		// Get the parameters of the active menu item
-		$menus	= &JSite::getMenu();
-		$menu	= $menus->getActive();
-		$params	= &$mainframe->getParams();
-
-		$category	= $this->get('category');
-		$items		= $this->get('data');
-		$total		= $this->get('total');
-		$pagination	= &$this->get('pagination');
-
-		// Set page title per category
-		$document->setTitle( $category->title. ' - '. $params->get( 'page_title'));
-
-		//set breadcrumbs
-		$pathway->addItem($category->title, '');
-
-		// Prepare category description
-		$category->description = JHTML::_('content.prepare', $category->description);
-
-		$k = 0;
-		for($i = 0; $i <  count($items); $i++)
-		{
-			$item =& $items[$i];
-
-			$item->link = JRoute::_('index.php?view=newsfeed&catid='.$category->slug.'&id='. $item->slug );
-
-			$item->odd		= $k;
-			$item->count	= $i;
-			$k = 1 - $k;
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		// Define image tag attributes
-		if (!empty ($category->image))
-		{
-			$attribs['align'] = $category->image_position;
-			$attribs['hspace'] = 6;
+		// Validate the category.
 
-			// Use the static HTML library to build the image tag
-			$image = JHTML::_('image', 'images/stories/'.$category->image, JText::_('NEWS_FEEDS'), $attribs);
+		// Make sure the category was found.
+
+		if (empty($category)) {
+			return JError::raiseWarning(404, JText::_('Newfeeds_Error_Category_not_found'));
 		}
 
-		$this->assignRef('image',		$image);
-		$this->assignRef('params',		$params);
+		// Check whether category access level allows access.
+		$user	= &JFactory::getUser();
+		$groups	= $user->authorisedLevels();
+		if (!in_array($category->access, $groups)) {
+			return JError::raiseError(403, JText::_("ALERTNOTAUTH"));
+		}
+
+		// Prepare the data.
+
+		// Compute the active category slug.
+		$category->slug = $category->alias ? ($category->id.':'.$category->alias) : $category->id;
+
+		// Prepare category description (runs content plugins)
+		// TODO: only use if the description is displayed
+		$category->description = JHtml::_('content.prepare', $category->description);
+
+		// Compute the newsfeed slug.
+		for ($i = 0, $n = count($items); $i < $n; $i++)
+		{
+			$item		= &$items[$i];
+			$item->slug	= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
+		}
+
+		// Compute the categories (list) slug.
+		for ($i = 0, $n = count($categories); $i < $n; $i++)
+		{
+			$item		= &$categories[$i];
+			$item->slug	= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
+		}
+
+		$this->assignRef('state',		$state);
 		$this->assignRef('items',		$items);
 		$this->assignRef('category',	$category);
+		$this->assignRef('categories',	$categories);
+		$this->assignRef('params',		$params);
 		$this->assignRef('pagination',	$pagination);
+
+		$this->_prepareDocument();
 
 		parent::display($tpl);
 	}
+
+	/**
+	 * Prepares the document
+	 */
+	protected function _prepareDocument()
+	{
+		$app		= &JFactory::getApplication();
+		$menus		= &JSite::getMenu();
+		$pathway	= &$app->getPathway();
+
+		// Because the application sets a default page title,
+		// we need to get it from the menu item itself
+		if ($menu = $menus->getActive())
+		{
+			$menuParams = new JParameter($menu->params);
+			if ($title = $menuParams->get('jpage_title')) {
+				$this->document->setTitle($title);
+			}
+			else {
+				$this->document->setTitle(JText::_('News_Feeds'));
+			}
+
+			// Set breadcrumbs.
+			if ($menu->query['view'] != 'category') {
+				$pathway->addItem($this->category->title, '');
+			}
+		}
+		else {
+			$this->document->setTitle(JText::_('News_Feeds'));
+		}
+
+		// Add alternate feed link
+		if ($this->params->get('show_feed_link', 1) == 1)
+		{
+			$link	= '&view=category&id='.$this->category->slug.'&format=feed&limitstart=';
+			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
+			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
+		}
+	}
 }
-?>
+

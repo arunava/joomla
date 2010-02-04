@@ -1,6 +1,6 @@
 <?php
 /**
-* @version $Id$
+* @version $Id: str_split.php,v 1.1 2006/02/25 13:50:17 harryf Exp $
 * @package utf8
 * @subpackage strings
 */

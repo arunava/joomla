@@ -1,19 +1,12 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
- * @license		GNU/GPL, see LICENSE.php
- * Joomla! is free software. This version may have been modified pursuant to the
- * GNU General Public License, and as distributed it includes or is derivative
- * of works licensed under the GNU General Public License or other free or open
- * source software licenses. See COPYRIGHT.php for copyright notices and
- * details.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.filesystem.file');
 jimport('joomla.filesystem.folder');
@@ -21,8 +14,8 @@ jimport('joomla.filesystem.folder');
 /**
  * Weblinks Weblink Controller
  *
- * @package		Joomla
- * @subpackage	Weblinks
+ * @package		Joomla.Administrator
+ * @subpackage	com_media
  * @since 1.5
  */
 class MediaControllerFile extends MediaController
@@ -35,16 +28,16 @@ class MediaControllerFile extends MediaController
 	 */
 	function upload()
 	{
-		global $mainframe;
 
 		// Check for request forgeries
-		JRequest::checkToken( 'request' ) or jexit( 'Invalid Token' );
+		JRequest::checkToken('request') or jexit(JText::_('JInvalid_Token'));
 
-		$file 		= JRequest::getVar( 'Filedata', '', 'files', 'array' );
-		$folder		= JRequest::getVar( 'folder', '', '', 'path' );
-		$format		= JRequest::getVar( 'format', 'html', '', 'cmd');
-		$return		= JRequest::getVar( 'return-url', null, 'post', 'base64' );
-		$err		= null;
+		$app	= &JFactory::getApplication();
+		$file	= JRequest::getVar('Filedata', '', 'files', 'array');
+		$folder	= JRequest::getVar('folder', '', '', 'path');
+		$format	= JRequest::getVar('format', 'html', '', 'cmd');
+		$return	= JRequest::getVar('return-url', null, 'post', 'base64');
+		$err	= null;
 
 		// Set FTP credentials, if given
 		jimport('joomla.client.helper');
@@ -57,7 +50,7 @@ class MediaControllerFile extends MediaController
 		if (isset($file['name'])) {
 			$filepath = JPath::clean(COM_MEDIA_BASE.DS.$folder.DS.strtolower($file['name']));
 
-			if (!MediaHelper::canUpload( $file, $err )) {
+			if (!MediaHelper::canUpload($file, $err)) {
 				if ($format == 'json') {
 					jimport('joomla.error.log');
 					$log = &JLog::getInstance('upload.error.php');
@@ -68,7 +61,7 @@ class MediaControllerFile extends MediaController
 					JError::raiseNotice(100, JText::_($err));
 					// REDIRECT
 					if ($return) {
-						$mainframe->redirect(base64_decode($return).'&folder='.$folder);
+						$app->redirect(base64_decode($return).'&folder='.$folder);
 					}
 					return;
 				}
@@ -85,7 +78,7 @@ class MediaControllerFile extends MediaController
 					JError::raiseNotice(100, JText::_('Error. File already exists'));
 					// REDIRECT
 					if ($return) {
-						$mainframe->redirect(base64_decode($return).'&folder='.$folder);
+						$app->redirect(base64_decode($return).'&folder='.$folder);
 					}
 					return;
 				}
@@ -97,12 +90,12 @@ class MediaControllerFile extends MediaController
 					$log = &JLog::getInstance('upload.error.php');
 					$log->addEntry(array('comment' => 'Cannot upload: '.$filepath));
 					header('HTTP/1.0 400 Bad Request');
-					jexit('Error. Unable to upload file');
+					jexit('Error Unable to upload file');
 				} else {
-					JError::raiseWarning(100, JText::_('Error. Unable to upload file'));
+					JError::raiseWarning(100, JText::_('ERROR_UNABLE_TO_UPLOAD_FILE'));
 					// REDIRECT
 					if ($return) {
-						$mainframe->redirect(base64_decode($return).'&folder='.$folder);
+						$app->redirect(base64_decode($return).'&folder='.$folder);
 					}
 					return;
 				}
@@ -113,16 +106,16 @@ class MediaControllerFile extends MediaController
 					$log->addEntry(array('comment' => $folder));
 					jexit('Upload complete');
 				} else {
-					$mainframe->enqueueMessage(JText::_('Upload complete'));
+					$app->enqueueMessage(JText::_('UPLOAD_COMPLETE'));
 					// REDIRECT
 					if ($return) {
-						$mainframe->redirect(base64_decode($return).'&folder='.$folder);
+						$app->redirect(base64_decode($return).'&folder='.$folder);
 					}
 					return;
 				}
 			}
 		} else {
-			$mainframe->redirect('index.php', 'Invalid Request', 'error');
+			$app->redirect('index.php', 'Invalid Request', 'error');
 		}
 	}
 
@@ -134,18 +127,19 @@ class MediaControllerFile extends MediaController
 	 */
 	function delete()
 	{
-		global $mainframe;
+		JRequest::checkToken('request') or jexit(JText::_('JInvalid_Token'));
 
 		// Set FTP credentials, if given
 		jimport('joomla.client.helper');
 		JClientHelper::setCredentialsFromRequest('ftp');
 
 		// Get some data from the request
-		$tmpl	= JRequest::getCmd( 'tmpl' );
-		$paths	= JRequest::getVar( 'rm', array(), '', 'array' );
-		$folder = JRequest::getVar( 'folder', '', '', 'path');
+		$app	= &JFactory::getApplication();
+		$tmpl	= JRequest::getCmd('tmpl');
+		$paths	= JRequest::getVar('rm', array(), '', 'array');
+		$folder = JRequest::getVar('folder', '', '', 'path');
 
-		// Initialize variables
+		// Initialise variables.
 		$msg = array();
 		$ret = true;
 
@@ -178,9 +172,9 @@ class MediaControllerFile extends MediaController
 		}
 		if ($tmpl == 'component') {
 			// We are inside the iframe
-			$mainframe->redirect('index.php?option=com_media&view=mediaList&folder='.$folder.'&tmpl=component');
+			$app->redirect('index.php?option=com_media&view=mediaList&folder='.$folder.'&tmpl=component');
 		} else {
-			$mainframe->redirect('index.php?option=com_media&folder='.$folder);
+			$app->redirect('index.php?option=com_media&folder='.$folder);
 		}
 	}
 }
