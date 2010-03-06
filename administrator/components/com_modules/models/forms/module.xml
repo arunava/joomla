@@ -32,11 +32,7 @@
 
 		<field
 			name="module"
-			type="text"
-			class="readonly"
-			readonly="readonly"
-			default=""
-			size="20"
+			type="hidden"
 			label="MODULES_FIELD_MODULE_LABEL"
 			description="MODULES_FIELD_MODULE_DESC" />
 

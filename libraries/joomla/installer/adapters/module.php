@@ -38,6 +38,10 @@ class JInstallerModule extends JAdapterInstance
 	 */
 	public function loadLanguage($path)
 	{
+		$source = $this->parent->getPath('source');
+		if (!$source) {
+			$this->parent->setPath('source', ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE) . '/modules/'.$this->parent->extension->element);
+		}
 		$this->manifest = &$this->parent->getManifest();
 		if ($this->manifest->files)
 		{
@@ -426,22 +430,26 @@ class JInstallerModule extends JAdapterInstance
 		$admin_info = JApplicationHelper::getClientInfo('administrator', true);
 		foreach ($site_list as $module)
 		{
+			$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_SITE."/modules/$module/$module.xml");
 			$extension = &JTable::getInstance('extension');
 			$extension->set('type',  'module');
 			$extension->set('client_id', $site_info->id);
 			$extension->set('element', $module);
 			$extension->set('name', $module);
 			$extension->set('state', -1);
+			$extension->set('manifest_cache', serialize($manifest_details));
 			$results[] = clone $extension;
 		}
 		foreach ($admin_list as $module)
 		{
+			$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_ADMINISTRATOR."/modules/$module/$module.xml");
 			$extension = &JTable::getInstance('extension');
 			$extension->set('type', 'module');
 			$extension->set('client_id', $admin_info->id);
 			$extension->set('element', $module);
 			$extension->set('name', $module);
 			$extension->set('state', -1);
+			$extension->set('manifest_cache', serialize($manifest_details));
 			$results[] = clone $extension;
 		}
 		return $results;

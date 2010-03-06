@@ -36,11 +36,15 @@ class JInstallerComponent extends JAdapterInstance
 	 */
 	public function loadLanguage($path)
 	{
+		$source = $this->parent->getPath('source');
+		if (!$source) {
+			$this->parent->setPath('source', ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE) . '/components/'.$this->parent->extension->element);
+		}
 		$this->manifest = &$this->parent->getManifest();
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$check = substr($name, 0, 4);
-		if ($check="com_") {
-		$name = substr($name, 4); }
+		if (substr($name, 0, 4)=="com_") {
+			$name = substr($name, 4);
+		}
 		$extension = "com_$name";
 		$lang =& JFactory::getLanguage();
 		$source = $path;
@@ -96,9 +100,10 @@ class JInstallerComponent extends JAdapterInstance
 
 		// Set the extensions name
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$check=substr($name, 0, 4);
-		if ($check="com_") {
-		$name = substr($name, 4); }
+		if (substr($name, 0, 4)=="com_") {
+			$name = substr($name, 4);
+		}
+
 		$this->set('name', $name);
 		$this->set('element', strtolower('com_'.$name));
 
@@ -1267,24 +1272,29 @@ class JInstallerComponent extends JAdapterInstance
 
 		foreach ($site_components as $component) {
 			if (file_exists(JPATH_SITE.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml')) {
+				$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_SITE.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml');
+				$file = JFile::stripExt($file);
 				$extension = &JTable::getInstance('extension');
 				$extension->set('type', 'component');
 				$extension->set('client_id', 0);
 				$extension->set('element', $component);
 				$extension->set('name', $component);
 				$extension->set('state', -1);
+				$extension->set('manifest_cache', serialize($manifest_details));
 				$results[] = $extension;
 			}
 		}
 
 		foreach ($admin_components as $component) {
 			if (file_exists(JPATH_ADMINISTRATOR.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml')) {
+				$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_ADMINISTRATOR.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml');
 				$extension = &JTable::getInstance('extension');
 				$extension->set('type', 'component');
 				$extension->set('client_id', 1);
 				$extension->set('element', $component);
 				$extension->set('name', $component);
 				$extension->set('state', -1);
+				$extension->set('manifest_cache', serialize($manifest_details));
 				$results[] = $extension;
 			}
 		}
