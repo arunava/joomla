@@ -27,6 +27,31 @@ $ -> Language fix or change
 - -> Removed
 ! -> Note
 
+08-Mar-2010 Christophe Demko
+^ Translating cache and session handler names in the JFieldCacheHandler and JFieldSessionHandler
+^ Translating name of editors in the JFieldEditors class
+^ Enhancing language error message display
+
+08-Mar-2010 Jean-Marie Simonet
+^ Refactored com_config ini/keys
+$ Typos in some strings
+
+07-Mar-2010 Mark Dexter
+^ Implement parameters for com_content frontpage menu item
+
+07-Mar-2010 Christophe Demko
+- Reverting patch 15232 and 15221 which are buggy in php 5.2.4
+
+06-Mar-2010 Jean-Marie Simonet
+$+ Normalised banners language field + sql + sample data
+$ Finalized com_cpanel keys/inis
+
+06-Mar-2010 Mark Dexter
+# Fix problem where JSite was changing JComponentHelper::getParams results 
+
+06-Mar-2010 Hannes Papenberg
+# Added complete manifest files to each core component - Thanks Edgars Piru�ka
+
 05-Mar-2010 Mark Dexter
 ^ Added modified_by_name to articles model
 ^ Implemented include subcategories parameter for Article Category List, Blog
