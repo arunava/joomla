@@ -34,7 +34,7 @@ class JInstallerComponent extends JAdapterInstance
 	 * @param	string	$path the path where to find language files
 	 * @since	1.6
 	 */
-	public function loadLanguage($path)
+	public function loadLanguage($path=null)
 	{
 		$source = $this->parent->getPath('source');
 		if (!$source) {
@@ -47,7 +47,7 @@ class JInstallerComponent extends JAdapterInstance
 		}
 		$extension = "com_$name";
 		$lang =& JFactory::getLanguage();
-		$source = $path;
+		$source = $path ? $path : ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE) . '/components/'.$extension;
 		if($this->manifest->administration->files)
 		{
 			$element = $this->manifest->administration->files;
@@ -1341,9 +1341,9 @@ class JInstallerComponent extends JAdapterInstance
 
 		// Set the extensions name
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$check=substr($name, 0, 4);
-		if ($check="com_") {
-		$name = substr($name, 4); }
+		if (substr($name, 0, 4)=="com_") {
+			$name = substr($name, 4);
+		}
 		$element = strtolower('com_'.$name);
 		$this->set('name', $name);
 		$this->set('element', $element);

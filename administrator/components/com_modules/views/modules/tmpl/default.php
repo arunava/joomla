@@ -65,7 +65,7 @@ $user = JFactory::getUser();
 				<th width="20%">
 					<?php echo JHtml::_('grid.sort',  'COM_MODULES_HEADING_POSITION', 'position', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
-				<th width="5%">
+				<th width="10%">
 					<?php echo JHtml::_('grid.sort',  'COM_MODULES_HEADING_PAGES', 'pages', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
 				<th width="10%">
@@ -129,8 +129,10 @@ $user = JFactory::getUser();
 					<?php
 						if (is_null($item->pages)) {
 							echo JText::_('COM_MODULES_ASSIGNED_NONE');
-						} else if ($item->pages != 0) {
-							echo JText::_('COM_MODULES_ASSIGNED_VARIES');
+						} else if ($item->pages < 0) {
+							echo JText::_('COM_MODULES_ASSIGNED_VARIES_EXCEPT');
+						} else if ($item->pages > 0) {
+							echo JText::_('COM_MODULES_ASSIGNED_VARIES_ONLY');
 						} else {
 							echo JText::_('COM_MODULES_ASSIGNED_ALL');
 						}

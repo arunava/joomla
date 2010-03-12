@@ -44,7 +44,7 @@ defined('_JEXEC') or die;
 			<tr class="row<?php echo $i%2;?>" style="<?php if ($item->protected) echo 'color:#999999;';?>">
 				<td><?php echo $this->pagination->getRowOffset($i); ?></td>
 				<td><?php echo JHtml::_('grid.id', $i, $item->extension_id); ?></td>
-				<td><span class="bold"><?php echo $item->name; ?></span></td>
+				<td><span class="bold hasTip" title="<?php echo htmlspecialchars($item->name.'::'.$item->description); ?>"><?php echo $item->name; ?></span></td>
 				<td><?php echo JText::_('INSTALLER_' . $item->type); ?></td>
 				<td class="center">
 					<?php if (!$item->element) : ?>

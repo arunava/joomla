@@ -10,7 +10,7 @@
 // no direct access
 defined('_JEXEC') or die;
 ?>
-<form action="<?php echo JRoute::_('index.php?option=com_installer&view=manage');?>" method="post" name="adminForm">
+<form action="<?php echo JRoute::_('index.php?option=com_installer&view=discover');?>" method="post" name="adminForm">
 	<?php if ($this->showMessage) : ?>
 		<?php echo $this->loadTemplate('message'); ?>
 	<?php endif; ?>
@@ -42,7 +42,7 @@ defined('_JEXEC') or die;
 			<tr class="row<?php echo $i%2;?>">
 				<td><?php echo $this->pagination->getRowOffset($i); ?></td>
 				<td><?php echo JHtml::_('grid.id', $i, $item->extension_id); ?></td>
-				<td><span class="bold"><?php echo $item->name; ?></span></td>
+				<td><span class="bold hasTip" title="<?php echo htmlspecialchars($item->name.'::'.$item->description); ?>"><?php echo $item->name; ?></span></td>
 				<td><?php echo JText::_('INSTALLER_' . $item->type); ?></td>
 				<td class="center"><?php echo @$item->version != '' ? $item->version : '&nbsp;'; ?></td>
 				<td><?php echo @$item->creationDate != '' ? $item->creationDate : '&nbsp;'; ?></td>

@@ -41,7 +41,7 @@ class JInstallerTemplate extends JAdapterInstance
 		$client = (string)$this->manifest->attributes()->client;
 		$extension = "tpl_$name";
 		$lang =& JFactory::getLanguage();
-		$source = $path;
+		$source = $path ? $path : ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE) . '/templates/'.$name;
 			$lang->load($extension . '.manage', $source, null, false, false)
 		||	$lang->load($extension, $source, null, false, false)
 		||	$lang->load($extension . '.manage', constant('JPATH_'.strtoupper($client)), null, false, false)
@@ -378,6 +378,13 @@ class JInstallerTemplate extends JAdapterInstance
 		$client = JApplicationHelper::getClientInfo($this->parent->extension->client_id);
 		$manifestPath = $client->path.DS.'templates'.DS.$this->parent->extension->element.DS.'templateDetails.xml';
 		$this->parent->manifest = $this->parent->isManifest($manifestPath);
+		$description = (string)$this->parent->manifest->description;
+		if ($description) {
+			$this->parent->set('message', JText::_($description));
+		}
+		else {
+			$this->parent->set('message', '');
+		}
 		$this->parent->setPath('manifest', $manifestPath);
 		$manifest_details = JApplicationHelper::parseXMLInstallFile($this->parent->getPath('manifest'));
 		$this->parent->extension->manifest_cache = serialize($manifest_details);

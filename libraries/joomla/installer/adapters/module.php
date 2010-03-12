@@ -61,7 +61,7 @@ class JInstallerModule extends JAdapterInstance
 			if ($extension)
 			{
 				$lang =& JFactory::getLanguage();
-				$source = $path;
+				$source = $path ? $path : ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE) . '/modules/'.$extension ;
 				$folder = (string)$element->attributes()->folder;
 				if ($folder && file_exists("$path/$folder"))
 				{
@@ -470,6 +470,13 @@ class JInstallerModule extends JAdapterInstance
 		$client = JApplicationHelper::getClientInfo($this->parent->extension->client_id);
 		$manifestPath = $client->path . DS . 'modules'. DS . $this->parent->extension->element . DS . $this->parent->extension->element . '.xml';
 		$this->parent->manifest = $this->parent->isManifest($manifestPath);
+		$description = (string)$this->parent->manifest->description;
+		if ($description) {
+			$this->parent->set('message', JText::_($description));
+		}
+		else {
+			$this->parent->set('message', '');
+		}
 		$this->parent->setPath('manifest', $manifestPath);
 		$manifest_details = JApplicationHelper::parseXMLInstallFile($this->parent->getPath('manifest'));
 		// TODO: Re-evaluate this; should we run installation triggers? postflight perhaps?

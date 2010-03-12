@@ -257,6 +257,7 @@ class InstallerModelManage extends JModelList {
 				break;
 			}
 			$row->name = JText::_($row->name);
+			$row->description = JText::_(@$row->description);
 			$row->author_info = @$row->authorEmail .'<br />'. @$row->authorUrl;
 			$row->client = $row->client_id ? JText::_('INSTALLER_ADMINISTRATOR') : JText::_('INSTALLER_SITE');
 			if ($search && !preg_match("/$search/i", $row->name)) {
