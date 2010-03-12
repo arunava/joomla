@@ -57,17 +57,15 @@ class BannersViewTracks extends JView
 		$state	= $this->get('State');
 		$canDo	= BannersHelper::getActions($state->get('filter.category_id'));
 
-		JToolBarHelper::title(JText::_('Banners_Manager_Tracks'), 'generic.png');
+		JToolBarHelper::title(JText::_('COM_BANNERS_MANAGER_TRACKS'), 'generic.png');
 
 		$bar = &JToolBar::getInstance('toolbar');
 		$bar->appendButton('Popup', 'export', 'JTOOLBAR_EXPORT', 'index.php?option=com_banners&view=download&tmpl=component',600,250);
 
 		$document = &JFactory::getDocument();
 		$app = &JFactory::getApplication();
-		// TODO: must be written in the bluestork template
-		$document->addStyleDeclaration('.icon-32-export { background-image: url(templates/'.$app->getTemplate().'/images/toolbar/icon-32-export.png); }');
 		if ($canDo->get('core.delete')) {
-			$bar->appendButton('Confirm','Banners_Delete_Msg', 'delete', 'JTOOLBAR_EMPTY_TRASH', 'tracks.delete',false);
+			$bar->appendButton('Confirm','COM_BANNERS_DELETE_MSG', 'delete', 'JTOOLBAR_EMPTY_TRASH', 'tracks.delete',false);
 		}
 		if ($canDo->get('core.admin')) {
 			JToolBarHelper::divider();

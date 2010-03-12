@@ -181,7 +181,7 @@ class BannersModelBanner extends JModelForm
 
 		// Bind the data.
 		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JTable_Error_Bind_failed', $table->getError()));
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
 			return false;
 		}
 
@@ -258,7 +258,7 @@ class BannersModelBanner extends JModelForm
 
 			if (!$allow)
 			{
-				$this->setError(JText::_('JError_Core_Edit_State_not_permitted'));
+				$this->setError(JText::_('JERROR_CORE_EDIT_STATE_NOT_PERMITTED'));
 				return false;
 			}
 
