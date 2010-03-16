@@ -171,4 +171,23 @@ class UsersControllerProfile extends UsersController
 		// Flush the data from the session.
 		$app->setUserState('com_users.edit.profile.data', null);
 	}
+	/**
+	 * Method to change the user language
+	 *
+	 * @access	public
+	 * @return	void
+	 * @since	1.6
+	 */
+	function language()
+	{
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		
+		$tag = JRequest::getCmd('language','default');
+		$redirect = JRequest::getVar('redirect');
+		$model = &$this->getModel('Profile','UsersModel',array('ignore_request'=>true));
+		$model->setState('language',$tag);
+		$model->language();
+		$this->setRedirect(JRoute::_(base64_decode($redirect[$tag]),false));
+	}
 }

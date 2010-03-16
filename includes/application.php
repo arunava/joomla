@@ -50,6 +50,7 @@ final class JSite extends JApplication
 		// otherwise use user or default language settings
 		if (empty($options['language']))
 		{
+			// Detect user language
 			$user = & JFactory::getUser();
 			$lang	= $user->getParam('language');
 
@@ -57,12 +58,30 @@ final class JSite extends JApplication
 			if ($lang && JLanguage::exists($lang)) {
 				$options['language'] = $lang;
 			}
-			else
-			{
-				$params =  JComponentHelper::getParams('com_languages');
-				$client	= &JApplicationHelper::getClientInfo($this->getClientId());
-				$options['language'] = $params->get($client->name, $config->getValue('config.language','en-GB'));
+		}
+		if (empty($options['language']))
+		{
+			// Detect cookie language
+			jimport('joomla.utilities.utility');
+			$lang = JRequest::getString(JUtility::getHash('language'), null ,'cookie');
+
+			// Make sure that the user's language exists
+			if ($lang && JLanguage::exists($lang)) {
+				$options['language'] = $lang;
 			}
+		}
+		if (empty($options['language']))
+		{
+			// Detect browser language
+			jimport('joomla.language.helper');
+			$options['language'] = JLanguageHelper::detectLanguage();
+		}
+		if (empty($options['language']))
+		{
+			// Detect default language
+			$params =  JComponentHelper::getParams('com_languages');
+			$client	= &JApplicationHelper::getClientInfo($this->getClientId());
+			$options['language'] = $params->get($client->name, $config->getValue('config.language','en-GB'));
 		}
 
 		// One last check to make sure we have something
@@ -76,8 +95,34 @@ final class JSite extends JApplication
 				$options['language'] = 'en-GB'; // as a last ditch fail to english
 			}
 		}
-
 		parent::initialise($options);
+	}
+	/**
+	 * Get the language from
+	 * - the user preference or
+	 * - the cookie session if the user is not logged in or
+	 * - the default language if the parameter $default is set to true
+	 *
+	 * @param	boolean	$default flag to indicate if the default language should be returned
+	 */
+	public static function getLanguage($default = true)
+	{
+		$user = JFactory::getUser();
+		if($user->id) {
+			$tag = $user->getParam('language');
+		}
+		else {
+			$tag = JRequest::getString(JUtility::getHash('language'), null ,'cookie');
+		}
+		if (is_null($tag)) {
+			if($default) {
+				$tag = JFactory::getLanguage()->getTag();
+			}
+			else {
+				$tag ='';
+			}
+		}
+		return $tag;
 	}
 
 	/**
