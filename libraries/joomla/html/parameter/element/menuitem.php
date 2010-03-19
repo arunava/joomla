@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Renders a menu item element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Parameter
  * @since		1.5
  */
@@ -30,7 +30,7 @@ class JElementMenuItem extends JElement
 
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db =& JFactory::getDBO();
+		$db = &JFactory::getDbo();
 
 		$menuType = $this->_parent->get('menu_type');
 		if (!empty($menuType)) {
@@ -45,11 +45,7 @@ class JElementMenuItem extends JElement
 				' FROM #__menu_types' .
 				' ORDER BY title';
 		$db->setQuery($query);
-		try {
-			$menuTypes = $db->loadObjectList();
-		} catch(JException $e) {
-			$menuTypes = array();
-		}
+		$menuTypes = $db->loadObjectList();
 
 		if ($state = $node->attributes('state')) {
 			$where .= ' AND published = '.(int) $state;
@@ -57,18 +53,14 @@ class JElementMenuItem extends JElement
 
 		// load the list of menu items
 		// TODO: move query to model
-		$query = 'SELECT id, parent, name, menutype, type' .
+		$query = 'SELECT id, parent_id, name, menutype, type' .
 				' FROM #__menu' .
 				$where .
-				' ORDER BY menutype, parent, ordering'
+				' ORDER BY menutype, parent_id, ordering'
 				;
 
 		$db->setQuery($query);
-		try {
-			$menuItems = $db->loadObjectList();
-		} catch(JException $e) {
-			$menuItems = array();
-		}
+		$menuItems = $db->loadObjectList();
 
 		// establish the hierarchy of the menu
 		// TODO: use node model
@@ -79,8 +71,8 @@ class JElementMenuItem extends JElement
 			// first pass - collect children
 			foreach ($menuItems as $v)
 			{
-				$pt 	= $v->parent;
-				$list 	= @$children[$pt] ? $children[$pt] : array();
+				$pt	= $v->parent_id;
+				$list	= @$children[$pt] ? $children[$pt] : array();
 				array_push($list, $v);
 				$children[$pt] = $list;
 			}
@@ -97,8 +89,8 @@ class JElementMenuItem extends JElement
 		}
 
 		// assemble menu items to the array
-		$options 	= array();
-		$options[]	= JHtml::_('select.option', '', '- '.JText::_('Select Item').' -');
+		$options	= array();
+		$options[]	= JHtml::_('select.option', '', '- '.JText::_('SELECT_ITEM').' -');
 
 		foreach ($menuTypes as $type)
 		{
@@ -113,6 +105,17 @@ class JElementMenuItem extends JElement
 				for ($i = 0; $i < $n; $i++)
 				{
 					$item = &$groupedList[$type->menutype][$i];
+
+					//If menutype is changed but item is not saved yet, use the new type in the list
+					if (JRequest::getString('option', '', 'get') == 'com_menus') {
+						$currentItemArray = JRequest::getVar('cid', array(0), '', 'array');
+						$currentItemId = (int) $currentItemArray[0];
+						$currentItemType = JRequest::getString('type', $item->type, 'get');
+						if ($currentItemId == $item->id && $currentItemType != $item->type) {
+							$item->type = $currentItemType;
+						}
+					}
+
 					$disable = strpos($node->attributes('disable'), $item->type) !== false ? true : false;
 					$options[] = JHtml::_('select.option',  $item->id, '&nbsp;&nbsp;&nbsp;' .$item->treename, 'value', 'text', $disable);
 
@@ -120,6 +123,12 @@ class JElementMenuItem extends JElement
 			}
 		}
 
-		return JHtml::_('select.genericlist',  $options, ''.$control_name.'['.$name.']', 'class="inputbox"', 'value', 'text', $value, $control_name.$name);
+		return JHtml::_('select.genericlist', $options, $control_name.'['.$name.']',
+			array(
+				'id' => $control_name.$name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
+		);
 	}
 }

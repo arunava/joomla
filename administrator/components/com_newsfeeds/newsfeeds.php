@@ -1,24 +1,23 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Newsfeeds
-* @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_newsfeeds
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
-if (!JAcl::authorise('com_newsfeeds', 'newsfeeds.manage')) {
-	JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
+// Access check.
+if (!JFactory::getUser()->authorise('core.manage', 'com_newsfeeds')) {
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
-// Require the base controller
-require_once JPATH_COMPONENT.DS.'controller.php';
+// Include dependancies
+jimport('joomla.application.component.controller');
 
-$controller	= new NewsfeedsController();
-
-// Perform the Request task
+$controller	= JController::getInstance('Newsfeeds');
 $controller->execute(JRequest::getCmd('task'));
 $controller->redirect();

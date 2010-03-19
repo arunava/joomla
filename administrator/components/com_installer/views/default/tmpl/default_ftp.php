@@ -1,13 +1,25 @@
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_installer
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+?>
 <fieldset title="<?php echo JText::_('DESCFTPTITLE'); ?>">
 	<legend><?php echo JText::_('DESCFTPTITLE'); ?></legend>
 
 	<?php echo JText::_('DESCFTP'); ?>
 
-	<?php if(JError::isError($this->ftp)): ?>
+	<?php if (JError::isError($this->ftp)): ?>
 		<p><?php echo JText::_($this->ftp->message); ?></p>
 	<?php endif; ?>
 
-	<table class="adminform nospace">
+	<table class="adminform">
 		<tbody>
 			<tr>
 				<td width="120">

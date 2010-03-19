@@ -1,5 +1,16 @@
-<?php defined('_JEXEC') or die('Restricted access'); ?>
-<form action="<?php echo JRoute::_('index.php?option=com_media&amp;tmpl=component&amp;folder=' . $this->state->folder); ?>" method="post" id="mediamanager-form" name="mediamanager-form">
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_media
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access.
+defined('_JEXEC') or die;
+?>
+<form action="index.php?option=com_media&amp;tmpl=component&amp;folder=<?php echo $this->state->folder; ?>" method="post" id="mediamanager-form" name="mediamanager-form">
 	<div class="manager">
 		<?php echo $this->loadTemplate('up'); ?>
 
@@ -22,5 +33,5 @@
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="username" value="" />
 	<input type="hidden" name="password" value="" />
-	<?php echo JHtml::_( 'form.token' ); ?>
+	<?php echo JHtml::_('form.token'); ?>
 </form>

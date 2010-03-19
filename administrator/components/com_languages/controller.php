@@ -1,58 +1,75 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
-
-jimport( 'joomla.application.component.controller' );
+defined('_JEXEC') or die;
 
 /**
- * Languages Weblink Controller
+ * Languages Controller
  *
  * @package		Joomla.Administrator
- * @subpackage	Languages
- * @since 1.5
+ * @subpackage	com_languages
+ * @since		1.5
  */
 class LanguagesController extends JController
 {
+	/**
+	 * task to display the view
+	 */
+	function display()
+	{
+		// Get the document object.
+		$document = &JFactory::getDocument();
+
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'installed');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
+
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
+		{
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
+
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
+
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+
+			$view->display();
+
+			// Load the submenu.
+			require_once JPATH_COMPONENT.DS.'helpers'.DS.'languages.php';
+			LanguagesHelper::addSubmenu($vName);
+		}
+	}
+
+	/**
+	 * task to set the default language
+	 */
 	function publish()
 	{
-		global $mainframe;
-
 		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-
-		// Initialize some variables
-		$client	=& JApplicationHelper::getClientInfo(JRequest::getVar('client', '0', '', 'int'));
-
-		$params = JComponentHelper::getParams('com_languages');
-		$params->set($client->name, $cid[0]);
-
-		$table =& JTable::getInstance('component');
-		$table->loadByOption( 'com_languages' );
-
-		$table->params = $params->toString();
-
-		// pre-save checks
-		if (!$table->check()) {
-			JError::raiseWarning( 500, $table->getError() );
-			return false;
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		$model = & $this->getModel('languages');
+		if ($model->publish())
+		{
+			$msg = JText::_('COM_LANGS_MSG_DEFAULT_LANGUAGE_SAVED');
+			$type = 'message';
 		}
-
-		// save the changes
-		if (!$table->store()) {
-			JError::raiseWarning( 500, $table->getError() );
-			return false;
+		else
+		{
+			$msg = & $this->getError();
+			$type = 'error';
 		}
-
-		$this->setredirect('index.php?option=com_languages&client='.$client->id);
+		$client = & $model->getClient();
+		$this->setredirect('index.php?option=com_languages&client='.$client->id,$msg,$type);
 	}
 }

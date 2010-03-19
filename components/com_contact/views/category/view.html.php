@@ -1,96 +1,162 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Contacts
  */
 class ContactViewCategory extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe;
-		$pathway 	= & $mainframe->getPathway();
-		$document	= & JFactory::getDocument();
+		$app		= &JFactory::getApplication();
+		$user		= &JFactory::getUser();
+		$uri		= &JFactory::getURI();
+		$model		= &$this->getModel();
+		$document	= &JFactory::getDocument();
 
-		// Get the parameters of the active menu item
-		$menus	= &JSite::getMenu();
-		$menu	= $menus->getActive();
-		$params	= &$mainframe->getParams();
+		$pparams = &$app->getParams('com_contact');
 
-		$category	= $this->get('category');
-		$items		= $this->get('data');
-		$total		= $this->get('total');
-		$pagination	= &$this->get('pagination');
+		// Selected Request vars
+		$requestID 			= JRequest::getVar('id', 0, '', 'int');
+		$categoryId			= JRequest::getVar('catid',	0, '', 'int');
+		$categoryId			= ($categoryId == 0) ? $requestID : $categoryId;
+		$limitstart			= JRequest::getVar('limitstart', 0, '', 'int');
+		$filter_order		= JRequest::getVar('filter_order', 'cd.ordering', '', 'cmd');
+		$filter_order_Dir	= JRequest::getVar('filter_order_Dir', 'ASC', '', 'word');
 
-		// Set page title
+		$pparams->def('display_num', $app->getCfg('list_limit'));
+		$default_limit = $pparams->def('display_num', 20);
+
+		$limit = $app->getUserStateFromRequest('com_contact.'.$this->getLayout().'.limit', 'limit', $default_limit, 'int');
+
+		// query options
+		$options['category_id']	= $categoryId;
+		$options['limit']		= $limit;
+		$options['limitstart']	= $limitstart;
+		$options['order by']	= "$filter_order $filter_order_Dir, cd.ordering";
+
+		$categories	= $model->getCategories($options);
+		$contacts	= $model->getContacts($options);
+		$total		= $model->getContactCount($options);
+
+				// Validate the category.
+
+
+
+
+		//add alternate feed link
+		if ($pparams->get('show_feed_link', 1) == 1)
+		{
+			$link	= '&format=feed&limitstart=';
+			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
+			$document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
+			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
+			$document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
+		}
+
+
+
+		//prepare contacts
+		if ($pparams->get('show_email', 0) == 1) {
+			jimport('joomla.mail.helper');
+		}
+
+		$k = 0;
+		for($i = 0; $i <  count($contacts); $i++)
+		{
+			$contact = &$contacts[$i];
+
+			$contact->link = JRoute::_('index.php?option=com_contact&view=contact&id='.$contact->slug.'&catid='.$contact->catslug);
+			if ($pparams->get('show_email', 0) == 1) {
+				$contact->email_to = trim($contact->email_to);
+				if (!empty($contact->email_to) && JMailHelper::isEmailAddress($contact->email_to)) {
+					$contact->email_to = JHtml::_('email.cloak', $contact->email_to);
+				} else {
+					$contact->email_to = '';
+				}
+			}
+
+			$contact->odd	= $k;
+			$contact->count = $i;
+			$k = 1 - $k;
+		}
+
+		// find current category
+		// TODO: Move to model
+		$category = null;
+		foreach ($categories as $i => $_cat)
+		{
+			if ($_cat->id == $categoryId) {
+				$category = &$categories[$i];
+				break;
+			}
+		}
+		if ($category == null) {
+			$db = &JFactory::getDbo();
+			$category = &JTable::getInstance('category');
+		}
+
 		$menus	= &JSite::getMenu();
 		$menu	= $menus->getActive();
 
 		// because the application sets a default page title, we need to get it
 		// right from the menu item itself
-		if (is_object( $menu )) {
-			$menu_params = new JParameter( $menu->params );
-			if (!$menu_params->get( 'page_title')) {
-				$params->set('page_title',	$category->title);
+		if (is_object($menu)) {
+			$menu_params = new JParameter($menu->params);
+			if (!$menu_params->get('page_title')) {
+				$pparams->set('page_title',	$category->title);
 			}
 		} else {
-			$params->set('page_title',	$category->title);
+			$pparams->set('page_title',	$category->title);
+		}
+		$document->setTitle($pparams->get('page_title'));
+
+		if ($this->item->metadesc) {
+			$this->document->setDescription($this->item->metadesc);
 		}
 
-		$document->setTitle( $params->get( 'page_title' ) );
-
-		//set breadcrumbs
-		$pathway->addItem($category->title, '');
-
+		if ($this->item->metakey) {
+			$this->document->setMetadata('keywords', $this->item->metakey);
+		}
+	
+		
 		// Prepare category description
 		$category->description = JHtml::_('content.prepare', $category->description);
 
-		$k = 0;
-		for($i = 0; $i <  count($items); $i++)
-		{
-			$item =& $items[$i];
+		// table ordering
+		$lists['order_Dir'] = $filter_order_Dir;
+		$lists['order'] = $filter_order;
+		$selected = '';
 
-			$item->link = JRoute::_('index.php?view=contact&catid='.$category->slug.'&id='. $item->slug );
+		jimport('joomla.html.pagination');
+		$pagination = new JPagination($total, $limitstart, $limit);
 
-			$item->odd		= $k;
-			$item->count	= $i;
-			$k = 1 - $k;
-		}
-
-		// Define image tag attributes
-		if (!empty ($category->image))
-		{
-			$attribs['align'] = $category->image_position;
-			$attribs['hspace'] = 6;
-
-			// Use the static HTML library to build the image tag
-			$image = JHtml::_('image', 'images/'.$category->image, JText::_('NEWS_FEEDS'), $attribs);
-		}
-		
-		$categories = $this->get('Categories');
-		foreach($categories as &$subcategory)
-		{
-			$subcategory->link = JRoute::_('index.php?option=com_contact&view=category&id='.$subcategory->slug); 
-		}
-		$this->assignRef('image',		$image);
-		$this->assignRef('params',		$params);
-		$this->assignRef('items',		$items);
-		$this->assignRef('category',	$category);
-		$this->assignRef('categories', 	$categories);
+		$this->assignRef('items',		$contacts);
+		$this->assignRef('lists',		$lists);
 		$this->assignRef('pagination',	$pagination);
+		//$this->assignRef('data',		$data);
+		$this->assignRef('category',	$category);
+		$this->assignRef('params',		$pparams);
+
+		$this->assign('action',		str_replace('&', '&amp;', $uri));
 
 		parent::display($tpl);
+	}
+
+	function getItems()
+	{
+
 	}
 }

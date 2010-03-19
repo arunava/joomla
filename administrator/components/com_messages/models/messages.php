@@ -1,192 +1,117 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Messages
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
  * Messages Component Messages Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Messages
- * @since 1.5
+ * @subpackage	com_messages
+ * @since		1.6
  */
-class MessagesModelMessages extends JModel
+class MessagesModelMessages extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var	string
 	 */
-	var $_data = null;
+	protected $_context = 'com_messages.messages';
 
 	/**
-	 * Category total
-	 *
-	 * @var integer
+	 * Method to auto-populate the model state.
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Filter object
-	 *
-	 * @var object
-	 */
-	var $_filter = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		global $mainframe, $option;
-		$context			= $option.'.list';
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int' );
-		$limitstart	= $mainframe->getUserStateFromRequest( $context.'.limitstart', 'limitstart', 0, 'int' );
+		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state', '', 'string');
+		$this->setState('filter.state', $state);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
-
-		$filter = new stdClass();
-		$filter->order		= $mainframe->getUserStateFromRequest( $context.'.filter_order',		'filter_order',		'a.date_time',	'cmd' );
-		$filter->order_Dir	= $mainframe->getUserStateFromRequest( $context.'.filter_order_Dir',	'filter_order_Dir',	'',				'word' );
-		$filter->state		= $mainframe->getUserStateFromRequest( $context.'.filter_state',		'filter_state',		'',				'word' );
-		$filter->search		= $mainframe->getUserStateFromRequest( $context.'.search',			'search',			'',				'string' );
-		$this->_filter = $filter;
+		// List state information.
+		parent::_populateState('a.date_time', 'desc');
 	}
 
 	/**
-	 * Method to get contacts item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string	A prefix for the store id.
+	 *
+	 * @return	string	A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.state');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * Build an SQL query to load the list data.
+	 *
+	 * @return	JQuery
+	 */
+	protected function _getListQuery()
+	{
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
+		$user	= JFactory::getUser();
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.*, '.
+				'u.name AS user_from'
+			)
+		);
+		$query->from('#__messages AS a');
+
+		// Join over the users for message owner.
+		$query->join('INNER', '#__users AS u ON u.id = a.user_id_from');
+		$query->where('a.user_id_to = '.(int) $user->get('id'));
+
+		// Filter by published state.
+		$state = $this->getState('filter.state');
+		if (is_numeric($state)) {
+			$query->where('a.state = '.(int) $state);
+		}
+		else if ($state === '') {
+			$query->where('(a.state IN (0, 1))');
 		}
 
-		return $this->_data;
-	}
+		// Filter by search in subject or message.
+		$search = $this->getState('filter.search');
 
-	/**
-	 * Method to get the total number of contact items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		if (!empty($search)) {
+			$search = $db->Quote('%'.$db->getEscaped($search, true).'%', false);
+			$query->where('a.subject LIKE '.$search.' OR a.message LIKE '.$search.')');
 		}
 
-		return $this->_total;
-	}
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.date_time')).' '.$db->getEscaped($this->getState('list.direction', 'DESC')));
 
-	/**
-	 * Method to get a pagination object for the contacts
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get filter object for the contacts
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getFilter()
-	{
-		return $this->_filter;
-	}
-
-	function _buildQuery()
-	{
-		// Get the WHERE and ORDER BY clauses for the query
-		$where		= $this->_buildContentWhere();
-		$orderby	= $this->_buildContentOrderBy();
-
-		$query = 'SELECT a.*, u.name AS user_from'
-			. ' FROM #__messages AS a'
-			. ' INNER JOIN #__users AS u ON u.id = a.user_id_from'
-			. $where
-			. $orderby
-		;
-
+		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
-	}
-
-	function _buildContentOrderBy()
-	{
-		$orderby 	= ' ORDER BY '. $this->_filter->order .' '. $this->_filter->order_Dir .', a.date_time DESC';
-
-		return $orderby;
-	}
-
-	function _buildContentWhere()
-	{
-		$search				= JString::strtolower( $this->_filter->search );
-		$user 				=& JFactory::getUser();
-
-		$where = array();
-		$where[] = ' a.user_id_to='.(int) $user->get('id');
-
-		if ($search != '') {
-			$searchEscaped = $db->Quote( '%'.$db->getEscaped( $search, true ).'%', false );
-			$where[] = '( u.username LIKE '.$searchEscaped.' OR email LIKE '.$searchEscaped.' OR u.name LIKE '.$searchEscaped.' )';
-		}
-
-		if ( $this->_filter->state ) {
-			if ( $this->_filter->state == 'P' ) {
-				$where[] = 'a.published = 1';
-			} else if ($this->_filter->state == 'U' ) {
-				$where[] = 'a.published = 0';
-			}
-		}
-
-		$where 		= ( count( $where ) ? ' WHERE ' . implode( ' AND ', $where ) : '' );
-
-		return $where;
 	}
 }

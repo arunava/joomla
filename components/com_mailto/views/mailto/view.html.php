@@ -1,14 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	MailTo
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
@@ -28,22 +28,22 @@ class MailtoViewMailto extends JView
 
 	function &getData()
 	{
-		$user =& JFactory::getUser();
+		$user = &JFactory::getUser();
 		$data = new stdClass();
 
-		$data->link = urldecode( JRequest::getVar( 'link', '', 'method', 'base64' ) );
+		$data->link = urldecode(JRequest::getVar('link', '', 'method', 'base64'));
 
 		if ($data->link == '') {
-			JError::raiseError( 403, 'Link is missing' );
+			JError::raiseError(403, 'COM_MAILTO_LINK_IS_MISSING');
 			$false = false;
 			return $false;
 		}
 
 		// Load with previous data, if it exists
-		$mailto				= JRequest::getString('mailto', '', 'post');
-		$sender 			= JRequest::getString('sender', '', 'post');
-		$from 				= JRequest::getString('from', '', 'post');
-		$subject 			= JRequest::getString('subject', '', 'post');
+		$mailto		= JRequest::getString('mailto', '', 'post');
+		$sender		= JRequest::getString('sender', '', 'post');
+		$from		= JRequest::getString('from', '', 'post');
+		$subject	= JRequest::getString('subject', '', 'post');
 
 		if ($user->get('id') > 0) {
 			$data->sender	= $user->get('name');

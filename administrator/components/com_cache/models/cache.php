@@ -3,15 +3,15 @@
  * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
 /**
- * Model Class used to hold Cache data
+ * Cache Model
  *
  * @package		Joomla.Administrator
  * @subpackage	Cache
@@ -22,118 +22,115 @@ class CacheModelCache extends JModel
 	/**
 	 * An Array of CacheItems indexed by cache group ID
 	 *
-	 * @access protected
 	 * @var Array
 	 */
-	var $_data = null;
-
-	/**
-	 * The cache path
-	 *
-	 * @access protected
-	 * @var String
-	 */
-	var $_path = null;
+	protected $_data = null;
 
 	/**
 	 * Group total
 	 *
 	 * @var integer
 	 */
-	var $_total = null;
+	protected $_total = null;
 
 	/**
 	 * Pagination object
 	 *
 	 * @var object
 	 */
-	var $_pagination = null;
+	protected $_pagination = null;
 
 	/**
-	 * Class constructor
+	 * Method to auto-populate the model state.
 	 *
-	 * @access protected
+	 * This method should only be called once per instantiation and is designed
+	 * to be called on the first call to the getState() method unless the model
+	 * configuration flag to ignore the request is set.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
-	function __construct( $path )
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = &JFactory::getApplication();
 
-		global $mainframe, $option;
+		$clientId = JRequest::getInt('client', 0);
+		$this->setState('clientId', $clientId == 1 ? 1 : 0);
 
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'));
-		$limitstart = $mainframe->getUserStateFromRequest( $option.'.limitstart', 'limitstart', 0 );
+		$client	= &JApplicationHelper::getClientInfo($clientId);
+		$this->setState('client', $client);
 
-		$this->setPath($path);
+		$this->setState('path', $client->path.DS.'cache');
+
+		$context	= 'com_cache.cache.';
+
+		$start = $app->getUserStateFromRequest($context.'list.start', 'limitstart', 0, 'int');
+		$limit = $app->getUserStateFromRequest($context.'list.limit', 'limit', $app->getCfg('list_limit', 20), 'int');
+
+		$this->setState('list.start', $start);
+		$this->setState('list.limit', $limit);
 	}
 
 	/**
-	 * Method to set contacts item path
+	 * Parse $path for cache file groups
 	 *
-	 * @access public
-	 * @param string
+	 * @return	array
 	 */
-	function setPath($path)
+	protected function _parse($path = null)
 	{
-		$this->_path = $path;
-		$this->_data = null;
+		$path = ($path !== null ? $path : $this->getState('path'));
+
+		jimport('joomla.filesystem.folder');
+		$folders = JFolder::folders($path);
+		$data = array();
+
+		foreach ($folders as $folder) {
+			$files = array();
+			$files = JFolder::files($path.DS.$folder);
+			$item = new CacheItem($folder);
+
+			foreach ($files as $file) {
+				$item->updateSize(filesize($path.DS.$folder.DS.$file)/1024);
+			}
+			$data[$folder] = $item;
+		}
+
+		return $data;
 	}
 
 	/**
-	 * Method to get contacts item data
+	 * Method to get cache data
 	 *
-	 * @access public
 	 * @return array
 	 */
-	function getData()
+	public function getData()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$this->_parse();
+		if (empty($this->_data)) {
+			$this->_data = $this->_parse();
 		}
 
 		return $this->_data;
 	}
 
 	/**
-	 * Parse $path for cache file groups. Any files identifided as cache are logged
-	 * in a group and stored in $this->items.
+	 * Method to get client data
 	 *
-	 * @access	private
+	 * @return array
 	 */
-	function _parse()
+	public function getClient()
 	{
-		jimport('joomla.filesystem.folder');
-		jimport('joomla.filesystem.file');
-		$folders = JFolder::folders($this->_path);
-
-		foreach ($folders as $folder)
-		{
-			$files = array();
-			$files = JFolder::files($this->_path.DS.$folder);
-			$item = new CacheItem( $folder );
-
-			foreach ($files as $file)
-			{
-				$item->updateSize( filesize( $this->_path.DS.$folder.DS.$file )/ 1024 );
-			}
-			$this->_data[] = $item;
-		}
+		return $this->getState('client');
 	}
 
 	/**
 	 * Get the number of current Cache Groups
 	 *
-	 * @access public
 	 * @return int
 	 */
-	function getTotal()
+	public function getTotal()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$this->getData();
-			$this->_total = count($this->_data);
+		if (empty($this->_total)) {
+			$this->_total = count($this->getData());
 		}
 
 		return $this->_total;
@@ -142,16 +139,13 @@ class CacheModelCache extends JModel
 	/**
 	 * Method to get a pagination object for the cache
 	 *
-	 * @access public
 	 * @return integer
 	 */
-	function getPagination()
+	public function getPagination()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
+		if (empty($this->_pagination)) {
 			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
+			$this->_pagination = new JPagination($this->getTotal(), $this->getState('list.start'), $this->getState('list.limit'));
 		}
 
 		return $this->_pagination;
@@ -163,41 +157,47 @@ class CacheModelCache extends JModel
 	 *
 	 * @param String $group
 	 */
-	function clean( $group='' )
+	public function clean($group = '')
 	{
-		$cache =& JFactory::getCache();
-		$cache->clean( $group );
+		$cache = &JFactory::getCache('', 'callback', 'file');
+		$cache->clean($group);
 	}
 
-	function cleanlist( $array )
+	public function cleanlist($array)
 	{
 		foreach ($array as $group) {
-			$this->clean( $group );
+			$this->clean($group);
 		}
+	}
+
+	public function purge()
+	{
+		$cache = &JFactory::getCache('');
+		return $cache->gc();
 	}
 }
 
  /**
   * This Class is used by CacheData to store group cache data.
   *
-  * @package		Joomla.Administrator
+  * @package	Joomla.Administrator
   * @subpackage	Cache
   * @since		1.5
-  */
+ */
 class CacheItem
 {
-	var $group 	= "";
-	var $size 	= 0;
-	var $count 	= 0;
+	public $group = '';
+	public $size = 0;
+	public $count = 0;
 
-	function CacheItem ( $group )
+	public function __construct($group)
 	{
 		$this->group = $group;
 	}
 
-	function updateSize( $size )
+	public function updateSize($size)
 	{
-		$this->size = number_format( $this->size + $size, 2 );
+		$this->size = number_format($this->size + $size, 2);
 		$this->count++;
 	}
 }

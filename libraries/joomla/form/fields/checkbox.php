@@ -1,15 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die('Restricted Access');
+defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
-jimport('joomla.form.field');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -25,7 +24,7 @@ class JFormFieldCheckbox extends JFormField
 	 *
 	 * @var		string
 	 */
-	protected $type = 'Checkbox';
+	public $type = 'Checkbox';
 
 	/**
 	 * Method to get the field input.
@@ -34,8 +33,14 @@ class JFormFieldCheckbox extends JFormField
 	 */
 	protected function _getInput()
 	{
-		$value = $this->_element->attributes('value') !== null ? $this->_element->attributes('value') : '';
-		$checked = (!empty($value) && $value == $this->value) ? 'checked="checked"' : '';
-		return '<input type="checkbox" name="'.$this->inputName.'" id="'.$this->inputId.'" value="'.$value.'" '.$checked.' />';
+		$value =((string)$this->_element->attributes()->value !== null) ? (string)$this->_element->attributes()->value : '';
+		$readonly =((string)$this->_element->attributes()->readonly == 'true') ? ' disabled="disabled"' : '';
+		$checked = (!empty($value) && $value == $this->value) ? ' checked="checked"' : '';
+		$attributes = '';
+		if ($v = (string)$this->_element->attributes()->onclick) {
+			$attributes .= ' onclick="'.$this->_replacePrefix($v).'"';
+		}
+
+		return '<input type="checkbox" name="'.$this->inputName.'" id="'.$this->inputId.'" value="'.$value.'"'.$checked.$readonly.$attributes.' />';
 	}
 }

@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Database
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Database
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * MySQLi database driver
@@ -41,19 +41,19 @@ class JDatabaseMySQLi extends JDatabase
 	protected $_nameQuote = '`';
 
 	/**
-	* Database object constructor
-	*
-	* @access	public
-	* @param	array	List of options used to configure the connection
-	* @since	1.5
-	* @see		JDatabase
-	*/
-	protected function __construct($options)
+	 * Database object constructor
+	 *
+	 * @param	array	List of options used to configure the connection
+	 * @since	1.5
+	 * @see		JDatabase
+	 */
+	function __construct($options)
 	{
 		$host		= array_key_exists('host', $options)	? $options['host']		: 'localhost';
 		$user		= array_key_exists('user', $options)	? $options['user']		: '';
 		$password	= array_key_exists('password',$options)	? $options['password']	: '';
 		$database	= array_key_exists('database',$options)	? $options['database']	: '';
+		$prefix		= array_key_exists('prefix', $options)	? $options['prefix']	: 'jos_';
 		$select		= array_key_exists('select', $options)	? $options['select']	: true;
 
 		// Unlike mysql_connect(), mysqli_connect() takes the port and socket
@@ -62,30 +62,35 @@ class JDatabaseMySQLi extends JDatabase
 		$port	= NULL;
 		$socket	= NULL;
 		$targetSlot = substr(strstr($host, ":"), 1);
+
 		if (!empty($targetSlot)) {
 			// Get the port number or socket name
-			if (is_numeric($targetSlot))
+			if (is_numeric($targetSlot)) {
 				$port	= $targetSlot;
-			else
+			} else {
 				$socket	= $targetSlot;
+			}
 
 			// Extract the host name only
 			$host = substr($host, 0, strlen($host) - (strlen($targetSlot) + 1));
 			// This will take care of the following notation: ":3306"
-			if ($host == '')
+			if ($host == '') {
 				$host = 'localhost';
+			}
 		}
 
 		// perform a number of fatality checks, then return gracefully
-		if (!class_exists('mysqli')) {
-			throw new JException('The database php extension "mysqli" is not available', 1255, E_ERROR, 'mysqli', true);
+		if (!function_exists('mysqli_connect')) {
+			$this->_errorNum = 1;
+			$this->_errorMsg = 'The MySQL adapter "mysqli" is not available.';
+			return;
 		}
 
 		// connect to the server
-		$this->_resource = new mysqli($host, $user, $password, null, $port, $socket);
-
-		if ($this->_resource->connect_error) {
-			throw new JException('Could not connect database', 1256, E_WARNING, array('errorNum' => 0, 'errorMsg'=>$this->_resource->connect_error), true);
+		if (!($this->_connection = @mysqli_connect($host, $user, $password, NULL, $port, $socket))) {
+			$this->_errorNum = 2;
+			$this->_errorMsg = 'Could not connect to MySQL';
+			return;
 		}
 
 		// finalize initialization
@@ -100,46 +105,40 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Database object destructor
 	 *
-	 * @return boolean
-	 * @since 1.5
+	 * @return	boolean
+	 * @since	1.5
 	 */
 	public function __destruct()
 	{
-		$return = false;
-		if (is_object($this->_resource)) {
-			$return = $this->_resource->close();
+		if (is_object($this->_connection)) {
+			mysqli_close($this->_connection);
 		}
-		return $return;
 	}
 
 	/**
 	 * Test to see if the MySQLi connector is available
 	 *
-	 * @static
-	 * @access public
-	 * @return boolean  True on success, false otherwise.
+	 * @return	boolean	True on success, false otherwise.
 	 */
-	public static function test()
+	public function test()
 	{
-		return (class_exists('mysqli'));
+		return (function_exists('mysqli_connect'));
 	}
 
 	/**
 	 * Determines if the connection to the server is active.
 	 *
-	 * @access	public
 	 * @return	boolean
 	 * @since	1.5
 	 */
 	public function connected()
 	{
-		return $this->_resource->ping();
+		return $this->_connection->ping();
 	}
 
 	/**
 	 * Select a database for use
 	 *
-	 * @access	public
 	 * @param	string $database
 	 * @return	boolean True if the database has been successfully selected
 	 * @since	1.5
@@ -151,10 +150,10 @@ class JDatabaseMySQLi extends JDatabase
 			return false;
 		}
 
-		if (!$this->_resource->select_db($database)) {
-			$this->_errorNum = mysqli_errno($this->_resource);
-			$this->_errorMsg = mysqli_error($this->_resource);
-			throw new JException('Could not select database', 1257, E_ERROR, array('errorNum' => $this->_errorNum, 'errorMsg' => $this->_errorMsg), true);
+		if (!mysqli_select_db($this->_connection, $database))
+		{
+			$this->_errorNum = 3;
+			$this->_errorMsg = 'Could not connect to database';
 			return false;
 		}
 
@@ -164,8 +163,7 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Determines UTF support
 	 *
-	 * @access public
-	 * @return boolean True - UTF is supported
+	 * @return	boolean	True - UTF is supported
 	 */
 	public function hasUTF()
 	{
@@ -175,12 +173,10 @@ class JDatabaseMySQLi extends JDatabase
 
 	/**
 	 * Custom settings for UTF support
-	 *
-	 * @access public
 	 */
 	public function setUTF()
 	{
-		return $this->_resource->query("SET NAMES 'utf8'");
+		mysqli_query($this->_connection, "SET NAMES 'utf8'");
 	}
 
 	/**
@@ -189,46 +185,48 @@ class JDatabaseMySQLi extends JDatabase
 	 * @param	string	The string to be escaped
 	 * @param	boolean	Optional parameter to provide extra escaping
 	 * @return	string
-	 * @access	public
-	 * @abstract
 	 */
 	public function getEscaped($text, $extra = false)
 	{
-		$result = $this->_resource->real_escape_string($text);
+		$result = mysqli_real_escape_string($this->_connection, $text);
 		if ($extra) {
 			$result = addcslashes($result, '%_');
 		}
 		return $result;
 	}
 	/**
-	* Execute the query
-	*
-	* @access public
-	* @return mixed A database resource if successful, FALSE if not.
-	*/
+	 * Execute the query
+	 *
+	 * @return	mixed	A database resource if successful, FALSE if not.
+	 */
 	public function query()
 	{
-		if (!is_object($this->_resource)) {
-			throw new JException('Database not connected', 1258, E_ERROR);
+		if (!is_object($this->_connection)) {
+			return false;
 		}
 
-		$sql = $this->_sql;
+		// Take a local copy so that we don't modify the original query and cause issues later
+		$sql = $this->replacePrefix((string) $this->_sql);
 		if ($this->_limit > 0 || $this->_offset > 0) {
 			$sql .= ' LIMIT '.$this->_offset.', '.$this->_limit;
 		}
+
 		if ($this->_debug) {
 			$this->_ticker++;
 			$this->_log[] = $sql;
 		}
 		$this->_errorNum = 0;
 		$this->_errorMsg = '';
-		$this->_cursor = $this->_resource->query($sql);
+		$this->_cursor = mysqli_query($this->_connection, $sql);
 
-		if (!$this->_cursor)
-		{
-			$this->_errorNum = mysqli_errno($this->_resource);
-			$this->_errorMsg = mysqli_error($this->_resource)." SQL=$sql";
-			throw new JException('Database Query Error', 1259, E_ERROR, array('errorNum' => $this->_errorNum, 'errorMsg' => $this->_errorMsg), true);
+		if (!$this->_cursor) {
+			$this->_errorNum = mysqli_errno($this->_connection);
+			$this->_errorMsg = mysqli_error($this->_connection)." SQL=$sql";
+
+			if ($this->_debug) {
+				JError::raiseError(500, 'JDatabaseMySQL::query: '.$this->_errorNum.' - '.$this->_errorMsg);
+			}
+			return false;
 		}
 		return $this->_cursor;
 	}
@@ -236,53 +234,56 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Description
 	 *
-	 * @access public
-	 * @return int The number of affected rows in the previous operation
-	 * @since 1.0.5
+	 * @return	int	The number of affected rows in the previous operation
+	 * @since	1.0.5
 	 */
 	public function getAffectedRows()
 	{
-		return $this->_resource->affected_rows;
+		return mysqli_affected_rows($this->_connection);
 	}
 
 	/**
-	* Execute a batch query
-	*
-	* @access public
-	* @return mixed A database resource if successful, FALSE if not.
-	*/
+	 * Execute a batch query
+	 *
+	 * @return	mixed	A database resource if successful, FALSE if not.
+	 */
 	public function queryBatch($abort_on_error=true, $p_transaction_safe = false)
 	{
+		$sql = $this->replacePrefix((string) $this->_sql);
 		$this->_errorNum = 0;
 		$this->_errorMsg = '';
 		if ($p_transaction_safe) {
-			$this->_sql = rtrim($this->_sql, '; \t\r\n\0');
+			$sql = rtrim($sql, "; \t\r\n\0");
 			$si = $this->getVersion();
 			preg_match_all("/(\d+)\.(\d+)\.(\d+)/i", $si, $m);
 			if ($m[1] >= 4) {
-				$this->_sql = 'START TRANSACTION;' . $this->_sql . '; COMMIT;';
-			} else if ($m[2] >= 23 && $m[3] >= 19) {
-				$this->_sql = 'BEGIN WORK;' . $this->_sql . '; COMMIT;';
-			} else if ($m[2] >= 23 && $m[3] >= 17) {
-				$this->_sql = 'BEGIN;' . $this->_sql . '; COMMIT;';
+				$sql = 'START TRANSACTION;' . $sql . '; COMMIT;';
+			}
+			else if ($m[2] >= 23 && $m[3] >= 19) {
+				$sql = 'BEGIN WORK;' . $sql . '; COMMIT;';
+			}
+			else if ($m[2] >= 23 && $m[3] >= 17) {
+				$sql = 'BEGIN;' . $sql . '; COMMIT;';
 			}
 		}
-		$query_split = $this->splitSql($this->_sql);
+		$query_split = $this->splitSql($sql);
 		$error = 0;
+
 		foreach ($query_split as $command_line) {
 			$command_line = trim($command_line);
 			if ($command_line != '') {
-				$this->_cursor = $this->_resource->query($command_line);
+				$this->_cursor = mysqli_query($this->_connection, $command_line);
 				if ($this->_debug) {
 					$this->_ticker++;
 					$this->_log[] = $command_line;
 				}
+
 				if (!$this->_cursor) {
 					$error = 1;
-					$this->_errorNum .= mysqli_errno($this->_resource) . ' ';
-					$this->_errorMsg .= mysqli_error($this->_resource)." SQL=$command_line <br />";
+					$this->_errorNum .= mysqli_errno($this->_connection) . ' ';
+					$this->_errorMsg .= mysqli_error($this->_connection)." SQL=$command_line <br />";
 					if ($abort_on_error) {
-						throw new JException('Database query error', 1259, E_ERROR, array('errorNum'=>$this->_errorNum, 'errorMsg'=>$this->_errorMsg), true);
+						return $this->_cursor;
 					}
 				}
 			}
@@ -293,7 +294,6 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Diagnostic function
 	 *
-	 * @access public
 	 * @return	string
 	 */
 	public function explain()
@@ -301,29 +301,31 @@ class JDatabaseMySQLi extends JDatabase
 		$temp = $this->_sql;
 		$this->_sql = "EXPLAIN $this->_sql";
 
-		$cur = $this->query();
-
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$first = true;
 
 		$buffer = '<table id="explain-sql">';
 		$buffer .= '<thead><tr><td colspan="99">'.$this->getQuery().'</td></tr>';
-		while ($row = $cur->fetch_assoc()) {
+
+		while ($row = mysqli_fetch_assoc($cur)) {
 			if ($first) {
 				$buffer .= '<tr>';
 				foreach ($row as $k=>$v) {
 					$buffer .= '<th>'.$k.'</th>';
 				}
-				$buffer .= '</tr>';
+				$buffer .= '</tr></thead><tbody>';
 				$first = false;
 			}
-			$buffer .= '</thead><tbody><tr>';
+			$buffer .= '<tr>';
 			foreach ($row as $k=>$v) {
 				$buffer .= '<td>'.$v.'</td>';
 			}
 			$buffer .= '</tr>';
 		}
 		$buffer .= '</tbody></table>';
-		$cur->free();
+		mysqli_free_result($cur);
 
 		$this->_sql = $temp;
 
@@ -333,174 +335,238 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Description
 	 *
-	 * @access public
-	 * @return int The number of rows returned from the most recent query.
+	 * @return	int		The number of rows returned from the most recent query.
 	 */
 	public function getNumRows($cur=null)
 	{
-		return $cur ? $cur->num_rows : $this->_cursor->num_rows;
+		return mysqli_num_rows($cur ? $cur : $this->_cursor);
 	}
 
 	/**
-	* This method loads the first field of the first row returned by the query.
-	*
-	* @access public
-	* @return The value returned in the query or null if the query failed.
-	*/
+	 * This method loads the first field of the first row returned by the query.
+	 *
+	 * @return	mixed	The value returned in the query or null if the query failed.
+	 */
 	public function loadResult()
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$ret = null;
-		if ($row = $cur->fetch_row()) {
+		if ($row = mysqli_fetch_row($cur)) {
 			$ret = $row[0];
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $ret;
 	}
 
 	/**
-	* Load an array of single field results into an array
-	*
-	* @access public
-	*/
+	 * Load an array of single field results into an array
+	 */
 	public function loadResultArray($numinarray = 0)
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$array = array();
-		while ($row = $cur->fetch_row()) {
+		while ($row = mysqli_fetch_row($cur)) {
 			$array[] = $row[$numinarray];
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $array;
 	}
 
 	/**
-	* Fetch a result row as an associative array
-	*
-	* @access public
-	* @return array
-	*/
+	 * Fetch a result row as an associative array
+	 *
+	 * @return	array
+	 */
 	public function loadAssoc()
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$ret = null;
-		if ($array = $cur->fetch_assoc()) {
+		if ($array = mysqli_fetch_assoc($cur)) {
 			$ret = $array;
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $ret;
 	}
 
 	/**
-	* Load a assoc list of database rows
-	*
-	* @access public
-	* @param string The field name of a primary key
-	* @return array If <var>key</var> is empty as sequential list of returned records.
-	*/
-	public function loadAssocList($key='')
+	 * Load a assoc list of database rows
+	 *
+	 * @param	string	The field name of a primary key
+	 * @param	string	An optional column name. Instead of the whole row, only this column value will be in the return array.
+	 * @return	array	If <var>key</var> is empty as sequential list of returned records.
+	 */
+	public function loadAssocList($key = null, $column = null)
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$array = array();
-		while ($row = $cur->fetch_assoc()) {
+		while ($row = mysqli_fetch_assoc($cur)) {
+			$value = ($column) ? (isset($row[$column]) ? $row[$column] : $row) : $row;
 			if ($key) {
-				$array[$row[$key]] = $row;
+				$array[$row[$key]] = $value;
 			} else {
-				$array[] = $row;
+				$array[] = $value;
 			}
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $array;
 	}
 
 	/**
-	* This global function loads the first row of a query into an object
-	*
-	* @access public
-	* @return object
-	*/
-	public function loadObject()
+	 * This global function loads the first row of a query into an object
+	 *
+	 * @param	string	The name of the class to return (stdClass by default).
+	 *
+	 * @return	object
+	 */
+	public function loadObject($className = 'stdClass')
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$ret = null;
-		if ($object = $cur->fetch_object()) {
+		if ($object = mysqli_fetch_object($cur, $className)) {
 			$ret = $object;
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $ret;
 	}
 
 	/**
-	* Load a list of database objects
-	*
-	* If <var>key</var> is not empty then the returned array is indexed by the value
-	* the database key.  Returns <var>null</var> if the query fails.
-	*
-	* @access public
-	* @param string The field name of a primary key
-	* @return array If <var>key</var> is empty as sequential list of returned records.
-	*/
-	public function loadObjectList($key='')
+	 * Load a list of database objects
+	 *
+	 * If <var>key</var> is not empty then the returned array is indexed by the value
+	 * the database key.  Returns <var>null</var> if the query fails.
+	 *
+	 * @param	string	The field name of a primary key
+	 * @param	string	The name of the class to return (stdClass by default).
+	 *
+	 * @return	array	If <var>key</var> is empty as sequential list of returned records.
+	 */
+	public function loadObjectList($key='', $className = 'stdClass')
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$array = array();
-		while ($row = $cur->fetch_object()) {
+		while ($row = mysqli_fetch_object($cur, $className)) {
 			if ($key) {
 				$array[$row->$key] = $row;
 			} else {
 				$array[] = $row;
 			}
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $array;
 	}
 
 	/**
 	 * Description
 	 *
-	 * @access public
 	 * @return The first row of the query.
 	 */
 	public function loadRow()
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$ret = null;
-		if ($row = $cur->fetch_row()) {
+		if ($row = mysqli_fetch_row($cur)) {
 			$ret = $row;
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $ret;
 	}
 
 	/**
-	* Load a list of database rows (numeric column indexing)
-	*
-	* If <var>key</var> is not empty then the returned array is indexed by the value
-	* the database key.  Returns <var>null</var> if the query fails.
-	*
-	* @access public
-	* @param string The field name of a primary key
-	* @return array If <var>key</var> is empty as sequential list of returned records.
-	*/
+	 * Load a list of database rows (numeric column indexing)
+	 *
+	 * If <var>key</var> is not empty then the returned array is indexed by the value
+	 * the database key.  Returns <var>null</var> if the query fails.
+	 *
+	 * @param	string	The field name of a primary key
+	 * @return	array	If <var>key</var> is empty as sequential list of returned records.
+	 */
 	public function loadRowList($key=null)
 	{
-		$cur = $this->query();
+		if (!($cur = $this->query())) {
+			return null;
+		}
 		$array = array();
-		while ($row = $cur->fetch_row()) {
+		while ($row = mysqli_fetch_row($cur)) {
 			if ($key !== null) {
 				$array[$row[$key]] = $row;
-			} else {
+			}
+			else {
 				$array[] = $row;
 			}
 		}
-		$cur->free();
+		mysqli_free_result($cur);
 		return $array;
+	}
+
+	/**
+	 * Load the next row returned by the query.
+	 *
+	 * @return	mixed	The result of the query as an array, false if there are no more rows, or null on an error.
+	 *
+	 * @since	1.6.0
+	 */
+	public function loadNextRow()
+	{
+		static $cur;
+
+		if (!($cur = $this->query())) {
+			return $this->_errorNum ? null : false;
+		}
+
+		if ($row = mysqli_fetch_row($cur)) {
+			return $row;
+		}
+
+		mysql_free_result($cur);
+		$cur = null;
+
+		return false;
+	}
+
+	/**
+	 * Load the next row returned by the query.
+	 *
+	 * @param	string	The name of the class to return (stdClass by default).
+	 *
+	 * @return	mixed	The result of the query as an object, false if there are no more rows, or null on an error.
+	 *
+	 * @since	1.6.0
+	 */
+	public function loadNextObject($className = 'stdClass')
+	{
+		static $cur;
+
+		if (!($cur = $this->query())) {
+			return $this->_errorNum ? null : false;
+		}
+
+		if ($row = mysqli_fetch_object($cur, $className)) {
+			return $row;
+		}
+
+		mysql_free_result($cur);
+		$cur = null;
+
+		return false;
 	}
 
 	/**
 	 * Inserts a row into a table based on an objects properties
 	 *
-	 * @access public
 	 * @param	string	The name of the table
 	 * @param	object	An object whose properties match table fields
 	 * @param	string	The name of the primary key. If provided the object property is updated.
@@ -509,9 +575,7 @@ class JDatabaseMySQLi extends JDatabase
 	{
 		$fmtsql = 'INSERT INTO '.$this->nameQuote($table).' (%s) VALUES (%s) ';
 		$fields = array();
-		$values = array();
-		$vars = ($object INSTANCEOF JObject) ? $object->getProperties() : get_object_vars($object);
-		foreach ($vars as $k => $v) {
+		foreach (get_object_vars($object) as $k => $v) {
 			if (is_array($v) or is_object($v) or $v === NULL) {
 				continue;
 			}
@@ -522,7 +586,9 @@ class JDatabaseMySQLi extends JDatabase
 			$values[] = $this->isQuoted($k) ? $this->Quote($v) : (int) $v;
 		}
 		$this->setQuery(sprintf($fmtsql, implode(",", $fields) ,  implode(",", $values)));
-		$this->query();
+		if (!$this->query()) {
+			return false;
+		}
 		$id = $this->insertid();
 		if ($keyName && $id) {
 			$object->$keyName = $id;
@@ -533,24 +599,22 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Description
 	 *
-	 * @access public
 	 * @param [type] $updateNulls
 	 */
 	public function updateObject($table, &$object, $keyName, $updateNulls=true)
 	{
 		$fmtsql = 'UPDATE '.$this->nameQuote($table).' SET %s WHERE %s';
 		$tmp = array();
-		$vars = ($object INSTANCEOF JObject) ? $object->getProperties() : get_object_vars($object);
-		foreach ($vars as $k => $v) {
-			if (is_array($v) or is_object($v) or $k[0] == '_') { // internal or NA field
+		foreach (get_object_vars($object) as $k => $v) {
+			if (is_array($v) or is_object($v) or $k[0] == '_') {
+				// internal or NA field
 				continue;
 			}
 			if ($k == $keyName) { // PK not to be updated
 				$where = $keyName . '=' . $this->Quote($v);
 				continue;
 			}
-			if ($v === null)
-			{
+			if ($v === null) {
 				if ($updateNulls) {
 					$val = 'NULL';
 				} else {
@@ -567,29 +631,24 @@ class JDatabaseMySQLi extends JDatabase
 
 	/**
 	 * Description
-	 *
-	 * @access public
 	 */
 	public function insertid()
 	{
-		return $this->_resource->insert_id;
+		return mysqli_insert_id($this->_connection);
 	}
 
 	/**
 	 * Description
-	 *
-	 * @access public
 	 */
 	public function getVersion()
 	{
-		return $this->_resource->server_info;
+		return mysqli_get_server_info($this->_connection);
 	}
 
 	/**
 	 * Assumes database collation in use by sampling one text field in one table
 	 *
-	 * @access public
-	 * @return string Collation in use
+	 * @return	string	Collation in use
 	 */
 	public function getCollation ()
 	{
@@ -605,8 +664,7 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Description
 	 *
-	 * @access public
-	 * @return array A list of all the tables in the database
+	 * @return	array	A list of all the tables in the database
 	 */
 	public function getTableList()
 	{
@@ -617,17 +675,15 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Shows the CREATE TABLE statement that creates the given tables
 	 *
-	 * @access	public
-	 * @param 	array|string 	A table name or a list of table names
-	 * @return 	array A list the create SQL for the tables
+	 * @param	array|string	A table name or a list of table names
+	 * @return	array A list the create SQL for the tables
 	 */
 	public function getTableCreate($tables)
 	{
 		settype($tables, 'array'); //force to array
 		$result = array();
 
-		foreach ($tables as $tblval)
-		{
+		foreach ($tables as $tblval) {
 			$this->setQuery('SHOW CREATE table ' . $this->getEscaped($tblval));
 			$rows = $this->loadRowList();
 			foreach ($rows as $row) {
@@ -641,29 +697,24 @@ class JDatabaseMySQLi extends JDatabase
 	/**
 	 * Retrieves information about the given tables
 	 *
-	 * @access	public
-	 * @param 	array|string 	A table name or a list of table names
+	 * @param	array|string	A table name or a list of table names
 	 * @param	boolean			Only return field types, default true
-	 * @return	array An array of fields by table
+	 * @return	array	An array of fields by table
 	 */
 	public function getTableFields($tables, $typeonly = true)
 	{
 		settype($tables, 'array'); //force to array
 		$result = array();
 
-		foreach ($tables as $tblval)
-		{
+		foreach ($tables as $tblval) {
 			$this->setQuery('SHOW FIELDS FROM ' . $tblval);
 			$fields = $this->loadObjectList();
 
-			if ($typeonly)
-			{
+			if ($typeonly) {
 				foreach ($fields as $field) {
 					$result[$tblval][$field->Field] = preg_replace("/[(0-9)]/",'', $field->Type);
 				}
-			}
-			else
-			{
+			} else {
 				foreach ($fields as $field) {
 					$result[$tblval][$field->Field] = $field;
 				}

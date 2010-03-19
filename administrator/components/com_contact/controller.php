@@ -1,277 +1,54 @@
 <?php
 /**
- * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @version		$Id: controller.php 12268 2009-06-22 00:05:11Z eddieajau $
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// no direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.controller' );
+jimport('joomla.application.component.controller');
 
 /**
- * Contact Contact Controller
+ * Component Controller
  *
  * @package		Joomla.Administrator
- * @subpackage	Contact
- * @since 1.5
+ * @subpackage	com_content
  */
-class ContactsController extends JController
+class ContactController extends JController
 {
-	function __construct($config = array())
+	/**
+	 * Display the view
+	 */
+	function display()
 	{
-		parent::__construct($config);
+		// Get the document object.
+		$document	= &JFactory::getDocument();
 
-		// Register Extra tasks
-		$this->registerTask( 'add',  'display' );
-		$this->registerTask( 'edit', 'display' );
-	}
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'contacts');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
 
-	function display( )
-	{
-		switch($this->getTask())
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
 		{
-			case 'add':
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view'  , 'contact');
-				JRequest::setVar( 'edit', false );
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
 
-				// Checkout the contact
-				$model = $this->getModel('contact');
-				$model->checkout();
-			} break;
-			case 'edit':
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view'  , 'contact');
-				JRequest::setVar( 'edit', true );
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
 
-				// Checkout the contact
-				$model = $this->getModel('contact');
-				$model->checkout();
-			} break;
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+
+			$view->display();
+
+			// Load the submenu.
+			require_once JPATH_COMPONENT.DS.'helpers'.DS.'contact.php';
+			ContactHelper::addSubmenu($vName);
 		}
-
-		parent::display();
 	}
-
-	function save()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$post	= JRequest::get('post');
-		$cid	= JRequest::getVar( 'cid', array(0), 'post', 'array' );
-		$post['id'] = (int) $cid[0];
-
-		$model = $this->getModel('contact');
-
-		if ($model->store($post)) {
-			$msg = JText::_( 'Contact Saved' );
-		} else {
-			$msg = JText::_( 'Error Saving Contact' );
-		}
-
-		// Check the table in so it can be edited.... we are done with it anyway
-		$model->checkin();
-		$link = 'index.php?option=com_contact';
-		$this->setRedirect($link, $msg);
-	}
-
-	function remove()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to delete' ) );
-		}
-
-		$model = $this->getModel('contact');
-		if(!$model->delete($cid)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact' );
-	}
-
-
-	function publish()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to publish' ) );
-		}
-
-		$model = $this->getModel('contact');
-		if(!$model->publish($cid, 1)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact' );
-	}
-
-
-	function unpublish()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to unpublish' ) );
-		}
-
-		$model = $this->getModel('contact');
-		if(!$model->publish($cid, 0)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact' );
-	}
-
-	function cancel()
-	{
-		// Checkin the contact
-		$model = $this->getModel('contact');
-		$model->checkin();
-
-		$this->setRedirect( 'index.php?option=com_contact' );
-	}
-
-
-	function orderup()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$model = $this->getModel('contact');
-		$model->move(-1);
-
-		$this->setRedirect( 'index.php?option=com_contact');
-	}
-
-	function orderdown()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$model = $this->getModel('contact');
-		$model->move(1);
-
-		$this->setRedirect( 'index.php?option=com_contact');
-	}
-
-	function saveorder()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid 	= JRequest::getVar( 'cid', array(), 'post', 'array' );
-		$order 	= JRequest::getVar( 'order', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-		JArrayHelper::toInteger($order);
-
-		$model = $this->getModel('contact');
-		$model->saveorder($cid, $order);
-
-		$msg = 'New ordering saved';
-		$this->setRedirect( 'index.php?option=com_contact', $msg );
-	}
-
-	function accesspublic()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		$msg = '';
-		$model = $this->getModel('contact');
-		if(!$model->setAccess($cid, 0)) {
-			$msg = $model->getError();
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact', $msg );
-	}
-
-	function accessregistered()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		$msg = '';
-		$model = $this->getModel('contact');
-		if(!$model->setAccess($cid, 1)) {
-			$msg = $model->getError();
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact', $msg );
-	}
-
-	function accessspecial()
-	{
-		// Check for request forgeries.
-		$token = JUtility::getToken();
-		if (!JRequest::getInt($token, 0, 'post')) {
-			JError::raiseError(403, 'Request Forbidden');
-		}
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		$msg = '';
-		$model = $this->getModel('contact');
-		if(!$model->setAccess($cid, 2)) {
-			$msg = $model->getError();
-		}
-
-		$this->setRedirect( 'index.php?option=com_contact', $msg );
-	}
-
 }

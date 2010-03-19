@@ -1,20 +1,25 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Login
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_login
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License, see LICENSE.php
+ */
 
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
 // Require the base controller
-require_once JPATH_COMPONENT.DS.'controller.php';
+jimport('joomla.application.component.controller');
 
-$controller	= new LoginController();
+$task = JRequest::getCmd('task');
+if ($task != 'login' && $task != 'logout')
+{
+	JRequest::setVar('task', '');
+	$task = '';
+}
 
-// Perform the Request task
-$controller->execute(JRequest::getCmd('task'));
+$controller	= JController::getInstance('Login');
+$controller->execute($task);
 $controller->redirect();

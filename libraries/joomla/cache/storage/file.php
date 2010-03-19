@@ -3,12 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * File cache storage handler
@@ -19,20 +19,17 @@ defined('JPATH_BASE') or die();
  */
 class JCacheStorageFile extends JCacheStorage
 {
-	protected $_root = '';
-	protected $_hash = '';
-
 	/**
 	* Constructor
 	*
 	* @access protected
 	* @param array $options optional parameters
 	*/
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
 		parent::__construct($options);
 
-		$config		=& JFactory::getConfig();
+		$config			= &JFactory::getConfig();
 		$this->_root	= $options['cachebase'];
 		$this->_hash	= $config->getValue('config.secret');
 	}
@@ -47,7 +44,7 @@ class JCacheStorageFile extends JCacheStorage
 	 * @return	mixed	Boolean false on failure or a cached data string
 	 * @since	1.5
 	 */
-	public function get($id, $group, $checkTime = true)
+	function get($id, $group, $checkTime)
 	{
 		$data = false;
 
@@ -74,7 +71,7 @@ class JCacheStorageFile extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function store($id, $group, $data)
+	function store($id, $group, $data)
 	{
 		$written	= false;
 		$path		= $this->_getFilePath($id, $group);
@@ -100,7 +97,7 @@ class JCacheStorageFile extends JCacheStorage
 		}
 		// Data integrity check
 		if ($written && ($data == file_get_contents($path))) {
-			@file_put_contents($expirePath, ($this->_now));
+			@file_put_contents($expirePath, ($this->_now + $this->_lifetime));
 			return true;
 		} else {
 			return false;
@@ -116,7 +113,7 @@ class JCacheStorageFile extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function remove($id, $group)
+	function remove($id, $group)
 	{
 		$path = $this->_getFilePath($id, $group);
 		@unlink($path.'_expire');
@@ -138,7 +135,7 @@ class JCacheStorageFile extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function clean($group, $mode)
+	function clean($group, $mode)
 	{
 		jimport('joomla.filesystem.folder');
 
@@ -176,14 +173,15 @@ class JCacheStorageFile extends JCacheStorage
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function gc()
+	function gc()
 	{
+		jimport('joomla.filesystem.file');
 		$result = true;
 		// files older than lifeTime get deleted from cache
 		$files = JFolder::files($this->_root, '_expire', true, true);
 		foreach($files As $file) {
 			$time = @file_get_contents($file);
-			if ($time + $this->_lifetime < $this->_now) {
+			if ($time < $this->_now) {
 				$result |= JFile::delete($file);
 				$result |= JFile::delete(str_replace('_expire', '', $file));
 			}
@@ -198,9 +196,9 @@ class JCacheStorageFile extends JCacheStorage
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public static function test()
+	function test()
 	{
-		$config	=& JFactory::getConfig();
+		$config	= &JFactory::getConfig();
 		$root	= $config->getValue('config.cache_path', JPATH_ROOT.DS.'cache');
 		return is_writable($root);
 	}
@@ -210,17 +208,17 @@ class JCacheStorageFile extends JCacheStorage
 	 *
 	 * @access private
 	 *
-	 * @param string  $id   Cache key to expire.
-	 * @param string  $group The cache data group.
+	 * @param string  $id		Cache key to expire.
+	 * @param string  $group	The cache data group.
 	 */
-	protected function _setExpire($id, $group)
+	function _setExpire($id, $group)
 	{
 		$path = $this->_getFilePath($id, $group);
 
 		// set prune period
 		if (file_exists($path.'_expire')) {
 			$time = @file_get_contents($path.'_expire');
-			if ($time + $this->_lifetime < $this->_now || empty($time)) {
+			if ($time < $this->_now || empty($time)) {
 				$this->remove($id, $group);
 			}
 		} elseif (file_exists($path)) {
@@ -248,7 +246,7 @@ class JCacheStorageFile extends JCacheStorage
 		if (!is_dir($dir)) {
 
 			// Make sure the index file is there
-			$indexFile      = $dir . DS . 'index.html';
+			$indexFile = $dir.'/index.html';
 			@ mkdir($dir) && file_put_contents($indexFile, '<html><body bgcolor="#FFFFFF"></body></html>');
 		}
 

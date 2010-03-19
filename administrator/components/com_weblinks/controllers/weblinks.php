@@ -1,22 +1,23 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Weblinks
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
 defined('_JEXEC') or die;
 
+jimport('joomla.application.component.controller');
+
 /**
- * Weblinks controller class.
+ * Weblinks list controller class.
  *
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
- * @version		1.6
+ * @subpackage	com_weblinks
+ * @since		1.6
  */
-class WeblinksControllerWeblinks extends WeblinksController
+class WeblinksControllerWeblinks extends JController
 {
 	/**
 	 * Constructor.
@@ -27,156 +28,161 @@ class WeblinksControllerWeblinks extends WeblinksController
 	public function __construct($config = array())
 	{
 		parent::__construct($config);
+
 		$this->registerTask('unpublish',	'publish');
+		$this->registerTask('archive',		'publish');
 		$this->registerTask('trash',		'publish');
 		$this->registerTask('orderup',		'reorder');
 		$this->registerTask('orderdown',	'reorder');
 	}
 
 	/**
-	 * Method to delete item(s) from the database.
-	 *
-	 * @access	public
+	 * Display is not supported by this class.
+	 */
+	public function display()
+	{
+	}
+
+	/**
+	 * Proxy for getModel.
+	 */
+	public function &getModel($name = 'Weblink', $prefix = 'WeblinksModel')
+	{
+		$model = parent::getModel($name, $prefix, array('ignore_request' => true));
+		return $model;
+	}
+
+	/**
+	 * Method to remove a record.
 	 */
 	public function delete()
 	{
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Weblink');
-		$cid	= JRequest::getVar('cid', array(), 'post', 'array');
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$ids	= JRequest::getVar('cid', array(), '', 'array');
 
-		// Sanitize the input.
-		JArrayHelper::toInteger($cid);
-
-		// Attempt to delete the labels.
-		$return = $model->delete($cid);
-
-		// Delete the labels
-		if ($return === false)
-		{
-			$message = JText::sprintf('JError_Occurred', $model->getError());
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message, 'error');
-			return false;
+		if (empty($ids)) {
+			JError::raiseWarning(500, JText::_('COM_WEBLINKS_NO_WEBLINK_SELECTED'));
 		}
-		else
-		{
-			$message = JText::_('JSuccess_N_items_deleted');
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message);
-			return true;
+		else {
+			// Get the model.
+			$model = $this->getModel();
+
+			// Remove the items.
+			if (!$model->delete($ids)) {
+				JError::raiseWarning(500, $model->getError());
+			}
+			else {
+				$this->setMessage(JText::sprintf((count($ids) == 1) ? 'COM_WEBLINKS_WEBLINK_DELETED' : 'COM_WEBLINKS_N_WEBLINKS_DELETED', count($ids)));
+			}
 		}
+
+		$this->setRedirect('index.php?option=com_weblinks&view=weblinks');
 	}
 
 	/**
-	 * Method to publish unpublished item(s).
-	 *
-	 * @return	void
+	 * Method to change the state of a list of records.
 	 */
 	public function publish()
 	{
-		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$model	= &$this->getModel('Weblinks', 'WeblinksModel');
-		$cid	= JRequest::getVar('cid', null, 'post', 'array');
-
-		JArrayHelper::toInteger($cid);
-
-		// Check for items.
-		if (count($cid) < 1) {
-			$message = JText::_('JError_No_item_selected');
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message, 'warning');
-			return false;
-		}
-
-		// Attempt to publish the items.
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$ids	= JRequest::getVar('cid', array(), '', 'array');
+		$values	= array('publish' => 1, 'unpublish' => 0, 'archive' => -1, 'trash' => -2);
 		$task	= $this->getTask();
-		if ($task == 'publish') {
-			$value = 1;
-		}
-		else if ($task == 'trash') {
-			$value = -2;
-		}
-		else {
-			$value = 0;
-		}
+		$value	= JArrayHelper::getValue($values, $task, 0, 'int');
 
-		$return = $model->setStates($cid, $value);
-
-		if ($return === false)
-		{
-			$message = JText::sprintf('JError_Occurred', $model->getError());
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message, 'error');
-			return false;
+		if (empty($ids)) {
+			JError::raiseWarning(500, JText::_('COM_WEBLINKS_NO_WEBLINK_SELECTED'));
 		}
 		else
 		{
-			$message = $value ? JText::_('JSuccess_N_items_published') : JText::_('JSuccess_N_items_unpublished');
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message);
-			return true;
+			// Get the model.
+			$model	= $this->getModel();
+
+			// Change the state of the records.
+			if (!$model->publish($ids, $value)) {
+				JError::raiseWarning(500, $model->getError());
+			}
+			else
+			{
+				if ($value == 1) {
+					$text = 'COM_WEBLINKS_WEBLINK_PUBLISHED';
+					$ntext = 'COM_WEBLINKS_N_WEBLINKS_PUBLISHED';			
+				}
+				else if ($value == 0) {
+					$text = 'COM_WEBLINKS_WEBLINK_UNPUBLISHED';
+					$ntext = 'COM_WEBLINKS_N_WEBLINKS_UNPUBLISHED';					
+				}
+				else if ($value == -1) {
+					$text = 'COM_WEBLINKS_WEBLINK_ARCHIVED';
+					$ntext = 'COM_WEBLINKS_N_WEBLINKS_ARCHIVED';
+				}
+				else {
+					$text = 'COM_WEBLINKS_WEBLINK_TRASHED';
+					$ntext = 'COM_WEBLINKS_N_WEBLINKS_TRASHED';
+				}
+			$this->setMessage(JText::sprintf((count($ids) == 1) ? $text : $ntext, count($ids)));
+			}
 		}
+
+		$this->setRedirect('index.php?option=com_weblinks&view=weblinks');
 	}
 
 	/**
-	 * Method to reorder weblinks.
-	 *
-	 * @return	bool	False on failure or error, true on success.
+	 * Changes the order of one or more records.
 	 */
-	function reorder()
+	public function reorder()
 	{
-		JRequest::checkToken() or jExit(JText::_('JInvalid_Token'));
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		// Initialize variables.
-		$model	= &$this->getModel('Weblink', 'WeblinksModel');
-		$cid	= JRequest::getVar('cid', null, 'post', 'array');
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$ids	= JRequest::getVar('cid', null, 'post', 'array');
+		$inc	= ($this->getTask() == 'orderup') ? -1 : +1;
 
-		// Get the label id.
-		$weblinkId = (int) $cid[0];
-
-		// Attempt to move the row.
-		$return = $model->reorder($weblinkId, $this->getTask() == 'orderup' ? -1 : 1);
-
-		if ($return === false)
+		$model = $this->getModel();
+		foreach($ids as $id)
 		{
-			// Move failed, go back to the label and display a notice.
-			$message = JText::sprintf('JError_Reorder_failed', $model->getError());
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message, 'error');
-			return false;
+			$model->reorder($id, $inc);
 		}
-		else
-		{
-			// Move succeeded, go back to the label and display a message.
-			$message = JText::_('JSuccess_Item_reordered');
-			$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message);
-			return true;
-		}
+		// TODO: Add error checks.
+
+		$this->setRedirect('index.php?option=com_weblinks&view=weblinks');
 	}
 
-
 	/**
-	 * Method to save the current ordering arrangement.
+	 * Method to save the submitted ordering values for records.
 	 *
 	 * @return	void
 	 */
 	public function saveorder()
 	{
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Get the input
-		$cid	= JRequest::getVar('cid',	null,	'post',	'array');
+		$pks	= JRequest::getVar('cid',	null,	'post',	'array');
 		$order	= JRequest::getVar('order',	null,	'post',	'array');
 
 		// Sanitize the input
-		JArrayHelper::toInteger($cid);
+		JArrayHelper::toInteger($pks);
 		JArrayHelper::toInteger($order);
 
 		// Get the model
-		$model = &$this->getModel('Weblinks', 'WeblinksModel');
+		$model = &$this->getModel();
 
 		// Save the ordering
-		$model->saveorder($cid, $order);
+		$model->saveorder($pks, $order);
 
-		$message = JText::_('JSuccess_Ordering_saved');
-		$this->setRedirect('index.php?option=com_weblinks&view=weblinks', $message);
+		$this->setMessage(JText::_('JSUCCESS_ORDERING_SAVED'));
+		$this->setRedirect('index.php?option=com_weblinks&view=weblinks');
 	}
-
 }

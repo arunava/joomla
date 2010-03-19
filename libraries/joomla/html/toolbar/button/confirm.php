@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id:confirm.php 6961 2007-03-15 16:06:53Z tcp $
-* @package		Joomla.Framework
-* @subpackage	HTML
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:confirm.php 6961 2007-03-15 16:06:53Z tcp $
+ * @package		Joomla.Framework
+ * @subpackage	HTML
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Renders a standard button with a confirm dialog
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
  */
@@ -32,10 +32,10 @@ class JButtonConfirm extends JButton
 		$text	= JText::_($text);
 		$msg	= JText::_($msg, true);
 		$class	= $this->fetchIconClass($name);
-		$doTask	= $this->_getCommand($msg, $name, $task, $list, $hideMenu);
+		$doTask	= $this->_getCommand($msg, $name, $task, $list);
 
 		$html	= "<a href=\"#\" onclick=\"$doTask\" class=\"toolbar\">\n";
-		$html .= "<span class=\"$class\" title=\"$text\">\n";
+		$html .= "<span class=\"$class\">\n";
 		$html .= "</span>\n";
 		$html	.= "$text\n";
 		$html	.= "</a>\n";
@@ -63,24 +63,16 @@ class JButtonConfirm extends JButton
 	 * @return	string	JavaScript command string
 	 * @since	1.5
 	 */
-	protected function _getCommand($msg, $name, $task, $list, $hide)
+	protected function _getCommand($msg, $name, $task, $list)
 	{
-		$todo	 = JString::strtolower(JText::_($name));
-		$message = JText::sprintf('Please make a selection from the list to', $todo);
-		$message = addslashes($message);
+		$todo		= JString::strtolower(JText::_($name));
+		$message	= JText::sprintf('PLEASE_MAKE_A_SELECTION_FROM_THE_LIST_TO', $todo);
+		$message	= addslashes($message);
 
-		if ($hide) {
-			if ($list) {
-				$cmd = "javascript:if (document.adminForm.boxchecked.value==0){alert('$message');}else{hideMainMenu();if (confirm('$msg')){submitbutton('$task');}}";
-			} else {
-				$cmd = "javascript:hideMainMenu();if (confirm('$msg')){submitbutton('$task');}";
-			}
+		if ($list) {
+			$cmd = "javascript:if (document.adminForm.boxchecked.value==0){alert('$message');}else{if (confirm('$msg')){submitbutton('$task');}}";
 		} else {
-			if ($list) {
-				$cmd = "javascript:if (document.adminForm.boxchecked.value==0){alert('$message');}else{if (confirm('$msg')){submitbutton('$task');}}";
-			} else {
-				$cmd = "javascript:if (confirm('$msg')){submitbutton('$task');}";
-			}
+			$cmd = "javascript:if (confirm('$msg')){submitbutton('$task');}";
 		}
 
 		return $cmd;

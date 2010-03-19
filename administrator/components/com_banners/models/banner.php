@@ -1,392 +1,276 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Banners Component Banner Model
+ * Banner model.
  *
  * @package		Joomla.Administrator
- * @subpackage	Banners
- * @since 1.6
+ * @subpackage	com_banners
+ * @since		1.5
  */
-class BannerModelBanner extends JModel
+class BannersModelBanner extends JModelForm
 {
 	/**
-	 * Banner id
-	 *
-	 * @var int
+	 * Method to auto-populate the model state.
 	 */
-	var $_id = null;
-
-	/**
-	 * Banner data
-	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.6
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$array = JRequest::getVar('bid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if ($edit)
-			$this->setId((int)$array[0]);
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_banners.edit.banner.id'))) {
+			$pk = (int) JRequest::getInt('id');
+		}
+		$this->setState('banner.id', $pk);
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_banners');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to set the banner identifier
+	 * Returns a reference to the a Table object, always creating it.
 	 *
-	 * @access	public
-	 * @param	int identifier
-	 */
-	function setId($id)
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Banner', $prefix = 'BannersTable', $config = array())
 	{
-		// Set banner id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
+		return JTable::getInstance($type, $prefix, $config);
 	}
 
 	/**
-	 * Method to get a banner
+	 * Method to override check-out a row for editing.
 	 *
-	 * @since 1.6
+	 * @param	int		The ID of the primary key.
+	 * @return	boolean
 	 */
-	function &getData()
+	public function checkout($pk = null)
 	{
-		// Load the banner data
-		if (!$this->_loadData())
-			$this->_initData();
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('banner.id');
 
-		return $this->_data;
+		return parent::checkout($pk);
 	}
 
 	/**
-	 * Tests if banner is checked out
+	 * Method to checkin a row.
 	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.6
+	 * @param	integer	The ID of the primary key.
+	 *
+	 * @return	boolean
 	 */
-	function isCheckedOut($uid=0)
+	public function checkin($pk = null)
 	{
-		if ($this->_loadData())
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('banner.id');
+
+		return parent::checkin($pk);
+	}
+
+	/**
+	 * Method to get a single record.
+	 *
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
+	 */
+	public function &getItem($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('banner.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		if($pk>0)
 		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
+			// Attempt to load the row.
+			$return = $table->load($pk);
+
+			// Check for a table object error.
+			if ($return === false && $table->getError()) {
+				$this->setError($table->getError());
+				return $false;
 			}
 		}
+
+		// Convert to the JObject before adding other data.
+		$item = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+		return $item;
 	}
 
 	/**
-	 * Method to checkin/unlock the banner
+	 * Method to get the record form.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
+	 * @return	mixed	JForm object on success, false on failure.
 	 * @since	1.6
 	 */
-	function checkin()
+	public function getForm()
 	{
-		if ($this->_id)
-		{
-			$table = JTable::getInstance('Banner', 'BannerTable');
-			if (! $table->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-		return false;
-	}
+		// Initialise variables.
+		$app	= JFactory::getApplication();
 
-	/**
-	 * Method to checkout/lock the banner
-	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the banner out
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function checkout($uid = null)
-	{
-		if ($this->_id)
-		{
-			// Make sure we have a user id to checkout the banner with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$table = JTable::getInstance('Banner', 'BannerTable');
-			if (!$table->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
+		// Get the form.
+		$form = parent::getForm('banner', 'com_banners.banner', array('array' => 'jform', 'event' => 'onPrepareForm'));
 
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Method to store the banner
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function store($data)
-	{
-		$table = JTable::getInstance('Banner', 'BannerTable');
-
-		// Bind the form fields to the web link table
-		if (!$$table->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
 			return false;
 		}
 
-		// Make sure the data is valid
+		// Determine correct permissions to check.
+		if ($this->getState('banner.id'))
+		{
+			// Existing record. Can only edit in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.edit');
+		}
+		else
+		{
+			// New record. Can only create in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.create');
+		}
+
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_banners.edit.banner.data', array());
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		// Initialise variables;
+		$dispatcher = JDispatcher::getInstance();
+		$table		= $this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('banner.id');
+		$isNew		= true;
+
+		// Include the content plugins for the onSave events.
+		JPluginHelper::importPlugin('content');
+
+		// Load the row if saving an existing record.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// Bind the data.
+		if (!$table->bind($data)) {
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			return false;
+		}
+
+		// Check the data.
 		if (!$table->check()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
 
-		// Store the data to the database
+		// Trigger the onBeforeSaveContent event.
+		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Store the data.
 		if (!$table->store()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
+
+		// Clean the cache.
+		$cache = JFactory::getCache('com_banners');
+		$cache->clean();
+
+		// Trigger the onAfterContentSave event.
+		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
+
+		$this->setState('banner.id', $table->id);
 
 		return true;
 	}
 
 	/**
-	 * Method to remove a banner
+	 * Method to adjust the ordering of a row.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
+	 * @param	int		The ID of the primary key to move.
+	 * @param	integer	Increment, usually +1 or -1
+	 * @return	boolean	False on failure or error, true otherwise.
 	 */
-	function delete($cid = array())
+	public function reorder($pk, $direction = 0)
 	{
-		$result = false;
+		// Get the user
+		$user = JFactory::getUser();
 
-		if (count($cid))
+		// Sanitize the id and adjustment.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('banner.id');
+
+		// Get an instance of the record's table.
+		$table = $this->getTable();
+
+		// Attempt to check-out and move the row.
+		if (!$this->checkout($pk)) {
+			return false;
+		}
+
+		// Load the row.
+		if (!$table->load($pk)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// State is not archived or trashed, attempt to move the banner
+		if ($table->state>=0)
 		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-			$query = 'DELETE FROM #__banner'
-				. ' WHERE bid IN ('.$cids.')';
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
+			// Access checks.
+			if ($table->catid) {
+				$allow = $user->authorise('core.edit.state', 'com_banners.category.'.(int) $table->catid);
 			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to (un)publish a banner
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function publish($cid = array(), $publish = 1)
-	{
-		$user 	=& JFactory::getUser();
-
-		if (count($cid))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-
-			$query = 'UPDATE #__banner'
-				. ' SET showBanner = '.(int) $publish
-				. ' WHERE bid IN ('.$cids.')'
-				. ' AND (checked_out = 0 OR (checked_out = '.(int) $user->get('id').'))'
-			;
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
+			else {
+				$allow = $user->authorise('core.edit.state', 'com_banners');
 			}
-		}
 
-		return true;
-	}
-
-	/**
-	 * Method to move a banner
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function move($direction)
-	{
-		$table = JTable::getInstance('Banner', 'BannerTable');
-		if (!$table->load($this->_id)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if (!$$table->move($direction, ' catid = '.(int) $table->catid.' AND showBanner >= 0 ')) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a banner
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function saveorder($cid = array(), $order)
-	{
-		$table = JTable::getInstance('Banner', 'BannerTable');
-		$groupings = array();
-
-		// update ordering values
-		for ($i=0; $i < count($cid); $i++)
-		{
-			$table->load((int) $cid[$i]);
-			// track categories
-			$groupings[] = $table->catid;
-
-			if ($table->ordering != $order[$i])
+			if (!$allow)
 			{
-				$table->ordering = $order[$i];
-				if (!$table->store()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
-				}
+				$this->setError(JText::_('JERROR_CORE_EDIT_STATE_NOT_PERMITTED'));
+				return false;
 			}
+
+			// Move the row.
+			$table->move($direction,"catid='".$table->catid."' AND state>=0");
 		}
 
-		// execute updateOrder for each parent group
-		$groupings = array_unique($groupings);
-		foreach ($groupings as $group){
-			$table->reorder('catid = '.$this->_db->Quote($group));
+		// Check-in the row.
+		if (!$this->checkin($pk)) {
+			return false;
 		}
 
-		return true;
-	}
-
-	/**
-	 * Copies one or more banners
-	 */
-	function copy($cid = array())
-	{
-		$table = JTable::getInstance('Banner', 'BannerTable');
-		$n		= count($cid);
-
-		// update ordering values
-		for ($i=0; $i < $n; $i++)
-		{
-			$table->load((int) $cid[$i]);
-
-			$table->bid				= 0;
-			$table->name			= 'Copy of ' . $table->name;
-			$table->impmade			= 0;
-			$table->clicks			= 0;
-			$table->showBanner		= 0;
-			$table->date			= $this->_db->getNullDate();
-
-			if (!$table->store()) {
-				return JError::raiseWarning($table->getError());
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to load banner data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _loadData()
-	{
-		if (empty($this->_data))
-		{
-			// Lets load the banners
-			$query = 'SELECT b.*'.
-					' FROM #__banner AS b' .
-					' WHERE b.bid = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
-
-	/**
-	 * Method to initialise the banner data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$banner = new stdClass();
-			$banner->bid					= 0;
-			$banner->cid					= 0;
-			$banner->type					= null;
-			$banner->name					= null;
-			$banner->alias					= null;
-			$banner->imptotal				= 0;
-			$banner->impmade				= 0;
-			$banner->clicks					= 0;
-			$banner->imageurl				= null;
-			$banner->clickurl				= null;
-			$banner->date					= null;
-			$banner->showBanner				= null;
-			$banner->checked_out			= 0;
-			$banner->checked_out_time		= 0;
-			$banner->editor					= null;
-			$banner->custombannercode		= null;
-			$banner->catid					= 0;
-			$banner->description			= null;
-			$banner->sticky					= 0;
-			$banner->ordering				= 0;
-			$banner->publish_up				= null;
-			$banner->publish_down			= null;
-			$banner->tags					= null;
-			$banner->params					= null;
-			$this->_data					= $banner;
-			return (boolean) $this->_data;
-		}
 		return true;
 	}
 }

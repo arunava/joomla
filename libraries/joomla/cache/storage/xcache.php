@@ -3,12 +3,12 @@
  * @version		$id:$
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * XCache cache storage handler
@@ -19,19 +19,17 @@ defined('JPATH_BASE') or die();
  */
 class JCacheStorageXCache extends JCacheStorage
 {
-	protected $_hash = null;
-
 	/**
 	* Constructor
 	*
 	* @access protected
 	* @param array $options optional parameters
 	*/
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
 		parent::__construct($options);
 
-		$config			=& JFactory::getConfig();
+		$config			= &JFactory::getConfig();
 		$this->_hash	= $config->getValue('config.secret');
 	}
 
@@ -45,7 +43,7 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @return	mixed	Boolean false on failure or a cached data string
 	 * @since	1.5
 	 */
-	public function get($id, $group, $checkTime = true)
+	function get($id, $group, $checkTime)
 	{
 		$cache_id = $this->_getCacheId($id, $group);
 
@@ -67,7 +65,7 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function store($id, $group, $data)
+	function store($id, $group, $data)
 	{
 		$cache_id = $this->_getCacheId($id, $group);
 		return xcache_set($cache_id, $data, $this->_lifetime);
@@ -82,7 +80,7 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function remove($id, $group)
+	function remove($id, $group)
 	{
 		$cache_id = $this->_getCacheId($id, $group);
 
@@ -105,12 +103,8 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function clean($group, $mode)
+	function clean($group, $mode)
 	{
-		return true;
-	}
-
-	public function gc() {
 		return true;
 	}
 
@@ -121,7 +115,7 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public static function test()
+	function test()
 	{
 		return (extension_loaded('xcache'));
 	}
@@ -135,7 +129,7 @@ class JCacheStorageXCache extends JCacheStorage
 	 * @return	string	The cache_id string
 	 * @since	1.5
 	 */
-	protected function _getCacheId($id, $group)
+	function _getCacheId($id, $group)
 	{
 		$name	= md5($this->_application.'-'.$id.'-'.$this->_hash.'-'.$this->_language);
 		return 'cache_'.$group.'-'.$name;

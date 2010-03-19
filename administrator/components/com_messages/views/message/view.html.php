@@ -1,88 +1,67 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Message
-* @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
 jimport( 'joomla.application.component.view');
 
 /**
- * HTML View class for the Message component
+ * HTML View class for the Messages component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Message
- * @since 1.0
+ * @subpackage	com_messages
+ * @since		1.6
  */
 class MessagesViewMessage extends JView
 {
-	function display($tpl = null)
+	protected $state;
+	protected $item;
+	protected $form;
+
+	public function display($tpl = null)
 	{
-		$db		=& JFactory::getDBO();
-		$user	=& JFactory::getUser();
-		$acl	=& JFactory::getACL();
+		$app	= JFactory::getApplication();
+		$state	= $this->get('State');
+		$item	= $this->get('Item');
+		$form	= $this->get('Form');
 
-		JRequest::setVar( 'hidemainmenu', 1 );
-
-		$edit		= JRequest::getVar('edit',true);
-		if ($edit) {
-			// Set toolbar items for the page
-			JToolBarHelper::title(  JText::_( 'Write Private Message' ), 'inbox.png' );
-			JToolBarHelper::save( 'save', 'Send' );
-			JToolBarHelper::cancel();
-			JToolBarHelper::help( 'screen.messages.edit' );
-
-			$reply_user = null;
-			$subject = null;
-			if (JRequest::getVar('reply',false)) {
-				$reply_user = JRequest::getVar( 'userid', 0, '', 'int' );
-				$subject = JRequest::getString( 'subject' );
-			}
-
-			// get available backend user groups
-			$gid 	= $acl->get_group_id( 'Public Backend', 'ARO' );
-			$gids 	= $acl->get_group_children( $gid, 'ARO', 'RECURSE' );
-			JArrayHelper::toInteger($gids, array(0));
-			$gids 	= implode( ',', $gids );
-
-			// get list of usernames
-			$recipients = array( JHtml::_('select.option',  '0', '- '. JText::_( 'Select User' ) .' -' ) );
-			$query = 'SELECT id AS value, username AS text FROM #__users'
-					. ' WHERE gid IN ( '.$gids.' )'
-					. ' ORDER BY name'
-			;
-			$db->setQuery( $query );
-			$recipients = array_merge( $recipients, $db->loadObjectList() );
-
-			$this->assignRef('recipients',		$recipients);
-			$this->assignRef('user',			$user);
-			$this->assignRef('reply_user',		$reply_user);
-			$this->assignRef('subject',			$subject);
-
-			$tpl = 'form';
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
-		else
-		{
-			// Set toolbar items for the page
-			JToolBarHelper::title(  JText::_( 'View Private Message' ), 'inbox.png' );
-			JToolBarHelper::customX('reply', 'restore.png', 'restore_f2.png', 'Reply', false );
-			JToolBarHelper::deleteList();
-			JToolBarHelper::cancel();
-			JToolBarHelper::help( 'screen.messages.view' );
 
-			$model = $this->getModel();
-			$model->markAsRead();
+		// Bind the record to the form.
+		$form->bind($item);
 
-			$row =& $this->get('data');
-			$this->assignRef('row',		$row);
-		}
+		$this->assignRef('state',	$state);
+		$this->assignRef('item',	$item);
+		$this->assignRef('form',	$form);
 
 		parent::display($tpl);
+		$this->_setToolbar();
+	}
+
+	/**
+	 * Setup the Toolbar.
+	 */
+	protected function _setToolbar()
+	{
+		if ($this->getLayout() == 'edit') {
+			JToolBarHelper::title(JText::_('COM_MESSAGES_WRITE_PRIVATE_MESSAGE'), 'inbox.png');
+			JToolBarHelper::save('message.save', 'COM_MESSAGES_TOOLBAR_SEND');
+			JToolBarHelper::cancel('message.cancel','JTOOLBAR_CANCEL');
+			JToolBarHelper::help('screen.messages.edit','JTOOLBAR_HELP');
+		} else {
+			JToolBarHelper::title(JText::_('COM_MESSAGES_VIEW_PRIVATE_MESSAGE'), 'inbox.png');
+			JToolBarHelper::custom('message.reply', 'restore.png', 'restore_f2.png', 'COM_MESSAGES_TOOLBAR_REPLY', false);
+			JToolBarHelper::cancel('message.cancel');
+			JToolBarHelper::help('screen.messages.read');
+		}
 	}
 }

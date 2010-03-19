@@ -1,300 +1,154 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Categories
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
  * Categories Component Categories Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Categories
- * @since 1.5
+ * @subpackage	com_categories
+ * @since		1.6
  */
-class CategoriesModelCategories extends JModel
+class CategoriesModelCategories extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	public $_context = 'com_categories';
 
 	/**
-	 * Category total
+	 * Method to auto-populate the model state.
 	 *
-	 * @var integer
+	 * @since	1.6
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Filter object
-	 *
-	 * @var object
-	 */
-	var $_filter = null;
-
-	protected $extension;
-	protected $content_add;
-	protected $content_join;
-	protected $table;
-	protected $type;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication();
 
-		global $mainframe, $option;
+		$extension = $app->getUserStateFromRequest($this->_context.'.filter.extension', 'extension');
+		$this->setState('filter.extension', $extension);
+		$parts = explode('.',$extension);
+		// extract the component name
+		$this->setState('filter.component', $parts[0]);
+		// extract the optional section name
+		$this->setState('filter.section', (count($parts)>1)?$parts[1]:null);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int' );
-		$limitstart	= $mainframe->getUserStateFromRequest( $option.'.limitstart', 'limitstart', 0, 'int' );
+		if (!empty($extension)) $this->_context.=".$extension";
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		$filter = new stdClass();
-		$filter->order		= $mainframe->getUserStateFromRequest( $option.'filter_order',		'filter_order',		'c.ordering',	'cmd' );
-		$filter->order_Dir	= $mainframe->getUserStateFromRequest( $option.'filter_order_Dir',	'filter_order_Dir',	'',				'word' );
-		$filter->state		= $mainframe->getUserStateFromRequest( $option.'filter_state',		'filter_state',		'',				'word' );
-		$filter->search		= $mainframe->getUserStateFromRequest( $option.'search',			'search',			'',				'string' );
-		$filter->extension 	= JRequest::getCmd( 'extension', 'com_content' );
-		$filter->sectionid	= $mainframe->getUserStateFromRequest( $option.'.'.$filter->section.'.sectionid',		'sectionid',		0,				'int' );
-		$this->_filter = $filter;
+		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
+		$this->setState('filter.access', $access);
+
+		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
+
+		// List state information.
+		parent::_populateState('a.lft', 'asc');
 	}
 
 	/**
-	 * Method to get Categories item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$extension = $this->getExtension();
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
-			$tempcat = array();
-			foreach($this->_data as $category)
-			{
-				$tempcat[$category->id] = $category;
-				$tempcat[$category->id]->depth = 0;
-				if($category->parent_id != 0)
-				{
-					$tempcat[$category->id]->depth = $tempcat[$category->parent_id]->depth + 1;
-				}
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.extension');
+		$id	.= ':'.$this->getState('filter.published');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * @param	boolean	True to join selected foreign information
+	 *
+	 * @return	string
+	 */
+	function _getListQuery($resolveFKs = true)
+	{
+		// Create a new query object.
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.title, a.alias, a.note, a.published, a.access' .
+				', a.checked_out, a.checked_out_time, a.created_user_id' .
+				', a.path, a.parent_id, a.level, a.lft, a.rgt'
+			)
+		);
+		$query->from('#__categories AS a');
+
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+
+		// Join over the asset groups.
+		$query->select('ag.title AS access_level');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+
+		// Join over the users for the author.
+		$query->select('ua.name AS author_name');
+		$query->join('LEFT', '#__users AS ua ON ua.id = a.created_user_id');
+
+		// Filter by extension
+		if ($extension = $this->getState('filter.extension')) {
+			$query->where('a.extension = '.$db->quote($extension));
+		}
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$query->where('a.access = ' . (int) $access);
+		}
+
+		// Filter by published state
+		$published = $this->getState('filter.published');
+		if (is_numeric($published)) {
+			$query->where('a.published = ' . (int) $published);
+		} else if ($published === '') {
+			$query->where('(a.published IN (0, 1))');
+		}
+
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else if (stripos($search, 'author:') === 0) {
+				$search = $db->Quote('%'.$db->getEscaped(substr($search, 7), true).'%');
+				$query->where('(ua.name LIKE '.$search.' OR ua.username LIKE '.$search.')');
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('(a.title LIKE '.$search.' OR a.alias LIKE '.$search.' OR a.note LIKE '.$search.')');
 			}
-			foreach($this->_data as &$category)
-			{
-				$category->depth = $tempcat[$category->id]->depth;
-			}
-			$this->getCategoryTotals();
 		}
 
-		return $this->_data;
-	}
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
-	/**
-	 * Method to get the total number of section items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
-		}
-
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get the section totals
-	 *
-	 * @access public
-	 */
-	function getCategoryTotals()
-	{
-		$db =& JFactory::getDBO();
-
-		$count = count( $this->_data );
-		// number of Active Items
-		for ( $i = 0; $i < $count; $i++ ) {
-			$query = 'SELECT COUNT( a.id )'
-			. ' FROM #__content AS a'
-			. ' WHERE a.catid = '.(int) $this->_data[$i]->id
-			. ' AND a.state <> -2'
-			;
-			$db->setQuery( $query );
-			$active = $db->loadResult();
-			$this->_data[$i]->active = $active;
-		}
-		// number of Trashed Items
-		for ( $i = 0; $i < $count; $i++ ) {
-			$query = 'SELECT COUNT( a.id )'
-			. ' FROM #__content AS a'
-			. ' WHERE a.catid = '.(int) $this->_data[$i]->id
-			. ' AND a.state = -2'
-			;
-			$db->setQuery( $query );
-			$trash = $db->loadResult();
-			$this->_data[$i]->trash = $trash;
-		}
-	}
-
-	/**
-	 * Method to get a pagination object for the Categories
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get filter object for the categories
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getFilter()
-	{
-		return $this->_filter;
-	}
-
-	/**
-	 * Method to get the Categories Section Name
-	 *
-	 * @access public
-	 * @return string
-	 */
-	function getExtension()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->extension))
-		{
-			$this->extension = new stdClass();
-			$this->extension->option = JRequest::getCmd('extension', 'com_content');
-			$db = JFactory::getDBO();
-			$db->setQuery('SELECT name FROM #__components WHERE parent = \'0\' AND `option` = '.$db->Quote($this->extension->option));
-			$this->extension->name = $db->loadResult();
-		}
-
-		return $this->extension;
-	}
-
-	function _buildQuery()
-	{
-		// Get the WHERE and ORDER BY clauses for the query
-		$where		= $this->_buildContentWhere($this->_filter->extension);
-		$orderby	= $this->_buildContentOrderBy($this->_filter->extension);
-
-		$query = 'SELECT  c.*, c.checked_out as checked_out_contact_category, g.name AS groupname, u.name AS editor, COUNT( DISTINCT s2.checked_out ) AS checked_out_count'
-		. $this->content_add
-		. ' FROM #__categories AS c'
-		. ' LEFT JOIN #__users AS u ON u.id = c.checked_out'
-		. ' LEFT JOIN #__core_acl_axo_groups AS g ON g.value = c.access'
-		. ' LEFT JOIN #__'.$this->table.' AS s2 ON s2.catid = c.id AND s2.checked_out > 0'
-		//. ', #__categories AS cp'
-		. $this->content_join
-		. $where
-		. ' AND c.published != -2'
-		. ' GROUP BY c.id'
-		. $orderby
-		;
-
+		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
-	}
-
-	function _buildContentOrderBy($extension)
-	{
-		return ' ORDER BY c.lft';
-	}
-
-	function _buildContentWhere($extension)
-	{
-		global $mainframe, $option;
-
-		$db					=& JFactory::getDBO();
-		$search				= JString::strtolower( $this->_filter->search );
-		$filter = '';
-		$where = array();
-		$parent_category = JRequest::getInt('parent', 0);
-
-		$where 		= ( count( $where ) ? ' WHERE '. implode( ' AND ', $where ) : '' );
-
-		$this->content_add 	= '';
-		$this->content_join 	= '';
-		$this->table = substr( $extension, 4 );
-
-		//$where 			= ' WHERE c.lft BETWEEN cp.lft AND cp.rgt'
-		$where				= ' WHERE '
-						.' c.extension = '.$db->Quote($this->extension->option);
-						//.' AND cp.extension = '.$db->Quote($this->extension->option);
-		
-		if ( $parent_category == 0 )
-		{
-		//	$where .= ' AND cp.lft = 1';
-		} else {
-		//	$where .= ' AND cp.id = '.$parent_category;
-		}
-		// allows for viweing of all content categories
-		if ( $this->extension->option == 'com_content' ) {
-			$this->table 			= 'content';
-		}
-
-		if ( $this->_filter->state ) {
-			if ( $this->_filter->state == 'P' ) {
-				$filter .= ' AND c.published = 1';
-			} else if ($this->_filter->state == 'U' ) {
-				$filter .= ' AND c.published = 0';
-			}
-		}
-		if ($search) {
-			$filter .= ' AND LOWER(c.title) LIKE '.$this->_db->Quote('%'.$this->_db->getEscaped( $search, true ).'%');
-		}
-
-		$tablesAllowed = $db->getTableList();
-		if (!in_array($db->getPrefix().$this->table, $tablesAllowed)) {
-			$this->table = 'content';
-		}
-
-		return $where . $filter;
 	}
 }

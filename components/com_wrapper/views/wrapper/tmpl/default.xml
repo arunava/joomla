@@ -1,34 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <metadata>
-	<layout title="Wrapper">
+	<layout
+		title="COM_WRAPPER_WRAPPER_VIEW_DEFAULT_TITLE">
 		<message>
-			<![CDATA[WRAPPER DESC]]>
+			<![CDATA[COM_WRAPPER_WRAPPER_VIEW_DEFAULT_DESC]]>
 		</message>
 	</layout>
-	<state>
-		<name>Wrapper</name>
-		<description>WRAPPER DESC</description>
-		<params>
-			<param name="url" type="text" size="30" default="" label="Wrapper URL" description="URL to open in an IFRAME" />
-			<param name="@spacer" type="spacer" default="" label="" description="" />
-			<param name="scrolling" type="radio" default="auto" label="Scroll Bars" description="PARAMHORIVERT">
-				<option value="no">No</option>
-				<option value="yes">Yes</option>
-				<option value="auto">Auto</option>
-			</param>
-			<param name="width" type="text" size="5" default="100%" label="Width" description="PARAMWIDTH" />
-			<param name="height" type="text" size="5" default="500" label="Height" description="PARAMHEIGHT" />
-			<param name="@spacer" type="spacer" default="" label="" description="" />
-		</params>
-		<advanced>
-			<param name="height_auto" type="radio" default="0" label="Auto Height" description="PARAMHEIGHTAUTO">
-				<option value="0">No</option>
-				<option value="1">Yes</option>
-			</param>
-			<param name="add_scheme" type="radio" default="1" label="Auto Add" description="PARAMADD">
-				<option value="0">No</option>
-				<option value="1">Yes</option>
-			</param>
-		</advanced>
-	</state>
+	<fields
+		group="request"
+		label="MENUS_LAYOUT_BASIC_OPTIONS_LABEL"
+		description="">
+
+	<field
+			name="url"
+			type="text"
+			size="30"
+			default=""
+			label="COM_WRAPPER_FIELD_URL_LABEL"
+			description="COM_WRAPPER_FIELD_URL_DESC" />
+	</fields>
+
+	<fields
+		group="basic"
+		label="COM_WRAPPER_FIELD_LABEL_SCROLLBARSPARAMS"
+		description="">
+
+		<field
+			name="scrolling"
+			type="radio"
+			default="auto"
+			label="COM_WRAPPER_FIELD_SCROLLBARS_LABEL"
+			description="COM_WRAPPER_FIELD_SCROLLBARS_DESC" >
+			<option value="no">JNO</option>
+			<option value="yes">JYES</option>
+			<option value="auto">COM_WRAPPER_FIELD_VALUE_AUTO</option>
+		</field>
+
+		<field
+			name="width"
+			type="text"
+			size="5"
+			default="100%"
+			label="COM_WRAPPER_FIELD_WIDTH_LABEL"
+			description="COM_WRAPPER_FIELD_WIDTH_DESC" />
+
+		<field
+			name="height"
+			type="text"
+			size="5"
+			default="500"
+			label="COM_WRAPPER_FIELD_HEIGHT_LABEL"
+			description="COM_WRAPPER_FIELD_HEIGHT_DESC" />
+	</fields>
+
+	<fields
+		group="advanced"
+		label="MENUS_LAYOUT_ADVANCED_OPTIONS_LABEL"
+		description="">
+
+		<field
+			name="height_auto"
+			type="radio"
+			default="0"
+			label="COM_WRAPPER_FIELD_HEIGHTAUTO_LABEL"
+			description="COM_WRAPPER_FIELD_HEIGHTAUTO_DESC">
+			<option
+				value="0">JNO</option>
+			<option
+				value="1">JYES</option>
+		</field>
+
+		<field
+			name="add_scheme"
+			type="radio"
+			default="1"
+			label="COM_WRAPPER_FIELD_ADD_LABEL"
+			description="COM_WRAPPER_FIELD_ADD_DESC">
+			<option
+				value="0">JNO</option>
+			<option
+				value="1">JYES</option>
+		</field>
+	</fields>
 </metadata>

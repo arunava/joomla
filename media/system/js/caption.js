@@ -1,8 +1,8 @@
 /**
-* @version		$Id: modal.js 5263 2006-10-02 01:25:24Z webImagery $
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters. All rights reserved.
-* @license		GNU/GPL, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 /**
  * JCaption javascript behavior
@@ -11,23 +11,15 @@
  *
  * @package		Joomla
  * @since		1.5
- * @version     1.0
+ * @version	 1.0
  */
-var JCaption = new Class({
-	initialize: function(selector)
-	{
-		this.selector = selector;
-		var images = $$(selector);
-		images.each(function(image){ this.createCaption(image); }, this);
-	},
-
-	createCaption: function(element)
-	{
-		var caption   = document.createTextNode(element.title);
-		var container = document.createElement("div");
-		var text      = document.createElement("p");
-		var width     = element.getAttribute("width");
-		var align     = element.getAttribute("align");
+(function() {
+	var _createCaption	= function(element, selector) {
+		var caption		= document.createTextNode(element.title);
+		var container	= document.createElement("div");
+		var text		= document.createElement("p");
+		var width		= element.getAttribute("width");
+		var align		= element.getAttribute("align");
 
 		if(!width) {
 			width = element.width;
@@ -36,17 +28,44 @@ var JCaption = new Class({
 		text.appendChild(caption);
 		element.parentNode.insertBefore(container, element);
 		container.appendChild(element);
-		if ( element.title != "" ) {
+		if (element.title != "") {
 			container.appendChild(text);
 		}
-		container.className   = this.selector.replace('.', '_');
-		container.className   = container.className + " " + align;
-		container.setAttribute("style","float:"+align);
+
+		container.className = selector.replace('.', '_');
+		if (align) {
+			container.className = container.className+' '+align;
+			container.setAttribute("style","float:"+align);
+		}
 		container.style.width = width + "px";
+	};
 
+	var JCaption = function(className) {
+		var els = document.getElementsByTagName('img');
+		var regexp = new RegExp('\\b'+className+'\\b', 'i');
+
+		for (var i = 0, j = els.length; i < j; i++) {
+			var el = els[i];
+			if (regexp.test(el.className)) {
+				_createCaption(el, className);
+			}
+		}
+	};
+
+	JCaption.create = function() {
+		this.apply(this, arguments);
+	};
+
+	// Expose to global scope
+	this.JCaption = JCaption;
+})();
+
+(function() {
+	var tmp = window.onload || null;
+	window.onload = function() {
+		if (typeof tmp === 'function') {
+			tmp();
+		}
+		JCaption.create('caption');
 	}
-});
-
-window.addEvent('load', function() {
-  var caption = new JCaption('img.caption')
-});
+})();

@@ -3,18 +3,18 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Utilities
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * JSimpleCrypt is a very simple encryption algorithm for encyrpting/decrypting strings
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Utilities
  * @since		1.5
  */
@@ -25,7 +25,7 @@ class JSimpleCrypt extends JObject
 	 * @access	private
 	 * @var		string
 	 */
-	protected $_key;
+	var $_key;
 
 	/**
 	 * Object Constructor takes an optional key to be used for encryption/decryption.  If no key is given then the
@@ -36,7 +36,7 @@ class JSimpleCrypt extends JObject
 	 * @return	void
 	 * @since	1.5
 	 */
-	public function __construct($key = null)
+	function __construct($key = null)
 	{
 		if ($key) {
 			$this->_key = (string) $key;
@@ -46,14 +46,14 @@ class JSimpleCrypt extends JObject
 		}
 	}
 
-	public function decrypt($s)
+	function decrypt($s)
 	{
 		$ai = $this->_hexToIntArray($s);
 		(string) $s1 = $this->_xorString($ai);
 		return $s1;
 	}
 
-	public function encrypt($s)
+	function encrypt($s)
 	{
 		$ai = $this->_xorCharString($s);
 		$s1 = "";
@@ -62,7 +62,7 @@ class JSimpleCrypt extends JObject
 		return $s1;
 	}
 
-	protected function _hexToInt($s, $i)
+	function _hexToInt($s, $i)
 	{
 		(int) $j = $i * 2;
 		(string) $s1 = $s;
@@ -129,7 +129,7 @@ class JSimpleCrypt extends JObject
 		return $k;
 	}
 
-	protected function _hexToIntArray($s)
+	function _hexToIntArray($s)
 	{
 		(string) $s1 = $s;
 		(int) $i = strlen($s1);
@@ -142,13 +142,13 @@ class JSimpleCrypt extends JObject
 		return $ai;
 	}
 
-	protected function _charToInt($c)
+	function _charToInt($c)
 	{
 		$ac[0] = $c;
 		return $ac;
 	}
 
-	protected function _xorString($ai)
+	function _xorString($ai)
 	{
 		$s = $this->_key; //
 		(int) $i = strlen($s);
@@ -166,7 +166,7 @@ class JSimpleCrypt extends JObject
 		return $s1;
 	}
 
-	protected function _intToHex($i)
+	function _intToHex($i)
 	{
 		(int) $j = (int) $i / 16;
 		if ((int) $j == 0) {
@@ -180,7 +180,7 @@ class JSimpleCrypt extends JObject
 		return $s;
 	}
 
-	protected function _xorCharString($s)
+	function _xorCharString($s)
 	{
 		$ac = preg_split('//', $s, -1, PREG_SPLIT_NO_EMPTY);
 		(string) $s1 = $this->_key;

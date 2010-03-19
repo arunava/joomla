@@ -1,72 +1,65 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Templates
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Templates component
+ * View class for a list of template styles.
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Templates
- * @since 1.0
+ * @subpackage	com_templates
+ * @since		1.6
  */
 class TemplatesViewTemplates extends JView
 {
-	protected $rows;
+	protected $state;
+	protected $items;
 	protected $pagination;
-	protected $client;
 
+	/**
+	 * Display the view
+	 */
 	public function display($tpl = null)
 	{
-		// Get data from the model
-		$rows		= & $this->get( 'Data');
-		$total		= & $this->get( 'Total');
-		$pagination = & $this->get( 'Pagination' );
-		$client		= & $this->get( 'Client');
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
-		$task = JRequest::getCmd('task');
-
-		if ($client->id == 1) {
-			JSubMenuHelper::addEntry(JText::_('Site'), 'index.php?option=com_templates&client=0');
-			JSubMenuHelper::addEntry(JText::_('Administrator'), 'index.php?option=com_templates&client=1', true);
-		} elseif ($client->id == 0 && !$task) {
-			JSubMenuHelper::addEntry(JText::_('Site'), 'index.php?option=com_templates&client=0', true);
-			JSubMenuHelper::addEntry(JText::_('Administrator'), 'index.php?option=com_templates&client=1');
-		} else {
-			JSubMenuHelper::addEntry(JText::_('Site'), 'index.php?option=com_templates&client=0');
-			JSubMenuHelper::addEntry(JText::_('Administrator'), 'index.php?option=com_templates&client=1');
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		// Set toolbar items for the page
-		JToolBarHelper::title( JText::_( 'Template Manager' ), 'thememanager' );
-
-		if ($client->id == '1') {
-			JToolBarHelper::makeDefault('publish');
-		} else {
-			JToolBarHelper::makeDefault();
-		}
-		JToolBarHelper::editListX( 'edit', 'Edit' );
-		//JToolBarHelper::addNew();
-		JToolBarHelper::help( 'screen.templates' );
-
-		//$select[] 			= JHtml::_('select.option', '0', JText::_('Site'));
-		//$select[] 			= JHtml::_('select.option', '1', JText::_('Administrator'));
-		//$lists['client'] 	= JHtml::_('select.genericlist',  $select, 'client', 'class="inputbox" size="1" onchange="document.adminForm.submit();"', 'value', 'text', $client->id);
-
-		$this->assignRef('rows',		$rows);
+		$this->assignRef('state',		$state);
+		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
-		$this->assignRef('client',		$client);
 
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar.
+	 */
+	protected function _setToolbar()
+	{
+		$state	= $this->get('State');
+		$canDo	= TemplatesHelper::getActions();
+
+		JToolBarHelper::title(JText::_('COM_TEMPLATES_MANAGER_TEMPLATES'), 'thememanager');
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::preferences('com_templates');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.templates','JTOOLBAR_HELP');
 	}
 }

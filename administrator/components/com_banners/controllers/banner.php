@@ -1,236 +1,75 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+// No direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.controller');
+jimport('joomla.application.component.controllerform');
 
 /**
+ * Banner controller class.
+ *
  * @package		Joomla.Administrator
- * @subpackage	Banners
+ * @subpackage	com_banners
+ * @since		1.6
  */
-class BannerControllerBanner extends JController
+class BannersControllerBanner extends JControllerForm
 {
 	/**
-	 * Constructor
+	 * Method override to check if you can add a new record.
+	 *
+	 * @param	array	An array of input data.
+	 *
+	 * @return	boolean
 	 */
-	function __construct($config = array())
+	protected function _allowAdd($data = array())
 	{
-		parent::__construct($config);
-		// Register Extra tasks
-		$this->registerTask('add',			'display');
-		$this->registerTask('edit',		'display');
-		$this->registerTask('apply',		'save');
-		$this->registerTask('resethits',	'save');
-		$this->registerTask('unpublish',	'publish');
-	}
+		// Initialise variables.
+		$user		= JFactory::getUser();
+		$categoryId	= JArrayHelper::getValue($data, 'catid', JRequest::getInt('filter_category_id'), 'int');
+		$allow		= null;
 
-	/**
-	 * Display the list of banners
-	 */
-	function display()
-	{
-		$app	=& JFactory::getApplication();
-		$user 	=& JFactory::getUser();
-
-		switch($this->getTask())
+		if ($categoryId)
 		{
-			case 'add':
-				JRequest::setVar('hidemainmenu', 1);
-				JRequest::setVar('view'  , 'banner');
-				JRequest::setVar('edit', false);
-				break;
-
-			case 'edit':
-				JRequest::setVar('hidemainmenu', 1);
-				JRequest::setVar('view'  , 'banner');
-				JRequest::setVar('edit', true);
-				break;
-
-			default:
-				JRequest::setVar('view', 'banners');
+			// If the category has been passed in the URL check it.
+			$allow	= $user->authorise('core.create', 'com_banners.category.'.$categoryId);
 		}
-
-		parent::display();
-	}
-
-	/**
-	 * Save method
-	 */
-	function save()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$post	= JRequest::get('post');
-		$bid	= JRequest::getVar('bid', array(0), 'post', 'array');
-		$post['bid'] = (int) $bid[0];
-		// fix up special html fields
-		$post['custombannercode'] = JRequest::getVar('custombannercode', '', 'post', 'string', JREQUEST_ALLOWRAW);
-
-		// Resets clicks when `Reset Clicks` button is used instead of `Save` button
-		$task = JRequest::getCmd('task');
-		if ($task == 'resethits')
-			$post['clicks'] = 0;
-
-		// Sets impressions to unlimited when `unlimited` checkbox ticked
-		$unlimited = JRequest::getBool('unlimited');
-		if ($unlimited) {
-			$post['imptotal'] = 0;
-		}
-
-		$model = $this->getModel('banner');
-
-		if ($model->store($post)) {
-			if ($task == 'resethits')
-				$msg = JText::_('Reset Banner clicks');
-			else
-				$msg = JText::_('Banner Saved');
-		} else {
-			$msg = JText::_('Error Saving Banner');
-		}
-
-		// Check the table in so it can be edited.... we are done with it anyway
-		$model->checkin();
-
-		switch ($task)
+		if ($allow === null)
 		{
-			case 'apply':
-				$link = 'index.php?option=com_banners&task=edit&bid[]='. (int) $bid[0] ;
-				break;
-
-			case 'save':
-			default:
-				$link = 'index.php?option=com_banners';
-				break;
+			// In the absense of better information, revert to the component permissions.
+			return parent::_allowAdd($data);
 		}
-
-		$this->setRedirect($link, $msg);
-	}
-
-	function cancel()
-	{
-		// Checkin the data
-		$model = $this->getModel('banner');
-		$model->checkin();
-
-		$this->setRedirect('index.php?option=com_banners');
+		else {
+			return $allow;
+		}
 	}
 
 	/**
-	 * Copies one or more banners
+	 * Method to check if you can add a new record.
+	 *
+	 * @param	array	An array of input data.
+	 * @param	string	The name of the key for the primary key.
+	 *
+	 * @return	boolean
 	 */
-	function copy()
+	protected function _allowEdit($data = array(), $key = 'id')
 	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		// Initialize variables
-		$bid		= JRequest::getVar('bid', array(), 'post', 'array');
-		JArrayHelper::toInteger($bid);
-
-		if (count($bid) < 1) {
-			JError::raiseError(500, JText::_('Select an item to copy'));
+		// Initialise variables.
+		$categoryId	= (int) isset($data['catid']) ? $data['catid'] : 0;
+		$user		= JFactory::getUser();
+		if ($categoryId)
+		{
+			// The category has been set. Check the category permissions.
+			return $user->authorise('core.edit', 'com_banners.category.'.$categoryId);
 		}
-
-		$model = $this->getModel('banner');
-
-		if (!$model->copy($bid)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
+		else
+		{
+			// Since there is no asset tracking, revert to the component permissions.
+			return parent::_allowEdit($data, $key);
 		}
-
-		$this->setRedirect('index.php?option=com_banners', JText::sprintf('Items copied', count($cid)));
-	}
-
-	function publish()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		// Initialize variables
-		$bid		= JRequest::getVar('bid', array(), 'post', 'array');
-		$task		= JRequest::getCmd('task');
-		$publish	= ($task == 'publish');
-		JArrayHelper::toInteger($bid);
-
-		if (count($bid) < 1) {
-			JError::raiseError(500, JText::_('Select an item to publish'));
-		}
-
-		$model = $this->getModel('banner');
-		if (!$model->publish($bid, $publish)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect('index.php?option=com_banners');
-	}
-
-	function remove()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$bid = JRequest::getVar('bid', array(), 'post', 'array');
-		JArrayHelper::toInteger($bid);
-
-		if (count($bid) < 1) {
-			JError::raiseError(500, JText::_('Select an item to delete'));
-		}
-
-		$model = $this->getModel('banner');
-		if (!$model->delete($bid)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect('index.php?option=com_banners');
-	}
-
-	function orderup()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$model = $this->getModel('banner');
-		$model->move(-1);
-
-		$this->setRedirect('index.php?option=com_banners');
-	}
-
-	function orderdown()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$model = $this->getModel('banner');
-		$model->move(1);
-
-		$this->setRedirect('index.php?option=com_banners');
-	}
-
-	/**
-	 * Save the new order given by user
-	 */
-	function saveorder()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid 	= JRequest::getVar('cid', array(), 'post', 'array');
-		$order 	= JRequest::getVar('order', array(), 'post', 'array');
-		JArrayHelper::toInteger($cid);
-		JArrayHelper::toInteger($order);
-
-		$model = $this->getModel('banner');
-		$model->saveorder($cid, $order);
-
-		$msg = JText::_('New ordering saved');
-		$this->setRedirect('index.php?option=com_banners', $msg);
 	}
 }

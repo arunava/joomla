@@ -1,111 +1,56 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Messages
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.controller' );
+jimport('joomla.application.component.controller');
 
 /**
- * Messages Controller
+ * Messages master display controller.
  *
  * @package		Joomla.Administrator
- * @subpackage	Messages
- * @since 1.5
+ * @subpackage	com_messages
+ * @since		1.6
  */
 class MessagesController extends JController
 {
-	function __construct($config = array())
+	/**
+	 * Method to display a view.
+	 */
+	public function display()
 	{
-		parent::__construct($config);
+		require_once JPATH_COMPONENT.'/helpers/messages.php';
 
-		// Register Extra tasks
-		$this->registerTask( 'add',		'display' );
-		$this->registerTask( 'reply',	'display' );
-		$this->registerTask( 'view',	'display' );
-	}
+		// Get the document object.
+		$document	= JFactory::getDocument();
 
-	function display( )
-	{
-		switch($this->getTask())
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'messages');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
+
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
 		{
-			case 'view'		:
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view', 'message');
-				JRequest::setVar( 'edit', false );
-			} break;
-			case 'add'		:
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view', 'message');
-				JRequest::setVar( 'edit', true );
-				JRequest::setVar( 'reply', false );
-			} break;
-			case 'reply'	:
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view', 'message');
-				JRequest::setVar( 'edit', true );
-				JRequest::setVar( 'reply', true );
-			} break;
-			case 'config'	:
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view', 'config');
-			} break;
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
+
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
+
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+
+			$view->display();
+
+			// Load the submenu.
+			//MessagesHelper::addSubmenu($vName);
 		}
-
-		parent::display();
-	}
-
-	function save( )
-	{
-		global $mainframe;
-
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$post	= JRequest::get('post');
-		$cid	= JRequest::getVar( 'cid', array(0), 'post', 'array' );
-		$post['id'] = (int) $cid[0];
-
-		$model = $this->getModel('message');
-
-		if ($model->send($post)) {
-			$msg = JText::_( 'Message Sent' );
-		} else {
-			$msg = JText::_( 'Error Sending Message' );
-		}
-
-		$this->setRedirect('index.php?option=com_messages', $msg);
-	}
-
-	function remove( )
-	{
-		global $mainframe;
-
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to delete' ) );
-		}
-
-		$model = $this->getModel('message');
-		if(!$model->delete($cid)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_messages' );
 	}
 }

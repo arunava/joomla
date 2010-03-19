@@ -1,18 +1,18 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 /**
  * Renders a newsfeed selection element
  *
- * @package 	Newsfeeds
+ * @package		Newsfeeds
  * @subpackage	Parameter
  * @since		1.5
  */
@@ -22,14 +22,13 @@ class JElementNewsfeed extends JElement
 	/**
 	 * Element name
 	 *
-	 * @access	protected
 	 * @var		string
 	 */
-	var	$_name = 'Newsfeed';
+	protected	$_name = 'Newsfeed';
 
-	function fetchElement($name, $value, &$node, $control_name)
+	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db =& JFactory::getDBO();
+		$db = JFactory::getDbo();
 
 		$query = 'SELECT a.id, c.title, a.name'
 		. ' FROM #__newsfeeds AS a'
@@ -38,26 +37,17 @@ class JElementNewsfeed extends JElement
 		. ' AND c.published = 1'
 		. ' ORDER BY a.catid, a.name'
 		;
-		$db->setQuery( $query );
-		$options = $db->loadObjectList( );
+		$db->setQuery($query);
+		$options = $db->loadObjectList();
 
-		$n = count( $options );
+		$n = count($options);
 		for ($i = 0; $i < $n; $i++)
 		{
 			$options[$i]->text = $options[$i]->title . '-' . $options[$i]->name;
 		}
 
-		array_unshift($options, JHtml::_('select.option', '0', '- '.JText::_('Select Feed').' -', 'id', 'text'));
+		array_unshift($options, JHtml::_('select.option', '0', '- '.JText::_('COM_NEWSFEEDS_SELECT_FEED').' -', 'id', 'text'));
 
-		return JHtml::_(
-			'select.genericlist',
-			$options,
-			$control_name . '[' . $name . ']',
-			'class="inputbox"',
-			'id',
-			'text',
-			$value,
-			$control_name . $name
-		);
+		return JHtml::_('select.genericlist',  $options, ''.$control_name.'['.$name.']', 'class="inputbox"', 'id', 'text', $value, $control_name.$name);
 	}
 }

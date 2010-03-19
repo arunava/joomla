@@ -1,26 +1,31 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Massmail
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
+$params = &JComponentHelper::getParams('com_media');
+$ranks = array('publisher', 'editor', 'author', 'registered');
+$acl = & JFactory::getACL();
+for($i = 0; $i < $params->get('allowed_media_usergroup', 3); $i++)
+{
+	$acl->addACL('com_media', 'popup', 'users', $ranks[$i]);
+}
 // Make sure the user is authorized to view this page
 $user = & JFactory::getUser();
-if (!$user->authorize( 'com_media', 'popup' )) {
-	$mainframe->redirect('index.php', JText::_('ALERTNOTAUTH'));
+$app	= &JFactory::getApplication();
+if (!$user->authorize('com_media', 'popup')) {
+	$app->redirect('index.php', JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
-// Get the media component configuration settings
-$params =& JComponentHelper::getParams('com_media');
-
 // Set the path definitions
-define('COM_MEDIA_BASE',	JPATH_ROOT.DS.$params->get('image_path', 'images'.DS.'stories'));
+define('COM_MEDIA_BASE',	JPATH_ROOT.DS.$params->get('image_path', 'images'));
 define('COM_MEDIA_BASEURL', JURI::root(true).'/'.$params->get('image_path', 'images'));
 
 // Load the admin HTML view

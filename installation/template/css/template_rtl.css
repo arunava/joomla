@@ -1,9 +1,7 @@
 /**
- * Joomla! 1.5 Installation template main RTL css file
- *
- * @package		Joomla
- * @since		1.5
- * @version     1.0
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 body{
@@ -69,4 +67,3 @@ h3.moofx-toggler-down {
 #srcEncoding{
 	text-align: right;
 }
-

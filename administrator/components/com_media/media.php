@@ -2,19 +2,23 @@
 /**
  * @version		$Id$
  * @package		Joomla.Administrator
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @subpackage	com_media
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-if (!JAcl::authorise('core', 'media.manage')) {
-	JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
+// Access check.
+if (!JFactory::getUser()->authorise('core.manage', 'com_media')) {
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
-$params =& JComponentHelper::getParams('com_media');
+// Include dependancies
+jimport('joomla.application.component.controller');
+
+$params = &JComponentHelper::getParams('com_media');
 
 // Load the admin HTML view
 require_once JPATH_COMPONENT.DS.'helpers'.DS.'media.php';
@@ -23,12 +27,14 @@ require_once JPATH_COMPONENT.DS.'helpers'.DS.'media.php';
 $view = JRequest::getCmd('view',null);
 $popup_upload = JRequest::getCmd('pop_up',null);
 $path = "file_path";
-if(substr(strtolower($view),0,6) == "images" || $popup_upload == 1) $path = "image_path";
+if (substr(strtolower($view),0,6) == "images" || $popup_upload == 1) $path = "image_path";
 define('COM_MEDIA_BASE',	JPATH_ROOT.DS.$params->get($path, 'images'));
-define('COM_MEDIA_BASEURL',	JURI::root().$params->get($path, 'images'));
+define('COM_MEDIA_BASEURL', JURI::root().$params->get($path, 'images'));
 
 // Require the base controller
 require_once JPATH_COMPONENT.DS.'controller.php';
+
+// TODO: Refactor to support the latest MVC pattern.
 
 $cmd = JRequest::getCmd('task', null);
 
@@ -47,9 +53,7 @@ if (strpos($cmd, '.') != false)
 	} else {
 		JError::raiseError(500, 'Invalid Controller');
 	}
-}
-else
-{
+} else {
 	// Base controller, just set the task :)
 	$controllerName = null;
 	$task = $cmd;

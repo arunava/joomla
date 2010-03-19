@@ -1,13 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	mod_syndicate
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-/** ensure this file is being included by a parent file */
-defined('_JEXEC') or die('Direct Access to this location is not allowed.');
+// no direct access
+defined('_JEXEC') or die;
 
 // Include the syndicate functions only once
 require_once dirname(__FILE__).DS.'helper.php';
@@ -17,9 +18,8 @@ $params->def('format', 'rss');
 
 $link = modSyndicateHelper::getLink($params);
 
-if(is_null($link)) {
+if (is_null($link)) {
 	return;
 }
 
-$img = JHtml::_('image.site', 'livemarks.png', '/images/M_images/');
-require(JModuleHelper::getLayoutPath('mod_syndicate'));
+require JModuleHelper::getLayoutPath('mod_syndicate', $params->get('layout', 'default'));

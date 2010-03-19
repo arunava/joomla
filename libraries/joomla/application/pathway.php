@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Class to maintain a pathway.
@@ -17,46 +17,43 @@ defined('JPATH_BASE') or die();
  * the user's navigated path within the Joomla application.
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Application
  * @since		1.5
  */
-abstract class JPathway extends JClass
+class JPathway extends JObject
 {
 	/**
 	 * Array to hold the pathway item objects
 	 * @access private
 	 */
-	protected $_pathway = null;
+	var $_pathway = null;
 
 	/**
 	 * Integer number of items in the pathway
 	 * @access private
 	 */
-	protected $_count = 0;
+	var $_count = 0;
 
 	/**
 	 * Class constructor
 	 */
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
 		//Initialise the array
 		$this->_pathway = array();
 	}
 
 	/**
-	 * Returns a reference a JPathway object
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $menu = &JPathway::getInstance();</pre>
+	 * Returns a JPathway object
 	 *
 	 * @access	public
-	 * @param   string  $client  The name of the client
-	 * @param array	 $options An associative array of options
-	 * @return JPathway 	A pathway object.
+	 * @param	string		$client  The name of the client
+	 * @param	array		$options An associative array of options
+	 * @return	JPathway	A pathway object.
 	 * @since	1.5
 	 */
-	public static function &getInstance($client, $options = array())
+	static function getInstance($client, $options = array())
 	{
 		static $instances;
 
@@ -64,10 +61,10 @@ abstract class JPathway extends JClass
 			$instances = array();
 		}
 
-		if (!isset($instances[$client]) || empty($instances[$client]))
+		if (empty($instances[$client]))
 		{
 			//Load the router object
-			$info =& JApplicationHelper::getClientInfo($client, true);
+			$info = &JApplicationHelper::getClientInfo($client, true);
 
 			$path = $info->path.DS.'includes'.DS.'pathway.php';
 			if (file_exists($path))
@@ -80,7 +77,8 @@ abstract class JPathway extends JClass
 			}
 			else
 			{
-				throw new JException('Unable to load pathway', 1054, E_ERROR, $client, true);
+				$error = JError::raiseError(500, 'Unable to load pathway: '.$client);
+				return $error;
 			}
 
 			$instances[$client] = & $instance;
@@ -96,7 +94,7 @@ abstract class JPathway extends JClass
 	 * @return array Array of pathway items
 	 * @since 1.5
 	 */
-	public function getPathway()
+	function getPathway()
 	{
 		$pw = $this->_pathway;
 
@@ -112,7 +110,7 @@ abstract class JPathway extends JClass
 	 * @return	array	The previous pathway data.
 	 * @since	1.5
 	 */
-	public function setPathway($pathway)
+	function setPathway($pathway)
 	{
 		$oldPathway	= $this->_pathway;
 		$pathway	= (array) $pathway;
@@ -130,9 +128,9 @@ abstract class JPathway extends JClass
 	 * @return array Array of names of pathway items
 	 * @since 1.5
 	 */
-	public function getPathwayNames()
+	function getPathwayNames()
 	{
-		// Initialize variables
+		// Initialise variables.
 		$names = array (null);
 
 		// Build the names array using just the names of each pathway item
@@ -153,7 +151,7 @@ abstract class JPathway extends JClass
 	 * @return boolean True on success
 	 * @since 1.5
 	 */
-	public function addItem($name, $link='')
+	function addItem($name, $link='')
 	{
 		// Initalize variables
 		$ret = false;
@@ -175,7 +173,7 @@ abstract class JPathway extends JClass
 	 * @return boolean True on success
 	 * @since 1.5
 	 */
-	public function setItemName($id, $name)
+	function setItemName($id, $name)
 	{
 		// Initalize variables
 		$ret = false;
@@ -197,13 +195,12 @@ abstract class JPathway extends JClass
 	 * @return object Pathway item object
 	 * @since 1.5
 	 */
-	protected function _makeItem($name, $link)
+	function _makeItem($name, $link)
 	{
 		$item = new stdClass();
-		$item->name = html_entity_decode($name);
+		$item->name = html_entity_decode($name, ENT_COMPAT, 'UTF-8');
 		$item->link = $link;
 
 		return $item;
 	}
 }
-

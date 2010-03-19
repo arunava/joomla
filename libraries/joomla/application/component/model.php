@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Base class for a Joomla Model
@@ -21,7 +21,7 @@ defined('JPATH_BASE') or die();
  * @subpackage	Application
  * @since		1.5
  */
-abstract class JModel extends JClass
+abstract class JModel extends JObject
 {
 	/**
 	 * The model (base) name
@@ -54,8 +54,10 @@ abstract class JModel extends JClass
 
 	/**
 	 * Constructor
+	 *
+	 * @since	1.5
 	 */
-	protected function __construct($config = array())
+	function __construct($config = array())
 	{
 		//set the view name
 		if (empty($this->_name))
@@ -78,7 +80,7 @@ abstract class JModel extends JClass
 		if (array_key_exists('dbo', $config))  {
 			$this->_db = $config['dbo'];
 		} else {
-			$this->_db = &JFactory::getDBO();
+			$this->_db = &JFactory::getDbo();
 		}
 
 		// set the default view search path
@@ -95,18 +97,17 @@ abstract class JModel extends JClass
 	}
 
 	/**
-	 * Returns a reference to the a Model object, always creating it
+	 * Returns a Model object, always creating it
 	 *
 	 * @param	string	The model type to instantiate
 	 * @param	string	Prefix for the model class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
 	 * @return	mixed	A model object, or false on failure
 	 */
-	public static function &getInstance($type, $prefix = '', $config = array())
+	public static function getInstance($type, $prefix = '', $config = array())
 	{
 		$type		= preg_replace('/[^A-Z0-9_\.-]/i', '', $type);
 		$modelClass	= $prefix.ucfirst($type);
-		$result		= false;
 
 		if (!class_exists($modelClass))
 		{
@@ -121,14 +122,14 @@ abstract class JModel extends JClass
 
 				if (!class_exists($modelClass))
 				{
-					throw new JException('Model class not found', 1061, E_ERROR, $modelClass, true);
+					JError::raiseWarning(0, 'Model class ' . $modelClass . ' not found in file.');
+					return false;
 				}
 			}
-			else return $result;
+			else return false;
 		}
 
-		$result = new $modelClass($config);
-		return $result;
+		return new $modelClass($config);
 	}
 
 	/**
@@ -147,7 +148,7 @@ abstract class JModel extends JClass
 	 * Method to get model state variables
 	 *
 	 * @param	string	Optional parameter name
-	 * @param   mixed	Optional default value
+	 * @param	mixed	Optional default value
 	 * @return	object	The property where specified, the state object where omitted
 	 */
 	public function getState($property = null, $default = null)
@@ -182,7 +183,7 @@ abstract class JModel extends JClass
 	 *
 	 * @return	object JDatabase connector object
 	 */
-	public function &getDBO()
+	public function getDbo()
 	{
 		return $this->_db;
 	}
@@ -193,16 +194,16 @@ abstract class JModel extends JClass
 	 * @param	object	$db	A JDatabase based object
 	 * @return	void
 	 */
-	public function setDBO(&$db)
+	public function setDbo(&$db)
 	{
-		$this->_db =& $db;
+		$this->_db = &$db;
 	}
 
 	/**
 	 * Method to get the model name
 	 *
 	 * The model name by default parsed using the classname, or it can be set
-	 * by passing a $config['name�] in the class constructor
+	 * by passing a $config['name'] in the class constructor
 	 *
 	 * @return	string The name of the model
 	 */
@@ -214,7 +215,7 @@ abstract class JModel extends JClass
 		{
 			$r = null;
 			if (!preg_match('/Model(.*)/i', get_class($this), $r)) {
-				throw new JException('Can\'t get or parse class name', 1062, E_ERROR, get_class($this), true);
+				JError::raiseError (500, "JModel::getName() : Can't get or parse class name.");
 			}
 			$name = strtolower($r[1]);
 		}
@@ -230,7 +231,7 @@ abstract class JModel extends JClass
 	 * @param	array	Configuration array for model. Optional.
 	 * @return	object	The table
 	 */
-	public function &getTable($name='', $prefix='Table', $options = array())
+	public function getTable($name='', $prefix='Table', $options = array())
 	{
 		if (empty($name)) {
 			$name = $this->getName();
@@ -240,7 +241,9 @@ abstract class JModel extends JClass
 			return $table;
 		}
 
-		throw new JException('Table not supported.  File not found', 1063, E_ERROR, $name, true);
+		JError::raiseError(0, 'Table ' . $name . ' not supported. File not found.');
+
+		return null;
 	}
 
 	/**
@@ -285,10 +288,11 @@ abstract class JModel extends JClass
 	 * @param	int The number of records
 	 * @return	array
 	 */
-	protected function &_getList($query, $limitstart=0, $limit=0)
+	protected function _getList($query, $limitstart=0, $limit=0)
 	{
 		$this->_db->setQuery($query, $limitstart, $limit);
 		$result = $this->_db->loadObjectList();
+
 		return $result;
 	}
 
@@ -310,32 +314,29 @@ abstract class JModel extends JClass
 	 * Method to load and return a model object.
 	 *
 	 * @param	string	The name of the view
-	 * @param   string  The class prefix. Optional.
+	 * @param	string  The class prefix. Optional.
 	 * @return	mixed	Model object or boolean false if failed
 	 */
-	private function &_createTable($name, $prefix = 'Table', $config = array())
+	private function _createTable($name, $prefix = 'Table', $config = array())
 	{
-		$result = null;
-
 		// Clean the model name
 		$name	= preg_replace('/[^A-Z0-9_]/i', '', $name);
 		$prefix = preg_replace('/[^A-Z0-9_]/i', '', $prefix);
 
 		//Make sure we are returning a DBO object
 		if (!array_key_exists('dbo', $config))  {
-			$config['dbo'] =& $this->getDBO();;
+			$config['dbo'] = &$this->getDbo();;
 		}
 
-		$instance =& JTable::getInstance($name, $prefix, $config);
-		return $instance;
+		return JTable::getInstance($name, $prefix, $config);;
 	}
 
 	/**
 	 * Create the filename for a resource
 	 *
-	 * @param	string 	$type  The resource type to create the filename for
-	 * @param	array 	$parts An associative array of filename information
-	 * @return	string The filename
+	 * @param	string	The resource type to create the filename for
+	 * @param	array	An associative array of filename information
+	 * @return	string	The filename
 	 */
 	private static function _createFileName($type, $parts = array())
 	{

@@ -1,14 +1,11 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
@@ -16,56 +13,70 @@ jimport('joomla.application.component.view');
  * @package		Joomla.Administrator
  * @subpackage	com_users
  */
-class UserViewUser extends JView
+class UsersViewUser extends JView
 {
-	public $document = null;
-	protected $contact = null;
+	public $state;
+	public $item;
+	public $form;
+	public $groups;
+	public $grouplist;
+	public $group_id;
 
 	/**
 	 * Display the view
-	 *
-	 * @access	public
 	 */
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
-		$state = $this->get('State');
-		$item = &$this->get('Item');
+		$state		= $this->get('State');
+		$item		= $this->get('Item');
+		$form		= $this->get('Form');
+		$groupList	= $this->get('Groups');
+		$groups		= $this->get('AssignedGroups');
 
-		$this->assignRef('state', $state);
-		$this->assignRef('item', $item);
-
-		if ($item->get('id')) {
-			// Existing
-		}
-		else {
-			// New
-			$config		= &JComponentHelper::getParams('com_users');
-			$acl		= &JFactory::getACL();
-			$newGrp		= $config->get('new_usertype');
-			$item->set('gid', $acl->get_group_id($newGrp, null, 'ARO'));
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		$this->_setToolBar();
+		$form->bind($item);
+		$form->setValue('password',		null);
+		$form->setValue('password2',	null);
+
+		$this->assignRef('state',		$state);
+		$this->assignRef('item',		$item);
+		$this->assignRef('form',		$form);
+		$this->assignRef('grouplist',	$groupList);
+		$this->assignRef('groups',		$groups);
+
 		parent::display($tpl);
+		$this->_setToolbar();
+
 	}
 
 	/**
-	 * Display the toolbar
+	 * Build the default toolbar.
 	 *
-	 * @access	private
+	 * @return	void
+	 * @since	1.6
 	 */
-	function _setToolBar()
+	protected function _setToolbar()
 	{
-		$isNew = ($this->item->get('id') == 0);
-		JToolBarHelper::title(JText::_(($isNew ? 'Add User' : 'Edit User')), 'user');
-		if (!$isNew) {
-			JToolBarHelper::custom('user.save2copy', 'copy.png', 'copy_f2.png', 'Save To Copy', false);
+		JRequest::setVar('hidemainmenu', 1);
+
+		$isNew	= ($this->item->id == 0);
+		JToolBarHelper::title(JText::_($isNew ? 'Users_View_New_User_Title' : 'Users_View_Edit_User_Title'), 'user-add');
+		JToolBarHelper::apply('user.apply','JTOOLBAR_APPLY');
+		JToolBarHelper::save('user.save','JTOOLBAR_SAVE');
+		JToolBarHelper::addNew('user.save2new', 'JToolbar_Save_and_new');
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('user.cancel','JTOOLBAR_CANCEL');
 		}
-		JToolBarHelper::custom('user.save2new', 'new.png', 'new_f2.png', 'Save And New', false);
-		JToolBarHelper::save('user.save');
-		JToolBarHelper::apply('user.apply');
-		JToolBarHelper::cancel('user.cancel');
-		JToolBarHelper::help('screen.users.edit');
+		else {
+			JToolBarHelper::cancel('user.cancel', 'JToolbar_Close');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.users.user','JTOOLBAR_HELP');
 	}
 }
-

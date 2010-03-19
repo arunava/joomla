@@ -1,66 +1,86 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Newsfeeds
-* @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Newsfeeds component
+ * View class for a list of newsfeeds.
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Newsfeeds
- * @since 1.0
+ * @subpackage	com_newsfeeds
+ * @since		1.6
  */
 class NewsfeedsViewNewsfeeds extends JView
 {
-	function display($tpl = null)
+	protected $state;
+	protected $items;
+	protected $pagination;
+
+	/**
+	 * Display the view
+	 */
+	public function display($tpl = null)
 	{
-		global $mainframe, $option;
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
-		$user				=& JFactory::getUser();
-
-		// Set toolbar items for the page
-		JToolBarHelper::title(  JText::_( 'Newsfeed Manager' ) );
-		JToolBarHelper::publishList();
-		JToolBarHelper::unpublishList();
-		JToolBarHelper::deleteList();
-		JToolBarHelper::editListX();
-		JToolBarHelper::addNewX();
-		JToolBarHelper::preferences( 'com_newsfeeds', 390 );
-		JToolBarHelper::help( 'screen.newsfeeds' );
-
-		// Get data from the model
-		$items		= & $this->get( 'Data');
-		$pagination = & $this->get( 'Pagination' );
-		$filter		= & $this->get( 'Filter');
-
-		$cache_path = JPATH_SITE.DS.'cache';
-		$cache_writable = is_writable( $cache_path );
-
-		// Is cache directory writable?
-		// check to hide certain paths if not super admin
-		// TODO: Change this when ACLs more solid
-		$cache_folder = '';
-		if ( $user->get('gid') == 25 ) {
-			$cache_folder = $cache_path;
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		$this->assignRef('user',		$user);
-		$this->assignRef('cache_folder',	$cache_folder);
-		$this->assignRef('cache_writable',	$cache_writable);
+		$this->assignRef('state',		$state);
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
-		$this->assignRef('filter',		$filter);
 
 		parent::display($tpl);
+		$this->_setToolbar();
+	}
+
+	/**
+	 * Setup the Toolbar.
+	 */
+	protected function _setToolbar()
+	{
+		$state	= $this->get('State');
+		$canDo	= NewsfeedsHelper::getActions($state->get('filter.category_id'));
+
+		JToolBarHelper::title(JText::_('COM_NEWSFEEDS_MANAGER_NEWSFEEDS'), 'newsfeeds.png');
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::addNew('newsfeed.add','JTOOLBAR_NEW');
+		}
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::editList('newsfeed.edit','JTOOLBAR_EDIT');
+		}
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::custom('newsfeeds.publish', 'publish.png', 'publish_f2.png', 'JToolbar_Publish', true);
+			JToolBarHelper::custom('newsfeeds.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JToolbar_Unpublish', true);
+			JToolBarHelper::divider();
+			if ($state->get('filter.published') != -1) {
+				JToolBarHelper::archiveList('newsfeeds.archive','JTOOLBAR_ARCHIVE');
+			}
+		}
+		if ($state->get('filter.published') == -2 && $canDo->get('core.delete')) {
+			JToolBarHelper::deleteList('', 'newsfeeds.delete','JTOOLBAR_EMPTY_TRASH');
+		}
+		else if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::trash('newsfeeds.trash','JTOOLBAR_TRASH');
+		}
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::divider();
+			JToolBarHelper::preferences('com_newsfeeds');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.newsfeed','JTOOLBAR_HELP');
 	}
 }

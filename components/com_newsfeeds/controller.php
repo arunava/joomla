@@ -1,21 +1,21 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.controller');
 
 /**
  * Newsfeeds Component Controller
  *
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Newsfeeds
  * @since 1.5
  */
@@ -29,13 +29,29 @@ class NewsfeedsController extends JController
 	 */
 	function display()
 	{
-		// Set a default view if none exists
-		if ( ! JRequest::getCmd( 'view' ) ) {
-			JRequest::setVar('view', 'categories' );
-		}
+		// Get the document object.
+		$document = &JFactory::getDocument();
 
-		parent::display();
+
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'categories');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
+
+			// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
+		{
+			$model = &$this->getModel($vName);
+
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
+
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+				$view->display();
+		}
 	}
 }
 
-?>
+

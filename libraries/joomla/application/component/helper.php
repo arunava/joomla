@@ -1,48 +1,50 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Component helper class
  *
- * @static
  * @package		Joomla.Framework
  * @subpackage	Application
  * @since		1.5
  */
-abstract class JComponentHelper
+class JComponentHelper
 {
+	/**
+	 * The component list cache
+	 *
+	 * @var	array
+	 */
+	protected static $_components = array();
 
 	/**
-	 * Get the component info
+	 * Get the component information.
 	 *
-	 * @access	public
-	 * @param	string $name 	The component name
-	 * @param 	boolean	$string	If set and a component does not exist, the enabled attribue will be set to false
-	 * @return	object A JComponent object
+	 * @param	string $option	The component option.
+	 * @param	boolean	$string	If set and a component does not exist, the enabled attribue will be set to false
+	 * @return	object			An object with the fields for the component.
 	 */
-	public static function &getComponent($name, $strict = false)
+	public static function getComponent($option, $strict = false)
 	{
-		$result = null;
-		$components = JComponentHelper::_load();
-
-		if (isset($components[$name]))
-		{
-			$result = &$components[$name];
-		}
-		else
-		{
-			$result				= new stdClass();
-			$result->enabled	= $strict ? false : true;
-			$result->params		= null;
+		if (!isset(self::$_components[$option])) {
+			if (self::_load($option)){
+				$result = &self::$_components[$option];
+			} else {
+				$result				= new stdClass;
+				$result->enabled	= $strict ? false : true;
+				$result->params		= new JParameter;
+			}
+		} else {
+			$result = &self::$_components[$option];
 		}
 
 		return $result;
@@ -51,100 +53,81 @@ abstract class JComponentHelper
 	/**
 	 * Checks if the component is enabled
 	 *
-	 * @access	public
-	 * @param	string	$component The component name
-	 * @param 	boolean	$string	If set and a component does not exist, false will be returned
+	 * @param	string	$option		The component option.
+	 * @param	boolean	$string		If set and a component does not exist, false will be returned
 	 * @return	boolean
 	 */
-	public static function isEnabled($component, $strict = false)
+	public static function isEnabled($option, $strict = false)
 	{
-		$appl = JFactory::getApplication();
-
-		$result = &JComponentHelper::getComponent($component, $strict);
-		return ($result->enabled | $appl->isAdmin());
+		$result = &self::getComponent($option, $strict);
+		return ($result->enabled | JFactory::getApplication()->isAdmin());
 	}
 
 	/**
 	 * Gets the parameter object for the component
 	 *
-	 * @access public
-	 * @param string $name The component name
-	 * @return object A JParameter object
+	 * @param	string		The option for the component.
+	 * @param	boolean		If set and a component does not exist, false will be returned
+	 * @return	JRegistry	As of 1.6, this method returns a JRegistry (previous versions returned JParameter).
 	 */
-	public static function &getParams($name)
+	public static function getParams($option, $strict = false)
 	{
-		static $instances;
-		if (!isset($instances[$name]))
-		{
-			$component = &JComponentHelper::getComponent($name);
-			$instances[$name] = new JParameter($component->params);
-		}
-		return $instances[$name];
+		$component = &self::getComponent($option, $strict);
+		return $component->params;
 	}
 
 	/**
-	 * Render a component
-	 *
-	 * @param	string $name Name of the component
-	 * @param	array $params
-	 * @return	string Output from rendering the component
-	 * @since	1.5
+	 * Render the component.
+	 * @param	string	The component option.
 	 */
-	public static function renderComponent($name = null, $params = array())
+	public static function renderComponent($option, $params = array())
 	{
-		$component	= JApplicationHelper::getComponentName();
-		$appl	= JFactory::getApplication();
+		// Initialise variables.
+		$app	= JFactory::getApplication();
 
-		//needed for backwards compatibility
-		// @todo if legacy ...
-		$mainframe =& $appl;
-
-		if (empty($name)) {
+		if (empty($option)) {
 			// Throw 404 if no component
-			JError::raiseError(404, JText::_("Component Not Found"));
+			JError::raiseError(404, JText::_("COMPONENT_NOT_FOUND"));
 			return;
 		}
 
-		$scope = $appl->scope; //record the scope
-		$appl->scope = $name;  //set scope to component name
+		$scope = $app->scope; //record the scope
+		$app->scope = $option;  //set scope to component name
 
-		// Build the component path
-		$name = preg_replace('/[^A-Z0-9_\.-]/i', '', $name);
-		$file = substr($name, 4);
+		// Build the component path.
+		$option	= preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
+		$file	= substr($option, 4);
 
-		// Define component path
-		define('JPATH_COMPONENT',					JPATH_BASE.DS.'components'.DS.$name);
-		define('JPATH_COMPONENT_SITE',				JPATH_SITE.DS.'components'.DS.$name);
-		define('JPATH_COMPONENT_ADMINISTRATOR',	JPATH_ADMINISTRATOR.DS.'components'.DS.$name);
+		// Define component path.
+		define('JPATH_COMPONENT',				JPATH_BASE.DS.'components'.DS.$option);
+		define('JPATH_COMPONENT_SITE',			JPATH_SITE.DS.'components'.DS.$option);
+		define('JPATH_COMPONENT_ADMINISTRATOR',	JPATH_ADMINISTRATOR.DS.'components'.DS.$option);
 
 		// get component path
-		if ($appl->isAdmin() && file_exists(JPATH_COMPONENT.DS.'admin.'.$file.'.php')) {
+		if ($app->isAdmin() && file_exists(JPATH_COMPONENT.DS.'admin.'.$file.'.php')) {
 			$path = JPATH_COMPONENT.DS.'admin.'.$file.'.php';
 		} else {
 			$path = JPATH_COMPONENT.DS.$file.'.php';
 		}
 
 		// If component disabled throw error
-		if (!JComponentHelper::isEnabled($name) || !file_exists($path)) {
-			JError::raiseError(404, JText::_('Component Not Found'));
+		if (!self::isEnabled($option) || !file_exists($path)) {
+			JError::raiseError(404, JText::_('COMPONENT_NOT_FOUND'));
 		}
 
 		$task = JRequest::getString('task');
 
-		// Load common language files
-		$lang =& JFactory::getLanguage();
-		// 1.5 3PD or Core files
-		$lang->load($name);
-		// 1.6 3PD
-		$lang->load($name, JPATH_COMPONENT);
+		// Load common and local language files.
+		$lang = &JFactory::getLanguage();
+			$lang->load($option, JPATH_BASE, null, false, false)
+		||	$lang->load($option, JPATH_COMPONENT, null, false, false)
+		||	$lang->load($option, JPATH_BASE, $lang->getDefault(), false, false)
+		||	$lang->load($option, JPATH_COMPONENT, $lang->getDefault(), false, false);
 
-		// @todo if ($legacy)
-		$option = $component;
-
-		// Handle template preview outlining
+		// Handle template preview outlining.
 		$contents = null;
 
-		// Execute the component
+		// Execute the component.
 		ob_start();
 		require_once $path;
 		$contents = ob_get_contents();
@@ -152,49 +135,48 @@ abstract class JComponentHelper
 
 		// Build the component toolbar
 		jimport('joomla.application.helper');
-		if (($path = JApplicationHelper::getPath('toolbar')) && $appl->isAdmin()) {
-
+		if (($path = JApplicationHelper::getPath('toolbar')) && $app->isAdmin()) {
 			// Get the task again, in case it has changed
 			$task = JRequest::getString('task');
 
 			// Make the toolbar
-			include_once($path);
+			include_once $path;
 		}
 
-		$appl->scope = $scope; //revert the scope
+		$app->scope = $scope; //revert the scope
 
 		return $contents;
 	}
 
 	/**
-	 * Load components
+	 * Load the installed components into the _components property.
 	 *
-	 * @access	private
-	 * @return	array
+	 * @return	boolean
 	 */
-	protected static function _load()
+	protected static function _load($option)
 	{
-		static $components;
-
-		if (isset($components)) {
-			return $components;
-		}
-
-		$db = &JFactory::getDBO();
-
-		$query = 'SELECT *' .
-				' FROM #__components' .
-				' WHERE parent = 0';
+		$db		= JFactory::getDbo();
+		$query	= $db->getQuery(true);
+		$query->select('extension_id AS "id", element AS "option", params, enabled');
+		$query->from('#__extensions');
+		$query->where('`type` = "component"');
+		$query->where('`element` = "'.$option.'"');
 		$db->setQuery($query);
 
-		try {
-			$components = $db->loadObjectList('option');
-		} catch (JException $e) {
-			return array();
+		self::$_components[$option] = $db->loadObject();
+
+		if ($error = $db->getErrorMsg() || empty(self::$_components[$option])) {
+			// Fatal error.
+			JError::raiseWarning(500, 'Error loading component: "'.$option.'" '.$error);
+			return false;
 		}
 
-		return $components;
+		// Convert the params to an object.
+		if (is_string(self::$_components[$option]->params)) {
+			$temp = new JParameter(self::$_components[$option]->params);
+			self::$_components[$option]->params = $temp;
+		}
 
+		return true;
 	}
 }
-

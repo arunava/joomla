@@ -1,89 +1,98 @@
-<?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
-<?php if ($this->params->get('show_page_title', 1)) : ?>
-<div class="componentheading<?php echo $this->params->get('pageclass_sfx') ?>">
-	<?php echo $this->escape($this->params->get('page_title')); ?>
-</div>
-<?php endif; ?>
-<table class="blog<?php echo $this->params->get('pageclass_sfx') ?>" cellpadding="0" cellspacing="0">
-<?php if ($this->params->def('num_leading_articles', 1)) : ?>
-<tr>
-	<td valign="top">
-	<?php for ($i = $this->pagination->limitstart; $i < ($this->pagination->limitstart + $this->params->get('num_leading_articles')); $i++) : ?>
-		<?php if ($i >= $this->total) : break; endif; ?>
-		<div>
-		<?php
-			$this->item =& $this->getItem($i, $this->params);
-			echo $this->loadTemplate('item');
-		?>
-		</div>
-	<?php endfor; ?>
-	</td>
-</tr>
-<?php else : $i = $this->pagination->limitstart; endif; ?>
 
 <?php
-$startIntroArticles = $this->pagination->limitstart + $this->params->get('num_leading_articles');
-$numIntroArticles = $startIntroArticles + $this->params->get('num_intro_articles', 4);
-if (($numIntroArticles != $startIntroArticles) && ($i < $this->total)) : ?>
-<tr>
-	<td valign="top">
-		<table width="100%"  cellpadding="0" cellspacing="0">
-		<tr>
-		<?php
-			$divider = '';
-			for ($z = 0; $z < $this->params->def('num_columns', 2); $z ++) :
-				if ($z > 0) : $divider = " column_separator"; endif; ?>
-				<?php
-					$rows = (int) ($this->params->get('num_intro_articles', 4) / $this->params->get('num_columns'));
-					$cols = ($this->params->get('num_intro_articles', 4) % $this->params->get('num_columns'));
-				?>
-				<td valign="top" width="<?php echo intval(100 / $this->params->get('num_columns')) ?>%" class="article_column<?php echo $divider ?>">
-				<?php
-				$loop = (($z < $cols)?1:0) + $rows;
+/**
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-				for ($y = 0; $y < $loop; $y ++) :
-					$target = $i + ($y * $this->params->get('num_columns')) + $z;
-					if ($target < $this->total && $target < ($numIntroArticles)) :
-						$this->item =& $this->getItem($target, $this->params);
-						echo $this->loadTemplate('item');
-					endif;
-				endfor;
-				?>
-				</td>
-		<?php endfor; ?>
-		<?php $i = $i + $this->params->get('num_intro_articles') ; ?>
-		</tr>
-		</table>
-	</td>
-</tr>
+// no direct access
+defined('_JEXEC') or die;
+
+JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
+
+// If the page class is defined, add to class as suffix.
+// It will be a separate class if the user starts it with a space
+$pageClass = $this->params->get('pageclass_sfx');
+?>
+
+<div class="blog-featured<?php echo $pageClass;?>">
+
+<?php if ($this->params->get('show_page_title', 1)) : ?>
+<h1>
+	<?php if ($this->escape($this->params->get('page_heading'))) :?>
+		<?php echo $this->escape($this->params->get('page_heading')); ?>
+	<?php else : ?>
+		<?php echo $this->escape($this->params->get('page_title')); ?>
+	<?php endif; ?>
+</h1>
 <?php endif; ?>
-<?php if ($this->params->def('num_links', 4) && ($i < $this->total)) : ?>
-<tr>
-	<td valign="top">
-		<div class="blog_more<?php echo $this->params->get('pageclass_sfx') ?>">
+<?php $leadingcount=0 ; ?>
+<?php if (!empty($this->lead_items)) : ?>
+<div class="items-leading">
+	<?php foreach ($this->lead_items as &$item) : ?>
+		<div class="leading-<?php echo $leadingcount; ?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
 			<?php
-				$this->links = array_splice($this->items, $i - $this->pagination->limitstart);
-				echo $this->loadTemplate('links');
+				$this->item = &$item;
+				echo $this->loadTemplate('item');
 			?>
 		</div>
-	</td>
-</tr>
+		<?php
+			$leadingcount=$leadingcount +1;
+		?>
+	<?php endforeach; ?>
+</div>
+<?php endif; ?>
+<?php
+	$introcount=(count($this->intro_items));
+	$counter=0;
+?>
+<?php if (!empty($this->intro_items)) : ?>
+	<?php foreach ($this->intro_items as $key => &$item) : ?>
+
+	<?php
+		$key= ($key-$leadingcount)+1;
+		$rowcount=( ((int)$key-1) %	(int) $this->columns) +1;
+		$row = $counter / $this->columns ;
+
+		if($rowcount==1) : ?>
+
+			<div class="items-row cols-<?php echo (int) $this->columns;?> <? echo 'row-'.$row ; ?>">
+		<?php endif; ?>
+		<div class="item column-<?php echo $rowcount;?><?php echo $item->state == 0 ? ' system-unpublished"' : null; ?>">
+			<?php
+					$this->item = &$item;
+					echo $this->loadTemplate('item');
+			?>
+		</div>
+		<?php $counter=$counter +1; ?>
+			<?php if (($rowcount == $this->columns) or ($counter ==$introcount)): ?>
+				<span class="row-separator"></span>
+				</div>
+
+			<?php endif; ?>
+	<?php endforeach; ?>
+<?php endif; ?>
+
+<?php if (!empty($this->link_items)) : ?>
+	<div class="items-more">
+	<?php echo $this->loadTemplate('links'); ?>
+	</div>
 <?php endif; ?>
 
 <?php if ($this->params->def('show_pagination', 2) == 1  || ($this->params->get('show_pagination') == 2 && $this->pagination->get('pages.total') > 1)) : ?>
-<tr>
-	<td valign="top" align="center">
-		<?php echo $this->pagination->getPagesLinks(); ?>
-		<br /><br />
-	</td>
-</tr>
-<?php if ($this->params->def('show_pagination_results', 1)) : ?>
-<tr>
-	<td valign="top" align="center">
-		<?php echo $this->pagination->getPagesCounter(); ?>
-	</td>
-</tr>
+	<div class="pagination">
+
+		<?php if ($this->params->def('show_pagination_results', 1)) : ?>
+			<p class="counter">
+				<?php echo $this->pagination->getPagesCounter(); ?>
+			</p>
+		<?php  endif; ?>
+				<?php echo $this->pagination->getPagesLinks(); ?>
+	</div>
 <?php endif; ?>
-<?php endif; ?>
-</table>
+
+</div>
+

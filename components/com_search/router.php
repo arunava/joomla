@@ -1,16 +1,16 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @package		Joomla.Site
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 /**
  * @param	array
  * @return	array
  */
-function SearchBuildRoute( &$query )
+function SearchBuildRoute(&$query)
 {
 	$segments = array();
 
@@ -19,10 +19,16 @@ function SearchBuildRoute( &$query )
 		unset($query['searchword']);
 	}
 
+	// Retrieve configuration options - needed to know which SEF URLs are used
+	$app = &JFactory::getApplication();
+	// Allows for searching on strings that include ".xxx" that appear to Apache as an extension
+	if (($app->getCfg('sef')) && ($app->getCfg('sef_rewrite')) && !($app->getCfg('sef_suffix')) && count($segments)) {
+		$segments[] .= '/';
+	}
+
 	if (isset($query['view'])) {
 		unset($query['view']);
 	}
-
 	return $segments;
 }
 
@@ -30,7 +36,7 @@ function SearchBuildRoute( &$query )
  * @param	array
  * @return	array
  */
-function SearchParseRoute( $segments )
+function SearchParseRoute($segments)
 {
 	$vars = array();
 

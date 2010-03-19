@@ -1,14 +1,13 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die('Restricted Access');
+defined('JPATH_BASE') or die;
 
-jimport('joomla.form.field');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -24,7 +23,7 @@ class JFormFieldTextarea extends JFormField
 	 *
 	 * @var		string
 	 */
-	public $type = 'Textarea';
+	protected $type = 'Textarea';
 
 	/**
 	 * Method to get the field input.
@@ -33,13 +32,20 @@ class JFormFieldTextarea extends JFormField
 	 */
 	protected function _getInput()
 	{
-		$rows	= $this->_element->attributes('rows');
-		$cols	= $this->_element->attributes('cols');
-		$class	= $this->_element->attributes('class') ? 'class="'.$this->_element->attributes('class').'"' : 'class="text_area"';
+		$class = ((string)$this->_element->attributes()->class) ? ' class="'.$this->_element->attributes()->class.'"' : ' class="text_area"';
+		$readonly = (string)$this->_element->attributes()->readonly == 'true' ? ' readonly="readonly"' : '';
+		$onchange = ((string)$this->_element->attributes()->onchange) ? ' onchange="'.$this->_replacePrefix((string)$this->_element->attributes()->onchange).'"' : '';
 
-		// convert <br /> tags so they are not visible when editing
-		$value	= str_replace('<br />', "\n", $this->value);
-
-		return '<textarea name="'.$this->inputName.'" cols="'.$cols.'" rows="'.$rows.'" '.$class.' id="'.$this->inputId.'" >'.htmlspecialchars($value).'</textarea>';
+		return '<textarea'
+		. ' name="'.$this->inputName.'"'
+		. ' id="'.$this->inputId.'"'
+		. ' cols="'.$this->_element->attributes()->cols.'"'
+		. ' rows="'.$this->_element->attributes()->rows.'"'
+		. $class
+		. $readonly
+		. $onchange
+		.' >'
+		. htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8')
+		. '</textarea>';
 	}
 }

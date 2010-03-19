@@ -2,345 +2,766 @@
 
 # 1.5 to 1.6
 
--- 2008-08-25
+-- ----------------------------------------------------------------
+-- jos_assets
+-- ----------------------------------------------------------------
 
-ALTER TABLE `#__core_acl_groups_aro_map`
- ADD INDEX aro_id_group_id_group_aro_map USING BTREE(`aro_id`, `group_id`);
+CREATE TABLE IF NOT EXISTS `jos_assets` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+  `parent_id` int(11) NOT NULL DEFAULT '0' COMMENT 'Nested set parent.',
+  `lft` int(11) NOT NULL DEFAULT '0' COMMENT 'Nested set lft.',
+  `rgt` int(11) NOT NULL DEFAULT '0' COMMENT 'Nested set rgt.',
+  `level` int(10) unsigned NOT NULL COMMENT 'The cached level in the nested tree.',
+  `name` varchar(50) NOT NULL COMMENT 'The unique name for the asset.\n',
+  `title` varchar(100) NOT NULL COMMENT 'The descriptive title for the asset.',
+  `rules` varchar(5120) NOT NULL COMMENT 'JSON encoded access control.',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_asset_name` (`name`),
+  KEY `idx_lft_rgt` (`lft`,`rgt`),
+  KEY `idx_parent_id` (`parent_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
---
+-- ----------------------------------------------------------------
+-- jos_banners
+-- ----------------------------------------------------------------
 
-ALTER TABLE `#__weblinks`
- CHANGE `published` `state` TINYINT( 1 ) NOT NULL DEFAULT '0';
+ALTER TABLE `jos_banner`
+ RENAME TO `jos_banners`;
 
--- 2008-10-10
+ALTER TABLE `jos_banners`
+ CHANGE COLUMN `bid` `id` INTEGER NOT NULL auto_increment;
 
-DROP TABLE `#__groups`;
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `type` INTEGER NOT NULL DEFAULT '0';
 
---
--- Table structure for table `#__core_acl_acl`
---
+ALTER TABLE `jos_banners`
+ CHANGE COLUMN `showBanner` `state` TINYINT(3) NOT NULL DEFAULT '0';
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_acl` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `section_value` varchar(100) NOT NULL default 'system',
-  `allow` int(1) unsigned NOT NULL default '0',
-  `enabled` int(1) unsigned NOT NULL default '0',
-  `return_value` varchar(250) default NULL,
-  `note` varchar(250) default NULL,
-  `updated_date` int(10) unsigned NOT NULL default '0',
-  `acl_type` int(1) unsigned NOT NULL default '1' COMMENT 'Defines to what level AXOs apply to the rule',
-  `name` varchar(100) NOT NULL,
+ALTER TABLE `jos_banners`
+ CHANGE COLUMN `tags` `metakey` TEXT NOT NULL AFTER `state`;
+
+ALTER TABLE `jos_banners`
+ CHANGE COLUMN `date` `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `params`;
+
+ALTER TABLE `jos_banners`
+ DROP COLUMN `editor`;
+
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `catid` INTEGER UNSIGNED NOT NULL DEFAULT 0 AFTER `state`;
+
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `description` TEXT NOT NULL AFTER `catid`;
+
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `sticky` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 AFTER `description`;
+
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `ordering` INTEGER NOT NULL DEFAULT 0 AFTER `sticky`;
+
+ALTER TABLE `jos_banners`
+ MODIFY COLUMN `params` TEXT NOT NULL AFTER `metakey`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `own_prefix` TINYINT(1) NOT NULL DEFAULT '0' AFTER `params`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `metakey_prefix` VARCHAR(255) NOT NULL DEFAULT '' AFTER `own_prefix`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `purchase_type` TINYINT NOT NULL DEFAULT '-1' AFTER `metakey_prefix`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `track_clicks` TINYINT NOT NULL DEFAULT '-1' AFTER `purchase_type`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `track_impressions` TINYINT NOT NULL DEFAULT '-1' AFTER `track_clicks`;
+
+ALTER TABLE `jos_banners`
+ ADD COLUMN `reset` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `publish_down`;
+
+UPDATE `jos_banners`
+ SET `type`=1 WHERE TRIM(`custombannercode`)!='';
+
+UPDATE `jos_banners`
+ SET `params` = concat( '"flash":{"', REPLACE( REPLACE( REPLACE( TRIM( '\n' FROM `params` ) , '=', '":"' ) , '\n', '","' ) , '\r', '' ) , '"},' ) WHERE TRIM( `params` ) != '';
+
+UPDATE `jos_banners`
+ SET `params` = '"flash":{"height":"0","width":"0"},' WHERE TRIM( `params` ) = '';
+
+UPDATE `jos_banners`
+ SET `params` = CONCAT('{"custom":{"bannercode":"',REPLACE(`custombannercode`,'"','\\"'),'"},"alt":{"alt":""},',`params`,'"image":{"url":"',`imageurl`,'"}}');
+
+ALTER TABLE `jos_banners`
+ DROP COLUMN `custombannercode`;
+
+ALTER TABLE `jos_banners`
+ DROP COLUMN `imageurl`;
+
+ALTER TABLE `jos_banners`
+ DROP INDEX `viewbanner`;
+
+ALTER TABLE `jos_banners`
+ ADD INDEX `idx_own_prefix` (`own_prefix`);
+
+ALTER TABLE `jos_banners`
+ ADD INDEX `idx_metakey_prefix` (`metakey_prefix`);
+
+-- ----------------------------------------------------------------
+-- jos_banner_clients
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_bannerclient`
+ RENAME TO `jos_banner_clients`;
+
+ALTER TABLE `jos_banner_clients`
+ CHANGE COLUMN `cid` `id` INTEGER NOT NULL auto_increment;
+
+ALTER TABLE `jos_banner_clients`
+ DROP COLUMN `editor`;
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `state` TINYINT(3) NOT NULL DEFAULT '0' AFTER `extrainfo`;
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `metakey` TEXT NOT NULL;
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `own_prefix` TINYINT NOT NULL DEFAULT '0';
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `metakey_prefix` VARCHAR(255) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `purchase_type` TINYINT NOT NULL DEFAULT '-1';
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `track_clicks` TINYINT NOT NULL DEFAULT '-1';
+
+ALTER TABLE `jos_banner_clients`
+ ADD COLUMN `track_impressions` TINYINT NOT NULL DEFAULT '-1';
+
+ALTER TABLE `jos_banner_clients`
+ ADD INDEX `idx_own_prefix` (`own_prefix`);
+
+ALTER TABLE `jos_banner_clients`
+ ADD INDEX `idx_metakey_prefix` (`metakey_prefix`);
+
+UPDATE `jos_banner_clients`
+ SET `state`=1;
+
+-- ----------------------------------------------------------------
+-- jos_banner_tracks
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_bannertrack`
+ RENAME TO `jos_banner_tracks`;
+
+ALTER TABLE `jos_banner_tracks`
+ ADD COLUMN `count` INTEGER UNSIGNED NOT NULL DEFAULT '0';
+
+INSERT `jos_banner_tracks`
+ SELECT `track_date`,`track_type`,`banner_id`,count('*') AS `count`
+ FROM `jos_banner_tracks`
+ GROUP BY `track_date`,`track_type`,`banner_id`;
+
+DELETE FROM `jos_banner_tracks`
+ WHERE `count`=0;
+
+ALTER TABLE `jos_banner_tracks`
+ ADD PRIMARY KEY (`track_date`, `track_type`, `banner_id`);
+
+ALTER TABLE `jos_banner_tracks`
+ ADD INDEX `idx_track_date` (`track_date`);
+
+ALTER TABLE `jos_banner_tracks`
+ ADD INDEX `idx_track_type` (`track_type`);
+
+ALTER TABLE `jos_banner_tracks`
+ ADD INDEX `idx_banner_id` (`banner_id`);
+
+-- ----------------------------------------------------------------
+-- jos_categories
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_categories`
+ MODIFY COLUMN `description` VARCHAR(5120) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_categories`
+ MODIFY COLUMN `params` VARCHAR(2048) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `lft` INTEGER NOT NULL DEFAULT 0 COMMENT 'Nested set lft.' AFTER `parent_id`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `rgt` INTEGER NOT NULL DEFAULT 0 COMMENT 'Nested set rgt.' AFTER `lft`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `level` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `rgt`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `path` VARCHAR(1024) NOT NULL DEFAULT '' AFTER `level`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `note` VARCHAR(255) NOT NULL DEFAULT '' AFTER `alias`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `metadesc` VARCHAR(1024) NOT NULL COMMENT 'The meta description for the page.' AFTER `params`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `metakey` VARCHAR(1024) NOT NULL COMMENT 'The meta keywords for the page.' AFTER `metadesc`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `metadata` VARCHAR(2048) NOT NULL COMMENT 'JSON encoded metadata properties.' AFTER `metakey`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `created_user_id` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `metadata`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `created_time` TIMESTAMP NOT NULL AFTER `created_user_id`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `modified_user_id` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `created_time`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `modified_time` TIMESTAMP NOT NULL AFTER `modified_user_id`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `hits` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `modified_time`;
+
+ALTER TABLE `jos_categories`
+ ADD COLUMN `language` CHAR(7) NOT NULL AFTER `hits`;
+
+ALTER TABLE `jos_categories`
+ ADD INDEX idx_alias(`alias`);
+
+ALTER TABLE `jos_categories`
+ ADD INDEX idx_path(`path`);
+
+ALTER TABLE `jos_categories`
+ ADD INDEX idx_left_right(`lft`, `rgt`);
+
+ALTER TABLE `jos_categories`
+ DROP COLUMN `ordering`;
+
+-- TODO: Merge from sections and add uncategorised nodes.
+
+-- ----------------------------------------------------------------
+-- jos_components
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_components`
+ MODIFY COLUMN `enabled` TINYINT(4) UNSIGNED NOT NULL DEFAULT 1;
+
+UPDATE `jos_components`
+ SET admin_menu_link = 'option=com_content&view=articles'
+ WHERE link = 'option=com_content';
+
+INSERT INTO `#__components` VALUES
+ (null, 'Articles', '', 0, 0, 'option=com_content&view=articles', 'com_content_Articles', 'com_content', 1, '', 1, '{}', 1),
+ (null, 'Categories', '', 0, 0, 'option=com_categories&view=categories&extension=com_content', 'com_content_Categories', 'com_content', 2, '', 1, '{}', 1),
+ (null, 'Featured', '', 0, 0, 'option=com_content&view=featured', 'com_content_Featured', 'com_content', 3, '', 1, '{}', 1),
+ (null, 'Redirects', '', 0, 0, 'option=com_redirect', 'Manage Redirects', 'com_redirect', 0, 'js/ThemeOffice/component.png', 1, '{}', 1),
+ (null, 'Checkin', '', 0, 0, 'option=com_checkin', 'Checkin', 'com_checkin', 0, 'js/ThemeOffice/component.png', 1, '{}', 1);
+
+UPDATE `jos_components` AS a
+ LEFT JOIN `jos_components` AS b ON b.link='option=com_content'
+ SET a.parent = b.id
+ WHERE a.link = ''
+  AND a.option = 'com_content';
+
+
+-- ----------------------------------------------------------------
+-- jos_contact_details
+-- ----------------------------------------------------------------
+ ALTER TABLE `#__contact_details`
+  ADD COLUMN `sortname1` varchar(255) NOT NULL,
+  ADD COLUMN `sortname2` varchar(255) NOT NULL,
+  ADD COLUMN `sortname3` varchar(255) NOT NULL,
+  ADD COLUMN `language` varchar(10) NOT NULL;
+
+-- ----------------------------------------------------------------
+-- jos_content
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_content`
+ ADD COLUMN `asset_id` INTEGER UNSIGNED NOT NULL DEFAULT 0 COMMENT 'FK to the jos_assets table.' AFTER `id`;
+
+ALTER TABLE `jos_content`
+ ADD COLUMN `featured` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Set if article is featured.' AFTER `metadata`;
+
+ALTER TABLE `jos_content`
+ ADD INDEX idx_featured_catid(`featured`, `catid`);
+
+ALTER TABLE `jos_content`
+ ADD COLUMN `language` CHAR(7) NOT NULL COMMENT 'The language code for the article.' AFTER `featured`;
+
+ALTER TABLE `jos_content`
+ ADD COLUMN `xreference` VARCHAR(50) NOT NULL COMMENT 'A reference to enable linkages to external data sets.' AFTER `language`;
+
+ALTER TABLE `jos_content`
+ ADD INDEX idx_language(`language`);
+
+ALTER TABLE `jos_content`
+ ADD INDEX idx_xreference(`xreference`);
+
+UPDATE `jos_content` AS a
+ SET a.featured = 1
+ WHERE a.id IN (
+ 	SELECT f.content_id
+ 	FROM `jos_content_frontpage` AS f
+ );
+
+ ALTER TABLE `jos_content` CHANGE `attribs` `attribs` VARCHAR( 5120 ) NOT NULL;
+
+-- ----------------------------------------------------------------
+-- jos_extensions (new) and migration
+-- ----------------------------------------------------------------
+
+CREATE TABLE  `#__extensions` (
+  `extension_id` int(11) NOT NULL auto_increment,
+  `name` varchar(100) NOT NULL default '',
+  `type` varchar(20) NOT NULL default '',
+  `element` varchar(100) NOT NULL default '',
+  `folder` varchar(100) NOT NULL default '',
+  `client_id` tinyint(3) NOT NULL default '0',
+  `enabled` tinyint(3) NOT NULL default '1',
+  `access` tinyint(3) unsigned NOT NULL default '0',
+  `protected` tinyint(3) NOT NULL default '0',
+  `manifestcache` text NOT NULL,
+  `params` text NOT NULL,
+  `custom_data` text NOT NULL,
+  `system_data` text NOT NULL,
+  `checked_out` int(10) unsigned NOT NULL default '0',
+  `checked_out_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `ordering` int(11) default '0',
+  `state` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`extension_id`),
+  KEY `type_element` (`type`,`element`),
+  KEY `element_clientid` (`element`,`client_id`),
+  KEY `element_folder_clientid` (`element`,`folder`,`client_id`),
+  KEY `element_folder` (`element`,`folder`),
+  KEY `extension` (`type`,`element`,`folder`,`client_id`)
+) TYPE=MyISAM CHARACTER SET `utf8`;
+
+TRUNCATE TABLE #__extensions;
+INSERT INTO #__extensions SELECT
+     0,							# extension id (regenerate)
+     name,						# name
+     'plugin',					# type
+     element,					# element
+     folder,                    # folder
+     client_id,                 # client_id
+     published,                 # enabled
+     access,                    # access
+     iscore,                    # protected
+     '',                        # manifest_cache
+     params,                    # params
+     '',                        # data
+     checked_out,            	# checked_out
+     checked_out_time,         	# checked_out_time
+     ordering                   # ordering
+     FROM #__plugins;         	# #__extensions replaces the old #__plugins table
+
+ INSERT INTO #__extensions SELECT
+     0,                         # extension id (regenerate)
+     name,						# name
+     'component',				# type
+     `option`,					# element
+     '',                        # folder
+     0,                         # client id (unused for components)
+     enabled,                   # enabled
+     0,                         # access
+     iscore,                    # protected
+     '',                        # manifest cache
+     params,                    # params
+     '',                        # data
+     '0',                       # checked_out
+     '0000-00-00 00:00:00',     # checked_out_time
+     0                          # ordering
+     FROM #__components        # #__extensions replaces #__components for install uninstall
+                                # component menu selection still utilises the #__components table
+     WHERE parent = 0;          # only get top level entries
+
+ INSERT INTO #__extensions SELECT DISTINCT
+     0,                         # extension id (regenerate)
+     module,                    # name
+     'module',                  # type
+     `module`,                  # element
+     '',                        # folder
+     client_id,                 # client id
+     1,                         # enabled (module instances may be enabled/disabled in #__modules)
+     0,                         # access (module instance access controlled in #__modules)
+     iscore,                    # protected
+     '',                        # manifest cache
+     '',                        # params (module instance params controlled in #__modules)
+     '',                        # data
+     '0',                       # checked_out (module instance, see #__modules)
+     '0000-00-00 00:00:00',     # checked_out_time (module instance, see #__modules)
+     0                          # ordering (module instance, see #__modules)
+     FROM #__modules			# #__extensions provides the install/uninstall control for modules
+     WHERE id IN (SELECT id FROM #__modules GROUP BY module ORDER BY id)
+
+-- rename mod_newsflash to mod_articles_news
+UPDATE `#__extensions` SET `name` = 'mod_articles_news', `element` = 'mod_articles_news' WHERE `name` = 'mod_newsflash'
+
+-- New extensions
+INSERT INTO `#__extensions` VALUES(0, 'plg_editors_codemirror', 'plugin', 'codemirror', 'editors', 1, 0, 1, 1, '', 'linenumbers=0\n\n', '', '', 0, '0000-00-00 00:00:00', 7, 0);
+
+-- ----------------------------------------------------------------
+-- jos_languages (new)
+-- ----------------------------------------------------------------
+
+CREATE TABLE `jos_languages` (
+  `lang_id` int(11) unsigned NOT NULL auto_increment,
+  `lang_code` char(7) NOT NULL,
+  `title` varchar(50) NOT NULL,
+  `title_native` varchar(50) NOT NULL,
+  `description` varchar(512) NOT NULL,
+  `published` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`lang_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+
+INSERT INTO `jos_languages` (`lang_id`,`lang_code`,`title`,`title_native`,`description`,`published`)
+VALUES
+	(1,'en_GB','English (UK)','English (UK)','',1),
+	(2,'en_US','English (US)','English (US)','',1);
+
+-- ----------------------------------------------------------------
+-- jos_menu
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_menu`
+ DROP COLUMN `sublevel`,
+ DROP COLUMN `pollid`,
+ DROP COLUMN `utaccess`;
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `menutype` VARCHAR(24) NOT NULL COMMENT 'The type of menu this item belongs to. FK to jos_menu_types.menutype';
+
+ALTER TABLE `jos_menu`
+ CHANGE COLUMN `name` `title` VARCHAR(255) NOT NULL COMMENT 'The display title of the menu item.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `alias` VARCHAR(255) NOT NULL COMMENT 'The SEF alias of the menu item.';
+
+ALTER TABLE `jos_menu`
+ ADD COLUMN `note` VARCHAR(255) NOT NULL DEFAULT '' AFTER `alias`;
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `link` VARCHAR(1024) NOT NULL COMMENT 'The actually link the menu item refers to.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `type` VARCHAR(16) NOT NULL COMMENT 'The type of link: Component, URL, Alias, Separator';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `published` TINYINT NOT NULL DEFAULT 0 COMMENT 'The published state of the menu link.';
+
+ALTER TABLE `jos_menu`
+ CHANGE COLUMN `parent` `parent_id` INTEGER UNSIGNED NOT NULL DEFAULT 0 COMMENT 'The parent menu item in the menu tree.';
+
+ALTER TABLE `jos_menu`
+ ADD COLUMN `level` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'The relative level in the tree.' AFTER `parent_id`;
+
+ALTER TABLE `jos_menu`
+ CHANGE COLUMN `componentid` `component_id` INTEGER UNSIGNED NOT NULL DEFAULT 0 COMMENT 'FK to jos_components.id';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `ordering` INTEGER NOT NULL DEFAULT 0 COMMENT 'The relative ordering of the menu item in the tree.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `checked_out` INTEGER UNSIGNED NOT NULL DEFAULT 0 COMMENT 'FK to jos_users.id';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `checked_out_time` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT 'The time the menu item was checked out.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `browserNav` TINYINT NOT NULL DEFAULT 0 COMMENT 'The click behaviour of the link.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `access` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'The access level required to view the menu item.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `params` VARCHAR(10240) NOT NULL COMMENT 'JSON encoded data for the menu item.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `lft` INTEGER NOT NULL DEFAULT 0 COMMENT 'Nested set lft.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `rgt` INTEGER NOT NULL DEFAULT 0 COMMENT 'Nested set rgt.';
+
+ALTER TABLE `jos_menu`
+ MODIFY COLUMN `home` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Indicates if this menu item is the home or default page.';
+
+ALTER TABLE `jos_menu`
+ ADD COLUMN `path` VARCHAR(1024) NOT NULL COMMENT 'The computed path of the menu item based on the alias field.' AFTER `alias`;
+
+ALTER TABLE `jos_menu`
+ ADD COLUMN `template_style_id` int(11) UNSIGNED NOT NULL DEFAULT '0';
+
+INSERT INTO `jos_menu` VALUES
+ (0, '', 'Menu_Item_Root', 'root', '', '', '', 1, 0, 0, 0, 0, 0, '0000-00-00 00:00:00', 0, 0, 0, '', 0, 37, 0);
+
+-- TODO: Need to devise how to shift the parent_id's of the existing menus to relate to the new root.
+-- UPDATE `jos_menu`
+--  SET `parent_id` = (SELECT `id` FROM `jos_menu` WHERE `alias` = 'root')
+--  WHERE `alias` != 'root';
+
+-- ----------------------------------------------------------------
+-- jos_menu_types
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_menu_types`
+ MODIFY COLUMN `menutype` VARCHAR(24) NOT NULL,
+ MODIFY COLUMN `title` VARCHAR(48) NOT NULL,
+ DROP INDEX `menutype`;
+
+-- ----------------------------------------------------------------
+-- jos_messages
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_messages`
+ CHANGE `subject` `subject` varchar(255) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_messages`
+ CHANGE `state` `state` tinyint(1) NOT NULL DEFAULT '0';
+
+ALTER TABLE `jos_messages`
+ CHANGE `priority` `priority` tinyint(1) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `jos_messages`
+ CHANGE `folder_id` `folder_id` tinyint(3) UNSIGNED NOT NULL DEFAULT '0';
+
+-- ----------------------------------------------------------------
+-- jos_modules
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_modules`
+ DROP `numnews`;
+
+ALTER TABLE `jos_modules`
+ DROP `control`;
+
+ALTER TABLE `jos_modules`
+ DROP `iscore`;
+
+ALTER TABLE `jos_modules`
+ ADD COLUMN `note` VARCHAR(255) NOT NULL DEFAULT '' AFTER `title`;
+
+ALTER TABLE `jos_modules`
+ ADD COLUMN `language` CHAR(7) NOT NULL AFTER `client_id`;
+
+ALTER TABLE `jos_modules`
+ ADD INDEX `idx_language` (`language`);
+
+ALTER TABLE `jos_modules`
+ CHANGE `title` `title` varchar(100) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_modules`
+ CHANGE `params` `params` varchar(5120) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_modules`
+ ADD COLUMN `publish_up` datetime NOT NULL default '0000-00-00 00:00:00' AFTER `checked_out_time`;
+
+ALTER TABLE `jos_modules`
+ ADD COLUMN `publish_down` datetime NOT NULL default '0000-00-00 00:00:00' AFTER `publish_up`;
+
+UPDATE `#__modules`
+ SET `menutype` = 'mod_menu'
+ WHERE `menutype` = 'mod_mainmenu';
+
+-- ----------------------------------------------------------------
+-- jos_newsfeeds
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_newsfeeds`
+ CHANGE `id` `id` integer(11) UNSIGNED NOT NULL auto_increment;
+
+ALTER TABLE `jos_newsfeeds`
+ CHANGE `name` `name` varchar(100) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_newsfeeds`
+ CHANGE `alias` `alias` varchar(100) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_newsfeeds`
+ CHANGE `link` `link` varchar(200) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_newsfeeds`
+ CHANGE `checked_out` `checked_out` integer(10) UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `jos_newsfeeds`
+ ADD `access` tinyint UNSIGNED NOT NULL DEFAULT '0';
+
+ALTER TABLE `jos_newsfeeds`
+ ADD `language` char(7) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_newsfeeds`
+ ADD INDEX `idx_language` (`language`);
+
+ALTER TABLE `jos_newsfeeds`
+ADD `params` TEXT NOT NULL;
+
+-- ----------------------------------------------------------------
+-- jos_plugins
+-- ----------------------------------------------------------------
+
+INSERT INTO `#__plugins` VALUES (NULL, 'Editor - CodeMirror', 'codemirror', 'editors', 1, 0, 1, 1, 0, 0, '0000-00-00 00:00:00', 'linenumbers=0\n\n');
+
+-- ----------------------------------------------------------------
+-- jos_schemas
+-- ----------------------------------------------------------------
+
+CREATE TABLE `#__schemas` (
+  `extensionid` int(11) NOT NULL,
+  `versionid` varchar(20) NOT NULL,
+  PRIMARY KEY (`extensionid`, `versionid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- ----------------------------------------------------------------
+-- jos_session
+-- ----------------------------------------------------------------
+
+ALTER TABLE `jos_session`
+ MODIFY COLUMN `session_id` VARCHAR(32);
+
+ALTER TABLE `jos_session`
+ MODIFY COLUMN `guest` TINYINT UNSIGNED DEFAULT 1;
+
+ALTER TABLE `jos_session`
+ MODIFY COLUMN `client_id` TINYINT UNSIGNED NOT NULL DEFAULT 0;
+
+ALTER TABLE `jos_session`
+ MODIFY COLUMN `data` VARCHAR(20480);
+
+ -- ----------------------------------------------------------------
+-- Table structure for table `jos_social_comments`
+-- ----------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `jos_social_comments` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `thread_id` int(11) unsigned NOT NULL COMMENT 'The comments thread id - Foreign Key',
+  `user_id` int(10) unsigned NOT NULL default '0' COMMENT 'Map to the user id',
+  `context` varchar(50) NOT NULL COMMENT 'The context of the comment',
+  `context_id` int(11) NOT NULL default '0' COMMENT 'The id of the item in context',
+  `trackback` int(2) NOT NULL default '0' COMMENT 'Is the comment a trackback',
+  `notify` int(2) NOT NULL default '0' COMMENT 'Notify the user on further comments',
+  `score` int(2) NOT NULL default '0' COMMENT 'The rating score of the commentor',
+  `referer` varchar(255) NOT NULL COMMENT 'The referring URL',
+  `page` varchar(255) NOT NULL COMMENT 'Custom page field',
+  `name` varchar(255) NOT NULL COMMENT 'Name of the commentor',
+  `url` varchar(255) NOT NULL COMMENT 'Website for the commentor',
+  `email` varchar(255) NOT NULL COMMENT 'Email address for the commentor',
+  `subject` varchar(255) NOT NULL COMMENT 'The subject of the comment',
+  `body` text NOT NULL COMMENT 'Body of the comment',
+  `created_date` datetime NOT NULL COMMENT 'When the comment was created',
+  `published` int(10) unsigned NOT NULL default '0' COMMENT 'Published state, allows for moderation',
+  `address` varchar(50) NOT NULL COMMENT 'Address of the commentor (IP, Mac, etc)',
+  `link` varchar(255) NOT NULL COMMENT 'The link to the page the comment was made on',
   PRIMARY KEY  (`id`),
-  KEY `core_acl_enabled_acl` (`enabled`),
-  KEY `core_acl_section_value_acl` (`section_value`),
-  KEY `core_acl_updated_date_acl` (`updated_date`),
-  KEY `core_acl_type` USING BTREE (`acl_type`),
-  KEY `core_acl_name` USING BTREE (`name`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+  KEY `idx_context` (`context`,`context_id`,`published`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `#__core_acl_acl_sections`
---
+-- ----------------------------------------------------------------
+-- Table structure for table `jos_social_ratings`
+-- ----------------------------------------------------------------
 
+CREATE TABLE IF NOT EXISTS `jos_social_ratings` (
+  `thread_id` int(11) unsigned NOT NULL,
+  `context` varchar(50) NOT NULL COMMENT 'The context of the rating',
+  `context_id` int(11) NOT NULL default '0' COMMENT 'The id of the item in context',
+  `referer` varchar(255) NOT NULL default '' COMMENT 'The referring URL',
+  `page` varchar(255) NOT NULL COMMENT 'Custom page field',
+  `pscore_total` double NOT NULL default '0' COMMENT 'Cummulative public score',
+  `pscore_count` int(10) NOT NULL default '0' COMMENT 'Total number of public ratings',
+  `pscore` double NOT NULL default '0' COMMENT 'Actual public score',
+  `mscore_total` double NOT NULL default '0' COMMENT 'Cummulative member score',
+  `mscore_count` int(10) NOT NULL default '0' COMMENT 'Total number of member ratings',
+  `mscore` double NOT NULL default '0' COMMENT 'Actual score',
+  `used_ips` longtext COMMENT 'The ips used to vote',
+  `updated_date` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`thread_id`),
+  KEY `idx_updated` (`updated_date`,`pscore`),
+  KEY `idx_pscore` (`pscore`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Aggregate scores for public and member ratings';
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_acl_sections` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `value` varchar(100) NOT NULL default '',
-  `order_value` int(11) NOT NULL default '0',
-  `name` varchar(230) NOT NULL default '',
-  `hidden` int(1) unsigned NOT NULL default '0',
+-- --------------------------------------------------------
+
+-- ----------------------------------------------------------------
+-- Table structure for table `jos_social_threads`
+-- ----------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `jos_social_threads` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `context` varchar(50) NOT NULL COMMENT 'The context of the comment thread',
+  `context_id` int(11) NOT NULL default '0' COMMENT 'The id of the item in context',
+  `page_url` varchar(255) NOT NULL COMMENT 'The URL of the page for which the thread is attached',
+  `page_route` varchar(255) NOT NULL COMMENT 'The route of the page for which the thread is attached',
+  `page_title` varchar(255) NOT NULL COMMENT 'The title of the page for which the thread is attached',
+  `created_date` datetime NOT NULL COMMENT 'The created date for the comment thread',
+  `status` int(10) unsigned NOT NULL default '0' COMMENT 'Thread status',
+  `pings`  mediumtext NOT NULL,
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `core_acl_value_acl_sections` (`value`),
-  KEY `core_acl_hidden_acl_sections` (`hidden`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+  KEY `idx_context` (`context`,`context_id`,`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-INSERT IGNORE INTO `#__core_acl_acl_sections` VALUES (1, 'system', 1, 'System', 0);
-INSERT IGNORE INTO `#__core_acl_acl_sections` VALUES (2, 'user', 2, 'User', 0);
+-- ----------------------------------------------------------------
+-- Table structure for table `jos_social_blocked_ips`
+-- ----------------------------------------------------------------
 
--- --------------------------------------------------------
+CREATE TABLE `jos_social_blocked_ips` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `start_ip` int(11) NOT NULL,
+  `end_ip` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_ip` (`start_ip`, `end_ip`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+-- ----------------------------------------------------------------
+-- Table structure for table `jos_social_blocked_users`
+-- ----------------------------------------------------------------
 
---
--- Table structure for table `#__core_acl_aco`
---
+CREATE TABLE `jos_social_blocked_users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `email` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_email` (`email`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_aco` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `section_value` varchar(100) NOT NULL default '0',
-  `value` varchar(100) NOT NULL default '',
-  `order_value` int(11) NOT NULL default '0',
-  `name` varchar(255) NOT NULL default '',
-  `hidden` int(1) unsigned NOT NULL default '0',
-  `acl_type` int(1) unsigned NOT NULL default '1' COMMENT 'Defines to what level AXOs apply',
-  `note` mediumtext,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `core_acl_section_value_aco` (`section_value`,`value`),
-  KEY `core_acl_hidden_aco` (`hidden`),
-  KEY `core_acl_type_section` USING BTREE (`acl_type`,`section_value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+-- ----------------------------------------------------------------
+-- jos_template_styles
+-- ----------------------------------------------------------------
 
--- --------------------------------------------------------
+RENAME TABLE `jos_menu_template` TO `jos_template_styles`;
 
---
--- Table structure for table `#__core_acl_aco_map`
---
+ALTER TABLE `jos_template_styles`
+ CHANGE `id` `id` int(11) UNSIGNED NOT NULL auto_increment;
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_aco_map` (
-  `acl_id` int(10) unsigned NOT NULL default '0',
-  `section_value` varchar(100) NOT NULL default '0',
-  `value` varchar(100) NOT NULL default '',
-  PRIMARY KEY  (`acl_id`,`section_value`,`value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+ALTER TABLE `jos_template_styles`
+ CHANGE `template` `template` varchar(50) NOT NULL DEFAULT '';
 
--- --------------------------------------------------------
+ALTER TABLE `jos_template_styles`
+ CHANGE `client_id` `client_id` tinyint(1) UNSIGNED NOT NULL DEFAULT '0';
 
---
--- Table structure for table `#__core_acl_aco_sections`
---
+ALTER TABLE `jos_template_styles`
+ CHANGE `home` `home` tinyint(1) UNSIGNED NOT NULL DEFAULT '0';
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_aco_sections` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `value` varchar(100) NOT NULL default '',
-  `order_value` int(11) NOT NULL default '0',
-  `name` varchar(230) NOT NULL default '',
-  `hidden` int(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `core_acl_value_aco_sections` (`value`),
-  KEY `core_acl_hidden_aco_sections` (`hidden`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+ALTER TABLE `jos_template_styles`
+ CHANGE `params` `params` varchar(2048) NOT NULL DEFAULT '';
 
--- --------------------------------------------------------
+ALTER TABLE `jos_template_styles`
+ ADD INDEX `idx_template` (`template`);
 
---
--- Table structure for table `#__core_acl_aro_map`
---
+ALTER TABLE `jos_template_styles`
+ ADD INDEX `idx_home` (`home`);
 
-CREATE TABLE IF NOT EXISTS `#__core_acl_aro_map` (
-  `acl_id` int(10) unsigned NOT NULL default '0',
-  `section_value` varchar(100) NOT NULL default '0',
-  `value` varchar(100) NOT NULL default '',
-  PRIMARY KEY  (`acl_id`,`section_value`,`value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
+-- ----------------------------------------------------------------
+-- jos_updates (new)
+-- ----------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS  `#__core_acl_aro_groups_map` (
-  `acl_id` int(11) NOT NULL default '0',
-  `group_id` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`acl_id`,`group_id`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_axo`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_axo` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `section_value` varchar(100) NOT NULL default '0',
-  `value` int(10) NOT NULL,
-  `order_value` int(11) NOT NULL default '0',
-  `name` varchar(255) NOT NULL default '',
-  `hidden` int(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  KEY `core_acl_hidden_axo` USING BTREE (`hidden`),
-  KEY `core_acl_section_value_value_axo` USING BTREE (`section_value`,`value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_axo_groups`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_axo_groups` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `parent_id` int(10) unsigned NOT NULL default '0',
-  `lft` int(10) unsigned NOT NULL default '0',
-  `rgt` int(10) unsigned NOT NULL default '0',
-  `name` varchar(255) NOT NULL default '',
-  `value` int(10) NOT NULL,
-  `section_id` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`,`value`),
-  KEY `core_acl_parent_id_axo_groups` USING BTREE (`parent_id`),
-  KEY `core_acl_lft_rgt_axo_groups` USING BTREE (`lft`,`rgt`),
-  KEY `core_acl_section_value` USING BTREE (`section_id`),
-  KEY `core_acl_value_axo_groups` USING BTREE (`value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
-INSERT IGNORE INTO `#__core_acl_axo_groups` VALUES (1, 0, 1, 8, 'ROOT', -1, 0);
-INSERT IGNORE INTO `#__core_acl_axo_groups` VALUES (2, 1, 2, 3, 'Public', '0', 0);
-INSERT IGNORE INTO `#__core_acl_axo_groups` VALUES (3, 1, 4, 5, 'Registered', '1', 0);
-INSERT IGNORE INTO `#__core_acl_axo_groups` VALUES (4, 1, 6, 7, 'Special', '2', 0);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_axo_groups_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_axo_groups_map` (
-  `acl_id` int(10) unsigned NOT NULL default '0',
-  `group_id` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`acl_id`,`group_id`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_axo_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_axo_map` (
-  `acl_id` int(10) unsigned NOT NULL default '0',
-  `section_value` varchar(100) NOT NULL default '0',
-  `value` varchar(100) NOT NULL default '',
-  PRIMARY KEY  (`acl_id`,`section_value`,`value`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_axo_sections`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_axo_sections` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `value` varchar(100) NOT NULL default '',
-  `order_value` int(11) NOT NULL default '0',
-  `name` varchar(230) NOT NULL default '',
-  `hidden` int(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `core_acl_value_axo_sections` (`value`),
-  KEY `core_acl_hidden_axo_sections` (`hidden`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__core_acl_groups_axo_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__core_acl_groups_axo_map` (
-  `group_id` int(10) unsigned NOT NULL default '0',
-  `axo_id` int(10) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`group_id`,`axo_id`),
-  KEY `#__core_acl_axo_id` (`axo_id`),
-  INDEX `group_id_axo_id_groups_axo_map` USING BTREE(`axo_id`, `group_id`),
-  INDEX `aro_id_group_id_groups_axo_map` USING BTREE(`group_id`, `axo_id`)
-) ENGINE=MyISAM CHARACTER SET `utf8`;
-
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'core', -1, 'Core', 0);
-
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_banners', 0, 'Banners', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_categories', 0, 'Categories', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_contact', 0, 'Contact', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_content', 0, 'Content', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_mailto', 0, 'Mail To', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_massmail', 0, 'Massmail', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_media', 0, 'Media Manager', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_messages', 0, 'Messages', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_newsfeeds', 0, 'Newsfeeds', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_poll', 0, 'Polls', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_search', 0, 'Search', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_sections', 0, 'Sections', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_trash', 0, 'Trash', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_user', 0, 'User Frontend', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_users', 0, 'Users Backend', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_weblinks', 0, 'Weblinks', 0);
-INSERT INTO `#__core_acl_acl_sections` VALUES (0, 'com_wrapper', 0, 'Wrapper', 0);
-
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'core', -1, 'Core', 0);
-
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_banners', 0, 'Banners', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_categories', 0, 'Categories', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_contact', 0, 'Contact', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_content', 0, 'Content', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_mailto', 0, 'Mail To', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_massmail', 0, 'Massmail', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_media', 0, 'Media Manager', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_messages', 0, 'Messages', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_newsfeeds', 0, 'Newsfeeds', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_poll', 0, 'Polls', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_search', 0, 'Search', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_sections', 0, 'Sections', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_trash', 0, 'Trash', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_user', 0, 'User Frontend', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_users', 0, 'Users Backend', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_weblinks', 0, 'Weblinks', 0);
-INSERT INTO `#__core_acl_aco_sections` VALUES (0, 'com_wrapper', 0, 'Wrapper', 0);
-
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_banners', 0, 'Banners', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_categories', 0, 'Categories', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_contact', 0, 'Contact', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_content', 0, 'Content', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_massmail', 0, 'Massmail', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_media', 0, 'Media Manager', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_messages', 0, 'Messages', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_newsfeeds', 0, 'Newsfeeds', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_poll', 0, 'Polls', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_user', 0, 'User Frontend', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_users', 0, 'Users Backend', 0);
-INSERT INTO `#__core_acl_axo_sections` VALUES (0, 'com_weblinks', 0, 'Weblinks', 0);
-
--- Type 1 Permissions
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'login', 0, 'Login', 0, 1, 'ACO System Login Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'event.email', 0, 'Email Event', 0, 1, 'ACO System Email Event Desc');
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'acl.manage', 0, 'Manage Global Access Control', 0, 1, 'ACO ACL Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'checkin.manage', 0, 'Manage Global Checkins', 0, 1, 'ACO Checkin Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'cache.manage', 0, 'Manage Global Cache', 0, 1, 'ACO Cache Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'config.manage', 0, 'Manage Global Configuration', 0, 1, 'ACO Config Manage Desc');
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'component.install', 0, 'Install Components', 0, 1, 'ACO Component Install Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'language.install', 0, 'Install Langauges', 0, 1, 'ACO Language Install Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'module.install', 0, 'Install Modules', 0, 1, 'ACO Module Install Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'plugin.install', 0, 'Install Plugins', 0, 1, 'ACO Plugin Install Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'template.install', 0, 'Install Templates', 0, 1, 'ACO Template Install Desc');
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'language.manage', 0, 'Manage Langauges', 0, 1, 'ACO Language Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'module.manage', 0, 'Manage Modules', 0, 1, 'ACO Module Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'plugin.manage', 0, 'Manage Plugins', 0, 1, 'ACO Plugin Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'template.manage', 0, 'Manage Templates', 0, 1, 'ACO Template Manage Desc');
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'core', 'menu.manage', 0, 'Manage Menus', 0, 1, 'ACO Menus Manage Desc');
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_banners', 'manage', 0, 'Manage', 0, 1, 'ACO Banners Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_categories', 'manage', 0, 'Manage', 0, 1, 'ACO Categories Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_contact', 'manage', 0, 'Manage', 0, 1, 'ACO Contacts Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'articles.manage', 0, 'Manage Article', 0, 1, 'ACO Content Manage Article Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'frontpage.manage', 0, 'Manage Frontpage', 0, 1, 'ACO Content Manage Frontpage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_massmail', 'manage', 0, 'Manage', 0, 1, 'ACO Massmail Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_media', 'manage', 0, 'Manage', 0, 1, 'ACO Media Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_menus', 'type.manage', 0, 'Manage Menu Types', 0, 1, 'ACO Menus Manage Types Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_menus', 'menus.manage', 0, 'Manage Menu Items', 0, 1, 'ACO Menus Manage Items Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_modules', 'manage', 0, 'Manage', 0, 1, 'ACO Modules Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_newsfeeds', 'manage', 0, 'Manage', 0, 1, 'ACO Newsfeeds Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_poll', 'manage', 0, 'Manage', 0, 1, 'ACO Poll Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_sections', 'manage', 0, 'Manage', 0, 1, 'ACO Sections Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_trash', 'manage', 0, 'Manage', 0, 1, 'ACO Trash Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_user', 'profile.edit', 0, 'Edit Profile', 0, 1, 'ACO User Edit Profile Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_users', 'manage', 0, 'Manage', 0, 1, 'ACO Users Manage Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_users', 'user.block', 0, 'Block User', 0, 1, 'ACO Users Block User Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_users', 'event.email', 0, 'Email Event', 0, 1, 'ACO Users Email Event Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_weblinks', 'manage', 0, 'Manage', 0, 1, 'ACO Weblinks Manage Desc');
-
--- Type 2 Permissions
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'article.add', 0, 'Add Article', 0, 2, 'ACO Content Add Article Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'article.edit', 0, 'Edit Article', 0, 2, 'ACO Content Edit Article Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'article.publish', 0, 'Publish Article', 0, 2, 'ACO Content Publish Article Desc');
-
--- Type 3 Permissions
-
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_content', 'article.view', 0, 'View Articles', 0, 3, 'ACO Content View Articles Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_categories', 'category.view', 0, 'View Categories', 0, 3, 'ACO Categories View Categories Desc');
-INSERT INTO `#__core_acl_aco` VALUES (0, 'com_sections', 'section.view', 0, 'View Sections', 0, 3, 'ACO Sections View Sections Desc');
-
-
-# Update Sites
 CREATE TABLE  `#__updates` (
   `update_id` int(11) NOT NULL auto_increment,
   `update_site_id` int(11) default '0',
@@ -358,6 +779,10 @@ CREATE TABLE  `#__updates` (
   PRIMARY KEY  (`update_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Available Updates';
 
+-- ----------------------------------------------------------------
+-- jos_update_sites (new)
+-- ----------------------------------------------------------------
+
 CREATE TABLE  `#__update_sites` (
   `update_site_id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default '',
@@ -367,11 +792,19 @@ CREATE TABLE  `#__update_sites` (
   PRIMARY KEY  (`update_site_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Update Sites';
 
+-- ----------------------------------------------------------------
+-- jos_update_sites_extensions (new)
+-- ----------------------------------------------------------------
+
 CREATE TABLE `#__update_sites_extensions` (
   `update_site_id` INT DEFAULT 0,
   `extension_id` INT DEFAULT 0,
   INDEX `newindex`(`update_site_id`, `extension_id`)
 ) ENGINE = MYISAM CHARACTER SET utf8 COMMENT = 'Links extensions to update sites';
+
+-- ----------------------------------------------------------------
+-- jos_update_categories (new)
+-- ----------------------------------------------------------------
 
 CREATE TABLE  `#__update_categories` (
   `categoryid` int(11) NOT NULL auto_increment,
@@ -382,234 +815,71 @@ CREATE TABLE  `#__update_categories` (
   PRIMARY KEY  (`categoryid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Update Categories';
 
+-- ----------------------------------------------------------------
+-- jos_weblinks
+-- ----------------------------------------------------------------
 
-CREATE TABLE  `#__tasks` (
-  `taskid` int(10) unsigned NOT NULL auto_increment,
-  `tasksetid` int(10) unsigned NOT NULL default '0',
-  `data` text,
-  `offset` int(11) default '0',
-  `total` int(11) default '0',
-  PRIMARY KEY  (`taskid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Individual tasks';
+ALTER TABLE `jos_weblinks`
+ ADD COLUMN `access` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `approved`;
 
-CREATE TABLE  `#__tasksets` (
-  `tasksetid` int(10) unsigned NOT NULL auto_increment,
-  `taskname` varchar(100) default '',
-  `extensionid` int(10) unsigned default '0',
-  `executionpage` text,
-  `landingpage` text,
-  PRIMARY KEY  (`tasksetid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Task Sets';
+ALTER TABLE `jos_weblinks`
+ ADD `language` char(7) NOT NULL DEFAULT '';
+
+ALTER TABLE `jos_weblinks`
+ ADD INDEX `idx_language` (`language`);
 
 
---
--- 25 Jan 2009
---
--- Note: this will supercede traditional GACL tables above
+-- ----------------------------------------------------------------
+-- Reconfigure the admin module permissions
+-- ----------------------------------------------------------------
 
---
--- Table structure for table `#__access_actions`
---
+UPDATE `#__categories`
+ SET access = access + 1;
 
-CREATE TABLE IF NOT EXISTS `#__access_actions` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `section_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_sections.id',
-  `name` varchar(100) NOT NULL default '',
-  `title` varchar(100) NOT NULL default '',
-  `description` text,
-  `access_type` int(1) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_action_name_lookup` (`section_id`,`name`),
-  KEY `idx_acl_manager_lookup` (`access_type`,`section_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+UPDATE `#__contact_details`
+ SET access = access + 1;
 
--- --------------------------------------------------------
+UPDATE `#__content`
+ SET access = access + 1;
 
---
--- Table structure for table `#__access_action_rule_map`
---
+UPDATE `#__menu`
+ SET access = access + 1;
 
-CREATE TABLE IF NOT EXISTS `#__access_action_rule_map` (
-  `action_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_actions.id',
-  `rule_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_rules.id',
-  PRIMARY KEY  (`action_id`,`rule_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+UPDATE `#__modules`
+ SET access = access + 1;
 
--- --------------------------------------------------------
+UPDATE `#__plugins`
+ SET access = access + 1;
 
---
--- Table structure for table `#__access_assetgroups`
---
+UPDATE `#__sections`
+ SET access = access + 1;
 
-CREATE TABLE IF NOT EXISTS `#__access_assetgroups` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `parent_id` int(10) unsigned NOT NULL default '0' COMMENT 'Adjacency List Reference Id',
-  `left_id` int(10) unsigned NOT NULL default '0' COMMENT 'Nested Set Reference Id',
-  `right_id` int(10) unsigned NOT NULL default '0' COMMENT 'Nested Set Reference Id',
-  `title` varchar(100) NOT NULL default '',
-  `section_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_sections.id',
-  `section` varchar(100) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_assetgroup_title_lookup` (`section`,`title`),
-  KEY `idx_assetgroup_adjacency_lookup` (`parent_id`),
-  KEY `idx_assetgroup_nested_set_lookup` USING BTREE (`left_id`,`right_id`, `section_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+-- ----------------------------------------------------------------
+-- Table drops.
+-- ----------------------------------------------------------------
 
--- --------------------------------------------------------
+DROP TABLE `#__groups`;
 
---
--- Table structure for table `#__access_assetgroup_rule_map`
---
+-- Note, devise the migration
+DROP TABLE `#__core_acl_aro`;
+DROP TABLE `#__core_acl_aro_map`;
+DROP TABLE `#__core_acl_aro_groups`;
+DROP TABLE `#__core_acl_groups_aro_map`;
+DROP TABLE `#__core_acl_aro_sections`;
 
-CREATE TABLE IF NOT EXISTS `#__access_assetgroup_rule_map` (
-  `group_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_assetgroups.id',
-  `rule_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_rules.id',
-  PRIMARY KEY  (`group_id`,`rule_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
+-- ----------------------------------------------------------------
+-- Add an entry to the extensions (for the app)
+-- Add an entry to the schema table (for this migration)
+-- ----------------------------------------------------------------
+INSERT INTO #__extensions (name, type, element, protected) VALUES ('Joomla! CMS', 'package', 'joomla', 1);
+INSERT INTO #__schema VALUES(LAST_INSERT_ID()), '20090622');
 
---
--- Table structure for table `#__access_assets`
---
+-- Parameter conversions todo
 
-CREATE TABLE IF NOT EXISTS `#__access_assets` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `section_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_sections.id',
-  `section` varchar(100) NOT NULL default '0',
-  `name` varchar(100) NOT NULL default '',
-  `title` varchar(100) NOT NULL default '',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_asset_name_lookup` (`section_id`,`name`),
-  KEY `idx_asset_section_lookup` (`section`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+# com_content show_vote -> article-allow_ratings
 
--- --------------------------------------------------------
+DROP TABLE `#__core_log_items`;
+DROP TABLE `#__stats_agents`;
 
---
--- Table structure for table `#__access_asset_assetgroup_map`
---
 
-CREATE TABLE IF NOT EXISTS `#__access_asset_assetgroup_map` (
-  `asset_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_assets.id',
-  `group_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_assetgroups.id',
-  PRIMARY KEY  (`asset_id`,`group_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__access_asset_rule_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__access_asset_rule_map` (
-  `asset_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_assets.id',
-  `rule_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_rules.id',
-  PRIMARY KEY  (`asset_id`,`rule_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__access_rules`
---
-
-CREATE TABLE IF NOT EXISTS `#__access_rules` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `section_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_sections.id',
-  `section` varchar(100) NOT NULL default '0',
-  `name` varchar(100) NOT NULL default '',
-  `title` varchar(255) NOT NULL default '',
-  `description` varchar(255) default NULL,
-  `ordering` int(11) NOT NULL default '0',
-  `allow` int(1) unsigned NOT NULL default '0',
-  `enabled` int(1) unsigned NOT NULL default '0',
-  `access_type` int(1) unsigned NOT NULL default '0',
-  `updated_date` int(10) unsigned NOT NULL default '0',
-  `return` varchar(255) default NULL,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_rule_name_lookup` (`section_id`,`name`),
-  KEY `idx_access_check` (`enabled`, `allow`),
-  KEY `idx_updated_lookup` (`updated_date`),
-  KEY `idx_action_section_lookup` (`section`),
-  KEY `idx_acl_manager_lookup` (`access_type`,`section_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__access_sections`
---
-
-CREATE TABLE IF NOT EXISTS `#__access_sections` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `name` varchar(100) NOT NULL default '',
-  `title` varchar(255) NOT NULL default '',
-  `ordering` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_section_name_lookup` (`name`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__usergroups`
---
-
-CREATE TABLE IF NOT EXISTS `#__usergroups` (
-  `id` int(10) unsigned NOT NULL auto_increment COMMENT 'Primary Key',
-  `parent_id` int(10) unsigned NOT NULL default '0' COMMENT 'Adjacency List Reference Id',
-  `left_id` int(10) unsigned NOT NULL default '0' COMMENT 'Nested Set Reference Id',
-  `right_id` int(10) unsigned NOT NULL default '0' COMMENT 'Nested Set Reference Id',
-  `title` varchar(100) NOT NULL default '',
-  `section_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_sections.id',
-  `section` varchar(100) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `idx_usergroup_title_lookup` (`section`,`title`),
-  KEY `idx_usergroup_adjacency_lookup` (`parent_id`),
-  KEY `idx_usergroup_nested_set_lookup` USING BTREE (`left_id`,`right_id`, `section_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__usergroup_rule_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__usergroup_rule_map` (
-  `group_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__usergroups.id',
-  `rule_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_rules.id',
-  PRIMARY KEY  (`group_id`,`rule_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__user_rule_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__user_rule_map` (
-  `user_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__users.id',
-  `rule_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__access_rules.id',
-  PRIMARY KEY  (`user_id`,`rule_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `#__user_usergroup_map`
---
-
-CREATE TABLE IF NOT EXISTS `#__user_usergroup_map` (
-  `user_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__users.id',
-  `group_id` int(10) unsigned NOT NULL default '0' COMMENT 'Foreign Key to #__usergroups.id',
-  PRIMARY KEY  (`user_id`,`group_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- 2009-01-25
-
-DROP TABLE `#__polls`, `#__poll_data`, `#__poll_date`, `#__poll_menu`;
-
-DELETE FROM `#__modules` WHERE `id` = 16 LIMIT 1;
-
-DELETE FROM `#__components` WHERE `id` = 10 LIMIT 1;

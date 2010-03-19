@@ -1,49 +1,42 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
 /**
-* Joomla! Administrator Application helper class
-*
-* Provide many supporting API functions
-*
-* @package		Joomla.Administrator
-* @final
-*/
+ * Joomla! Administrator Application helper class.
+ * Provide many supporting API functions.
+ *
+ * @package		Joomla.Administrator
+ * @subpackage	Application
+ */
 class JAdministratorHelper
 {
 	/**
-	 * Return the application option string [main component]
+	 * Return the application option string [main component].
 	 *
-	 * Use JApplicationHelper::getComponent() instead
-	 *
-	 * @access public
-	 * @return string Option
-	 * @since 1.5
-	 * @deprecated 1.6
+	 * @return	string		Option.
+	 * @since	1.5
 	 */
-	function findOption()
+	public static function findOption()
 	{
-		$option = NULL;
+		$option = strtolower(JRequest::getCmd('option'));
 
-		$user = JFactory::getUser();
+		$user = &JFactory::getUser();
 		if ($user->get('guest')) {
 			$option = 'com_login';
 		}
 
-		if(empty($option)) {
-			$option = JApplicationHelper::getComponent('com_cpanel');
+		if (empty($option)) {
+			$option = 'com_cpanel';
 		}
 
+		JRequest::setVar('option', $option);
 		return $option;
 	}
 }
-
-?>

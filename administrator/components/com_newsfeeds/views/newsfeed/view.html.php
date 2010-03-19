@@ -1,80 +1,93 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Newsfeeds
-* @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Newsfeeds component
+ * View to edit a newsfeed.
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Newsfeeds
- * @since 1.0
+ * @subpackage	com_newsfeeds
+ * @since		1.6
  */
 class NewsfeedsViewNewsfeed extends JView
 {
-	function display($tpl = null)
+	protected $state;
+	protected $item;
+	protected $form;
+
+	/**
+	 * Display the view
+	 */
+	public function display($tpl = null)
 	{
-		$user 		=& JFactory::getUser();
-		$option 	= JRequest::getCmd( 'option' );
-		$model		=& $this->getModel();
+		$app	= JFactory::getApplication();
+		$state	= $this->get('State');
+		$item	= $this->get('Item');
+		$form	= $this->get('Form');
 
-		// Set toolbar items for the page
-		$edit	= JRequest::getVar('edit',true);
-		$text 	= ( $edit ? JText::_( 'Edit' ) : JText::_( 'New' ) );
-
-		JToolBarHelper::title(  JText::_( 'Newsfeed' ).': <small><small>[ '. $text.' ]</small></small>' );
-		JToolBarHelper::save();
-		JToolBarHelper::apply();
-		if ($edit) {
-			// for existing items the button is renamed `close`
-			JToolBarHelper::cancel( 'cancel', 'Close' );
-		} else {
-			JToolBarHelper::cancel();
-		}
-		JToolBarHelper::help( 'screen.newsfeeds.edit' );
-
-		$newsfeed	=& $this->get('data');
-		$isNew		= ($newsfeed->id < 1);
-
-		// fail if checked out not by 'me'
-		if ($model->isCheckedOut( $user->get('id') )) {
-			$msg = JText::sprintf( 'DESCBEINGEDITTED', JText::_( 'The newsfeed' ), $newsfeed->name );
-			$mainframe->redirect( 'index.php?option='. $option, $msg );
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		if (!$isNew) {
-			// do stuff for existing records
-			$model->checkout( $user->get('id') );
-		} else {
-			// do stuff for new records
-			$newsfeed->ordering 		= 0;
-			$newsfeed->numarticles 	= 5;
-			$newsfeed->cache_time 	= 3600;
-			$newsfeed->published 	= 1;
-			$newsfeed->catid 	= JRequest::getVar( 'catid', 0, 'post', 'int' );
-		}
+		// Bind the record to the form.
+		$form->bind($item);
 
-		// build the html select list for ordering
-		$order_query = 'SELECT a.ordering AS value, a.name AS text'
-			. ' FROM #__newsfeeds AS a'
-			. ' WHERE catid = ' . (int) $newsfeed->catid
-			. ' ORDER BY a.ordering'
-		;
+		$this->assignRef('state',	$state);
+		$this->assignRef('item',	$item);
+		$this->assignRef('form',	$form);
 
-		$this->assignRef('user',		$user);
-		$this->assignRef('order_query',	$order_query);
-		$this->assignRef('newsfeed',	$newsfeed);
-
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar
+	 *
+	 * @since	1.6
+	 */
+	protected function _setToolbar()
+	{
+		JRequest::setVar('hidemainmenu', true);
+
+		$user		= JFactory::getUser();
+		$isNew		= ($this->item->id == 0);
+		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
+		$canDo		= NewsfeedsHelper::getActions($this->state->get('filter.category_id'), $this->item->id);
+
+		JToolBarHelper::title(JText::_('COM_NEWSFEEDS_MANAGER_NEWSFEED'));
+
+		// If not checked out, can save the item.
+		if (!$checkedOut && $canDo->get('core.edit'))
+		{
+
+			JToolBarHelper::apply('newsfeed.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('newsfeed.save', 'JTOOLBAR_SAVE');
+			JToolBarHelper::addNew('newsfeed.save2new', 'JTOOLBAR_SAVE_AND_NEW');
+		}
+			// If an existing item, can save to a copy.
+		if (!$isNew && $canDo->get('core.create')) {
+			JToolBarHelper::custom('newsfeed.save2copy', 'copy.png', 'copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY', false);
+		}
+
+
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('newsfeed.cancel','JTOOLBAR_CANCEL');
+		}
+		else {
+			JToolBarHelper::cancel('newsfeed.cancel', 'JTOOLBAR_CLOSE');
+		}
+
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.newsfeed.edit','JTOOLBAR_HELP');
 	}
 }

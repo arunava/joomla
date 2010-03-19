@@ -1,82 +1,87 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * @package		Users
+ * View class for a list of users.
+ *
+ * @package		Joomla.Administrator
  * @subpackage	com_users
+ * @since		1.6
  */
-class UserViewUsers extends JView
+class UsersViewUsers extends JView
 {
-	protected $document = null;
-	protected $state = null;
-	protected $items = null;
-	protected $_total = null;
-	protected $f_logged_in = null;
-	protected $f_enabled = null;
-	protected $f_activated = null;
+	protected $state;
+	protected $items;
+	protected $pagination;
 
 	/**
 	 * Display the view
-	 *
-	 * @access	public
 	 */
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
 		$state		= $this->get('State');
-		$items		= $this->get('List');
+		$items		= $this->get('Items');
 		$pagination	= $this->get('Pagination');
+
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
+		}
 
 		$this->assignRef('state',		$state);
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
 
-		// Logged in filter
-		$options	= array();
-		$options[]	= JHtml::_('select.option', '0', 'Select Login Status');
-		$options[]	= JHtml::_('select.option', '1', 'Logged In');
-		$this->assign('f_logged_in', $options);
-
-		// Enabled filter
-		$options	= array();
-		$options[]	= JHtml::_('select.option', '*', 'Select Enabled Status');
-		$options[]	= JHtml::_('select.option', '1', 'No');
-		$options[]	= JHtml::_('select.option', '0', 'Yes');
-		$this->assign('f_enabled', $options);
-
-		// Activated filter
-		$options	= array();
-		$options[]	= JHtml::_('select.option', '*', 'Select Activated Status');
-		$options[]	= JHtml::_('select.option', '1', 'No');
-		$options[]	= JHtml::_('select.option', '0', 'Yes');
-		$this->assign('f_activated', $options);
-
-		$this->_setToolBar();
+		$this->_setToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Display the toolbar
-	 *
-	 * @access	private
+	 * Setup the Toolbar.
 	 */
-	function _setToolBar()
+	protected function _setToolbar()
 	{
-		JToolBarHelper::title(JText::_('user Manager'), 'user.png');
-		JToolBarHelper::custom('user.logout', 'cancel.png', 'cancel_f2.png', 'Logout');
-		JToolBarHelper::deleteList('', 'user.delete');
-		JToolBarHelper::custom('user.edit', 'edit.png', 'edit_f2.png', 'Edit', true);
-		JToolBarHelper::custom('user.edit', 'new.png', 'new_f2.png', 'New', false);
-		JToolBarHelper::help('screen.users');
+		$canDo	= UsersHelper::getActions();
+
+		JToolBarHelper::title(JText::_('Users_View_Users_Title'), 'user');
+
+		if ($canDo->get('core.edit.state'))
+		{
+			JToolBarHelper::custom('users.activate', 'publish.png', 'publish_f2.png', 'USERS_TOOLBAR_ACTIVATE', true);
+			JToolBarHelper::custom('users.block', 'unpublish.png', 'unpublish_f2.png', 'USERS_TOOLBAR_BLOCK', true);
+			JToolBarHelper::divider();
+		}
+
+		if ($canDo->get('core.create'))
+		{
+			JToolBarHelper::custom('user.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
+		}
+		if ($canDo->get('core.edit'))
+		{
+			JToolBarHelper::custom('user.edit', 'edit.png', 'edit_f2.png','JTOOLBAR_EDIT', true);
+		}
+		if ($canDo->get('core.delete'))
+		{
+			JToolBarHelper::deleteList('', 'users.delete','JTOOLBAR_TRASH');
+		}
+
+		JToolBarHelper::divider();
+
+		if ($canDo->get('core.admin'))
+		{
+			JToolBarHelper::preferences('com_users');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.users.users','JTOOLBAR_HELP');
 	}
 }

@@ -1,14 +1,12 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Login
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
 jimport( 'joomla.application.component.controller' );
 
@@ -16,42 +14,82 @@ jimport( 'joomla.application.component.controller' );
  * Login Controller
  *
  * @package		Joomla.Administrator
- * @subpackage	Login
- * @since 1.5
+ * @subpackage	com_login
+ * @since		1.5
  */
 class LoginController extends JController
 {
-	function login()
+	/**
+	 * Method to display a view.
+	 *
+	 * @return	void
+	 */
+	public function display($cachable = false)
 	{
-		global $mainframe;
+		// Get the document object.
+		$document = &JFactory::getDocument();
 
-		// Check for request forgeries
-		JRequest::checkToken('request') or jexit(JText::_('JINVALID_TOKEN'));
+		// Set the default view name and format from the Request.
+		$vName		= 'login';
+		$vFormat	= $document->getType();
 
-		$credentials = array();
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
+		{
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
 
-		$credentials['username'] = JRequest::getVar('username', '', 'method', 'username');
-		$credentials['password'] = JRequest::getVar('passwd', '', 'post', 'string', JREQUEST_ALLOWRAW);
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout('default');
 
-		$result = $mainframe->login($credentials, array('action' => 'core.administrator.login'));
+			// Push document object into the view.
+			$view->assignRef('document', $document);
 
-		if (!JError::isError($result)) {
-			$mainframe->redirect('index.php');
+			$view->display();
 		}
-
-		LoginController::display();
 	}
 
-	function logout()
+	/**
+	 * Method to log in a user.
+	 *
+	 * @return	void
+	 */
+	public function login()
 	{
-		global $mainframe;
+		// Check for request forgeries.
+		JRequest::checkToken('request') or jexit(JText::_('JINVALID_TOKEN'));
 
-		$result = $mainframe->logout();
+		$app = &JFactory::getApplication();
+
+		$model = &$this->getModel('login');
+		$credentials = $model->getState('credentials');
+		$return = $model->getState('return');
+
+		$result = $app->login($credentials, array('action' => 'core.login.admin'));
 
 		if (!JError::isError($result)) {
-			$mainframe->redirect('index.php?option=com_login');
+			$app->redirect($return);
 		}
 
-		LoginController::display();
+		parent::display();
+	}
+
+	/**
+	 * Method to log out a user.
+	 *
+	 * @return	void
+	 */
+	public function logout()
+	{
+		$app = &JFactory::getApplication();
+
+		$result = $app->logout();
+
+		if (!JError::isError($result)) {
+			$app->redirect('index.php?option=com_login');
+		}
+
+		parent::display();
 	}
 }

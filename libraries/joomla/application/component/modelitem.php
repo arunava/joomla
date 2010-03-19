@@ -1,15 +1,13 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
 
 jimport('joomla.application.component.model');
-jimport('joomla.database.query');
 
 /**
  * Prototype item model.
@@ -21,18 +19,18 @@ jimport('joomla.database.query');
 abstract class JModelItem extends JModel
 {
 	/**
-	 * Array of items.
+	 * An item.
 	 *
 	 * @var		array
 	 */
-	protected $_items			= array();
+	protected $_item = null;
 
 	/**
 	 * Model context string.
 	 *
 	 * @var		string
 	 */
-	 protected $_context		= 'group.type';
+	protected $_context = 'group.type';
 
 	/**
 	 * Method to get a store id based on model configuration state.
@@ -49,68 +47,5 @@ abstract class JModelItem extends JModel
 		// Compile the store id.
 
 		return md5($id);
-	}
-
-	/**
-	 * Method to auto-populate the model state.
-	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
-	 *
-	 * @return	void
-	 */
-	protected function _populateState()
-	{
-		$this->setState('list.start', 0);
-	}
-
-	/**
-	 * getForm can be implemented in the derived class if required
-	 */
-	public function &getForm()
-	{
-		$result = false;
-		return $result;
-	}
-
-	/**
-	 * Method to validate the form data.
-	 *
-	 * @param	array	The form data.
-	 * @return	mixed	Array of filtered data if valid, false otherwise.
-	 */
-	public function validate($data)
-	{
-		// Get the form.
-		$form = &$this->getForm();
-
-		// Check for an error.
-		if ($form === false) {
-			return false;
-		}
-
-		// Filter and validate the form data.
-		$data	= $form->filter($data);
-		$return	= $form->validate($data);
-
-		// Check for an error.
-		if (JError::isError($return)) {
-			$this->setError($return->getMessage());
-			return false;
-		}
-
-		// Check the validation results.
-		if ($return === false)
-		{
-			// Get the validation messages from the form.
-			foreach ($form->getErrors() as $message) {
-				$this->setError($message);
-			}
-
-			return false;
-		}
-
-		return $data;
 	}
 }

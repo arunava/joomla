@@ -1,14 +1,13 @@
 <?php
 /**
-* @version		$Id:observer.php 6961 2007-03-15 16:06:53Z tcp $
-* @package		Joomla.Framework
-* @subpackage	Base
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:observer.php 6961 2007-03-15 16:06:53Z tcp $
+ * @package		Joomla.Framework
+ * @subpackage	Base
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Abstract observable class to implement the observer design pattern
@@ -18,12 +17,12 @@ defined('JPATH_BASE') or die();
  * @subpackage	Base
  * @since		1.5
  */
-class JObservable extends JClass
+class JObservable extends JObject
 {
 	/**
 	 * An array of Observer objects to notify
 	 *
-	 * @access private
+	 * @access protected
 	 * @var array
 	 */
 	protected $_observers = array();
@@ -31,7 +30,7 @@ class JObservable extends JClass
 	/**
 	 * The state of the observable object
 	 *
-	 * @access private
+	 * @access protected
 	 * @var mixed
 	 */
 	protected $_state = null;
@@ -49,7 +48,7 @@ class JObservable extends JClass
 	 *
 	 * @access protected - Make Sure it's not directly instansiated
 	 */
-	protected function __construct() {
+	function __construct() {
 		$this->_observers = array();
 	}
 
@@ -93,23 +92,23 @@ class JObservable extends JClass
 		// Make sure we haven't already attached this object as an observer
 		if (is_object($observer))
 		{
-			if (!$observer INSTANCEOF JObserver) {
+			if (!$observer instanceof JObserver) {
 				return;
 			}
 
 			$class = get_class($observer);
 			foreach ($this->_observers as $check) {
-				if ($check INSTANCEOF $class) {
+				if ($check instanceof $class) {
 					return;
 				}
 			}
-			$this->_observers[] =& $observer;
+			$this->_observers[] = &$observer;
 			$methods = get_class_methods($observer);
 		} else {
 			if (!isset($observer['handler']) || !isset($observer['event']) || !is_callable($observer['handler'])) {
 				return;
 			}
-			$this->_observers[] =& $observer;
+			$this->_observers[] = &$observer;
 			$methods = array($observer['event']);
 		}
 		end($this->_observers);
@@ -133,7 +132,7 @@ class JObservable extends JClass
 	 */
 	public function detach($observer)
 	{
-		// Initialize variables
+		// Initialise variables.
 		$retval = false;
 
 		$key = array_search($observer, $this->_observers);
@@ -152,4 +151,3 @@ class JObservable extends JClass
 		return $retval;
 	}
 }
-

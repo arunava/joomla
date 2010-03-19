@@ -1,107 +1,88 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Admin
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
-
+// no direct access
+defined('_JEXEC') or die;
 jimport('joomla.application.component.view');
-
 /**
  * HTML View class for the Admin component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Admin
- * @since 1.0
+ * @subpackage	com_admin
+ * @since		1.6
  */
 class AdminViewHelp extends JView
 {
-	function display($tpl = null)
-	{
-		global $mainframe;
-		jimport('joomla.filesystem.folder');
-		jimport('joomla.language.help');
-
-		// Get Help URL - an empty helpurl is interpreted as local help files!
-		$helpurl	= $mainframe->getCfg('helpurl');
-		if ($helpurl == 'http://help.mamboserver.com') {
-			$helpurl = 'http://help.joomla.org';
-		}
-		$fullhelpurl = $helpurl . '/index2.php?option=com_content&amp;task=findkey&amp;pop=1&amp;keyref=';
-
-		$helpsearch = JRequest::getString('helpsearch');
-		$page		= JRequest::getCmd('page', 'joomla.whatsnew15.html');
-		$toc		= AdminViewHelp::getHelpToc($helpsearch);
-		$lang		=& JFactory::getLanguage();
-		$langTag = $lang->getTag();
-		if(!JFolder::exists(JPATH_BASE.DS.'help'.DS.$langTag)) {
-			$langTag = 'en-GB';		// use english as fallback
-		}
-
-		if (!eregi('\.html$', $page)) {
-			$page .= '.xml';
-		}
-
-		// Toolbar
-		JToolBarHelper::title(JText::_('Help'), 'help_header.png');
-
-		$this->assignRef('fullhelpurl',	$fullhelpurl);
-		$this->assignRef('helpsearch',	$helpsearch);
-		$this->assignRef('page',		$page);
-		$this->assignRef('toc',			$toc);
-		$this->assignRef('lang',		$lang);
-		$this->assignRef('langTag',		$langTag);
-
-		parent::display($tpl);
-	}
+	/**
+	 * @var string the help url
+	 */
+	protected $help_url=null;
+	/**
+	 * @var string the full help url
+	 */
+	protected $full_help_url=null;
+	/**
+	 * @var string the search string
+	 */
+	protected $help_search=null;
+	/**
+	 * @var string the page to be viewed
+	 */
+	protected $page=null;
+	/**
+	 * @var string the iso language tag
+	 */
+	protected $lang_tag=null;
+	/**
+	 * @var array Table of contents
+	 */
+	protected $toc=null;
+	/**
+	 * @var string url for the latest version check
+	 */
+	protected $latest_version_check= 'http://www.joomla.org/download.html';
 
 	/**
-	 * Compiles the help table of contents
-	 * @param string A specific keyword on which to filter the resulting list
+	 * Display the view
 	 */
-	function getHelpTOC($helpsearch)
+	function display($tpl = null)
 	{
-		global $mainframe;
+		// Get the values
+		$help_url = & $this->get('HelpURL');
+		$full_help_url = & $this->get('FullHelpURL');
+		$help_search = & $this->get('HelpSearch');
+		$page = & $this->get('Page');
+		$toc = & $this->get('Toc');
+		$lang_tag = & $this->get('LangTag');
+		$latest_version_check = & $this->get('LatestVersionCheck');
 
-		$lang =& JFactory::getLanguage();
-		jimport('joomla.filesystem.folder');
+		// Assign values to the view
+		$this->assignRef('help_url', $help_url);
+		$this->assignRef('full_help_url', $full_help_url);
+		$this->assignRef('help_search', $help_search);
+		$this->assignRef('page', $page);
+		$this->assignRef('toc', $toc);
+		$this->assignRef('lang_tag', $lang_tag);
+		$this->assignRef('latest_version_check', $latest_version_check);
 
-		$helpurl		= $mainframe->getCfg('helpurl');
+		// Setup the toolbar
+		$this->_setToolBar();
 
-		// Check for files in the actual language
-		$langTag = $lang->getTag();
-		if(!JFolder::exists(JPATH_BASE.DS.'help'.DS.$langTag)) {
-			$langTag = 'en-GB';		// use english as fallback
-		}
-		$files = JFolder::files(JPATH_BASE.DS.'help'.DS.$langTag, '\.xml$|\.html$');
-
-		$toc = array();
-		foreach ($files as $file) {
-			$buffer = file_get_contents(JPATH_BASE.DS.'help'.DS.$langTag.DS.$file);
-			if (preg_match('#<title>(.*?)</title>#', $buffer, $m)) {
-				$title = trim($m[1]);
-				if ($title) {
-					if ($helpurl) {
-						// strip the extension
-						$file = preg_replace('#\.xml$|\.html$#', '', $file);
-					}
-					if ($helpsearch) {
-						if (JString::strpos(strip_tags($buffer), $helpsearch) !== false) {
-							$toc[$file] = $title;
-						}
-					} else {
-						$toc[$file] = $title;
-					}
-				}
-			}
-		}
-		asort($toc);
-		return $toc;
+		// Display the view
+		parent::display($tpl);
+	}
+	/**
+	 * Setup the Toolbar
+	 *
+	 * @since	1.6
+	 */
+	protected function _setToolBar()
+	{
+		JToolBarHelper::title(JText::_('COM_ADMIN_HELP'), 'help_header.png');
 	}
 }
+

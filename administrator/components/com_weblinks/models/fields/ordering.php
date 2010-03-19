@@ -3,12 +3,11 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Form
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die('Restricted Access');
+defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
 
@@ -16,7 +15,7 @@ jimport('joomla.html.html');
  * Supports an HTML select list of categories
  *
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
+ * @subpackage	com_weblinks
  * @since		1.6
  */
 class JFormFieldOrdering extends JFormField
@@ -50,15 +49,13 @@ class JFormFieldOrdering extends JFormField
 					. ' ORDER BY ordering';
 
 		// Handle a read only list.
-		if ($readonly)
-		{
+		if ($readonly) {
 			// Create a disabled list with a hidden input to store the value.
 			$return .= JHTML::_('list.ordering', '', $query, $attributes, $this->value, $this->inputId, $weblinkId ? 0 : 1);
 			$return	.= '<input type="hidden" name="'.$this->inputName.'" value="'.$this->value.'" />';
 		}
 		// Handle a regular list.
-		else
-		{
+		else {
 			// Create a regular list.
 			$return = JHTML::_('list.ordering', $this->inputName, $query, $attributes, $this->value, $this->inputId, $weblinkId ? 0 : 1);
 		}

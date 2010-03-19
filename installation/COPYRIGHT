@@ -1,4 +1,13 @@
- $Id$
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Installation
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+defined('_JEXEC') or die;
+?>
 
 Joomla! derives from copyrighted works licensed under the GNU General
 Public License.  This version has been modified pursuant to the

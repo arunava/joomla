@@ -1,47 +1,54 @@
-<?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
-<?php if ( $this->params->get( 'show_page_title', 1 ) ) : ?>
-	<div class="componentheading<?php echo $this->params->get('pageclass_sfx')?>"><?php echo $this->escape($this->params->get('page_title')); ?></div>
-<?php endif; ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center" class="contentpane<?php echo $this->params->get( 'pageclass_sfx' ); ?>">
-<?php if ( @$this->category->image || @$this->category->description ) : ?>
-<tr>
-	<td valign="top" class="contentdescription<?php echo $this->params->get( 'pageclass_sfx' ); ?>">
-	<?php
-		if ( isset($this->category->image) ) :  echo $this->category->image; endif;
-		echo $this->category->description;
-	?>
-	</td>
-</tr>
-<?php endif; ?>
-<tr>
-	<td>
-	<ul>
-<?php foreach ( $this->categories as $category ) : ?>
-	<li>
-		<a href="<?php echo $category->link ?>" class="category<?php echo $this->params->get( 'pageclass_sfx' ); ?>">
-			<?php echo $category->title;?></a>
-		<?php if ( $this->params->get( 'show_cat_items' ) ) : ?>
-		&nbsp;
-		<span class="small">
-			(<?php echo $category->numlinks;?>)
-		</span>
-		<?php endif; ?>
-		<?php if ( $this->params->get( 'show_cat_description' ) && $category->description ) : ?>
-		<br />
-		<?php echo $category->description; ?>
-		<?php endif; ?>
-	</li>
-<?php endforeach; ?>
-</ul>
-</td>
-</tr>
-<?php if(count($this->items)) : ?>
-<tr>
-	<td width="60%" colspan="2">
+// no direct access
+defined('_JEXEC') or die;
+
+$cparams = &JComponentHelper::getParams('com_media');
+?>
+
+<div class="jcontact-category<?php echo $this->params->get('pageclass_sfx'); ?>">
+	<?php if ($this->params->get('show_page_title', 1)) : ?>
+		<h2>
+			<?php if ($this->escape($this->params->get('page_heading'))) :?>
+				<?php echo $this->escape($this->params->get('page_heading')); ?>
+			<?php else : ?>
+				<?php echo $this->escape($this->params->get('page_title')); ?>
+			<?php endif; ?>
+		</h2>
+	<?php endif; ?>
+
+	<?php if (!empty($this->category->image) || $this->category->description) : ?>
+		<div class="jdescription">
+			<?php if ($this->params->get('image') != -1 && $this->params->get('image') != '') : ?>
+				<img src="<?php echo $this->baseurl .'/'. 'images' . '/'. $this->params->get('image'); ?>" class="jalign<?php echo $this->params->get('image_align'); ?>" alt="<?php echo JText::_('Contacts'); ?>" />
+			<?php elseif (!empty($this->category->image)) : ?>
+				<img src="<?php echo $this->baseurl .'/'. 'images' . '/'. $this->category->image; ?>" class="jalign<?php echo $this->category->image_position; ?>" alt="<?php echo JText::_('Contacts'); ?>" />
+			<?php endif; ?>
+
+			<?php echo $this->category->description; ?>
+		</div>
+	<?php endif; ?>
+
 	<?php echo $this->loadTemplate('items'); ?>
-	</td>
-</tr>
-<?php endif; ?>
-</table>
+
+	<div class="jcat-siblings">
+		<?php  echo $this->loadTemplate('siblings');  ?>
+	</div>
+
+	<div class="jcat-children">
+		<?php echo $this->loadTemplate('children'); ?>
+	</div>
+
+	<div class="jcat-parents">
+		<?php  echo $this->loadTemplate('parents');  ?>
+	</div>
+
+</div>
+

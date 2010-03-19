@@ -1,11 +1,12 @@
 <?php
 /**
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->language; ?>" lang="<?php echo $this->language; ?>" >
@@ -20,7 +21,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 <!--[if lte IE 6]>
 <link href="<?php echo $this->baseurl ?>/templates/<?php echo $this->template ?>/css/ieonly.css" rel="stylesheet" type="text/css" />
 <![endif]-->
-<?php if($this->direction == 'rtl') : ?>
+<?php if ($this->direction == 'rtl') : ?>
 	<link href="<?php echo $this->baseurl ?>/templates/rhuk_milkyway/css/template_rtl.css" rel="stylesheet" type="text/css" />
 <?php endif; ?>
 
@@ -43,16 +44,16 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 				<div id="tabarea_l">
 					<div id="tabarea_r">
 						<div id="tabmenu">
-							<table cellpadding="0" cellspacing="0" class="pill">
-								<tr>
-									<td class="pill_l">&nbsp;</td>
-									<td class="pill_m">
-										<div id="pillmenu">
-											<jdoc:include type="modules" name="user3" />
-										</div>
-									</td>
-									<td class="pill_r">&nbsp;</td>
-								</tr>
+						<table cellpadding="0" cellspacing="0" class="pill">
+							<tr>
+								<td class="pill_l">&nbsp;</td>
+								<td class="pill_m">
+								<div id="pillmenu">
+									<jdoc:include type="modules" name="user3" />
+								</div>
+								</td>
+								<td class="pill_r">&nbsp;</td>
+							</tr>
 							</table>
 						</div>
 					</div>
@@ -78,31 +79,29 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 				<div id="whitebox_m">
 					<div id="area">
-						<jdoc:include type="message" />
-
 						<div id="leftcolumn">
-						<?php if($this->countModules('left')) : ?>
+						<?php if ($this->countModules('left')) : ?>
 							<jdoc:include type="modules" name="left" style="rounded" />
 						<?php endif; ?>
 						</div>
 
-						<?php if($this->countModules('left')) : ?>
+						<?php if ($this->countModules('left')) : ?>
 						<div id="maincolumn">
 						<?php else: ?>
 						<div id="maincolumn_full">
 						<?php endif; ?>
-							<?php if($this->countModules('user1 or user2')) : ?>
+							<?php if ($this->countModules('user1 or user2')) : ?>
 								<table class="nopad user1user2">
 									<tr valign="top">
-										<?php if($this->countModules('user1')) : ?>
+										<?php if ($this->countModules('user1')) : ?>
 											<td>
 												<jdoc:include type="modules" name="user1" style="xhtml" />
 											</td>
 										<?php endif; ?>
-										<?php if($this->countModules('user1 and user2')) : ?>
+										<?php if ($this->countModules('user1 and user2')) : ?>
 											<td class="greyline">&nbsp;</td>
 										<?php endif; ?>
-										<?php if($this->countModules('user2')) : ?>
+										<?php if ($this->countModules('user2')) : ?>
 											<td>
 												<jdoc:include type="modules" name="user2" style="xhtml" />
 											</td>
@@ -116,10 +115,11 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 							<table class="nopad">
 								<tr valign="top">
 									<td>
+										<jdoc:include type="message" />
 										<jdoc:include type="component" />
 										<jdoc:include type="modules" name="footer" style="xhtml"/>
 									</td>
-									<?php if($this->countModules('right') and JRequest::getCmd('layout') != 'form') : ?>
+									<?php if ($this->countModules('right') and JRequest::getCmd('layout') != 'form') : ?>
 										<td class="greyline">&nbsp;</td>
 										<td width="170">
 											<jdoc:include type="modules" name="right" style="xhtml"/>
@@ -151,8 +151,12 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 						<jdoc:include type="modules" name="syndicate" />
 					</p>
 					<p id="power_by">
-	 				 	<?php echo JText::_('Powered by') ?> <a href="http://www.joomla.org">Joomla!</a>.
-						<?php echo JText::_('Valid') ?> <a href="http://validator.w3.org/check/referer">XHTML</a> <?php echo JText::_('and') ?> <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a>.
+						<?php 
+						$joomla = '<a href="http://www.joomla.org">Joomla!</a>'; 
+						echo JText::sprintf('TPL_RHUK_MILKYWAY_POWERED', $joomla);
+						$XHTML = '<a href="http://validator.w3.org/check/referer">XHTML</a>'; 
+						$CSS = '<a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a>'; 
+						echo JText::sprintf('TPL_RHUK_MILKYWAY_VALID', $XHTML, $CSS) ?>
 					</p>
 				</div>
 			</div>

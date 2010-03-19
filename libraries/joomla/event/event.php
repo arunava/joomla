@@ -1,14 +1,13 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Event
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Event
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 jimport('joomla.base.observer');
 
@@ -22,26 +21,15 @@ jimport('joomla.base.observer');
  */
 abstract class JEvent extends JObserver
 {
-
 	/**
-	 * Constructor
-	 *
-	 * @param object $subject The object to observe
-	 * @since 1.5
-	 */
-	protected function __construct(& $subject) {
-		parent::__construct($subject);
-	}
-
-	/**
-	 * Method to trigger events
+	 * Method to trigger events.
 	 *
 	 * @access public
 	 * @param array Arguments
 	 * @return mixed Routine return value
 	 * @since 1.5
 	 */
-	public function update(& $args)
+	public function update(&$args)
 	{
 		/*
 		 * First lets get the event from the argument array.  Next we will unset the
@@ -55,7 +43,7 @@ abstract class JEvent extends JObserver
 		 * value.  If it does not exist, return null.
 		 */
 		if (method_exists($this, $event)) {
-			return call_user_func_array (array($this, $event), $args);
+			return call_user_func_array(array($this, $event), $args);
 		} else {
 			return null;
 		}

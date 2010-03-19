@@ -1,57 +1,82 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Contact
-* @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id: view.html.php 11952 2009-06-01 03:21:19Z robs $
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Contact component
+ * HTML View class for the Contacts component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Contact
- * @since 1.0
+ * @subpackage	com_weblinks
+ * @since		1.5
  */
-class ContactsViewContacts extends JView
+class ContactViewContacts extends JView
 {
-	function display($tpl = null)
+	public $state;
+	public $items;
+	public $pagination;
+
+	/**
+	 * Display the view
+	 *
+	 * @return	void
+	 */
+	public function display($tpl = null)
 	{
-		global $mainframe, $option;
+		$state		= $this->get('state');
+		$items		= $this->get('items');
+		$pagination	= $this->get('pagination');
 
-		// Set toolbar items for the page
-		JToolBarHelper::title(   JText::_( 'Contact Manager' ), 'generic.png' );
-		JToolBarHelper::publishList();
-		JToolBarHelper::unpublishList();
-		JToolBarHelper::deleteList();
-		JToolBarHelper::editListX();
-		JToolBarHelper::addNewX();
-		JToolBarHelper::preferences('com_contact', '480');
-		JToolBarHelper::help( 'screen.contact' );
-
-		// Get data from the model
-		$items		= & $this->get( 'Data');
-		$total		= & $this->get( 'Total');
-		$pagination = & $this->get( 'Pagination' );
-		$filter		= & $this->get( 'Filter');
-
-		// build list of categories
-		$javascript 	= 'onchange="document.adminForm.submit();"';
-		$lists['catid'] = JHtml::_('list.category',  'filter_catid', 'com_contact_details', intval( $filter->catid ), $javascript );
-
-		$this->assignRef('user',		JFactory::getUser());
-		$this->assignRef('lists',		$lists);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-		$this->assignRef('filter',		$filter);
-
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
+		}
+		// Preprocess the list of items to find ordering divisions.
+		// TODO: Complete the ordering stuff with nested sets
+		foreach ($items as $i => &$item)
+		{
+			$item->order_up = true;
+			$item->order_dn = true;
+		}
+		$this->assignRef('state',			$state);
+		$this->assignRef('items',			$items);
+		$this->assignRef('pagination',		$pagination);
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar
+	 */
+	protected function _setToolbar()
+	{
+		$state = $this->get('state');
+		JToolBarHelper::title(JText::_('COM_CONTACT_MANAGER_CONTACTS'), 'generic.png');
+		JToolBarHelper::addNew('contact.edit', 'JTOOLBAR_NEW');
+		JToolBarHelper::editList('contact.edit','JTOOLBAR_EDIT');
+		JToolBarHelper::divider();
+		JToolBarHelper::publish('contacts.publish','JTOOLBAR_PUBLISH');
+		JToolBarHelper::unpublish('contacts.unpublish','JTOOLBAR_UNPUBLISH');
+		JToolBarHelper::divider();
+		JToolBarHelper::archiveList('contacts.archive','JTOOLBAR_ARCHIVE');
+		if ($state->get('filter.published') == -2) {
+			JToolBarHelper::deleteList('', 'contacts.delete','JTOOLBAR_EMPTY_TRASH');
+		}
+		else {
+			JToolBarHelper::trash('contacts.trash','JTOOLBAR_TRASH');
+		}
+		JToolBarHelper::divider();
+
+		JToolBarHelper::preferences('com_contact');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.contact','JTOOLBAR_HELP');
 	}
 }

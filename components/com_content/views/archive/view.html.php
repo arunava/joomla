@@ -1,56 +1,55 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-require_once JPATH_COMPONENT.DS.'view.php';
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the Content component
  *
- * @package		Joomla
- * @subpackage	Content
+ * @package		Joomla.Site
+ * @subpackage	com_content
  * @since 1.5
  */
-class ContentViewArchive extends ContentView
+class ContentViewArchive extends JView
 {
 	function display($tpl = null)
 	{
-		global $mainframe, $option;
+		$app = JFactory::getApplication();
+		$option = JRequest::getCmd('option');
 
-		if (empty( $layout ))
+		if (empty($layout))
 		{
 			// degrade to default
 			$layout = 'list';
 		}
 
-		// Initialize some variables
-		$user		=& JFactory::getUser();
-		$pathway	=& $mainframe->getPathway();
-		$document	=& JFactory::getDocument();
+		// Initialise some variables
+		$user		= &JFactory::getUser();
+		$pathway	= &$app->getPathway();
+		$document	= &JFactory::getDocument();
 
 		// Get the page/component configuration
-		$params = &$mainframe->getParams('com_content');
+		$params = &$app->getParams('com_content');
 
 		// Request variables
-		$task 		= JRequest::getCmd('task');
+		$task		= JRequest::getCmd('task');
 		$limit		= JRequest::getVar('limit', $params->get('display_num', 20), '', 'int');
 		$limitstart	= JRequest::getVar('limitstart', 0, '', 'int');
-		$month		= JRequest::getInt( 'month' );
-		$year		= JRequest::getInt( 'year' );
-		$filter		= JRequest::getString( 'filter' );
+		$month		= JRequest::getInt('month');
+		$year		= JRequest::getInt('year');
+		$filter		= JRequest::getString('filter');
 
 		// Get some data from the model
-		$state = & $this->get( 'state' );
-		$items = & $this->get( 'data'  );
-		$total = & $this->get( 'total' );
+		$state = & $this->get('state');
+		$items = & $this->get('data' );
+		$total = & $this->get('total');
 
 		// Add item to pathway
 		$pathway->addItem(JText::_('Archive'), '');
@@ -66,15 +65,15 @@ class ContentViewArchive extends ContentView
 
 		// because the application sets a default page title, we need to get it
 		// right from the menu item itself
-		if (is_object( $menu )) {
-			$menu_params = new JParameter( $menu->params );
-			if (!$menu_params->get( 'page_title')) {
-				$params->set('page_title',	JText::_( 'Archives' ));
+		if (is_object($menu)) {
+			$menu_params = new JParameter($menu->params);
+			if (!$menu_params->get('page_title')) {
+				$params->set('page_title',	JText::_('Archives'));
 			}
 		} else {
-			$params->set('page_title',	JText::_( 'Archives' ));
+			$params->set('page_title',	JText::_('Archives'));
 		}
-		$document->setTitle( $params->get( 'page_title' ) );
+		$document->setTitle($params->get('page_title'));
 
 		$form = new stdClass();
 		// Month Field

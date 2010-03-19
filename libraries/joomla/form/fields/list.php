@@ -1,15 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die('Restricted Access');
+defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
-jimport('joomla.form.field');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -25,7 +24,7 @@ class JFormFieldList extends JFormField
 	 *
 	 * @var		string
 	 */
-	public $type = 'List';
+	protected $type = 'List';
 
 	/**
 	 * Method to get a list of options for a list input.
@@ -38,7 +37,7 @@ class JFormFieldList extends JFormField
 
 		// Iterate through the children and build an array of options.
 		foreach ($this->_element->children() as $option) {
-			$options[] = JHtml::_('select.option', $option->attributes('value'), JText::_($option->data()));
+			$options[] = JHtml::_('select.option', (string)$option->attributes()->value, JText::_(trim((string)$option)),'value','text',(string)$option->attributes()->disabled=='true');
 		}
 
 		return $options;
@@ -51,33 +50,41 @@ class JFormFieldList extends JFormField
 	 */
 	protected function _getInput()
 	{
-		$size		= $this->_element->attributes('size');
-		$class		= $this->_element->attributes('class') ? 'class="'.$this->_element->attributes('class').'"' : 'class="inputbox"';
-		$disabled	= $this->_element->attributes('disabled') == 'true' ? true : false;
-		$readonly	= $this->_element->attributes('readonly') == 'true' ? true : false;
-		$attributes	= $class;
-		$attributes = ($disabled || $readonly) ? $attributes.' disabled="disabled"' : $attributes;
+		$disabled	= (string)$this->_element->attributes()->disabled == 'true' ? true : false;
+		$readonly	= (string)$this->_element->attributes()->readonly == 'true' ? true : false;
+		$attributes	= '';
+
+		if ($v = (string)$this->_element->attributes()->size) {
+			$attributes	.= ' size="'.$v.'"';
+		}
+		if ($v = (string)$this->_element->attributes()->class) {
+			$attributes	.= ' class="'.$v.'"';
+		} else {
+			$attributes	.= ' class="inputbox"';
+		}
+		if ((string)$this->_element->attributes()->multiple) {
+			$attributes	.= ' multiple="multiple"';
+		}
+		if ($v = (string)$this->_element->attributes()->onchange) {
+			$attributes	.= ' onchange="'.$this->_replacePrefix($v).'"';
+		}
+
+		if ($disabled || $readonly) {
+			$attributes .= ' disabled="disabled"';
+		}
 		$options	= (array)$this->_getOptions();
 		$return		= null;
 
-		// Handle a disabled list.
-		if ($disabled)
-		{
+		if ($disabled) {
 			// Create a disabled list.
-			$return .= JHTML::_('select.genericlist', $options, $this->inputName, $attributes, 'value', 'text', $this->value, $this->inputId);
-		}
-		// Handle a read only list.
-		else if ($readonly)
-		{
-			// Create a disabled list with a hidden input to store the value.
-			$return .= JHTML::_('select.genericlist', $options, '', $attributes, 'value', 'text', $this->value, $this->inputId);
+			$return .= JHtml::_('select.genericlist', $options, $this->inputName, $attributes, 'value', 'text', $this->value, $this->inputId);
+		} else if ($readonly) {
+			// Create a read-only disabled list with a hidden input to store the value.
+			$return .= JHtml::_('select.genericlist', $options, '', $attributes, 'value', 'text', $this->value, $this->inputId);
 			$return	.= '<input type="hidden" name="'.$this->inputName.'" value="'.$this->value.'" />';
-		}
-		// Handle a regular list.
-		else
-		{
+		} else {
 			// Create a regular list.
-			$return = JHTML::_('select.genericlist', $options, $this->inputName, $attributes, 'value', 'text', $this->value, $this->inputId);
+			$return = JHtml::_('select.genericlist', $options, $this->inputName, $attributes, 'value', 'text', $this->value, $this->inputId);
 		}
 
 		return $return;

@@ -1,9 +1,8 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_BASE') or die;
@@ -16,40 +15,61 @@ defined('JPATH_BASE') or die;
  * @static
  * @since		1.6
  */
-class JHtmlAccess
+abstract class JHtmlAccess
 {
 	/**
-	 * Displays a list of the available access sections
+	 * @var	array	A cached array of the asset groups
+	 */
+	protected static $asset_groups = null;
+
+	/**
+	 * Displays a list of the available access view levels
 	 *
 	 * @param	string	The form field name.
 	 * @param	string	The name of the selected section.
 	 * @param	string	Additional attributes to add to the select field.
-	 * @param	boolean	True to add "All Sections" option.
+	 * @param	mixed	True to add "All Sections" option or and array of option
+	 * @param	string	The form field id
 	 *
 	 * @return	string	The required HTML for the SELECT tag.
 	 */
-	public static function section($name, $selected, $attribs = '', $allowAll = true)
+	public static function level($name, $selected, $attribs = '', $params = true, $id = false)
 	{
-		$db = &JFactory::getDbo();
-		$db->setQuery(
-			'SELECT `id` AS value, `title` AS text'
-			.' FROM #__access_sections'
-			.' ORDER BY `ordering`, `title`'
-		);
+		$db		= JFactory::getDbo();
+		$query	= $db->getQuery(true);
+
+		$query->select('a.id AS value, a.title AS text');
+		$query->from('#__viewlevels AS a');
+		$query->group('a.id');
+		$query->order('a.ordering ASC');
+		$query->order('`title` ASC');
+
+		// Get the options.
+		$db->setQuery($query);
 		$options = $db->loadObjectList();
 
 		// Check for a database error.
 		if ($db->getErrorNum()) {
-			JError::raiseNotice(500, $db->getErrorMsg());
+			JError::raiseWarning(500, $db->getErrorMsg());
 			return null;
 		}
 
-		// If all usergroups is allowed, push it into the array.
-		if ($allowAll) {
-			array_unshift($options, JHtml::_('select.option', '', JText::_('JOption_Access_Show_All_Sections')));
+		// If params is an array, push these options to the array
+		if (is_array($params)) {
+			$options = array_merge($params,$options);
+		}
+		// If all levels is allowed, push it into the array.
+		elseif ($params) {
+			array_unshift($options, JHtml::_('select.option', '', JText::_('JOption_Access_Show_All_Levels')));
 		}
 
-		return JHTML::_('select.genericlist', $options, $name, $attribs, 'value', 'text', $selected);
+		return JHtml::_('select.genericlist', $options, $name,
+			array(
+				'list.attr' => $attribs,
+				'list.select' => $selected,
+				'id' => $id
+			)
+		);
 	}
 
 	/**
@@ -67,9 +87,9 @@ class JHtmlAccess
 		$db->setQuery(
 			'SELECT a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level' .
 			' FROM #__usergroups AS a' .
-			' LEFT JOIN `#__usergroups` AS b ON a.left_id > b.left_id AND a.right_id < b.right_id' .
+			' LEFT JOIN `#__usergroups` AS b ON a.lft > b.lft AND a.rgt < b.rgt' .
 			' GROUP BY a.id' .
-			' ORDER BY a.left_id ASC'
+			' ORDER BY a.lft ASC'
 		);
 		$options = $db->loadObjectList();
 
@@ -79,8 +99,7 @@ class JHtmlAccess
 			return null;
 		}
 
-		for ($i=0,$n=count($options); $i < $n; $i++)
-		{
+		for ($i=0,$n=count($options); $i < $n; $i++) {
 			$options[$i]->text = str_repeat('- ',$options[$i]->level).$options[$i]->text;
 		}
 
@@ -89,7 +108,12 @@ class JHtmlAccess
 			array_unshift($options, JHtml::_('select.option', '', JText::_('JOption_Access_Show_All_Groups')));
 		}
 
-		return JHTML::_('select.genericlist', $options, $name, $attribs, 'value', 'text', $selected);
+		return JHtml::_('select.genericlist', $options, $name,
+			array(
+				'list.attr' => $attribs,
+				'list.select' => $selected
+			)
+		);
 	}
 
 	/**
@@ -110,9 +134,9 @@ class JHtmlAccess
 		$db->setQuery(
 			'SELECT a.*, COUNT(DISTINCT b.id) AS level' .
 			' FROM #__usergroups AS a' .
-			' LEFT JOIN `#__usergroups` AS b ON a.left_id > b.left_id AND a.right_id < b.right_id' .
+			' LEFT JOIN `#__usergroups` AS b ON a.lft > b.lft AND a.rgt < b.rgt' .
 			' GROUP BY a.id' .
-			' ORDER BY a.left_id ASC'
+			' ORDER BY a.lft ASC'
 		);
 		$groups = $db->loadObjectList();
 
@@ -124,23 +148,26 @@ class JHtmlAccess
 
 		$html = array();
 
-		$html[] = '<ul class="checklist usergroups" style="padding:0;">';
+		$html[] = '<ul class="checklist usergroups">';
 
-		for ($i=0, $n=count($groups); $i < $n; $i++)
-		{
+		for ($i=0, $n=count($groups); $i < $n; $i++) {
 			$item = &$groups[$i];
 
 			// Setup  the variable attributes.
 			$eid = $count.'group_'.$item->id;
-			$checked = in_array($item->id, $selected) ? ' checked="checked"' : '';
+			// don't call in_array unless something is selected
+			$checked = '';
+			if ($selected) {
+				$checked = in_array($item->id, $selected) ? ' checked="checked"' : '';
+			}
 			$rel = ($item->parent_id > 0) ? ' rel="'.$count.'group_'.$item->parent_id.'"' : '';
 
 			// Build the HTML for the item.
 			$html[] = '	<li>';
-			$html[] = '		<label for="'.$eid.'">';
-			$html[] = '			<input type="checkbox" name="'.$name.'[]" value="'.$item->id.'" id="'.$eid.'"';
+			$html[] = '		<input type="checkbox" name="'.$name.'[]" value="'.$item->id.'" id="'.$eid.'"';
 			$html[] = '				'.$checked.$rel.' />';
-			$html[] = '			'.str_repeat('- ', $item->level).$item->title;
+			$html[] = '		<label for="'.$eid.'">';
+			$html[] = '		'.str_repeat('<span class="gi">|&mdash;</span>', $item->level).$item->title;
 			$html[] = '		</label>';
 			$html[] = '	</li>';
 		}
@@ -157,20 +184,18 @@ class JHtmlAccess
 	 *
 	 * @return	string
 	 */
-	public static function actions($name, $selected, $section = 'core', $type = 1)
+	public static function actions($name, $selected, $component, $section = 'global')
 	{
 		static $count;
 
 		$count++;
 
-		jimport('joomla.access.helper');
-		$actions	= JAccessHelper::getActions($section, $type);
+		$actions	= JAccess::getActions($component, $section);
 
 		$html		= array();
-		$html[]		= '<ul class="checklist access-actions" style="padding:0;">';
+		$html[]		= '<ul class="checklist access-actions">';
 
-		for ($i=0, $n=count($actions); $i < $n; $i++)
-		{
+		for ($i=0, $n=count($actions); $i < $n; $i++) {
 			$item = &$actions[$i];
 
 			// Setup  the variable attributes.
@@ -179,9 +204,9 @@ class JHtmlAccess
 
 			// Build the HTML for the item.
 			$html[] = '	<li>';
+			$html[] = '		<input type="checkbox" name="'.$name.'[]" value="'.$item->id.'" id="'.$eid.'"';
+			$html[] = '			'.$checked.' />';
 			$html[] = '		<label for="'.$eid.'">';
-			$html[] = '			<input type="checkbox" name="'.$name.'[]" value="'.$item->id.'" id="'.$eid.'"';
-			$html[] = '				'.$checked.' />';
 			$html[] = '			'.JText::_($item->title);
 			$html[] = '		</label>';
 			$html[] = '	</li>';
@@ -192,46 +217,65 @@ class JHtmlAccess
 	}
 
 	/**
+	 * Gets a list of the asset groups as an array of JHtml compatible options.
+	 *
+	 * @param	array $config	An array of options for the options
+	 *
+	 * @return	mixed			An array or false if an error occurs
+	 */
+	public static function assetgroups($config = array())
+	{
+		if (empty(JHtmlAccess::$asset_groups)) {
+			$db		= &JFactory::getDbo();
+			$query	= $db->getQuery(true);
+
+			$query->select('a.id AS value, a.title AS text');
+			$query->from('#__viewlevels AS a');
+			$query->group('a.id');
+			$query->order('a.ordering ASC');
+
+			$db->setQuery($query);
+			JHtmlAccess::$asset_groups = $db->loadObjectList();
+
+			// Check for a database error.
+			if ($db->getErrorNum()) {
+				JError::raiseNotice(500, $db->getErrorMsg());
+				return false;
+			}
+		}
+
+		return JHtmlAccess::$asset_groups;
+	}
+
+	/**
 	 * Displays a Select list of the available asset groups
 	 *
 	 * @param	string $name	The name of the select element
 	 * @param	mixed $selected	The selected asset group id
 	 * @param	string $attribs	Optional attributes for the select field
+	 * @param	array $config	An array of options for the control
 	 *
 	 * @return	mixed			An HTML string or null if an error occurs
 	 */
-	public static function assetgroups($name, $selected, $attribs = '')
+	public static function assetgrouplist($name, $selected, $attribs = null, $config = array())
 	{
-		static $count, $cache;
+		static $count;
 
-		$count++;
-
-		if ($cache == null)
-		{
-			$db = &JFactory::getDbo();
-			$db->setQuery(
-				'SELECT a.*, COUNT(DISTINCT b.id) AS level' .
-				' FROM #__access_assetgroups AS a' .
-				' LEFT JOIN `#__access_assetgroups` AS b ON a.left_id > b.left_id AND a.right_id < b.right_id' .
-				' GROUP BY a.id' .
-				' ORDER BY a.left_id ASC'
-			);
-			$cache = $db->loadObjectList();
-
-			// Check for a database error.
-			if ($db->getErrorNum()) {
-				JError::raiseNotice(500, $db->getErrorMsg());
-				return null;
-			}
-
-			foreach ($cache as $i => $group) {
-				$cache[$i]->value	= $group->id;
-				// We are not exposing any hierarchy in access levels yet.
-				//$cache[$i]->text	= str_pad($group->title, strlen($group->title) + 2*($group->level), '- ', STR_PAD_LEFT);
-				$cache[$i]->text	= $group->title;
-			}
+		$options = JHtmlAccess::assetgroups();
+		if (isset($config['title'])) {
+			array_unshift($options, JHtml::_('select.option', '', $config['title']));
 		}
 
-		return JHTML::_('select.genericlist', $cache, $name, $attribs, 'value', 'text', $selected, 'assetgroups_'.$count);
+		return JHtml::_(
+			'select.genericlist',
+			$options,
+			$name,
+			array(
+				'id' =>				isset($config['id']) ? $config['id'] : 'assetgroups_'.++$count,
+				'list.attr' =>		(is_null($attribs) ? 'class="inputbox" size="3"' : $attribs),
+				'list.select' =>	(int) $selected,
+				'list.translate' => true
+			)
+		);
 	}
 }

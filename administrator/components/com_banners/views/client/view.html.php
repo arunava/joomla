@@ -1,62 +1,90 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
+ * View to edit a client.
+ *
  * @package		Joomla.Administrator
- * @subpackage	Banners
+ * @subpackage	com_banners
+ * @since		1.5
  */
-class BannerViewClient extends JView
+class BannersViewClient extends JView
 {
-	function display($tpl = null)
+	protected $state;
+	protected $item;
+	protected $form;
+
+	/**
+	 * Display the view
+	 */
+	public function display($tpl = null)
 	{
-		$app	=& JFactory::getApplication();
-		$user	=& JFactory::getUser();
-		$model	=& $this->getModel();
+		$state	= $this->get('State');
+		$item	= $this->get('Item');
+		$form	= $this->get('Form');
 
-		$task = JRequest::getVar('task', '', 'method', 'string');
-
-		JToolBarHelper::title($task == 'add' ? JText::_('Banner Client') . ': <small><small>[ '. JText::_('New') .' ]</small></small>' : JText::_('Banner Client') . ': <small><small>[ '. JText::_('Edit') .' ]</small></small>', 'generic.png');
-		JToolBarHelper::save('save');
-		JToolBarHelper::apply('apply');
-		JToolBarHelper::cancel('cancel');
-		JToolBarHelper::help('screen.banners.client.edit');
-
-		$row		=& $this->get('data');
-		$isNew		= ($row->cid < 1);
-
-		// fail if checked out not by 'me'
-		if ($model->isCheckedOut($user->get('id'))) {
-			$msg = JText::sprintf('DESCBEINGEDITTED', JText::_('The banner client'), $row->name);
-			$app->redirect('index.php?option=com_banners', $msg);
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		// Edit or Create?
-		if (!$isNew)
-		{
-			$model->checkout($user->get('id'));
-		}
-		else
-		{
-			// do stuff for new record
-			$row->published = 0;
-			$row->approved = 0;
-		}
+		// Bind the record to the form.
+		$form->bind($item);
 
-		JFilterOutput::objectHTMLSafe($row, ENT_QUOTES, 'extrainfo');
+		$this->assignRef('state',	$state);
+		$this->assignRef('item',	$item);
+		$this->assignRef('form',	$form);
 
-		$this->assignRef('row',			$row);
-
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar
+	 *
+	 * @since	1.6
+	 */
+	protected function _setToolbar()
+	{
+		JRequest::setVar('hidemainmenu', true);
+
+		$user		= JFactory::getUser();
+		$isNew		= ($this->item->id == 0);
+		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
+		$canDo		= BannersHelper::getActions();
+
+		JToolBarHelper::title($isNew ? JText::_('COM_BANNERS_MANAGER_CLIENT_NEW') : JText::_('COM_BANNERS_MANAGER_CLIENT_EDIT'));
+
+		// If not checked out, can save the item.
+		if (!$checkedOut && $canDo->get('core.edit'))
+		{
+			JToolBarHelper::apply('client.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('client.save', 'JTOOLBAR_SAVE');
+			JToolBarHelper::addNew('client.save2new', 'JTOOLBAR_SAVE_AND_NEW');
+		}
+		// If an existing item, can save to a copy.
+		if (!$isNew && $canDo->get('core.create')) {
+			JToolBarHelper::custom('client.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY', false);
+		}
+
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('client.cancel');
+		}
+		else {
+			JToolBarHelper::cancel('client.cancel', 'JTOOLBAR_CLOSE');
+		}
+
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.banners.client');
 	}
 }

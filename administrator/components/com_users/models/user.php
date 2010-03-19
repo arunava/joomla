@@ -1,38 +1,448 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	com_users
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+// No direct access.
+defined('_JEXEC') or die;
+
+jimport('joomla.application.component.modelform');
 
 /**
- * @package		Users
+ * User model.
+ *
+ * @package		Joomla.Administrator
  * @subpackage	com_users
+ * @since		1.6
  */
-class UserModelUser extends JModel
+class UsersModelUser extends JModelForm
 {
 	/**
-	 * Proxy for getTable
+	 * Method to auto-populate the model state.
 	 */
-	function &getTable()
+	protected function _populateState()
 	{
-		return parent::getTable('User', 'JTable');
+		$app = JFactory::getApplication('administrator');
+
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_users.edit.user.id'))) {
+			$pk = (int) JRequest::getInt('id');
+		}
+		$this->setState('user.id', $pk);
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_users');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * @return	JUser
+	 * Prepare and sanitise the table prior to saving.
 	 */
-	function &getItem()
+	protected function _prepareTable(&$table)
 	{
-		$session	= &JFactory::getSession();
-		$id			= (int) $session->get('users.'.$this->getName().'.id', $this->getState('id'));
-		$user		= &JUser::getInstance($id);
-		return $user;
+	}
+
+	/**
+	 * Returns a reference to the a Table object, always creating it.
+	 *
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'User', $prefix = 'JTable', $config = array())
+	{
+		$table = JTable::getInstance($type, $prefix, $config);
+		return $table;
+	}
+
+	/**
+	 * Method to get a single record.
+	 *
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
+	 */
+	public function &getItem($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('user.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Attempt to load the row.
+		$return = $table->load($pk);
+
+		// Check for a table object error.
+		if ($return === false && $table->getError()) {
+			$this->setError($table->getError());
+			return $false;
+		}
+
+		// Prime required properties.
+		if (empty($table->id))
+		{
+			// Prepare data for a new record.
+		}
+
+		// Convert to the JObject before adding other data.
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+		$value->profile = new JObject;
+
+		// Get the dispatcher and load the users plugins.
+		$dispatcher	= &JDispatcher::getInstance();
+		JPluginHelper::importPlugin('user');
+
+		// Trigger the data preparation event.
+		$results = $dispatcher->trigger('onPrepareUserProfileData', array($table->id, &$value));
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		$registry->loadJSON($value->params);
+		$value->params = $registry->toArray();
+
+		return $value;
+	}
+
+	/**
+	 * Method to get the record form.
+	 *
+	 * @return	mixed	JForm object on success, false on failure.
+	 */
+	public function getForm()
+	{
+		// Initialise variables.
+		$app	= JFactory::getApplication();
+
+		// Get the form.
+		$form = parent::getForm('user', 'com_users.user', array('array' => 'jform', 'event' => 'onPrepareForm'));
+
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
+			return false;
+		}
+
+		// Get the dispatcher and load the users plugins.
+		$dispatcher	= &JDispatcher::getInstance();
+		JPluginHelper::importPlugin('user');
+
+		// Trigger the form preparation event.
+		$results = $dispatcher->trigger('onPrepareUserProfileForm', array($this->getState('user.id'), &$form));
+
+		// Check for errors encountered while preparing the form.
+		if (count($results) && in_array(false, $results, true)) {
+			$this->setError($dispatcher->getError());
+			return false;
+		}
+
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_users.edit.user.data', array());
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 */
+	public function save($data)
+	{
+		// Initialise variables;
+		$dispatcher = JDispatcher::getInstance();
+		$table		= $this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int) $this->getState('user.id');
+		$isNew		= true;
+
+		// Include the content plugins for events.
+		JPluginHelper::importPlugin('user');
+
+		// Load the row if saving an existing record.
+		if ($pk > 0)
+		{
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// The password field is a special case.
+		if (!empty($data['password']))
+		{
+			// Generate a password hash.
+			jimport('joomla.user.helper');
+			$salt  = JUserHelper::genRandomPassword(32);
+			$crypt = JUserHelper::getCryptedPassword($data['password'], $salt);
+			$data['password'] = $crypt.':'.$salt;
+		}
+		else
+		{
+			// Do nothing to the password field.
+			unset($data['password']);
+		}
+
+		// Bind the data.
+		if (!$table->bind($data))
+		{
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			return false;
+		}
+
+		// Prepare the row for saving.
+		$this->_prepareTable($table);
+
+		// Check the data.
+		if (!$table->check())
+		{
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Get the old user.
+		$old = JUser::getInstance($table->id);
+
+		// Merge the table back into the raw data for plugin processing.
+		$data = array_merge($data, $table->getProperties(true));
+
+		// Trigger the onBeforeStoreUser event.
+		$result = $dispatcher->trigger('onBeforeStoreUser', array($old->getProperties(true), $isNew, $data));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Store the data.
+		if (!$table->store())
+		{
+			$this->setError($table->getError());
+			return false;
+		}
+
+		$user = &JFactory::getUser();
+		if ($user->id == $table->id)
+		{
+			$registry = new JParameter($table->params);
+			$user->setParameters($registry);
+		}
+		// Trigger the onAftereStoreUser event
+		$dispatcher->trigger('onAfterStoreUser', array($data, $isNew, true, null));
+
+		$this->setState('user.id', $table->id);
+
+		return true;
+	}
+
+	/**
+	 * Method to delete rows.
+	 *
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	public function delete(&$pks)
+	{
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$table	= $this->getTable();
+		$pks	= (array) $pks;
+
+		// Trigger the onBeforeStoreUser event.
+		JPluginHelper::importPlugin('user');
+		$dispatcher = &JDispatcher::getInstance();
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				// Access checks.
+				$allow = $user->authorise('core.edit.state', 'com_users');
+
+				if ($allow)
+				{
+					// Get user data for the user to delete.
+					$user = & JFactory::getUser($pk);
+
+					// Fire the onBeforeDeleteUser event.
+					$dispatcher->trigger('onBeforeDeleteUser', array($table->getProperties()));
+
+					if (!$table->delete($pk))
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+					else
+					{
+						// Trigger the onAfterDeleteUser event.
+						$dispatcher->trigger('onAfterDeleteUser', array($user->getProperties(), true, $this->getError()));
+					}
+				}
+				else
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JError_Core_Delete_not_permitted'));
+				}
+			}
+			else
+			{
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to block user records.
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function block(&$pks, $value = 1)
+	{
+		// Initialise variables.
+		$app		= JFactory::getApplication();
+		$dispatcher	= JDispatcher::getInstance();
+		$user		= JFactory::getUser();
+		$table		= $this->getTable();
+		$pks		= (array) $pks;
+
+		JPluginHelper::importPlugin('user');
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if ($value == 1 && $pk == $user->get('id'))
+			{
+				// Cannot block yourself.
+				unset($pks[$i]);
+				JError::raiseWarning(403, JText::_('Users_Error_Cannot_block_self'));
+			}
+			else if ($table->load($pk))
+			{
+				$old	= $table->getProperties();
+				$allow	= $user->authorise('core.edit.state', 'com_users');
+
+				// Prepare the logout options.
+				$options = array(
+					'clientid' => array(0, 1)
+				);
+
+				if ($allow)
+				{
+					$table->block = (int) $value;
+
+					if (!$table->check())
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+
+					// Trigger the onBeforeStoreUser event.
+					$dispatcher->trigger('onBeforeStoreUser', array($old, false));
+
+					// Store the table.
+					if (!$table->store())
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+
+					// Trigger the onAftereStoreUser event
+					$dispatcher->trigger('onAfterStoreUser', array($table->getProperties(), false, true, null));
+
+					// Log the user out.
+					if ($value) {
+						$app->logout($table->id, $options);
+					}
+				}
+				else
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to activate user records.
+	 *
+	 * @param	array	The ids of the items to activate.
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function activate(&$pks)
+	{
+		// Initialise variables.
+		$dispatcher	= JDispatcher::getInstance();
+		$user		= JFactory::getUser();
+		$table		= $this->getTable();
+		$pks		= (array) $pks;
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				$old	= $table->getProperties();
+				$allow	= $user->authorise('core.edit.state', 'com_users');
+
+				if (empty($table->activation))
+				{
+					// Ignore activated accounts.
+					unset($pks[$i]);
+				}
+				else if ($allow)
+				{
+					$table->block		= 0;
+					$table->activation	= '';
+
+					if (!$table->check())
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+
+					// Trigger the onBeforeStoreUser event.
+					$dispatcher->trigger('onBeforeStoreUser', array($old, false));
+
+					// Store the table.
+					if (!$table->store())
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+
+					// Fire the onAftereStoreUser event
+					$dispatcher->trigger('onAfterStoreUser', array($table->getProperties(), false, true, null));
+				}
+				else
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -41,208 +451,130 @@ class UserModelUser extends JModel
 	 * @param	array	An array of variable for the batch operation
 	 * @param	array	An array of IDs on which to operate
 	 */
-	function batch($vars, $ids)
+	public function batch($config, $user_ids)
 	{
-		$db		= $this->getDBO();
-		$result	= true;
-
-		JArrayHelper::toInteger($ids);
-
-		// Do stuff
-
-		return $result;
-	}
-
-	/**
-	 * Saves the record
-	 */
-	function save($input)
-	{
-		// Initialize some variables
-		$app		= &JFactory::getApplication();
-		$db			= &JFactory::getDBO();
-		$me			= &JFactory::getUser();
-		$acl		= &JFactory::getACL();
-		$MailFrom	= $app->getCfg('mailfrom');
-		$FromName	= $app->getCfg('fromname');
-		$SiteName	= $app->getCfg('sitename');
-		$userId		= JArrayHelper::getValue($input, 'id', 0, 'int');
-
- 		// Create a new JUser object
-		$user		= JUser::getInstance($userId);
-		// @todo How does this work with multi-mapping groups
-		$oldGroupId	= $user->get('gid');
-
-		if (!$user->bind($input)) {
-			$this->setError($user->getError());
-			return false;
-		}
-
-		$objectID 	= $acl->get_object_id('users', $user->get('id'), 'ARO');
-		$groups 	= $acl->get_object_groups($objectID, 'ARO');
-		$this_group = strtolower($acl->get_group_name($groups[0], 'ARO'));
-
-		if ($user->get('id') == $me->get('id') && $user->get('block') == 1) {
-			$this->setError(JText::_('You cannot block Yourself!'));
-			return false;
-		}
-
-		if (($this_group == 'super administrator') && $user->get('block') == 1) {
-			$this->setError(JText::_('You cannot block a Super Administrator'));
-			return false;
-		}
-
-		if (($this_group == 'administrator') && ($me->get('gid') == 24) && $user->get('block') == 1) {
-			$this->setError(JText::_('WARNBLOCK'));
-			return false;
-		}
-
-		if (($this_group == 'super administrator') && ($me->get('gid') != 25))
+		// Ensure there are selected users to operate on.
+		if (empty($user_ids))
 		{
-			$this->setError(JText::_('You cannot edit a super administrator account'));
+			$this->setError(JText::_('USERS_USERS_NOT_SELECTED'));
 			return false;
 		}
-		// Are we dealing with a new user which we need to create?
-		$isNew 	= ($user->get('id') < 1);
-		if (!$isNew)
+		// Only run operations if a config array is present.
+		else if (!empty($config))
 		{
-			// if group has been changed and where original group was a Super Admin
-			if ($user->get('gid') != $oldGroupId && $oldGroupId == 25)
+			// Ensure there is a valid group.
+			$group_id = JArrayHelper::getValue($config, 'group_id', 0, 'int');
+			if ($group_id < 1)
 			{
-				// count number of active super admins
-				$db->setQuery(
-					'SELECT COUNT(id)'
-					. ' FROM #__users'
-					. ' WHERE gid = 25'
-					. ' AND block = 0'
-				);
-				$count = $db->loadResult();
+				$this->setError(JText::_('USERS_INVALID_GROUP'));
+				return false;
+			}
 
-				if ($count <= 1) {
-					// disallow change if only one Super Admin exists
-					$this->setError(JText::_('WARN_ONLY_SUPER'));
+			// Get the system ACL object and set the mode to database driven.
+			$acl = JFactory::getACL();
+			$oldAclMode = $acl->setCheckMode(1);
+
+			$groupLogic	= JArrayHelper::getValue($config, 'group_logic');
+			switch ($groupLogic)
+			{
+				case 'set':
+					$doDelete		= 2;
+					$doAssign		= true;
+					break;
+
+				case 'del':
+					$doDelete		= true;
+					$doAssign		= false;
+					break;
+
+				case 'add':
+				default:
+					$doDelete		= false;
+					$doAssign		= true;
+					break;
+			}
+
+			// Remove the users from the group(s) if requested.
+			if ($doDelete)
+			{
+				// Purge operation, remove the users from all groups.
+				if ($doDelete === 2)
+				{
+					$this->_db->setQuery(
+						'DELETE FROM `#__core_acl_groups_aro_map`' .
+						' WHERE `aro_id` IN ('.implode(',', $user_ids).')'
+					);
+				}
+				// Remove the users from the group.
+				else
+				{
+					$this->_db->setQuery(
+						'DELETE FROM `#__core_acl_groups_aro_map`' .
+						' WHERE `aro_id` IN ('.implode(',', $user_ids).')' .
+						' AND `group_id` = '.$group_id
+					);
+				}
+
+				// Check for database errors.
+				if (!$this->_db->query()) {
+					$this->setError($this->_db->getErrorMsg());
 					return false;
 				}
 			}
-		}
 
-		// Lets save the JUser object
-		if (!$user->save())
-		{
-			$this->setError($user->getError());
-			return false;
-		}
-
-		/*
-	 	 * Time for the email magic so get ready to sprinkle the magic dust...
-	 	 */
-		if ($isNew)
-		{
-			$adminEmail = $me->get('email');
-			$adminName	= $me->get('name');
-
-			$subject = JText::_('NEW_USER_MESSAGE_SUBJECT');
-			$message = sprintf (JText::_('NEW_USER_MESSAGE'), $user->get('name'), $SiteName, JUri::root(), $user->get('username'), $user->password_clear);
-
-			if ($MailFrom != '' && $FromName != '')
+			// Assign the users to the group if requested.
+			if ($doAssign)
 			{
-				$adminName 	= $FromName;
-				$adminEmail = $MailFrom;
-			}
-			JUtility::sendMail($adminEmail, $adminName, $user->get('email'), $subject, $message);
-		}
+				// Build the tuples array for the assignment query.
+				$tuples = array();
+				foreach ($user_ids as $id)
+				{
+					$tuples[] = '('.$id.','.$group_id.')';
+				}
 
-		// If updating self, load the new user object into the session
-		if ($user->get('id') == $me->get('id'))
-		{
-			// Get an ACL object
-			$acl = &JFactory::getACL();
+				$this->_db->setQuery(
+					'INSERT IGNORE INTO `#__core_acl_groups_aro_map` (`aro_id`, `group_id`)' .
+					' VALUES '.implode(',', $tuples)
+				);
 
-			// Get the user group from the ACL
-			$grp = $acl->getAroGroup($user->get('id'));
-
-			// Mark the user as logged in
-			$user->set('guest', 0);
-			$user->set('aid', 1);
-
-			// Fudge Authors, Editors, Publishers and Super Administrators into the special access group
-			if ($acl->is_group_child_of($grp->name, 'Registered') ||
-				$acl->is_group_child_of($grp->name, 'Public Backend')) {
-				$user->set('aid', 2);
+				// Check for database errors.
+				if (!$this->_db->query()) {
+					$this->setError($this->_db->getErrorMsg());
+					return false;
+				}
 			}
 
-			// Set the usertype based on the ACL group name
-			$user->set('usertype', $grp->name);
-
-			$session = &JFactory::getSession();
-			$session->set('user', $user);
+			// Set the ACL mode back to it's previous state.
+			$acl->setCheckMode($oldAclMode);
 		}
 
 		return true;
 	}
 
 	/**
-	 * Removes the record(s) from the database
+	 * Gets the available groups.
 	 *
-	 * @param	array	An array of User IDs
-	 * @return	boolean
+	 * @return	array
 	 */
-	function delete($ids)
+	public function getGroups()
 	{
-		JArrayHelper::toInteger($ids);
-
-		if (count($ids) < 1) {
-			$this->setError(JText::_('Select a User to delete'));
-			return false;
-		}
-
-		foreach ($ids as $id)
-		{
-			// check for a super admin ... can't delete them
-			$objectID 	= $acl->get_object_id('users', $id, 'ARO');
-			$groups 	= $acl->get_object_groups($objectID, 'ARO');
-			$thisGroup = strtolower($acl->get_group_name($groups[0], 'ARO'));
-
-			$success = false;
-			// @todo The group checking need to be done via the API
-			if ($thisGroup == 'super administrator') {
-				$this->setError(JText::_('You cannot delete a Super Administrator'));
-			}
-			else if ($id == $currentUser->get('id')) {
-				$this->setError(JText::_('You cannot delete Yourself!'));
-			}
-			// @todo The group checking need to be done via the API
-			else if (($thisGroup == 'administrator') && ($currentUser->get('gid') == 24)) {
-				$this->setError(JText::_('WARNDELETE'));
-			}
-			else {
-				$user	=& JUser::getInstance((int)$id);
-				$count	= 2;
-
-				if ($user->get('gid') == 25) {
-					// count number of active super admins
-					$db->setQuery(
-						'SELECT COUNT(id)'
-						. ' FROM #__users'
-						. ' WHERE gid = 25'
-						. ' AND block = 0'
-					);
-					$count = $db->loadResult();
-				}
-
-				if ($count <= 1 && $user->get('gid') == 25) {
-					// cannot delete Super Admin where it is the only one that exists
-					$this->setError(JText::_('You cannot delete this Super Administrator as it is the only active Super Administrator for your site'));
-				}
-				else {
-					// @todo Log the user out/delete user acounts active sessions
-					$user->delete();
-					// @todo Error check delete
-					return true;
-				}
-			}
-		}
-		return false;
+		$model = JModel::getInstance('Groups', 'UsersModel', array('ignore_request' => true));
+		return $model->getItems();
 	}
 
+	/**
+	 * Gets the groups this object is assigned to
+	 *
+	 * @return	array
+	 */
+	public function getAssignedGroups($userId = null)
+	{
+		// Initialise variables.
+		$userId = (!empty($userId)) ? $userId : (int)$this->getState('user.id');
+
+		jimport('joomla.user.helper');
+		$result = JUserHelper::getUserGroups($userId);
+
+		return $result;
+	}
 }

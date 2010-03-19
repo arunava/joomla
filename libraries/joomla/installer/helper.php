@@ -1,14 +1,12 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Installer
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 jimport('joomla.filesystem.file');
 jimport('joomla.filesystem.folder');
@@ -23,7 +21,7 @@ jimport('joomla.filesystem.path');
  * @subpackage	Installer
  * @since		1.5
  */
-abstract class JInstallerHelper
+class JInstallerHelper
 {
 	/**
 	 * Downloads a package
@@ -34,9 +32,9 @@ abstract class JInstallerHelper
 	 * @return mixed Path to downloaded package or boolean false on failure
 	 * @since 1.5
 	 */
-	public static function downloadPackage($url, $target = false)
+	function downloadPackage($url, $target = false)
 	{
-		$config =& JFactory::getConfig();
+		$config = &JFactory::getConfig();
 
 		// Capture PHP errors
 		$php_errormsg = 'Error Unknown';
@@ -51,7 +49,8 @@ abstract class JInstallerHelper
 		// Open the remote server socket for reading
 		$inputHandle = @ fopen($url, "r");
 		$error = strstr($php_errormsg,'failed to open stream:');
-		if (!$inputHandle) {
+		if (!$inputHandle)
+		{
 			JError::raiseWarning(42, JText::_('SERVER_CONNECT_FAILED').', '.$error);
 			return false;
 		}
@@ -59,7 +58,8 @@ abstract class JInstallerHelper
 		$meta_data = stream_get_meta_data($inputHandle);
 		foreach ($meta_data['wrapper_data'] as $wrapper_data)
 		{
-			if (substr($wrapper_data, 0, strlen("Content-Disposition")) == "Content-Disposition") {
+			if (substr($wrapper_data, 0, strlen("Content-Disposition")) == "Content-Disposition")
+			{
 				$contentfilename = explode ("\"", $wrapper_data);
 				$target = $contentfilename[1];
 			}
@@ -68,17 +68,19 @@ abstract class JInstallerHelper
 		// Set the target path if not given
 		if (!$target) {
 			$target = $config->getValue('config.tmp_path').DS.JInstallerHelper::getFilenameFromURL($url);
-		} else {
+		}
+		else {
 			$target = $config->getValue('config.tmp_path').DS.basename($target);
 		}
 
-		// Initialize contents buffer
+		// Initialise contents buffer
 		$contents = null;
 
 		while (!feof($inputHandle))
 		{
 			$contents .= fread($inputHandle, 4096);
-			if ($contents == false) {
+			if ($contents == false)
+			{
 				JError::raiseWarning(44, 'Failed reading network resource: '.$php_errormsg);
 				return false;
 			}
@@ -106,7 +108,7 @@ abstract class JInstallerHelper
 	 * @return Array Two elements - extractdir and packagefile
 	 * @since 1.5
 	 */
-	public static function unpack($p_filename)
+	function unpack($p_filename)
 	{
 		// Path to the archive
 		$archivename = $p_filename;
@@ -160,11 +162,10 @@ abstract class JInstallerHelper
 		 * Get the extension type and return the directory/type array on success or
 		 * false on fail.
 		 */
-		if ($retval['type'] = JInstallerHelper::detectType($extractdir))
-		{
+		if ($retval['type'] = JInstallerHelper::detectType($extractdir)) {
 			return $retval;
-		} else
-		{
+		}
+		else {
 			return false;
 		}
 	}
@@ -177,46 +178,40 @@ abstract class JInstallerHelper
 	 * @return mixed Extension type string or boolean false on fail
 	 * @since 1.5
 	 */
-	public static function detectType($p_dir)
+	function detectType($p_dir)
 	{
 		// Search the install dir for an xml file
 		$files = JFolder::files($p_dir, '\.xml$', 1, true);
 
-		if (count($files) > 0)
-		{
-
-			foreach ($files as $file)
-			{
-				$xmlDoc = & JFactory::getXMLParser('Simple');
-
-				if (!$xmlDoc->loadFile($file))
-				{
-					// Free up memory
-					unset ($xmlDoc);
-					continue;
-				}
-				$root = & $xmlDoc->document;
-				if (!is_object($root) || ($root->name() != "install" && $root->name() != 'extension'))
-				{
-					unset($xmlDoc);
-					continue;
-				}
-
-				$type = $root->attributes('type');
-				// Free up memory
-				unset ($xmlDoc);
-				return $type;
-			}
-
-			JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
-			// Free up memory
-			unset ($xmlDoc);
-			return false;
-		} else
+		if ( ! count($files))
 		{
 			JError::raiseWarning(1, JText::_('ERRORNOTFINDXMLSETUPFILE'));
 			return false;
 		}
+
+		foreach ($files as $file)
+		{
+			if( ! $xml = JFactory::getXML($file))
+			{
+				continue;
+			}
+
+			if($xml->getName() != 'install' && $xml->getName() != 'extension')
+			{
+				unset($xml);
+				continue;
+			}
+
+			$type = (string)$xml->attributes()->type;
+			// Free up memory
+			unset ($xml);
+			return $type;
+		}
+
+		JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
+		// Free up memory.
+		unset ($xml);
+		return false;
 	}
 
 	/**
@@ -227,9 +222,10 @@ abstract class JInstallerHelper
 	 * @return mixed String filename or boolean false if failed
 	 * @since 1.5
 	 */
-	public static function getFilenameFromURL($url)
+	function getFilenameFromURL($url)
 	{
-		if (is_string($url)) {
+		if (is_string($url))
+		{
 			$parts = explode('/', $url);
 			return $parts[count($parts) - 1];
 		}
@@ -245,9 +241,9 @@ abstract class JInstallerHelper
 	 * @return boolean True on success
 	 * @since 1.5
 	 */
-	public static function cleanupInstall($package, $resultdir)
+	function cleanupInstall($package, $resultdir)
 	{
-		$config =& JFactory::getConfig();
+		$config = &JFactory::getConfig();
 
 		// Does the unpacked extension directory exist?
 		if (is_dir($resultdir)) {
@@ -257,7 +253,9 @@ abstract class JInstallerHelper
 		// Is the package file a valid file?
 		if (is_file($package)) {
 			JFile::delete($package);
-		} elseif (is_file(JPath::clean($config->getValue('config.tmp_path').DS.$package))) {
+		}
+		elseif (is_file(JPath::clean($config->getValue('config.tmp_path').DS.$package)))
+		{
 			// It might also be just a base filename
 			JFile::delete(JPath::clean($config->getValue('config.tmp_path').DS.$package));
 		}
@@ -269,9 +267,9 @@ abstract class JInstallerHelper
 	 * @param string
 	 * @return array
 	 */
-	public static function splitSql($sql)
+	function splitSql($sql)
 	{
-		$db =& JFactory::getDBO();
+		$db = &JFactory::getDbo();
 		return $db->splitSql($sql);
 	}
 }

@@ -1,193 +1,148 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Languages
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Languages Component Languages Model
+ * Languages Model Class
  *
  * @package		Joomla.Administrator
- * @subpackage	Languages
- * @since 1.6
+ * @subpackage	com_languages
+ * @version		1.5
  */
-class LanguagesModelLanguages extends JModel
+class LanguagesModelLanguages extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	protected $_context = 'com_languages.languages';
 
 	/**
-	 * Category total
+	 * Method to auto-populate the model state.
 	 *
-	 * @var integer
-	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
+	 * This method should only be called once per instantiation and is designed
+	 * to be called on the first call to the getState() method unless the model
+	 * configuration flag to ignore the request is set.
 	 *
-	 * @var object
+	 * @return	void
+	 * @since	1.6
 	 */
-	var $_pagination = null;
-
-	/**
-	 * Client object
-	 *
-	 * @var object
-	 */
-	var $_client = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		global $mainframe, $option;
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int' );
-		$limitstart	= $mainframe->getUserStateFromRequest( $option.'.limitstart', 'limitstart', 0, 'int' );
+		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		// Load the parameters.
+		$params		= JComponentHelper::getParams('com_languages');
+		$this->setState('params', $params);
 
-		$this->_client	=& JApplicationHelper::getClientInfo(JRequest::getVar('client', 0, '', 'int'));
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
-	 * Method to get Languagess item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 * @return	string		A store id.
+	 * @since	1.6
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$this->_loadData();
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.published');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * Method to build an SQL query to load the list data.
+	 *
+	 * @return	string	An SQL query
+	 * @since	1.6
+	 */
+	protected function _getListQuery()
+	{
+		// Create a new query object.
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+
+		// Select all fields from the users table.
+		$query->select($this->getState('list.select', 'a.*'));
+		$query->from('`#__languages` AS a');
+
+		// Filter on the published state.
+		$published = $this->getState('filter.published');
+		if (is_numeric($published)) {
+			$query->where('a.published = '.(int) $published);
+		} else if ($published === '') {
+			$query->where('(a.published IN (0, 1))');
 		}
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the total number of Languages items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$this->getData();
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			$search = $db->Quote('%'.$db->getEscaped($search, true).'%', false);
+			$query->where('(a.title LIKE '.$search.')');
 		}
 
-		return $this->_total;
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		return $query;
+	}
+
+	public function setPublished($cid, $value = 0)
+	{
+		return JTable::getInstance('Language')->publish($cid, $value);
 	}
 
 	/**
-	 * Method to get a pagination object for the Languagess
+	 * Method to delete records.
 	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get the client object
+	 * @param	array	An array of item primary keys.
 	 *
-	 * @access public
-	 * @return object
+	 * @return	boolean	Returns true on success, false on failure.
 	 */
-	function getClient()
+	public function delete($pks)
 	{
-		return $this->_client;
-	}
+		// Sanitize the array.
+		$pks = (array) $pks;
 
-	function _loadData()
-	{
-		// Initialize some variables
-		$rows	= array ();
-		$rowid = -1;
-		$rowstart = $this->getState('limitstart') + 0;
-		$rowend = $rowstart + $this->getState('limit') - 1;
+		// Get a row instance.
+		$table = JTable::getInstance('Language');
 
-		//load folder filesystem class
-		jimport('joomla.filesystem.folder');
-		$path = JLanguage::getLanguagePath($this->_client->path);
-		$dirs = JFolder::folders( $path );
-
-		foreach ($dirs as $dir)
+		// Iterate the items to delete each one.
+		foreach ($pks as $itemId)
 		{
-			$files = JFolder::files( $path.DS.$dir, '^([-_A-Za-z]*)\.xml$' );
-			foreach ($files as $file)
+			if (!$table->delete((int) $itemId))
 			{
-				$rowid++;
-				// Only include the current page
-				if ($rowid < $rowstart) {
-					continue;
-				}
-
-				if ($rowid > $rowend) {
-					continue;
-				}
-
-				$data = JApplicationHelper::parseXMLLangMetaFile($path.DS.$dir.DS.$file);
-
-				$row 			= new StdClass();
-				$row->id 		= $rowid;
-				$row->language 	= substr($file,0,-4);
-
-				if (!is_array($data)) {
-					continue;
-				}
-				foreach($data as $key => $value) {
-					$row->$key = $value;
-				}
-
-				// if current than set published
-				$params = JComponentHelper::getParams('com_languages');
-				if ( $params->get($this->_client->name, 'en-GB') == $row->language) {
-					$row->published	= 1;
-				} else {
-					$row->published = 0;
-				}
-
-				$row->checked_out = 0;
-				$row->mosname = JString::strtolower( str_replace( " ", "_", $row->name ) );
-				$rows[] = $row;
+				$this->setError($table->getError());
+				return false;
 			}
 		}
-		$this->_data = $rows;
-		$this->_total = $rowid+1;
+
+		return true;
 	}
 }

@@ -3,12 +3,12 @@
  * @version		$Id:tar.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Tar format adapter for the JArchive class
@@ -19,7 +19,7 @@ defined('JPATH_BASE') or die();
  * @contributor  Michael Slusarz <slusarz@horde.org>
  * @contributor  Michael Cochrane <mike@graftonhall.co.nz>
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -29,7 +29,7 @@ class JArchiveTar extends JObject
 	 * Tar file types.
 	 * @var array
 	 */
-	protected $_types = array (
+	var $_types = array (
 		0x0 => 'Unix file',
 		0x30 => 'File',
 		0x31 => 'Link',
@@ -45,7 +45,7 @@ class JArchiveTar extends JObject
 	 * Tar file flags.
 	 * @var array
 	 */
-	protected $_flags = array (
+	var $_flags = array (
 		'FTEXT' => 0x01,
 		'FHCRC' => 0x02,
 		'FEXTRA' => 0x04,
@@ -57,17 +57,13 @@ class JArchiveTar extends JObject
 	 * Tar file data buffer
 	 * @var string
 	 */
-	protected $_data = null;
+	var $_data = null;
 
 	/**
 	 * Tar file metadata array
 	 * @var array
 	 */
-	protected $_metadata = null;
-
-	public function __construct() {
-		
-	}
+	var $_metadata = null;
 
 	/**
 	* Extract a ZIP compressed file to a given path
@@ -77,16 +73,16 @@ class JArchiveTar extends JObject
 	* @param	string	$destination	Path to extract archive into
 	* @param	array	$options		Extraction options [unused]
 	* @return	boolean	True if successful
-	* @since 	1.5
+	* @since	1.5
 	*/
-	public function extract($archive, $destination, $options = array ())
+	function extract($archive, $destination, $options = array ())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$this->_data = null;
 		$this->_metadata = null;
 
 		$stream =& JFactory::getStream();
-		if (!$stream->open($archive, 'rb'))
+		if(!$stream->open($archive, 'rb'))
 		{
 			$this->set('error.message', 'Unable to read archive');
 			return JError::raiseWarning(100, $this->get('error.message'));
@@ -108,7 +104,7 @@ class JArchiveTar extends JObject
 			$size = octdec($info['size']);
 			$bsize = ceil($size / $chunksize) * $chunksize;
 			$contents = '';
-			if ($size) {
+			if($size) {
 				//$contents = fread($this->_fh, $size);
 				$contents = substr($stream->read($bsize),0, octdec($info['size']));
 			}
@@ -128,20 +124,20 @@ class JArchiveTar extends JObject
 
 					$mode = hexdec(substr($info['mode'], 4, 3));
 					$file['attr'] = (($info['typeflag'] == 0x35) ? 'd' : '-') .
-					 (($mode & 0x400) ? 'r' : '-') .
-					 (($mode & 0x200) ? 'w' : '-') .
-					 (($mode & 0x100) ? 'x' : '-') .
-					 (($mode & 0x040) ? 'r' : '-') .
-					 (($mode & 0x020) ? 'w' : '-') .
-					 (($mode & 0x010) ? 'x' : '-') .
-					 (($mode & 0x004) ? 'r' : '-') .
-					 (($mode & 0x002) ? 'w' : '-') .
-					 (($mode & 0x001) ? 'x' : '-');
+					(($mode & 0x400) ? 'r' : '-') .
+					(($mode & 0x200) ? 'w' : '-') .
+					(($mode & 0x100) ? 'x' : '-') .
+					(($mode & 0x040) ? 'r' : '-') .
+					(($mode & 0x020) ? 'w' : '-') .
+					(($mode & 0x010) ? 'x' : '-') .
+					(($mode & 0x004) ? 'r' : '-') .
+					(($mode & 0x002) ? 'w' : '-') .
+					(($mode & 0x001) ? 'x' : '-');
 				} else {
 					/* Some other type. */
 				}
 
-				$type = strtolower($file['type']);
+				$type = strtolower( $file['type'] );
 				if ($type == 'file' || $type == 'unix file')
 				{
 					$path = JPath::clean($destination.DS.$file['name']);
@@ -150,12 +146,12 @@ class JArchiveTar extends JObject
 					{
 						$this->set('error.message', 'Unable to create destination');
 						return JError::raiseWarning(100, $this->get('error.message'));
-					}
-					if (JFile::write($path, $contents) === false)
+			}
+					if (JFile::write($path, $contents, true) === false)
 					{
 						$this->set('error.message', 'Unable to write entry');
 						return JError::raiseWarning(100, $this->get('error.message'));
-					}
+		}
 					$contents = ''; // reclaim some memory
 				}
 			}

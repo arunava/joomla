@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Renders a category element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */
@@ -30,45 +30,28 @@ class JElementCategory extends JElement
 
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = &JFactory::getDBO();
+		$db = &JFactory::getDbo();
 
-		$section	= $node->attributes('section');
+		$extension	= $node->attributes('extension');
 		$class		= $node->attributes('class');
+		$filter		= explode(',', $node->attributes('filter'));
+
+		if (!isset ($extension)) {
+			// alias for extension
+			$extension = $node->attributes('scope');
+			if (!isset ($extension)) {
+				$extension = 'com_content';
+			}
+		}
+
 		if (!$class) {
 			$class = "inputbox";
 		}
 
-		if (!isset ($section)) {
-			// alias for section
-			$section = $node->attributes('scope');
-			if (!isset ($section)) {
-				$section = 'content';
-			}
+		if (count($filter) < 1) {
+			$filter = null;
 		}
 
-		if ($section == 'content') {
-			// This might get a conflict with the dynamic translation - TODO: search for better solution
-			$query = 'SELECT c.id, CONCAT_WS("/",s.title, c.title) AS title' .
-				' FROM #__categories AS c' .
-				' LEFT JOIN #__sections AS s ON s.id=c.section' .
-				' WHERE c.published = 1' .
-				' AND s.scope = '.$db->Quote($section).
-				' ORDER BY s.title, c.title';
-		} else {
-			$query = 'SELECT c.id, c.title' .
-				' FROM #__categories AS c' .
-				' WHERE c.published = 1' .
-				' AND c.section = '.$db->Quote($section).
-				' ORDER BY c.title';
-		}
-		$db->setQuery($query);
-		try {
-			$options = $db->loadObjectList();
-		} catch(JException $e) {
-			$options = array();
-		}
-		array_unshift($options, JHtml::_('select.option', '0', '- '.JText::_('Select Category').' -', 'id', 'title'));
-
-		return JHtml::_('select.genericlist',  $options, ''.$control_name.'['.$name.']', 'class="'.$class.'"', 'id', 'title', $value, $control_name.$name);
+		return JHtml::_('list.category', $control_name.'['.$name.']', $extension, $extension.'.view', $filter, (int) $value, $class, null, 1, $control_name.$name);
 	}
 }

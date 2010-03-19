@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Document
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Abstract class for a renderer
@@ -18,7 +18,7 @@ defined('JPATH_BASE') or die();
  * @subpackage	Document
  * @since		1.5
  */
-abstract class JDocumentRenderer extends JClass
+class JDocumentRenderer extends JObject
 {
 	/**
 	* reference to the JDocument object that instantiated the renderer
@@ -26,7 +26,7 @@ abstract class JDocumentRenderer extends JClass
 	* @var		object
 	* @access	protected
 	*/
-	protected $_doc = null;
+	var	$_doc = null;
 
 	/**
 	 * Renderer mime type
@@ -34,7 +34,7 @@ abstract class JDocumentRenderer extends JClass
 	 * @var		string
 	 * @access	private
 	 */
-	 protected $_mime = "text/html";
+	var $_mime = "text/html";
 
 	/**
 	* Class constructor
@@ -42,8 +42,8 @@ abstract class JDocumentRenderer extends JClass
 	* @access protected
 	* @param object A reference to the JDocument object that instantiated the renderer
 	*/
-	public function __construct(&$doc) {
-		$this->_doc =& $doc;
+	function __construct(&$doc) {
+		$this->_doc = &$doc;
 	}
 
 	/**
@@ -51,19 +51,22 @@ abstract class JDocumentRenderer extends JClass
 	 *
 	 * @abstract
 	 * @access public
-	 * @param string 	$name		The name of the element to render
-	 * @param array 	$array		Array of values
-	 * @param string 	$content	Override the output of the renderer
+	 * @param string	$name		The name of the element to render
+	 * @param array		$array		Array of values
+	 * @param string	$content	Override the output of the renderer
 	 * @return string	The output of the script
 	 */
-	abstract public function render($name, $params = array(), $content = null);
+	function render($name, $params = array(), $content = null)
+	{
+
+	}
 
 	/**
 	 * Return the content type of the renderer
 	 *
 	 * @return string The contentType
 	 */
-	public function getContentType() {
+	function getContentType() {
 		return $this->_mime;
 	}
 }

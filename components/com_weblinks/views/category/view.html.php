@@ -1,197 +1,143 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @subpackage	Weblinks
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// no direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the WebLinks component
  *
- * @static
- * @package		Joomla
- * @subpackage	Weblinks
- * @since 1.0
+ * @package		Joomla.Site
+ * @subpackage	com_weblinks
+ * @since		1.5
  */
 class WeblinksViewCategory extends JView
 {
-	function display( $tpl = null )
+	protected $state;
+	protected $items;
+	protected $category;
+	protected $categories;
+	protected $pagination;
+
+	function display($tpl = null)
 	{
-		global $mainframe;
+		$app		= &JFactory::getApplication();
+		$params		= &$app->getParams();
 
-		// Initialize some variables
-		$document	= &JFactory::getDocument();
-		$uri 		= &JFactory::getURI();
-		$pathway	= &$mainframe->getPathway();
+		// Get some data from the models
+		$state		= &$this->get('State');
 
-		// Get the parameters of the active menu item
-		$menus = &JSite::getMenu();
-		$menu  = $menus->getActive();
+		$items		= &$this->get('Items');
+		$category	= &$this->get('Category');
+		$categories	= &$this->get('Categories');
+		$pagination	= &$this->get('Pagination');
 
-		// Get some data from the model
-		$items		= &$this->get('data' );
-		$total		= &$this->get('total');
-		$pagination	= &$this->get('pagination');
-		$category	= &$this->get('category' );
-		$state		= &$this->get('state');
-
-		$model =& JModel::getInstance('categories', 'weblinksmodel');
-		$categories =& $model->getData();
-
-		// Get the page/component configuration
-		$params = &$mainframe->getParams();
-
-		$category->total = $total;
-
-		// Add alternate feed link
-		if($params->get('show_feed_link', 1) == 1)
-		{
-			$link	= '&view=category&id='.$category->slug.'&format=feed&limitstart=';
-			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
-			$document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
-			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
-			$document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		$menus	= &JSite::getMenu();
-		$menu	= $menus->getActive();
+		// Validate the category.
 
-		// because the application sets a default page title, we need to get it
-		// right from the menu item itself
-		if (is_object( $menu )) {
-			$menu_params = new JParameter( $menu->params );
-			if (!$menu_params->get( 'page_title')) {
-				$params->set('page_title', $category->title);
-			}
-		} else {
-			$params->set('page_title',	$category->title);
-		}
-		$document->setTitle( $params->get( 'page_title' ) );
-
-		//set breadcrumbs
-		if(is_object($menu) && $menu->query['view'] != 'category') {
-			$pathway->addItem($category->title, '');
+		// Make sure the category was found.
+		if (empty($category)) {
+			return JError::raiseWarning(404, JText::_('COM_WEBLINKS_ERROR_CATEGORY_NOT_FOUND'));
 		}
 
-		// Prepare category description
+		// Check whether category access level allows access.
+		$user	= &JFactory::getUser();
+		$groups	= $user->authorisedLevels();
+		if (!in_array($category->access, $groups)) {
+			return JError::raiseError(403, JText::_("JERROR_ALERTNOAUTHOR"));
+		}
+
+		// Prepare the data.
+
+		// Compute the active category slug.
+		$category->slug = $category->alias ? ($category->id.':'.$category->alias) : $category->id;
+
+		// Prepare category description (runs content plugins)
+		// TODO: only use if the description is displayed
 		$category->description = JHtml::_('content.prepare', $category->description);
 
-		// table ordering
-		$lists['order_Dir'] = $state->get('filter_order_dir');
-		$lists['order'] = $state->get('filter_order');
-
-		// Set some defaults if not set for params
-		$params->def('comp_description', JText::_('WEBLINKS_DESC'));
-		$params->def('show_numbers', '1');		// Default to "show"
-		$params->def('show_report', '0');		// Default to "hide"
-		$params->def('show_snapshot', '0');		// Default to "hide"
-		$params->def('snapshot_width', '120');
-		$params->def('snapshot_height', '90');
-
-		// Define image tag attributes
-		if (isset( $category->image ) && $category->image != '')
+		// Compute the weblink slug & link url.
+		for ($i = 0, $n = count($items); $i < $n; $i++)
 		{
-			$attribs = array();
-			$attribs['align']  = $category->image_position;
-			$attribs['hspace'] = 6;
-
-			// Use the static HTML library to build the image tag
-			$category->image = JHtml::_('image', 'images/'.$category->image, JText::_('Web Links'), $attribs);
-		}
-
-		// icon in table display
-		if ( $params->get( 'link_icons' ) <> -1 ) {
-			$image = JHtml::_('image.site',  $params->get('link_icons', 'weblink.png'), '/images/M_images/', $params->get( 'weblink_icons' ), '/images/M_images/', 'Link' );
-		}
-
-		$source = $params->get('snapshot_source');
-		$source_url = '';
-		if ($source) {
-			JModel::addIncludePath(JPATH_ADMINISTRATOR.DS.'components'.DS.'com_weblinks'.DS.'models');
-			$model =& JModel::getInstance('snapshotsources','WeblinksModel');
-			$sites = $model->getData();
-			foreach ($sites as $site) {
-				if ($source == $site->name) $source_url = $site->url;
+			$item		= &$items[$i];
+			$item->slug	= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
+			if ($item->params->get('count_clicks', $params->get('count_clicks')) == 1) {
+				$item->link = JRoute::_('index.php?task=weblink.go&&id='. $item->id);
+			} else {
+				$item->link = $item->url;
 			}
 		}
 
-		$patterns = array('%u','%w','%h');
-		$replacements = array(null, $params->get('snapshot_width'), $params->get('snapshot_height'));
-
-		$k = 0;
-		$count = count($items);
-		for($i = 0; $i < $count; $i++)
+		// Compute the categories (list) slug.
+		for ($i = 0, $n = count($categories); $i < $n; $i++)
 		{
-			$item =& $items[$i];
-
-			$link = JRoute::_( 'index.php?view=weblink&catid='.$category->slug.'&id='. $item->slug);
-
-			$item->report_link = JRoute::_('index.php?task=report&id='. $item->slug);
-			if ($source_url) {
-				$replacements[0] = $item->url;
-				$url_snapshot = str_replace($patterns, $replacements, $source_url);
-				$item->url_snapshot = JRoute::_($url_snapshot);
-				$item->url_snapshot_id = 'id="' . $item->url_snapshot . '"';
-			}
-			else {
-				$item->url_snapshot = '';
-				$item->url_snapshot_id = '';
-				$params->set('show_snapshot', '0');
-			}
-
-			$menuclass = 'category'.$params->get( 'pageclass_sfx' );
-
-			$itemParams = new JParameter($item->params);
-			switch ($itemParams->get('target', $params->get('target')))
-			{
-				// cases are slightly different
-				case 1:
-					// open in a new window
-					$item->link = '<a href="'. $link .'" target="_blank" class="'. $menuclass .'">'. $this->escape($item->title) .'</a>';
-					break;
-
-				case 2:
-					// open in a popup window
-					$item->link = "<a href=\"#\" onclick=\"javascript: window.open('". $link ."', '', 'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=550'); return false\" class=\"$menuclass\">". $this->escape($item->title) ."</a>\n";
-					break;
-
-				default:
-					// formerly case 2
-					// open in parent window
-					$item->link = '<a href="'. $link .'" class="'. $menuclass .'">'. $this->escape($item->title) .'</a>';
-					break;
-			}
-
-			$item->image = $image;
-
-			$item->odd		= $k;
-			$item->count	= $i;
-			$k = 1 - $k;
+			$item		= &$categories[$i];
+			$item->slug	= $item->alias ? ($item->id.':'.$item->alias) : $item->id;
 		}
 
-		$count = count($categories);
-		for($i = 0; $i < $count; $i++)
-		{
-			$cat =& $categories[$i];
-			$cat->link = JRoute::_('index.php?option=com_weblinks&view=category&id='. $cat->slug);
-		}
-
-		$this->assignRef('lists',		$lists);
-		$this->assignRef('params',		$params);
-		$this->assignRef('category',	$category);
-		$this->assignRef('categories', $categories);
+		$this->assignRef('state',		$state);
 		$this->assignRef('items',		$items);
+		$this->assignRef('category',	$category);
+		$this->assignRef('categories',	$categories);
+		$this->assignRef('params',		$params);
 		$this->assignRef('pagination',	$pagination);
 
-		$this->assign('action',	JFilterOutput::ampReplace($uri->toString()));
+
+		$this->_prepareDocument();
 
 		parent::display($tpl);
+	}
+
+	/**
+	 * Prepares the document
+	 */
+	protected function _prepareDocument()
+	{
+		$app		= &JFactory::getApplication();
+		$menus		= &JSite::getMenu();
+		$pathway	= &$app->getPathway();
+
+		// Because the application sets a default page title,
+		// we need to get it from the menu item itself
+		if ($menu = $menus->getActive())
+		{
+			$menuParams = new JParameter($menu->params);
+			if ($title = $menuParams->get('page_title')) {
+				$this->document->setTitle($title);
+			}
+			else {
+				$this->document->setTitle(JText::_('COM_WEBLINKS_WEB_LINKS'));
+			}
+
+			// Set breadcrumbs.
+			if ($menu->query['view'] != 'category') {
+				$pathway->addItem($this->category->title, '');
+			}
+		}
+		else {
+			$this->document->setTitle(JText::_('COM_WEBLINKS_WEB_LINKS'));
+		}
+	
+			
+		// Add alternate feed link
+		if ($this->params->get('show_feed_link', 1) == 1)
+		{
+			$link	= '&view=category&id='.$this->category->slug.'&format=feed&limitstart=';
+			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=rss'), 'alternate', 'rel', $attribs);
+			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
+			$this->document->addHeadLink(JRoute::_($link.'&type=atom'), 'alternate', 'rel', $attribs);
+		}
 	}
 }

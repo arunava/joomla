@@ -1,81 +1,97 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Admin
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// no direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Admin component
+ * Sysinfo View class for the Admin component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Admin
- * @since 1.0
+ * @subpackage	com_admin
+ * @since		1.6
  */
 class AdminViewSysinfo extends JView
 {
+	/**
+	 * @var array some php settings
+	 */
+	protected $php_settings=null;
+	/**
+	 * @var array config values
+	 */
+	protected $config=null;
+	/**
+	 * @var array somme system values
+	 */
+	protected $info=null;
+	/**
+	 * @var string php info
+	 */
+	protected $php_info=null;
+	/**
+	 * @var array informations about writable state of directories
+	 */
+	protected $directory=null;
+
+	/**
+	 * Display the view
+	 */
 	function display($tpl = null)
 	{
-		global $mainframe;
+		// Get the values
+		$php_settings = & $this->get('PhpSettings');
+		$config = & $this->get('config');
+		$info = & $this->get('info');
+		$php_info = & $this->get('PhpInfo');
+		$directory = & $this->get('directory');
+		// Has to be removed (present in the config)
+		//$editor = & $this->get('editor');
 
-		//Load switcher behavior
-		JHtml::_('behavior.switcher');
+		// Assign values to the view
+		$this->assignRef('php_settings', $php_settings);
+		$this->assignRef('config', $config);
+		$this->assignRef('info', $info);
+		$this->assignRef('php_info', $php_info);
+		$this->assignRef('directory', $directory);
+		// Has to be removed (present in the config)
+		//$this->assignRef('editor', $editor);
 
-		$contents = $this->loadTemplate('navigation');
-		$document =& JFactory::getDocument();
-		$document->setBuffer($contents, 'modules', 'submenu');
+		// Setup the toobar
+		$this->_setToolbar();
 
-		// Toolbar
-		JToolBarHelper::title(JText::_('Information'), 'systeminfo.png');
-		JToolBarHelper::help('screen.system.info');
+		// Setup the menu
+		$this->_setSubMenu();
 
+		// Display the view
 		parent::display($tpl);
 	}
 
-	function get_php_setting($val)
+	/**
+	 * Setup the SubMenu
+	 *
+	 * @since	1.6
+	 */
+	protected function _setSubMenu()
 	{
-		$r =  (ini_get($val) == '1' ? 1 : 0);
-		return $r ? JText::_('ON') : JText::_('OFF') ;
+		$contents = $this->loadTemplate('navigation');
+		$document = &JFactory::getDocument();
+		$document->setBuffer($contents, 'modules', 'submenu');
 	}
-
-	function get_server_software()
+	/**
+	 * Setup the Toolbar
+	 *
+	 * @since	1.6
+	 */
+	protected function _setToolbar()
 	{
-		if (isset($_SERVER['SERVER_SOFTWARE'])) {
-			return $_SERVER['SERVER_SOFTWARE'];
-		} else if (($sf = getenv('SERVER_SOFTWARE'))) {
-			return $sf;
-		} else {
-			return JText::_('n/a');
-		}
-	}
-
-	function writableRow($folder, $relative=1, $text='', $visible=1)
-	{
-		$writeable		= '<b><span style="color:green;">'. JText::_('Writable') .'</span></b>';
-		$unwriteable	= '<b><span style="color:red;">'. JText::_('Unwritable') .'</span></b>';
-
-		echo '<tr>';
-		echo '<td class="item">';
-		echo $text;
-		if ($visible) {
-			echo $folder . '/';
-		}
-		echo '</td>';
-		echo '<td >';
-		if ($relative) {
-			echo is_writable("../$folder")	? $writeable : $unwriteable;
-		} else {
-			echo is_writable("$folder")		? $writeable : $unwriteable;
-		}
-		echo '</td>';
-		echo '</tr>';
+		JToolBarHelper::title(JText::_('COM_ADMIN_SYSTEM_INFORMATION'), 'systeminfo.png');
+		JToolBarHelper::help('screen.system.info');
 	}
 }

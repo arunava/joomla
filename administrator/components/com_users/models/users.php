@@ -1,156 +1,151 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-require_once dirname(__FILE__).DS.'_prototypelist.php';
+jimport('joomla.application.component.modellist');
 
 /**
+ * Methods supporting a list of user records.
+ *
  * @package		Joomla.Administrator
- * @subpackage	com_user
+ * @subpackage	com_users
+ * @since		1.6
  */
-class UserModelUsers extends UserModelPrototypeList
+class UsersModelUsers extends JModelList
 {
 	/**
-	 * Valid types
+	 * Model context string.
+	 *
+	 * @var		string
 	 */
-	function isValidType($type)
+	protected $_context = 'com_users.users';
+
+	/**
+	 * Method to auto-populate the model state.
+	 */
+	protected function _populateState()
 	{
-		$types	= array('aro', 'axo');
-		return in_array(strtolower($type), $types);
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
+
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
+
+		$active = $app->getUserStateFromRequest($this->_context.'.filter.active', 'filter_active');
+		$this->setState('filter.active', $active);
+
+		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state');
+		$this->setState('filter.state', $state);
+
+		$groupId = $app->getUserStateFromRequest($this->_context.'.filter.group', 'filter_group_id', null, 'int');
+		$this->setState('filter.group_id', $groupId);
+
+		// Load the parameters.
+		$params		= JComponentHelper::getParams('com_users');
+		$this->setState('params', $params);
+
+		// List state information.
+		parent::_populateState('a.name', 'asc');
 	}
 
 	/**
-	 * Overridden method to lazy load data from the request/session as necessary
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access	public
-	 * @param	string	$key		The key of the state item to return
-	 * @param	mixed	$default	The default value to return if it does not exist
-	 * @return	mixed	The requested value by key
-	 * @since	1.0
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getState($key=null, $default=null)
+	protected function _getStoreId($id = '')
 	{
-		if (empty($this->__state_set))
-		{
-			$app = &JFactory::getApplication();
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.active');
+		$id	.= ':'.$this->getState('filter.state');
+		$id	.= ':'.$this->getState('filter.group_id');
 
-			$search		= $app->getUserStateFromRequest('users.user.search',		'search');
-			$groupId	= $app->getUserStateFromRequest('users.user.groupId',		'filter_group_id');
-			$loggedIn	= $app->getUserStateFromRequest('users.user.loggedIn',		'filter_logged_in');
-			$enabled	= $app->getUserStateFromRequest('users.user.enabled',		'filter_enabled', '*');
-			$activated	= $app->getUserStateFromRequest('users.user.activated',		'filter_activated', '*');
-			$limit		= $app->getUserStateFromRequest('global.list.limit', 		'limit', $app->getCfg('list_limit'));
-			$limitstart	= $app->getUserStateFromRequest('users.user.limitstart',	'limitstart', 0);
-			$orderCol	= $app->getUserStateFromRequest('users.user.ordercol',		'filter_order', 'a.name');
-			$orderDirn	= $app->getUserStateFromRequest('users.user.orderdirn',		'filter_order_Dir', 'asc');
-
-			$this->setState('list.search',		$search);
-			$this->setState('list.group_id',	$groupId);
-			$this->setState('list.logged_in',	$loggedIn);
-			$this->setState('list.enabled',		$enabled);
-			$this->setState('list.activated',	$activated);
-			$this->setState('list.limit',		$limit);
-			$this->setState('list.start',		$limitstart);
-			$this->setState('orderCol',			$orderCol);
-			$this->setState('orderDirn',		$orderDirn);
-
-			if ($orderCol) {
-				$this->setState('list.order',	$orderCol.' '.($orderDirn == 'asc' ? 'asc' : 'desc'));
-			}
-
-			$this->__state_set = true;
-		}
-		return parent::getState($key, $default);
+		return parent::_getStoreId($id);
 	}
 
 	/**
-	 * Gets a list of objects
+	 * Build an SQL query to load the list data.
 	 *
-	 * @param	boolean	True to resolve foreign keys
-	 *
-	 * @return	string
+	 * @return	JQuery
 	 */
-	function _getListQuery($resolveFKs = false)
+	protected function _getListQuery()
 	{
-		if (empty($this->_list_query))
-		{
-			$db	= &$this->getDBO();
-			$query = new JQuery;
-			$groupId	= $this->getState('list.group_id');
-			$loggedIn	= $this->getState('list.logged_in');
-			$enabled	= $this->getState('list.enabled');
-			$activated	= $this->getState('list.activated');
-			$select		= $this->getState('list.select', 'a.*');
-			$search		= $this->getState('list.search');
-			$where		= $this->getState('list.where');
-			$orderBy	= $this->getState('list.order');
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
 
-			$query->select($select);
-			$query->from('#__users AS a');
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.*'
+			)
+		);
+		$query->from('`#__users` AS a');
 
-			if ($resolveFKs) {
-				$NL = $db->Quote("\n");
-				$query->select('GROUP_CONCAT(DISTINCT(g.name) SEPARATOR '.$NL.') AS groups');
-				$query->join('INNER', '#__core_acl_aro AS aro ON aro.value = a.id');
-				$query->join('INNER', '#__core_acl_groups_aro_map AS gm ON gm.aro_id = aro.id');
-				$query->join('INNER', '#__core_acl_aro_groups AS g ON g.id = gm.group_id');
-				$query->group('a.id');
+		// Join over the group mapping table.
+		$query->select('COUNT(map.group_id) AS group_count');
+		$query->join('LEFT', '#__user_usergroup_map AS map ON map.user_id = a.id');
+		$query->group('a.id');
 
-				/* @todo Check for performance on this join  - there is an index on userid ?? */
-				$query->select('s.userid AS loggedin');
-				if ($loggedIn) {
-					$query->join('INNER', '#__session AS s ON s.userid = a.id');
-				}
-				else {
-					$query->join('LEFT', '#__session AS s ON s.userid = a.id');
-				}
-			}
+		// Join over the user groups table.
+		$query->select('GROUP_CONCAT(g2.title SEPARATOR '.$db->Quote("\n").') AS group_names');
+		$query->join('LEFT', '#__usergroups AS g2 ON g2.id = map.group_id');
 
-			// options
-			if ($search) {
-				$match = $db->Quote('%'.$db->getEscaped($search, true).'%', false);
-				$query->where('(a.name LIKE '.$match.' OR a.username LIKE '.$match.')');
-			}
-
-			if ($groupId) {
-				if (!$resolveFKs) {
-					$query->join('INNER', '#__core_acl_aro AS aro ON aro.value = a.id');
-					$query->join('INNER', '#__core_acl_groups_aro_map AS gm ON gm.aro_id = aro.id');
-				}
-				$query->where('gm.group_id = '.(int) $groupId);
-			}
-
-			if (is_numeric($enabled)) {
-				$query->where('a.block = '.$enabled);
-			}
-
-			if (is_numeric($activated)) {
-				if ($activated == 1) {
-					$query->where('a.activation = '.$db->Quote(''));
-				}
-				else {
-					$query->where('a.activation <> '.$db->Quote(''));
-				}
-			}
-
-			if ($where) {
-				$query->where($where);
-			}
-
-			if ($orderBy) {
-				$query->order($this->_db->getEscaped($orderBy));
-			}
-
-			$this->_list_query = (string) $query;
-			//echo str_replace('#__','jos_',nl2br($this->_list_query));
+		// If the model is set to check item state, add to the query.
+		$state = $this->getState('filter.state');
+		if (is_numeric($state)) {
+			$query->where('a.block = '.(int) $state);
 		}
 
-		return $this->_list_query;
+		// If the model is set to check the activated state, add to the query.
+		$active = $this->getState('filter.active');
+		if (is_numeric($active)) {
+			if ($active == '0') {
+				$query->where('a.activation = ""');
+			} else if ($active == '1') {
+				$query->where('LENGTH(a.activation) = 32');
+			}
+		}
+
+		// Filter the items over the group id if set.
+		if ($groupId = $this->getState('filter.group_id')) {
+			$query->join('LEFT', '#__user_usergroup_map AS map2 ON map2.user_id = a.id');
+			$query->where('map2.group_id = '.(int) $groupId);
+		}
+
+		// Filter the items over the search string if set.
+		if ($this->getState('filter.search') !== '') {
+			// Escape the search token.
+			$token	= $db->Quote('%'.$db->getEscaped($this->getState('filter.search')).'%');
+
+			// Compile the different search clauses.
+			$searches	= array();
+			$searches[]	= 'a.name LIKE '.$token;
+			$searches[]	= 'a.username LIKE '.$token;
+			$searches[]	= 'a.email LIKE '.$token;
+
+			// Add the clauses to the query.
+			$query->where('('.implode(' OR ', $searches).')');
+		}
+
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

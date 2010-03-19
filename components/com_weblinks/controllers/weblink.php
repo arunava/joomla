@@ -1,137 +1,105 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// no direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.controller');
+jimport('joomla.application.component.controllerform');
 
 /**
- * Weblinks Weblink Controller
- *
- * @package		Joomla
- * @subpackage	Weblinks
- * @since 1.5
+ * @package		Joomla.Site
+ * @subpackage	com_weblinks
  */
-class WeblinksControllerWeblink extends WeblinksController
+class WeblinksControllerWeblink extends JControllerForm
 {
+	protected $_context = 'com_weblinks.edit.weblink';
 	/**
-	* Edit a weblink and show the edit form
-	*
-	* @acces public
-	* @since 1.5
-	*/
-	function edit()
+	 * Constructor
+	 */
+	public function __construct($config = array())
 	{
-		$app	=& JFactory::getApplication();
-		$user	=& JFactory::getUser();
+		parent::__construct($config);
 
-		// Make sure you are logged in
-		if ($user->get('aid', 0) < 1) {
-			JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
-			return;
-		}
+		$this->registerTask('apply',		'save');
+		$this->registerTask('save2new',		'save');
+		$this->registerTask('save2copy',	'save');
+	}
+	protected $_view_item = 'form';
 
-		JRequest::setVar('view', 'weblink');
-		JRequest::setVar('layout', 'form');
+	protected $_view_list = 'categories';
 
-		$model =& $this->getModel('weblink');
-		// fail if checked out not by 'me'
-		if ($model->isCheckedOut( $user->get('id') )) {
-			$msg = JText::sprintf( 'DESCBEINGEDITTED', JText::_( 'The weblink' ), $weblink->title );
-			$app->redirect( 'index.php?option=com_weblinks', $msg );
-		}
-
-		parent::display();
+	/**
+	 * Method to get a model object, loading it if required.
+	 *
+	 * @param	string	The model name. Optional.
+	 * @param	string	The class prefix. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	object	The model.
+	 * @since	1.5
+	 */
+	public function &getModel($name = 'form', $prefix = '', $config = array())
+	{
+		$model = parent::getModel($name, $prefix, $config);
+		return $model;
 	}
 
 	/**
-	* Saves the record on an edit form submit
-	*
-	* @acces public
-	* @since 1.5
-	*/
-	function save()
+	 * Go to a weblink
+	 */
+	public function go()
 	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+		// Get the ID from the request
+		$id		= JRequest::getInt('id');
 
-		// Get some objects from the JApplication
-		$db		=& JFactory::getDBO();
-		$user	=& JFactory::getUser();
+		// Get the model, requiring published items
+		$modelLink	= &$this->getModel('Weblink', '', array('ignore_request' => true));
+		$modelLink->setState('filter.published', 1);
 
-		// Must be logged in
-		if ($user->get('id') < 1) {
-			JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
-			return;
+		// Get the item
+		$link	= &$modelLink->getItem($id);
+
+		// Make sure the item was found.
+		if (empty($link)) {
+			return JError::raiseWarning(404, JText::_('COM_WEBLINKS_ERROR_WEBLINK_NOT_FOUND'));
 		}
 
-		//get data from the request
-		$post = JRequest::getVar('jform', array(), 'post', 'array');
-
-		$model = $this->getModel('weblink');
-
-		if ($model->store($post)) {
-			$msg = JText::_( 'Weblink Saved' );
-		} else {
-			$msg = JText::_( 'Error Saving Weblink' );
+		// Check whether item access level allows access.
+		$user	= &JFactory::getUser();
+		$groups	= $user->authorisedLevels();
+		if (!in_array($link->access, $groups)) {
+			return JError::raiseError(403, JText::_("JERROR_ALERTNOAUTHOR"));
 		}
 
-		// Check the table in so it can be edited.... we are done with it anyway
-		$model->checkin();
+		// Check whether category access level allows access.
+		$modelCat = &$this->getModel('Category', 'WeblinksModel', array('ignore_request' => true));
+		$modelCat->setState('filter.published', 1);
 
-		// admin users gid
-		$gid = 25;
+		// Get the category
+		$category = &$modelCat->getCategory($link->catid);
 
-		// list of admins
-		$query = 'SELECT email, name' .
-				' FROM #__users' .
-				' WHERE gid = ' . $gid .
-				' AND sendEmail = 1';
-		$db->setQuery($query);
-		if (!$db->query()) {
-			JError::raiseError( 500, $db->stderr(true));
-			return;
-		}
-		$adminRows = $db->loadObjectList();
-
-		// send email notification to admins
-		foreach ($adminRows as $adminRow) {
-			JUtility::sendAdminMail($adminRow->name, $adminRow->email, '',  JText::_('Web Link'), $post['title']." URL link ".$post[url], $user->get('username'), JURI::base());
+		// Make sure the category was found.
+		if (empty($category)) {
+			return JError::raiseWarning(404, JText::_('COM_WEBLINKS_ERROR_WEBLINK_NOT_FOUND'));
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option=com_weblinks&view=category&id='.$post['catid'], false), $msg);
-	}
-
-	/**
-	* Cancel the editing of a web link
-	*
-	* @access	public
-	* @since	1.5
-	*/
-	function cancel()
-	{
-		// Get some objects from the JApplication
-		$user	= & JFactory::getUser();
-
-		// Must be logged in
-		if ($user->get('id') < 1) {
-			JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
-			return;
+		// Check whether item access level allows access.
+		if (!in_array($category->access, $groups)) {
+			return JError::raiseError(403, JText::_('JERROR_ALERTNOAUTHOR'));
 		}
 
-		// Checkin the weblink
-		$model = $this->getModel('weblink');
-		$model->checkin();
-
-		$this->setRedirect(JRoute::_('index.php?option=com_weblinks&view=categories', false));
+		// Redirect to the URL
+		// TODO: Probably should check for a valid http link
+		if ($link->url)
+		{
+			$modelLink->hit($id);
+			JFactory::getApplication()->redirect($link->url);
+		}
+		else {
+			return JError::raiseWarning(404, JText::_('COM_WEBLINKS_ERROR_WEBLINK_URL_INVALID'));
+		}
 	}
 }
-
-?>

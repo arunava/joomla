@@ -1,256 +1,223 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Banners Component Banner Client Model
+ * Client model.
  *
  * @package		Joomla.Administrator
- * @subpackage	Banners
- * @since 1.6
+ * @subpackage	com_banners
+ * @since		1.5
  */
-class BannerModelClient extends JModel
+class BannersModelClient extends JModelForm
 {
 	/**
-	 * Banner Client id
-	 *
-	 * @var int
+	 * Method to auto-populate the model state.
 	 */
-	var $_id = null;
-
-	/**
-	 * Banner Client data
-	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.6
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if ($edit)
-			$this->setId((int)$array[0]);
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_banners.edit.client.id'))) {
+			$pk = (int) JRequest::getInt('id');
+		}
+		$this->setState('client.id', $pk);
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_banners');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to set the banner client identifier
+	 * Returns a reference to the a Table object, always creating it.
 	 *
-	 * @access	public
-	 * @param	int identifier
-	 */
-	function setId($id)
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Client', $prefix = 'BannersTable', $config = array())
 	{
-		// Set banner client id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
+		return JTable::getInstance($type, $prefix, $config);
 	}
 
 	/**
-	 * Method to get a banner client
+	 * Method to override check-out a row for editing.
 	 *
-	 * @since 1.6
+	 * @param	int		The ID of the primary key.
+	 * @return	boolean
 	 */
-	function &getData()
+	public function checkout($pk = null)
 	{
-		// Load the banner client data
-		if (!$this->_loadData())
-			$this->_initData();
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('client.id');
 
-		return $this->_data;
+		return parent::checkout($pk);
 	}
 
 	/**
-	 * Tests if banner client is checked out
+	 * Method to checkin a row.
 	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.6
+	 * @param	integer	The ID of the primary key.
+	 *
+	 * @return	boolean
 	 */
-	function isCheckedOut($uid=0)
+	public function checkin($pk = null)
 	{
-		if ($this->_loadData())
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('client.id');
+
+		return parent::checkin($pk);
+	}
+
+	/**
+	 * Method to get a single record.
+	 *
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
+	 */
+	public function &getItem($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('client.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		if (!empty($pk))
 		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
+
+			// Attempt to load the row.
+			$return = $table->load($pk);
+
+			// Check for a table object error.
+			if ($return === false && $table->getError()) {
+				$this->setError($table->getError());
+				return $false;
 			}
 		}
+
+		// Convert to the JObject before adding other data.
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		return $value;
 	}
 
 	/**
-	 * Method to checkin/unlock the banner client
+	 * Method to get the record form.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
+	 * @return	mixed	JForm object on success, false on failure.
 	 * @since	1.6
 	 */
-	function checkin()
+	public function getForm()
 	{
-		if ($this->_id)
-		{
-			$table = JTable::getInstance('Client', 'BannerTable');
-			if (!$table->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
+		// Initialise variables.
+		$app	= JFactory::getApplication();
+
+		// Get the form.
+		$form = parent::getForm('client', 'com_banners.client', array('array' => 'jform', 'event' => 'onPrepareForm'));
+
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
+			return false;
 		}
-		return false;
-	}
 
-	/**
-	 * Method to checkout/lock the banner client
-	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the banner client out
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function checkout($uid = null)
-	{
-		if ($this->_id)
-		{
-			// Make sure we have a user id to checkout the banner client with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$table = JTable::getInstance('Client', 'BannerTable');
-			if (!$table->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_banners.edit.client.data', array());
 
-			return true;
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
 		}
-		return false;
+
+		return $form;
 	}
 
 	/**
-	 * Method to store the banner client
+	 * Method to save the form data.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
 	 * @since	1.6
 	 */
-	function store($data)
+	public function save($data)
 	{
-		$table = JTable::getInstance('Client', 'BannerTable');
+		// Initialise variables;
+		$dispatcher = JDispatcher::getInstance();
+		$table		= $this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('client.id');
+		$isNew		= true;
 
-		// Bind the form fields to the web link table
+		// Include the content plugins for the onSave events.
+		JPluginHelper::importPlugin('content');
+
+		// Load the row if saving an existing record.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// Bind the data.
 		if (!$table->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
 			return false;
 		}
 
-		// Make sure the data is valid
+		// Prepare the row for saving
+		$this->_prepareTable($table);
+
+		// Check the data.
 		if (!$table->check()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
 
-		// Store the data to the database
+		// Trigger the onBeforeSaveContent event.
+		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Store the data.
 		if (!$table->store()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
 
-		return true;
-	}
+		// Clean the cache.
+		$cache = JFactory::getCache('com_banners');
+		$cache->clean();
 
-	/**
-	 * Method to remove a banner client
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function delete($cid = array())
-	{
-		$result = false;
+		// Trigger the onAfterContentSave event.
+		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
 
-		if (count($cid))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-			$query = 'DELETE FROM #__bannerclient'
-				. ' WHERE cid IN ('.$cids.')';
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
+		$this->setState('client.id', $table->id);
 
 		return true;
 	}
 
 	/**
-	 * Method to load banner client data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
+	 * Prepare and sanitise the table prior to saving.
 	 */
-	function _loadData()
+	protected function _prepareTable(&$table)
 	{
-		if (empty($this->_data))
-		{
-			// Lets load the banner clients
-			$query = 'SELECT bc.*'.
-					' FROM #__bannerclient AS bc' .
-					' WHERE bc.cid = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
+		jimport('joomla.filter.output');
+		$date = JFactory::getDate();
+		$user = JFactory::getUser();
 
-	/**
-	 * Method to initialise the banner client data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$bannerclient = new stdClass();
-			$bannerclient->id					= 0;
-			$bannerclient->name					= null;
-			$bannerclient->contact				= null;
-			$bannerclient->email				= null;
-			$bannerclient->extrainfo			= null;
-			$bannerclient->checked_out			= 0;
-			$bannerclient->checked_out_time		= 0;
-			$bannerclient->editor				= null;
-			$this->_data					= $bannerclient;
-			return (boolean) $this->_data;
-		}
-		return true;
+		$table->name		= htmlspecialchars_decode($table->name, ENT_QUOTES);
 	}
 }

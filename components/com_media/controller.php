@@ -1,21 +1,21 @@
 <?php
 /**
- * @version		$Id: media.php 8660 2007-08-30 23:53:21Z louis $
- * @package		Joomla
+ * @version		$Id$
+ * @package		Joomla.Site
  * @subpackage	Massmail
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.controller' );
+jimport('joomla.application.component.controller');
 
 /**
  * Media Manager Component Controller
  *
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Media
  * @version 1.5
  */
@@ -26,20 +26,18 @@ class MediaController extends JController
 	 */
 	function display()
 	{
-		global $mainframe;
-
 		$vName = JRequest::getCmd('view', 'images');
 		switch ($vName)
 		{
 			case 'imagesList':
 				$mName = 'list';
-				$vLayout = JRequest::getCmd( 'layout', 'default' );
+				$vLayout = JRequest::getCmd('layout', 'default');
 
 				break;
 
 			case 'images':
 			default:
-				$vLayout = JRequest::getCmd( 'layout', 'default' );
+				$vLayout = JRequest::getCmd('layout', 'default');
 				$mName = 'manager';
 				$vName = 'images';
 
@@ -50,7 +48,7 @@ class MediaController extends JController
 		$vType		= $document->getType();
 
 		// Get/Create the view
-		$view = &$this->getView( $vName, $vType);
+		$view = &$this->getView($vName, $vType);
 		$view->addTemplatePath(JPATH_COMPONENT_ADMINISTRATOR.DS.'views'.DS.strtolower($vName).DS.'tmpl');
 
 		// Get/Create the model

@@ -1,52 +1,40 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Media
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the Media component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewMediaList extends JView
 {
-	protected $baseURL = '';
-	protected $images = null;
-	protected $documents = null;
-	protected $folders = null;
-	protected $state = null;
-	protected $_tmp_folder = null;
-	protected $_tmp_img = null;
-	protected $_tmp_doc = null;
-
-	public function display($tpl = null)
+	function display($tpl = null)
 	{
-		$mainframe = JFactory::getApplication();
-
 		// Do not allow cache
 		JResponse::allowCache(false);
 
-		$style = $mainframe->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
+		$app	= &JFactory::getApplication();
+		$style = $app->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
 
-		JHtml::_('behavior.mootools');
+		JHtml::_('behavior.framework', true);
 
 		$document = &JFactory::getDocument();
-		$document->addStyleSheet('components/com_media/assets/medialist-'.$style.'.css');
+		$document->addStyleSheet('../media/media/css/medialist-'.$style.'.css');
 
 		$document->addScriptDeclaration("
 		window.addEvent('domready', function() {
+			window.top.document.updateUploader && window.top.document.updateUploader();
 			$$('a.img-preview').each(function(el) {
 				el.addEvent('click', function(e) {
 					new Event(e).stop();
@@ -64,28 +52,28 @@ class MediaViewMediaList extends JView
 		parent::display($tpl);
 	}
 
-	public function setFolder($index = 0)
+	function setFolder($index = 0)
 	{
 		if (isset($this->folders[$index])) {
-			$this->_tmp_folder = $this->folders[$index];
+			$this->_tmp_folder = &$this->folders[$index];
 		} else {
 			$this->_tmp_folder = new JObject;
 		}
 	}
 
-	public function setImage($index = 0)
+	function setImage($index = 0)
 	{
 		if (isset($this->images[$index])) {
-			$this->_tmp_img = $this->images[$index];
+			$this->_tmp_img = &$this->images[$index];
 		} else {
 			$this->_tmp_img = new JObject;
 		}
 	}
 
-	public function setDoc($index = 0)
+	function setDoc($index = 0)
 	{
 		if (isset($this->documents[$index])) {
-			$this->_tmp_doc = $this->documents[$index];
+			$this->_tmp_doc = &$this->documents[$index];
 		} else {
 			$this->_tmp_doc = new JObject;
 		}

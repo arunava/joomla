@@ -1,95 +1,99 @@
-<?php defined('_JEXEC') or die('Restricted access'); ?>
-
 <?php
-$db =& JFactory::getDBO();
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_admin
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
 ?>
 <fieldset class="adminform">
-	<legend><?php echo JText::_('System Information'); ?></legend>
-		<table class="adminlist">
+	<legend><?php echo JText::_('COM_ADMIN_SYSTEM_INFORMATION'); ?></legend>
+	<table class="adminlist">
 		<thead>
 			<tr>
 				<th width="250">
-					<?php echo JText::_('Setting'); ?>
+					<?php echo JText::_('COM_ADMIN_SETTING'); ?>
 				</th>
 				<th>
-					<?php echo JText::_('Value'); ?>
+					<?php echo JText::_('COM_ADMIN_VALUE'); ?>
 				</th>
 			</tr>
 		</thead>
 		<tfoot>
-		<tr>
-			<th colspan="2">&nbsp;
-			</th>
-		</tr>
+			<tr>
+				<td colspan="2">&nbsp;
+				</td>
+			</tr>
 		</tfoot>
 		<tbody>
-		<tr>
-			<td valign="top">
-				<strong><?php echo JText::_('PHP Built On'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo php_uname(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('Database Version'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo $db->getVersion(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('Database Collation'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo $db->getCollation(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('PHP Version'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo phpversion(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('Web Server'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo AdminViewSysinfo::get_server_software(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('WebServer to PHP Interface'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo php_sapi_name(); ?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('Joomla! Version'); ?>:</strong>
-			</td>
-			<td>
-				<?php
-					$version = new JVersion();
-					echo $version->getLongVersion();
-				?>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<strong><?php echo JText::_('User Agent'); ?>:</strong>
-			</td>
-			<td>
-				<?php echo phpversion() <= "4.2.1" ? getenv("HTTP_USER_AGENT") : $_SERVER['HTTP_USER_AGENT'];?>
-			</td>
-		</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_PHP_BUILT_ON'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['php'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_DATABASE_VERSION'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['dbversion'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_DATABASE_COLLATION'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['dbcollation'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_PHP_VERSION'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['phpversion'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_WEB_SERVER'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo JHtml::_('system.server',$this->info['server']); ?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_WEBSERVER_TO_PHP_INTERFACE'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['sapi_name'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_JOOMLA_VERSION'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['version'];?>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<strong><?php echo JText::_('COM_ADMIN_USER_AGENT'); ?>:</strong>
+				</td>
+				<td>
+					<?php echo $this->info['useragent'];?>
+				</td>
+			</tr>
 		</tbody>
-		</table>
+	</table>
 </fieldset>

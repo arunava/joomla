@@ -1,14 +1,12 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.model');
 jimport('joomla.filesystem.folder');
@@ -18,7 +16,7 @@ jimport('joomla.filesystem.file');
  * Media Component List Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.5
  */
 class MediaModelList extends JModel
@@ -29,7 +27,7 @@ class MediaModelList extends JModel
 		static $set;
 
 		if (!$set) {
-			$folder = JRequest::getVar( 'folder', '', '', 'path' );
+			$folder = JRequest::getVar('folder', '', '', 'path');
 			$this->setState('folder', $folder);
 
 			$parent = str_replace("\\", "/", dirname($folder));
@@ -81,7 +79,7 @@ class MediaModelList extends JModel
 			$current = '';
 		}
 
-		// Initialize variables
+		// Initialise variables.
 		if (strlen($current) > 0) {
 			$basePath = COM_MEDIA_BASE.DS.$current;
 		} else {
@@ -89,12 +87,12 @@ class MediaModelList extends JModel
 		}
 		$mediaBase = str_replace(DS, '/', COM_MEDIA_BASE.'/');
 
-		$images 	= array ();
-		$folders 	= array ();
-		$docs 		= array ();
+		$images		= array ();
+		$folders	= array ();
+		$docs		= array ();
 
 		// Get the list of files and folders from the given folder
-		$fileList 	= JFolder::files($basePath);
+		$fileList	= JFolder::files($basePath);
 		$folderList = JFolder::folders($basePath);
 
 		// Iterate over the files if they exist
@@ -102,7 +100,7 @@ class MediaModelList extends JModel
 			foreach ($fileList as $file)
 			{
 				if (is_file($basePath.DS.$file) && substr($file, 0, 1) != '.' && strtolower($file) !== 'index.html') {
-					$tmp = new JObject;
+					$tmp = new JObject();
 					$tmp->name = $file;
 					$tmp->path = str_replace(DS, '/', JPath::clean($basePath.DS.$file));
 					$tmp->path_relative = str_replace($mediaBase, '', $tmp->path);
@@ -148,17 +146,19 @@ class MediaModelList extends JModel
 							break;
 						// Non-image document
 						default:
-							$iconfile_32 = JPATH_ADMINISTRATOR.DS."components".DS."com_media".DS."images".DS."mime-icon-32".DS.$ext.".png";
+							// $iconfile_32 = JPATH_ADMINISTRATOR.DS."components".DS."com_media".DS."images".DS."mime-icon-32".DS.$ext.".png";
+							$iconfile_32 = "media".DS."images".DS."media".DS."mime-icon-32".DS.$ext.".png";
 							if (file_exists($iconfile_32)) {
-								$tmp->icon_32 = "components/com_media/images/mime-icon-32/".$ext.".png";
+								$tmp->icon_32 = "media/mime-icon-32/".$ext.".png";
 							} else {
-								$tmp->icon_32 = "components/com_media/images/con_info.png";
+								$tmp->icon_32 = "media/con_info.png";
 							}
-							$iconfile_16 = JPATH_ADMINISTRATOR.DS."components".DS."com_media".DS."images".DS."mime-icon-16".DS.$ext.".png";
+							// $iconfile_16 = JPATH_ADMINISTRATOR.DS."components".DS."com_media".DS."images".DS."mime-icon-16".DS.$ext.".png";
+							$iconfile_16 = "media".DS."images".DS."media".DS."mime-icon-16".DS.$ext.".png";
 							if (file_exists($iconfile_16)) {
-								$tmp->icon_16 = "components/com_media/images/mime-icon-16/".$ext.".png";
+								$tmp->icon_16 = "media/mime-icon-16/".$ext.".png";
 							} else {
-								$tmp->icon_16 = "components/com_media/images/con_info.png";
+								$tmp->icon_16 = "media/con_info.png";
 							}
 							$docs[] = $tmp;
 							break;
@@ -170,7 +170,7 @@ class MediaModelList extends JModel
 		// Iterate over the folders if they exist
 		if ($folderList !== false) {
 			foreach ($folderList as $folder) {
-				$tmp = new JObject;
+				$tmp = new JObject();
 				$tmp->name = basename($folder);
 				$tmp->path = str_replace(DS, '/', JPath::clean($basePath.DS.$folder));
 				$tmp->path_relative = str_replace($mediaBase, '', $tmp->path);

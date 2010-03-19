@@ -3,19 +3,22 @@
  * @version		$Id:output.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Filter
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
+
+// No direct access
+defined('JPATH_BASE') or die();
 
 /**
  * JFilterOutput
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Filter
  * @since		1.5
  */
-abstract class JFilterOutput
+class JFilterOutput
 {
 	/**
 	* Makes an object safe to display in forms
@@ -27,10 +30,10 @@ abstract class JFilterOutput
 	* @param object An object to be parsed
 	* @param int The optional quote style for the htmlspecialchars function
 	* @param string|array An optional single field name or array of field names not
-	*					 to be parsed (eg, for a textarea)
+	*					to be parsed (eg, for a textarea)
 	* @since 1.5
 	*/
-	public static function objectHTMLSafe(&$mixed, $quote_style=ENT_QUOTES, $exclude_keys='')
+	function objectHTMLSafe(&$mixed, $quote_style=ENT_QUOTES, $exclude_keys='')
 	{
 		if (is_object($mixed))
 		{
@@ -59,7 +62,7 @@ abstract class JFilterOutput
 	 * @return	string	Processed string
 	 * @since	1.5
 	 */
-	public static function linkXHTMLSafe($input)
+	function linkXHTMLSafe($input)
 	{
 		$regex = 'href="([^"]*(&(amp;){0})[^"]*)*?"';
 		return preg_replace_callback("#$regex#i", array('JFilterOutput', '_ampReplaceCallback'), $input);
@@ -74,19 +77,55 @@ abstract class JFilterOutput
 	 * @return	string	Processed string
 	 * @since	1.5
 	 */
-	public static function stringURLSafe($string)
+	function stringURLSafe($string)
 	{
 		//remove any '-' from the string they will be used as concatonater
 		$str = str_replace('-', ' ', $string);
 
-		$lang =& JFactory::getLanguage();
+		$lang = &JFactory::getLanguage();
 		$str = $lang->transliterate($str);
 
+		// convert certain symbols to letter representation
+		$str = str_replace(array('&', '"', '<', '>'), array('a', 'q', 'l', 'g'), $str);
+		
 		// remove any duplicate whitespace, and ensure all characters are alphanumeric
 		$str = preg_replace(array('/\s+/','/[^A-Za-z0-9\-]/'), array('-',''), $str);
 
 		// lowercase and trim
 		$str = trim(strtolower($str));
+		return $str;
+	}
+
+	/**
+	 * This method implements unicode slugs instead of transliteration.
+	 *
+	 * @static
+	 * @param	string	$input	String to process
+	 * @return	string	Processed string
+	 * @since	1.6
+	*/
+	function stringURLUnicodeSlug($string)
+	{
+		//replace double byte whitespaces by single byte (Far-East languages)
+		$str = preg_replace('/\xE3\x80\x80/', ' ', $string);
+
+
+		// remove any '-' from the string as they will be used as concatenator.
+		// Would be great to let the spaces in but only Firefox is friendly with this
+
+		$str = str_replace('-', ' ', $str);
+
+		// replace forbidden characters by whitespaces
+		$str = preg_replace( '#[:\#\*"@+=;!&%()\]\/\'\\\\|\[]#',"\x20", $str );
+
+		//delete all '?'
+		$str = str_replace('?', '', $str);
+
+		//trim white spaces at beginning and end of alias
+		$str = trim( $str );
+
+		// remove any duplicate whitespace and replace whitespaces by hyphens
+		$str =preg_replace('#\x20+#','-', $str);
 		return $str;
 	}
 
@@ -98,7 +137,7 @@ abstract class JFilterOutput
 	* @static
 	* @since 1.5
 	*/
-	public static function ampReplace($text)
+	static function ampReplace($text)
 	{
 		$text = str_replace('&&', '*--*', $text);
 		$text = str_replace('&#', '*-*', $text);
@@ -118,16 +157,16 @@ abstract class JFilterOutput
 	 * @return	string	Replaced string
 	 * @since	1.5
 	 */
-	protected static function _ampReplaceCallback($m)
+	function _ampReplaceCallback($m)
 	{
-		 $rx = '&(?!amp;)';
-		 return preg_replace('#'.$rx.'#', '&amp;', $m[0]);
+		$rx = '&(?!amp;)';
+		return preg_replace('#'.$rx.'#', '&amp;', $m[0]);
 	}
 
 	/**
 	* Cleans text of all formating and scripting code
 	*/
-	public static function cleanText (&$text)
+	function cleanText (&$text)
 	{
 		$text = preg_replace("'<script[^>]*>.*?</script>'si", '', $text);
 		$text = preg_replace('/<a\s+.*?href="([^"]+)"[^>]*>([^<]+)<\/a>/is', '\2 (\1)', $text);
@@ -137,7 +176,7 @@ abstract class JFilterOutput
 		$text = preg_replace('/&amp;/', ' ', $text);
 		$text = preg_replace('/&quot;/', ' ', $text);
 		$text = strip_tags($text);
-		$text = htmlspecialchars($text);
+		$text = htmlspecialchars($text, ENT_COMPAT, 'UTF-8');
 		return $text;
 	}
 }

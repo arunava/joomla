@@ -3,7 +3,7 @@
 * @version		$Id$
 * @package		Joomla.Framework
 * @subpackage	Table
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+* @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
 * @license		GNU General Public License, see LICENSE.php
 */
 
@@ -14,47 +14,20 @@ defined('JPATH_BASE') or die();
  * Update table
  * Stores updates temporarily
  *
- * @package 	Joomla.Framework
- * @subpackage		Table
- * @since	1.6
+ * @package		Joomla.Framework
+ * @subpackage	Table
+ * @since		1.6
  */
 class JTableUpdate extends JTable
 {
-	/** @var int Primary key */
-	var $update_id				= null;
-	/** @var int Source update site ID */
-	var $update_site_id			= null;
-	/** @var int Linked extension ID */
-	var $extension_id			= null;
-	/** @var int Linked update category ID */
-	var $categoryid				= null;
-	/** @var string Friendly name of the extension */
-	var $name				= null;
-	/** @var string Description of Extension */
-	var $description			= null;
-	/** @var string Unique name of extension */
-	var $element			= null;
-	/** @var string Type of Extension */
-	var $type			= null;
-	/** @var string Folder/container/group of extension */
-	var $folder			= null;
-	/** @var int Client Unique Identifier (e.g. administrator=1, site=0) */
-	var $client_id			= null;
-	/** @var string Version string of extension */
-	var $version			= '';
-	/** @var string Generic extension data field; for Joomla! use */
-	var $data				= null;
-	/** @var string Extension details URL */
-	var $detailsurl			= null;
-
 	/**
 	 * Contructor
 	 *
 	 * @access protected
 	 * @param database A database connector object
 	 */
-	function __construct(&$db) {
-		parent::__construct('#__updates', 'update_id', $db);
+	function __construct( &$db ) {
+		parent::__construct( '#__updates', 'update_id', $db );
 	}
 
 	/**
@@ -67,8 +40,8 @@ class JTableUpdate extends JTable
 	function check()
 	{
 		// check for valid name
-		if (trim($this->name) == '' || trim($this->element) == '') {
-			$this->setError(JText::sprintf('must contain a title', JText::_('Extension')));
+		if (trim( $this->name ) == '' || trim( $this->element ) == '') {
+			$this->setError(JText::sprintf( 'MUST_CONTAIN_A_TITLE', JText::_( 'Extension') ));
 			return false;
 		}
 		return true;
@@ -85,18 +58,18 @@ class JTableUpdate extends JTable
 	*/
 	function bind($array, $ignore = '')
 	{
-		if (isset($array['params']) && is_array($array['params']))
+		if (isset( $array['params'] ) && is_array($array['params']))
 		{
 			$registry = new JRegistry();
 			$registry->loadArray($array['params']);
-			$array['params'] = $registry->toString();
+			$array['params'] = (string)$registry;
 		}
 
-		if (isset($array['control']) && is_array($array['control']))
+		if (isset( $array['control'] ) && is_array( $array['control'] ))
 		{
 			$registry = new JRegistry();
 			$registry->loadArray($array['control']);
-			$array['control'] = $registry->toString();
+			$array['control'] = (string)$registry;
 		}
 
 		return parent::bind($array, $ignore);
@@ -109,12 +82,7 @@ class JTableUpdate extends JTable
 			$where[] = $col .' = '. $dbo->Quote($val);
 		}
 		$query = 'SELECT update_id FROM #__updates WHERE '. implode(' AND ', $where);
-		try {
-			$dbo->setQuery($query);
-			return $dbo->loadResult();
-		} catch(JException $e) {
-			$this->setError($e, true);
-			return false;
-		}
+		$dbo->setQuery($query);
+		return $dbo->loadResult();
 	}
 }

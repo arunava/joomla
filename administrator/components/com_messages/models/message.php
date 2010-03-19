@@ -1,137 +1,243 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Message
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Messages Component Message Model
+ * Private Message model.
  *
  * @package		Joomla.Administrator
- * @subpackage	Message
- * @since 1.5
+ * @subpackage	com_messages
+ * @since		1.6
  */
-class MessagesModelMessage extends JModel
+class MessagesModelMessage extends JModelForm
 {
 	/**
-	 * Message id
-	 *
-	 * @var int
+	 * Method to auto-populate the model state.
 	 */
-	var $_id = null;
-
-	/**
-	 * Message data
-	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$user = JFactory::getUser();
+		$this->setState('user.id', $user->get('id'));
 
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		// Note: Opposite to most similar models!
-		if(!$edit)
-			$this->setId((int)$array[0]);
+		$messageId = (int) JRequest::getInt('message_id');
+		$this->setState('message.id', $messageId);
+
+		$replyId = (int) JRequest::getInt('reply_id');
+		$this->setState('reply.id', $replyId);
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_messages');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to set the message identifier
+	 * Returns a Table object, always creating it.
 	 *
-	 * @access	public
-	 * @param	int Message identifier
-	 */
-	function setId($id)
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Message', $prefix = 'MessagesTable', $config = array())
 	{
-		// Set message id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
+		return JTable::getInstance($type, $prefix, $config);
 	}
 
 	/**
-	 * Method to get a message
+	 * Method to get a single record.
 	 *
-	 * @since 1.5
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
 	 */
-	function &getData()
+	public function &getItem($pk = null)
 	{
-		// Load the message data
-		if (!$this->_loadData())
-		{
-			$this->_initData();
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('message.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = $this->getTable();
+
+		// Attempt to load the row.
+		$return = $table->load($pk);
+
+		// Check for a table object error.
+		if ($return === false && $table->getError()) {
+			$this->setError($table->getError());
+			return $false;
 		}
 
-		return $this->_data;
+		// Convert to the JObject before adding other data.
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		// Prime required properties.
+		if (empty($table->id)) {
+			// Prepare data for a new record.
+			if ($replyId = $this->getState('reply.id')) {
+				// If replying to a message, preload some data.
+				$db		= $this->getDbo();
+				$query	= $db->getQuery(true);
+
+				$query->select('subject, user_id_from');
+				$query->from('#__messages');
+				$query->where('message_id = '.(int) $replyId);
+				$message = $db->setQuery($query)->loadObject();
+
+				if ($error = $db->getErrorMsg()) {
+					$this->setError($error);
+					return false;
+				}
+
+				$value->set('user_id_to', $message->user_id_from);
+				$re = JText::_('COM_MESSAGES_RE');
+				if (stripos($message->subject, $re) !== 0) {
+					$value->set('subject', $re.$message->subject);
+				}
+			}
+		} else {
+			// Get the user name for an existing messasge.
+			if ($table->user_id_from && $fromUser = new JUser($table->user_id_from)) {
+				$value->set('from_user_name', $fromUser->name);
+			}
+		}
+
+		return $value;
 	}
 
 	/**
-	 * Method to store the message
+	 * Method to get the record form.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @return	mixed	JForm object on success, false on failure.
 	 */
-	function send($data)
+	public function getForm()
 	{
-		$row =& $this->getTable();
+		// Initialise variables.
+		$app	= JFactory::getApplication();
 
-		// Bind the form fields to the web link table
-		if (!$row->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
+		// Get the form.
+		$form = parent::getForm('message', 'com_messages.message', array('array' => 'jform', 'event' => 'onPrepareForm'));
+
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
 			return false;
 		}
 
-		// Make sure the data is valid
-		if (!$row->check()) {
-			$this->setError($this->_db->getErrorMsg());
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_messages.edit.message.data', array());
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 *
+	 * @return	boolean	True on success.
+	 */
+	public function save($data)
+	{
+		$table = $this->getTable();
+
+		// Bind the data.
+		if (!$table->bind($data)) {
+			$this->setError($table->getError());
 			return false;
 		}
 
-		// Store the data to the database
-		if (!$row->send()) {
-			$this->setError($this->_db->getErrorMsg());
+		// Assign empty values.
+		if (empty($table->user_id_from)) {
+			$table->user_id_from = JFactory::getUser()->get('id');
+		}
+		if (intval($table->date_time) == 0) {
+			$table->date_time = JFactory::getDate()->toMySQL();
+		}
+
+		// Check the data.
+		if (!$table->check()) {
+			$this->setError($table->getError());
 			return false;
+		}
+
+		// Load the recipient user configuration.
+		$model = JModel::getInstance('Config', 'MessagesModel', array('ignore_request' => true));
+		$model->setState('user.id', $table->user_id_to);
+		$config = $model->getItem();
+		if (empty($config)) {
+			$this->setError($model->getError());
+			return false;
+		}
+
+		if ($config->get('locked')) {
+			$this->setError(JText::_('COM_MESSAGES_ERR_SEND_FAILED'));
+			return false;
+		}
+
+		// Store the data.
+		if (!$table->store()) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		if ($config->get('mail_on_new')) {
+			// Load the user details (already valid from table check).
+			$fromUser	= new JUser($table->user_id_from);
+			$toUser		= new JUser($table->user_id_to);
+
+			$siteURL	= JURI::base();
+			$sitename	= JFactory::getApplication()->getCfg('sitename');
+
+			$subject	= sprintf (JText::_('COM_MESSAGES_NEW_MESSAGE_ARRIVED'), $sitename);
+			$msg		= sprintf (JText::_('COM_MESSAGES_PLEASE_LOGIN'), $siteURL);
+
+			JUtility::sendMail($fromUser->email, $fromUser->name, $toUser->email, $subject, $msg);
 		}
 
 		return true;
 	}
 
 	/**
-	 * Method to remove a message
+	 * Method to delete messages from the database
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	integer	An array of numeric ids for the rows
+	 * @return	boolean	True on success / false on failure
 	 */
-	function delete($cid = array())
+	public function delete($cid)
 	{
-		$result = false;
+		// Get a message row instance
+		$table = $this->getTable();
 
-		if (count( $cid ))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-			$query = 'DELETE FROM #__messages'
-				. ' WHERE message_id IN ( '.$cids.' )';
-			$this->_db->setQuery( $query );
-			if(!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+		for ($i = 0, $c = count($cid); $i < $c; $i++) {
+			// Load the row.
+			$return = $table->load($cid[$i]);
+
+			// Check for an error.
+			if ($return === false) {
+				$this->setError($table->getError());
+				return false;
+			}
+
+			// Delete the row.
+			$return = $table->delete();
+
+			// Check for an error.
+			if ($return === false) {
+				$this->setError($table->getError());
 				return false;
 			}
 		}
@@ -140,74 +246,38 @@ class MessagesModelMessage extends JModel
 	}
 
 	/**
-	 * Method to load message data
+	 * Method to publish records.
 	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
 	 */
-	function _loadData()
+	function publish(&$pks, $value = 1)
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT a.*, u.name AS user_from'
-				. ' FROM #__messages AS a'
-				. ' INNER JOIN #__users AS u ON u.id = a.user_id_from'
-				. ' WHERE a.message_id = '.(int) $this->_id
-				. ' ORDER BY date_time DESC'
-			;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$table	= $this->getTable();
+		$pks	= (array) $pks;
 
-	/**
-	 * Method to initialise the message data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$message = new stdClass();
-			$message->id					= 0;
-			$message->user_id_from			= 0;
-			$message->user_id_to			= 0;
-			$message->folder_id				= 0;
-			$message->date_time				= null;
-			$message->state					= 0;
-			$message->priority				= 0;
-			$message->subject				= null;
-			$message->message				= null;
-			$this->_data					= $message;
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
+		// Access checks.
+		foreach ($pks as $i => $pk) {
+			if ($table->load($pk)) {
+				$allow = $user->authorise('core.edit.state', 'com_messages');
 
-	/**
-	 * Method to set the message as read
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function markAsRead()
-	{
-		$query = 'UPDATE #__messages'
-			. ' SET state = 1'
-			. ' WHERE message_id = '.(int) $this->_id
-		;
-		$this->_db->setQuery( $query );
-		if ($this->_db->query() === false)
+				if (!$allow) {
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JERROR_CORE_EDIT_STATE_NOT_PERMITTED'));
+				}
+			}
+		}
+
+		// Attempt to change the state of the records.
+		if (!$table->publish($pks, $value, $user->get('id'))) {
+			$this->setError($table->getError());
 			return false;
+		}
 
 		return true;
 	}

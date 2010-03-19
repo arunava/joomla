@@ -1,78 +1,63 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Templates
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Templates component
+ * View to edit a template style.
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Templates
- * @since 1.6
+ * @subpackage	com_templates
+ * @since		1.6
  */
 class TemplatesViewTemplate extends JView
 {
-	protected $params = null;
-	protected $template = null;
-	protected $ftp = null;
-	protected $client = null;
-	protected $option = null;
-	protected $row = null;
-	protected $lists = null;
-	protected $templatefile = null;
+	protected $state;
+	protected $files;
 
+	/**
+	 * Display the view
+	 */
 	public function display($tpl = null)
 	{
+		$state		= $this->get('State');
+		$template	= $this->get('Template');
+		$files		= $this->get('Files');
 
-		jimport('joomla.filesystem.path');
-		$this->loadHelper('template');
-
-		JToolBarHelper::title( JText::_( 'Template' ) . ': <small><small>[ '. JText::_( 'Edit' ) .' ]</small></small>', 'thememanager' );
-		JToolBarHelper::custom('preview', 'preview.png', 'preview_f2.png', 'Preview', false, false);
-		JToolBarHelper::custom( 'edit_source', 'html.png', 'html_f2.png', 'Edit HTML', false, false );
-		JToolBarHelper::custom( 'choose_css', 'css.png', 'css_f2.png', 'Edit CSS', false, false );
-		JToolBarHelper::save( 'save' );
-		JToolBarHelper::apply();
-		JToolBarHelper::cancel( 'cancel', 'Close' );
-		JToolBarHelper::help( 'screen.templates' );
-
-		$row		=& $this->get('Data');
-		$params		=& $this->get('Params');
-		$client		=& $this->get('Client');
-		$template	=& $this->get('Template');
-
-		if (!$template) {
-			return JError::raiseWarning( 500, JText::_('Template not specified') );
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		if($client->id == '1')  {
-			$lists['selections'] =  JText::_('Cannot assign an administrator template');
-		} else {
-			$lists['selections'] = TemplatesHelper::createMenuList($template);
-		}
-
-		// Set FTP credentials, if given
-		jimport('joomla.client.helper');
-		$ftp =& JClientHelper::setCredentialsFromRequest('ftp');
-
-		$this->assignRef('lists',		$lists);
-		$this->assignRef('row',			$row);
-		$this->assign('option',		JRequest::getCMD('option'));
-		$this->assignRef('client',		$client);
-		$this->assignRef('ftp',			$ftp);
+		$this->assignRef('state',		$state);
 		$this->assignRef('template',	$template);
-		$this->assignRef('params',		$params);
+		$this->assignRef('files',		$files);
 
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar
+	 */
+	protected function _setToolbar()
+	{
+		$user		= JFactory::getUser();
+		$canDo		= TemplatesHelper::getActions();
+
+		JToolBarHelper::title(JText::_('COM_TEMPLATES_MANAGER_VIEW_TEMPLATE'), 'thememanager');
+
+		JToolBarHelper::cancel('template.cancel', 'JTOOLBAR_CLOSE');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.template.view','JTOOLBAR_HELP');
 	}
 }

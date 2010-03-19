@@ -1,14 +1,12 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Media
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.filesystem.file');
 jimport('joomla.filesystem.folder');
@@ -17,7 +15,7 @@ jimport('joomla.filesystem.folder');
  * Weblinks Weblink Controller
  *
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.5
  */
 class MediaControllerFolder extends MediaController
@@ -31,25 +29,26 @@ class MediaControllerFolder extends MediaController
 	 */
 	function delete()
 	{
-		global $mainframe;
+		JRequest::checkToken('request') or jexit(JText::_('JInvalid_Token'));
 
 		// Set FTP credentials, if given
 		jimport('joomla.client.helper');
 		JClientHelper::setCredentialsFromRequest('ftp');
 
 		// Get some data from the request
-		$tmpl	= JRequest::getCmd( 'tmpl' );
-		$paths	= JRequest::getVar( 'rm', array(), '', 'array' );
-		$folder = JRequest::getVar( 'folder', '', '', 'path');
+		$app	= &JFactory::getApplication();
+		$tmpl	= JRequest::getCmd('tmpl');
+		$paths	= JRequest::getVar('rm', array(), '', 'array');
+		$folder = JRequest::getVar('folder', '', '', 'path');
 
-		// Initialize variables
+		// Initialise variables.
 		$msg = array();
 		$ret = true;
 
 		if (count($paths)) {
 			foreach ($paths as $path)
 			{
-				if ($path !== JFilterInput::clean($path, 'path')) {
+				if ($path !== JFile::makeSafe($path)) {
 					JError::raiseWarning(100, JText::_('Unable to delete:').htmlspecialchars($path, ENT_COMPAT, 'UTF-8').' '.JText::_('WARNDIRNAME'));
 					continue;
 				}
@@ -75,9 +74,9 @@ class MediaControllerFolder extends MediaController
 		}
 		if ($tmpl == 'component') {
 			// We are inside the iframe
-			$mainframe->redirect('index.php?option=com_media&view=mediaList&folder='.$folder.'&tmpl=component');
+			$app->redirect('index.php?option=com_media&view=mediaList&folder='.$folder.'&tmpl=component');
 		} else {
-			$mainframe->redirect('index.php?option=com_media&folder='.$folder);
+			$app->redirect('index.php?option=com_media&folder='.$folder);
 		}
 	}
 
@@ -89,23 +88,22 @@ class MediaControllerFolder extends MediaController
 	 */
 	function create()
 	{
-		global $mainframe;
-
 		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Set FTP credentials, if given
 		jimport('joomla.client.helper');
 		JClientHelper::setCredentialsFromRequest('ftp');
 
-		$folder			= JRequest::getCmd( 'foldername', '');
-		$folderCheck	= JRequest::getVar( 'foldername', null, '', 'string', JREQUEST_ALLOWRAW);
-		$parent			= JRequest::getVar( 'folderbase', '', '', 'path' );
+		$app			= &JFactory::getApplication();
+		$folder			= JRequest::getCmd('foldername', '');
+		$folderCheck	= JRequest::getVar('foldername', null, '', 'string', JREQUEST_ALLOWRAW);
+		$parent			= JRequest::getVar('folderbase', '', '', 'path');
 
 		JRequest::setVar('folder', $parent);
 
 		if (($folderCheck !== null) && ($folder !== $folderCheck)) {
-			$mainframe->redirect('index.php?option=com_media&folder='.$parent, JText::_('WARNDIRNAME'));
+			$app->redirect('index.php?option=com_media&folder='.$parent, JText::_('WARNDIRNAME'));
 		}
 
 		if (strlen($folder) > 0) {
@@ -114,11 +112,11 @@ class MediaControllerFolder extends MediaController
 			{
 				jimport('joomla.filesystem.*');
 				JFolder::create($path);
-				$file = '<html>\n<body>\n</body>\n</html>';
-				JFile::write($path.DS.'index.html', $file);
+				$data = "<html>\n<body bgcolor=\"#FFFFFF\">\n</body>\n</html>";
+				JFile::write($path.DS."index.html", $data);
 			}
 			JRequest::setVar('folder', ($parent) ? $parent.'/'.$folder : $folder);
 		}
-		$mainframe->redirect('index.php?option=com_media&folder='.$parent);
+		$app->redirect('index.php?option=com_media&folder='.$parent);
 	}
 }

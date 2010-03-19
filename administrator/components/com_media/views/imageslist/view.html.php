@@ -1,45 +1,35 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Media
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * HTML View class for the Media component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewImagesList extends JView
 {
-	protected $baseURL = null;
-	protected $images = null;
-	protected $folders = null;
-	protected $state = null;
-	protected $_tmp_folder = null;
-	protected $_tmp_img = null;
-
-	public function display($tpl = null)
+	function display($tpl = null)
 	{
-		$mainframe = JFactory::getApplication();
-
 		// Do not allow cache
 		JResponse::allowCache(false);
 
-		JHtml::_('behavior.mootools');
-		JHtml::_('stylesheet', 'popup-imagelist.css', 'administrator/components/com_media/assets/');
+		$app = JFactory::getApplication();
 
-		$document =& JFactory::getDocument();
+		JHtml::_('behavior.framework', true);
+		JHTML::_('stylesheet','media/popup-imagelist.css', array(), true);
+
+		$document = &JFactory::getDocument();
 		$document->addScriptDeclaration("var ImageManager = window.parent.ImageManager;");
 
 		$this->assign('baseURL', COM_MEDIA_BASEURL);
@@ -54,7 +44,7 @@ class MediaViewImagesList extends JView
 	function setFolder($index = 0)
 	{
 		if (isset($this->folders[$index])) {
-			$this->_tmp_folder = $this->folders[$index];
+			$this->_tmp_folder = &$this->folders[$index];
 		} else {
 			$this->_tmp_folder = new JObject;
 		}
@@ -63,7 +53,7 @@ class MediaViewImagesList extends JView
 	function setImage($index = 0)
 	{
 		if (isset($this->images[$index])) {
-			$this->_tmp_img = $this->images[$index];
+			$this->_tmp_img = &$this->images[$index];
 		} else {
 			$this->_tmp_img = new JObject;
 		}

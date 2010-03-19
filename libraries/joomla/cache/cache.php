@@ -3,12 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 //Register the session storage class with the loader
 JLoader::register('JCacheStorage', dirname(__FILE__).DS.'storage.php');
@@ -21,21 +21,21 @@ JLoader::register('JCacheStorage', dirname(__FILE__).DS.'storage.php');
  * @subpackage	Cache
  * @since		1.5
  */
-class JCache extends JClass
+class JCache extends JObject
 {
 	/**
 	 * Storage Handler
 	 * @access	private
 	 * @var		object
 	 */
-	protected $_handler;
+	var $_handler;
 
 	/**
 	 * Cache Options
 	 * @access	private
 	 * @var		array
 	 */
-	protected $_options;
+	var $_options;
 
 	/**
 	 * Constructor
@@ -43,42 +43,20 @@ class JCache extends JClass
 	 * @access	protected
 	 * @param	array	$options	options
 	 */
-	protected function __construct($options)
+	function __construct($options)
 	{
-		$this->_options =& $options;
+		$this->_options = array(
+			'language'=>'en-GB',
+			'cachebase'=>JPATH_ROOT.DS.'cache',
+			'defaultgroup'=>'default',
+			'caching'=>true,
+			'storage'=>'file');
 
-		// Get the default group and caching
-		if (isset($options['language'])) {
-			$this->_options['language'] = $options['language'];
-		} else {
-			$options['language'] = 'en-GB';
-		}
+		// Overwrite default options with given options
+		$this->_options = array_merge($this->_options,$options);
+		//@todo:or with the ampersand here? Like "...& $options);" for speed if array_merge or this construct would make a deep copy otherwise
 
-		if (isset($options['cachebase'])) {
-			$this->_options['cachebase'] = $options['cachebase'];
-		} else {
-			$this->_options['cachebase'] = JPATH_ROOT.DS.'cache';
-		}
-
-		if (isset($options['defaultgroup'])) {
-			$this->_options['defaultgroup'] = $options['defaultgroup'];
-		} else {
-			$this->_options['defaultgroup'] = 'default';
-		}
-
-		if (isset($options['caching'])) {
-			$this->_options['caching'] =  $options['caching'];
-		} else {
-			$this->_options['caching'] = true;
-		}
-
-		if (isset($options['storage'])) {
-			$this->_options['storage'] = $options['storage'];
-		} else {
-			$this->_options['storage'] = 'file';
-		}
-
-		//Fix to detect if template positions are enabled...
+		// Fix to detect if template positions are enabled...
 		if (JRequest::getCMD('tpl',0)) {
 			$this->_options['caching'] = false;
 		}
@@ -92,7 +70,7 @@ class JCache extends JClass
 	 * @return	object	A JCache object
 	 * @since	1.5
 	 */
-	public static function &getInstance($type = 'output', $options = array())
+	function getInstance($type = 'output', $options = array())
 	{
 		$type = strtolower(preg_replace('/[^A-Z0-9_\.-]/i', '', $type));
 
@@ -103,15 +81,13 @@ class JCache extends JClass
 			$path = dirname(__FILE__).DS.'handler'.DS.$type.'.php';
 
 			if (file_exists($path)) {
-				require_once($path);
+				require_once $path;
 			} else {
-				throw new JException(JText::_('Unable to load cache handler: '). $type, 1150, $type, true);
+				JError::raiseError(500, 'Unable to load Cache Handler: '.$type);
 			}
 		}
 
-		$instance = new $class($options);
-
-		return $instance;
+		return new $class($options);
 	}
 
 	/**
@@ -120,7 +96,7 @@ class JCache extends JClass
 	 * @access public
 	 * @return array An array of available storage handlers
 	 */
-	public static function getStores()
+	function getStores()
 	{
 		jimport('joomla.filesystem.folder');
 		$handlers = JFolder::files(dirname(__FILE__).DS.'storage', '.php$');
@@ -132,10 +108,10 @@ class JCache extends JClass
 			$class = 'JCacheStorage'.$name;
 
 			if (!class_exists($class)) {
-				require_once(dirname(__FILE__).DS.'storage'.DS.$name.'.php');
+				require_once dirname(__FILE__).DS.'storage'.DS.$name.'.php';
 			}
 
-			if (call_user_func_array(array(trim($class), 'test'), null)) {
+			if (call_user_func_array(array(trim($class), 'test'), array())) {
 				$names[] = $name;
 			}
 		}
@@ -151,7 +127,7 @@ class JCache extends JClass
 	 * @return	void
 	 * @since	1.5
 	 */
-	public function setCaching($enabled)
+	function setCaching($enabled)
 	{
 		$this->_options['caching'] = $enabled;
 	}
@@ -164,7 +140,7 @@ class JCache extends JClass
 	 * @return	void
 	 * @since	1.5
 	 */
-	public function setLifeTime($lt)
+	function setLifeTime($lt)
 	{
 		$this->_options['lifetime'] = $lt;
 	}
@@ -179,18 +155,17 @@ class JCache extends JClass
 	 * @return	mixed	Boolean false on failure or a cached data string
 	 * @since	1.5
 	 */
-	public function get($id, $group=null)
+	function get($id, $group=null)
 	{
 		// Get the default group
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
-		if(!$this->_options['caching']) return false;
+
 		// Get the storage handler
-		try {
-			$handler =& JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		$handler = &$this->_getStorage();
+		if (!JError::isError($handler) && $this->_options['caching']) {
 			return $handler->get($id, $group, (isset($this->_options['checkTime']))? $this->_options['checkTime'] : true);
-		} catch(JException $e) {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -203,19 +178,17 @@ class JCache extends JClass
 	 * @return	boolean	True if cache stored
 	 * @since	1.5
 	 */
-	public function store($data, $id, $group=null)
+	function store($data, $id, $group=null)
 	{
 		// Get the default group
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
-		if(!$this->_options['caching']) return false;
 
 		// Get the storage handler and store the cached data
-		try {
-			$handler =& JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		$handler = &$this->_getStorage();
+		if (!JError::isError($handler) && $this->_options['caching']) {
 			return $handler->store($id, $group, $data);
-		} catch(JException $e ) {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -228,18 +201,17 @@ class JCache extends JClass
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function remove($id, $group=null)
+	function remove($id, $group=null)
 	{
 		// Get the default group
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage handler
-		try {
-			$handler =& JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		$handler = &$this->_getStorage();
+		if (!JError::isError($handler)) {
 			return $handler->remove($id, $group);
-		} catch(JException $e) {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -254,18 +226,17 @@ class JCache extends JClass
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public function clean($group=null, $mode='group')
+	function clean($group=null, $mode='group')
 	{
 		// Get the default group
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage handler
-		try {
-			$handler =& JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		$handler = &$this->_getStorage();
+		if (!JError::isError($handler)) {
 			return $handler->clean($group, $mode);
-		} catch(JException $e) {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -275,15 +246,14 @@ class JCache extends JClass
 	 * @return boolean  True on success, false otherwise.
 	 * @since	1.5
 	 */
-	public function gc()
+	function gc()
 	{
 		// Get the storage handler
-		try {
-			$handler =& JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		$handler = &$this->_getStorage();
+		if (!JError::isError($handler)) {
 			return $handler->gc();
-		} catch(JException $e) {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -292,14 +262,14 @@ class JCache extends JClass
 	 * @access protected
 	 * @return object A JCacheStorage object
 	 * @since	1.5
-	 * @deprecated
 	 */
-	public function &_getStorage()
+	function _getStorage()
 	{
-		try {
-			return JCacheStorage::getInstance($this->_options['storage'], $this->_options);
-		} catch(JException $e) {
-			return $e;
+		if (is_a($this->_handler, 'JCacheStorage')) {
+			return $this->_handler;
 		}
+
+		$this->_handler = &JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		return $this->_handler;
 	}
 }

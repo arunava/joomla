@@ -1,429 +1,583 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Categories
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
  * Categories Component Category Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Categories
+ * @subpackage	com_categories
  * @since 1.5
  */
-class CategoriesModelCategory extends JModel
+class CategoriesModelCategory extends JModelForm
 {
 	/**
-	 * Category id
+	 * Model context string.
 	 *
-	 * @var int
+	 * @var		string
 	 */
-	var $_id = null;
+	protected $_context		= 'com_categories.item';
 
 	/**
-	 * Category data
+	 * Returns a Table object, always creating it
 	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Category', $prefix = 'JTable', $config = array())
 	{
-		parent::__construct();
-
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if($edit)
-			$this->setId((int)$array[0]);
+		return JTable::getInstance($type, $prefix, $config);
 	}
 
 	/**
-	 * Method to set the category identifier
+	 * Auto-populate the model state.
 	 *
-	 * @access	public
-	 * @param	int Category identifier
+	 * @return	void
 	 */
-	function setId($id)
+	protected function _populateState()
 	{
-		// Set category id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
+		$app = &JFactory::getApplication('administrator');
 
-	/**
-	 * Method to get a category
-	 *
-	 * @since 1.5
-	 */
-	function &getData()
-	{
-		// Load the category data
-		if (!$this->_loadData())
-			$this->_initData();
-
-		return $this->_data;
-	}
-
-	/**
-	 * Tests if category is checked out
-	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.5
-	 */
-	function isCheckedOut( $uid=0 )
-	{
-		if ($this->_loadData())
-		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
-			}
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_categories.edit.category.id'))) {
+			$pk = (int) JRequest::getInt('item_id');
 		}
+		$this->setState('category.id', $pk);
+
+		if (!($parentId = $app->getUserState('com_categories.edit.category.parent_id'))) {
+			$parentId = JRequest::getInt('parent_id');
+		}
+		$this->setState('category.parent_id', $parentId);
+
+		if (!($extension = $app->getUserState('com_categories.edit.category.extension'))) {
+			$extension = JRequest::getCmd('extension', 'com_content');
+		}
+		$this->setState('category.extension', $extension);
+		$parts = explode('.',$extension);
+		// extract the component name
+		$this->setState('category.component', $parts[0]);
+		// extract the optional section name
+		$this->setState('category.section', (count($parts)>1)?$parts[1]:null);
+
+		// Load the parameters.
+		$params	= &JComponentHelper::getParams('com_categories');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to checkin/unlock the category
+	 * Method to get a category.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	integer	An optional id of the object to get, otherwise the id from the model state is used.
+	 *
+	 * @return	mixed	Category data object on success, false on failure.
 	 */
-	function checkin()
+	public function &getItem($pk = null)
 	{
-		if ($this->_id)
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('category.id');
+
+		// Get a level row instance.
+		$table = &$this->getTable();
+
+		// Attempt to load the row.
+		$table->load($pk);
+
+		// Check for a table object error.
+		if ($error = $table->getError())
 		{
-			$category = & $this->getTable();
-			if(! $category->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
+			$this->setError($error);
+			$false = false;
+			return $false;
+		}
+
+		// Prime required properties.
+		if (empty($table->id))
+		{
+			$table->parent_id	= $this->getState('category.parent_id');
+			$table->extension	= $this->getState('category.extension');
+		}
+
+		// Convert the params field to an array.
+		$registry = new JRegistry();
+		$registry->loadJSON($table->params);
+		$table->params = $registry->toArray();
+
+		// Convert the metadata field to an array.
+		$registry = new JRegistry();
+		$registry->loadJSON($table->metadata);
+		$table->metadata = $registry->toArray();
+
+		// Convert the result to a JObject
+		$result = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		return $result;
+	}
+
+	/**
+	 * Method to get the row form.
+	 *
+	 * @return	mixed	JForm object on success, false on failure.
+	 * @since	1.6
+	 */
+	public function getForm()
+	{
+		// Initialise variables.
+		$app		= &JFactory::getApplication();
+		$lang		= &JFactory::getLanguage();
+		$extension	= $this->getState('category.extension');
+		$component	= $this->getState('category.component');
+		$section	= $this->getState('category.section');
+
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_categories.edit.category.data', array());
+
+		// Get the form.
+		jimport('joomla.form.form');
+		JForm::addFormPath(JPATH_ADMINISTRATOR.'/components/com_categories/models/forms');
+		JForm::addFieldPath(JPATH_ADMINISTRATOR.'/components/com_categories/models/fields');
+		$form = &JForm::getInstance('category', "com_categories.category.$extension", true, array('array'=>'jform'));
+		// Check for an error.
+		if (JError::isError($form))
+		{
+			$this->setError($form->getMessage());
+			return false;
+		}
+
+		// Get the component form if it exists
+		jimport('joomla.filesystem.path');
+		$name = 'category' . ($section ? ('.'.$section):'');
+		$path = JPath::clean(JPATH_ADMINISTRATOR."/components/$component/$name.xml");
+		if (file_exists($path))
+		{
+			$lang->load($component, JPATH_BASE, null, false, false);
+			$lang->load($component, JPATH_BASE, $lang->getDefault(), false, false);
+			$form->load($path, true, false);
+
+			// Check for an error.
+			if (JError::isError($form)) {
+				$this->setError($form->getMessage());
 				return false;
 			}
-			return true;
 		}
-		return false;
-	}
 
-	/**
-	 * Method to checkout/lock the category
-	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the category out
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkout($uid = null)
-	{
-		if ($this->_id)
+		// Try to find the component helper.
+		$eName	= str_replace('com_', '', $component);
+		$path	= JPath::clean(JPATH_ADMINISTRATOR."/components/$component/helpers/category.php");
+		if (file_exists($path))
 		{
-			// Make sure we have a user id to checkout the category with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$category = & $this->getTable();
-			if(!$category->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Method to store the category
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function store($data)
-	{
-		$row =& $this->getTable();
-
-		// Bind the form fields to the web link table
-		if (!$row->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// if new item, order last in appropriate group
-		if (!$row->id) {
-			$where = '1 = 1';
-			$row->ordering = $row->getNextOrder( $where );
-		}
-
-		// Make sure the web link table is valid
-		if (!$row->check()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Store the web link table to the database
-		if (!$row->store()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to remove a category
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function delete($cid = array())
-	{
-		$result = false;
-
-		if (count( $cid ))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-			$query = 'SELECT id, lft, rgt '.
-					'FROM #__categories '.
-					'WHERE id IN ('.$cids.') ORDER BY lft ASC';
-			$this->_db->setQuery($query);
-			$categories = $this->_db->loadObjectList();
-			for($i = 1; $i < count($categories); $i++)
+			require_once $path;
+			$cName	= ucfirst($eName).ucfirst($section).'HelperCategory';
+			if (class_exists($cName) && is_callable(array($cName, 'onPrepareForm')))
 			{
-				if($categories[$i-1]->lft > $categories[$i]->lft && $categories[$i-1]->rgt > $categories[$i]->rgt)
-				{
-					unset($categories[$i]);
-					$i--;
-				}
-			}
-			foreach($categories as $category)
-			{
-				$query = 'DELETE FROM #__categories WHERE lft BETWEEN '.$category->lft.' AND '.$category->rgt;
-				$this->_db->setQuery($query);
-				if(!$this->_db->query()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
-				}
-				$query = 'UPDATE #__categories SET rgt = rgt - '.($category->rgt - $category->lft).' WHERE rgt > '.$category->rgt;
-				$this->_db->setQuery($query);
-				if(!$this->_db->query()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
-				}
-				$query = 'UPDATE #__categories SET lft = lft - '.($category->rgt - $category->lft).' WHERE lft > '.$category->lft;
-				$this->_db->setQuery($query);				
-				if(!$this->_db->query()) {
-					$this->setError($this->_db->getErrorMsg());
+				$lang->load($component, JPATH_BASE, null, false, false);
+				$lang->load($component, JPATH_BASE, $lang->getDefault(), false, false);
+				call_user_func_array(array($cName, 'onPrepareForm'), array(&$form));
+
+				// Check for an error.
+				if (JError::isError($form)) {
+					$this->setError($form->getMessage());
 					return false;
 				}
 			}
 		}
 
-		return true;
-	}
+		// Get the dispatcher.
+		$dispatcher	= &JDispatcher::getInstance();
 
-	/**
-	 * Method to (un)publish a category
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function publish($cid = array(), $publish = 1)
-	{
-		$user 	=& JFactory::getUser();
+		// Load the plugin group.
+		JPluginHelper::importPlugin('content');
 
-		if (count( $cid ))
+		// Trigger the form preparation event.
+		$results = $dispatcher->trigger('onPrepareForm', array($form->getName(), $form));
+
+		// Check for errors encountered while preparing the form.
+		if (count($results) && in_array(false, $results, true))
 		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
+			// Get the last error.
+			$error = $dispatcher->getError();
 
-			$query = 'UPDATE #__categories'
-				. ' SET published = '.(int) $publish
-				. ' WHERE id IN ( '.$cids.' )'
-				. ' AND ( checked_out = 0 OR ( checked_out = '.(int) $user->get('id').' ) )'
-			;
-			$this->_db->setQuery( $query );
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
+			// Convert to a JException if necessary.
+			if (!JError::isError($error)) {
+				$error = new JException($error, 500);
 			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a category
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function move($direction)
-	{
-		$row =& $this->getTable();
-		if (!$row->load($this->_id)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if (!$row->move( $direction, ' published >= 0 ' )) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a category
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function saveorder($cid, $order)
-	{
-		$row =& $this->getTable();
-		$groupings = array();
-
-		// update ordering values
-		for( $i=0; $i < count($cid); $i++ )
-		{
-			$row->load( (int) $cid[$i] );
-			// track sections
-			$groupings[] = $row->section;
-			if ($row->ordering != $order[$i]) {
-				$row->ordering = $order[$i];
-				if (!$row->store()) {
-					JError::raiseError(500, $db->getErrorMsg());
-				}
-			}
-		}
-
-		// execute updateOrder for each parent group
-		$groupings = array_unique( $groupings );
-		foreach ($groupings as $group){
-			$row->reorder('section = '.$this->_db->Quote($group));
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to load category data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _loadData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT s.* '.
-					' FROM #__categories AS s' .
-					' WHERE s.id = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			if (!empty($this->_data))
-			{
 			
-				$query = 'SELECT id FROM #__categories '.
-						'WHERE lft < '.$this->_data->lft.
-						' AND rgt > '.$this->_data->rgt.
-						' ORDER BY lft DESC';
-				$this->_db->setQuery($query);
-				$parents = $this->_db->loadObjectList();
-				$this->_data->parent = $parents[0]->id;
+			$this->setError($error);
+			return false;
+		}
+
+		// Set the access control rules field component value.
+		$form->setFieldAttribute('rules', 'component', $component);
+		$form->setFieldAttribute('rules', 'section', $name);
+
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to checkin a row.
+	 *
+	 * @param	integer	$pk The numeric id of a row
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function checkin($pk = null)
+	{
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('category.id');
+
+		// Only attempt to check the row in if it exists.
+		if ($pk)
+		{
+			$user	= &JFactory::getUser();
+
+			// Get an instance of the row to checkin.
+			$table = &$this->getTable();
+			if (!$table->load($pk)) {
+				$this->setError($table->getError());
+				return false;
 			}
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
 
-	/**
-	 * Method to initialise the category data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$category = new stdClass();
-			$category->id				= 0;
-			$category->parent_id		= 0;
-			$category->name				= null;
-			$category->alias			= null;
-			$category->title			= null;
-			$category->extension		= JRequest::getCmd('extension', 'com_content');
-			$category->description		= null;
-			$category->count			= 0;
-			$category->params			= null;
-			$category->published		= 0;
-			$category->checked_out		= 0;
-			$category->checked_out_time	= 0;
-			$category->archived			= 0;
-			$category->approved			= 0;
-			$category->categories		= 0;
-			$category->active			= 0;
-			$category->trash			= 0;
-			$this->_data				= $category;
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
+			// Check if this is the user having previously checked out the row.
+			if ($table->checked_out > 0 && $table->checked_out != $user->get('id')) {
+				$this->setError(JText::_('JError_Checkin_user_mismatch'));
+				return false;
+			}
 
-	/**
-	 * Method to set the category access
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function setAccess($cid = array(), $access = 0)
-	{
-		if (count( $cid ))
-		{
-			$user 	=& JFactory::getUser();
-
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-
-			$query = 'UPDATE #__categories'
-				. ' SET access = '.(int) $access
-				. ' WHERE id IN ( '.$cids.' )'
-				. ' AND ( checked_out = 0 OR ( checked_out = '.(int) $user->get('id').' ) )'
-			;
-			$this->_db->setQuery( $query );
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+			// Attempt to check the row in.
+			if (!$table->checkin($pk)) {
+				$this->setError($table->getError());
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+	/**
+	 * Method to check-out a row for editing.
+	 *
+	 * @param	int		$pk	The numeric id of the row to check-out.
+	 *
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function checkout($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('category.id');
+
+		// Only attempt to check the row in if it exists.
+		if ($pk)
+		{
+			// Get a row instance.
+			$table = &$this->getTable();
+
+			// Get the current user object.
+			$user = &JFactory::getUser();
+
+			// Attempt to check the row out.
+			if (!$table->checkout($user->get('id'), $pk)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		$pk		= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('category.id');
+		$isNew	= true;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Load the row if saving an existing category.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// Set the new parent id if set.
+		if ($table->parent_id != $data['parent_id']) {
+			$table->setLocation($data['parent_id'], 'last-child');
+		}
+
+		// Bind the data.
+		if (!$table->bind($data)) {
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			return false;
+		}
+
+		// Bind the rules.
+		if (isset($data['rules']))
+		{
+			$rules = new JRules($data['rules']);
+			$table->setRules($rules);
+		}
+
+		// Check the data.
+		if (!$table->check()) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Store the data.
+		if (!$table->store()) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Rebuild the tree path.
+		if (!$table->rebuildPath($table->id)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		$this->setState('category.id', $table->id);
+
+		return true;
+	}
+
+	/**
+	 * Method to delete rows.
+	 *
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	public function delete($pks)
+	{
+		$pks = (array) $pks;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $pk)
+		{
+			// Delete the category (but keep the children)
+			if (!$table->delete((int) $pk, false))
+			{
+				$this->setError($table->getError());
+				return false;
+			}			
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to publish categories.
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function publish($pks, $value = 1)
+	{
+		$pks = (array) $pks;
+
+		// Get the current user object.
+		$user = &JFactory::getUser();
+
+		// Get an instance of the table row.
+		$table = &$this->getTable();
+
+		// Attempt to publish the items.
+		if (!$table->publish($pks, $value, $user->get('id')))
+		{
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to adjust the ordering of a row.
+	 *
+	 * @param	int		The numeric id of the row to move.
+	 * @param	integer	Increment, usually +1 or -1
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function ordering($pk, $direction = 0)
+	{
+		// Sanitize the id and adjustment.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('category.id');
+
+		// If the ordering direction is 0 then we aren't moving anything.
+		if ($direction == 0) {
+			return true;
+		}
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Move the row down in the ordering.
+		if ($direction > 0)
+		{
+			if (!$table->orderDown($pk)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		// Move the row up in the ordering.
+		else
+		{
+			if (!$table->orderUp($pk)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method rebuild the entire nested set tree.
+	 *
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function rebuild()
+	{
+		// Get an instance of the table obejct.
+		$table = &$this->getTable();
+
+		if (!$table->rebuild())
+		{
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to perform batch operations on a category or a set of categories.
+	 *
+	 * @param	array	An array of commands to perform.
+	 * @param	array	An array of category ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	function batch($commands, $pks)
+	{
+		// Sanitize user ids.
+		$pks = array_unique($pks);
+		JArrayHelper::toInteger($pks);
+
+		// Remove any values of zero.
+		if (array_search(0, $pks, true)) {
+			unset($pks[array_search(0, $pks, true)]);
+		}
+
+		if (empty($pks)) {
+			$this->setError(JText::_('JError_No_items_selected'));
+			return false;
+		}
+
+		$done = false;
+
+		if (!empty($commands['assetgroup_id']))
+		{
+			if (!$this->_batchAccess($commands['assetgroup_id'], $pks)) {
+				return false;
+			}
+			$done = true;
+		}
+
+		if (!empty($commands['category_id']))
+		{
+			$cmd = JArrayHelper::getValue($commands, 'move_copy', 'c');
+
+			if ($cmd == 'c' && !$this->_batchCopy($commands['category_id'], $pks)) {
+				return false;
+			}
+			else if ($cmd == 'm' && !$this->_batchMove($commands['category_id'], $pks)) {
+				return false;
+			}
+			$done = true;
+		}
+
+		if (!$done)
+		{
+			$this->setError('Categories_Error_Insufficient_batch_information');
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Batch access level changes for a group of rows.
+	 *
+	 * @param	int		The new value matching an Asset Group ID.
+	 * @param	array	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 */
+	protected function _batchAccess($value, $pks)
+	{
+		$table = &$this->getTable();
+		foreach ($pks as $pk)
+		{
+			$table->reset();
+			$table->load($pk);
+			$table->access = (int) $value;
+			if (!$table->store())
+			{
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Batch move categories to a new parent.
+	 *
+	 * @param	int		The new category or sub-category.
+	 * @param	array	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 */
+	protected function _batchMove($value, $pks)
+	{
+	}
+
+	/**
+	 * Batch copy categories to a new parent.
+	 *
+	 * @param	int		The new category or sub-category.
+	 * @param	array	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 */
+	protected function _batchCopy($value, $pks)
+	{
 	}
 }

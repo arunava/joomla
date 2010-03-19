@@ -1,13 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	mod_wrapper
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 class modWrapperHelper
 {
@@ -46,8 +47,8 @@ class modWrapperHelper
 			$load = '';
 		}
 
-		$params->set( 'load', $load );
-		$params->set( 'url', $url );
+		$params->set('load', $load);
+		$params->set('url', $url);
 
 		return $params;
 	}

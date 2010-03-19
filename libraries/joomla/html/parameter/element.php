@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Parameter base class
@@ -16,11 +16,11 @@ defined('JPATH_BASE') or die();
  * The JElement is the base class for all JElement types
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */
-abstract class JElement extends JObject
+class JElement extends JObject
 {
 	/**
 	* element name
@@ -46,7 +46,8 @@ abstract class JElement extends JObject
 	 *
 	 * @access protected
 	 */
-	public function __construct($parent = null) {
+	public function __construct($parent = null)
+	{
 		$this->_parent = $parent;
 	}
 
@@ -90,5 +91,8 @@ abstract class JElement extends JObject
 		return $output;
 	}
 
-	abstract public function fetchElement($name, $value, &$xmlElement, $control_name);
+	public function fetchElement($name, $value, &$xmlElement, $control_name)
+	{
+
+	}
 }

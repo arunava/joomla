@@ -1,18 +1,18 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+// No direct access
+defined('_JEXEC') or die;
 
 /**
  * Weblink Table class
  *
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
+ * @subpackage	com_weblinks
  * @since		1.5
  */
 class WeblinksTableWeblink extends JTable
@@ -22,112 +22,105 @@ class WeblinksTableWeblink extends JTable
 	 *
 	 * @var int
 	 */
-	var $id = null;
+	public $id = null;
 
 	/**
 	 * @var int
 	 */
-	var $catid = null;
+	public $catid = null;
 
 	/**
 	 * @var int
 	 */
-	var $sid = null;
+	public $sid = null;
 
 	/**
 	 * @var string
 	 */
-	var $title = null;
+	public $title = null;
 
 	/**
 	 * @var string
 	 */
-	var $alias = null;
+	public $alias = null;
 
 	/**
 	 * @var string
 	 */
-	var $url = null;
+	public $url = null;
 
 	/**
 	 * @var string
 	 */
-	var $description = null;
+	public $description = null;
 
 	/**
 	 * @var datetime
 	 */
-	var $date = null;
+	public $date = null;
 
 	/**
 	 * @var int
 	 */
-	var $hits = null;
+	public $hits = null;
 
 	/**
 	 * @var int
 	 */
-	var $state = null;
+	public $state = null;
 
 	/**
 	 * @var boolean
 	 */
-	var $checked_out = 0;
+	public $checked_out = 0;
 
 	/**
 	 * @var time
 	 */
-	var $checked_out_time = 0;
+	public $checked_out_time = 0;
 
 	/**
 	 * @var int
 	 */
-	var $ordering = null;
+	public $ordering = null;
 
 	/**
 	 * @var int
 	 */
-	var $archived = null;
+	public $archived = null;
 
 	/**
 	 * @var int
 	 */
-	var $approved = null;
+	public $approved = null;
+
+	/**
+	 * @var int
+	 */
+	public $access = null;
 
 	/**
 	 * @var string
 	 */
-	var $params = null;
+	public $params = null;
+
+	/**
+	 * @var string
+	 */
+	public $language = null;
 
 	/**
 	 * Constructor
 	 *
-	 * @param object Database connector object
-	 * @since 1.0
+	 * @param JDatabase A database connector object
 	 */
-	function __construct(& $db)
+	public function __construct(&$db)
 	{
 		parent::__construct('#__weblinks', 'id', $db);
 	}
 
 	/**
-	 * Loads a weblinks, and any other necessary data
-	 *
-	 * @param	integer		$id		An optional user id.
-	 * @return	boolean		True on success, false on failure.
-	 * @since	1.6
-	 */
-	public function load($id = null)
-	{
-		if ($result = parent::load($id)) {
-			$this->params = json_decode($this->params);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Stores a weblink
+	 * Overload the store method for the Weblinks table.
 	 *
 	 * @param	boolean		$updateNulls	Toggle whether null values should be updated.
 	 * @return	boolean		True on success, false on failure.
@@ -136,10 +129,11 @@ class WeblinksTableWeblink extends JTable
 	public function store($updateNulls = false)
 	{
 		// Transform the params field
-		if (is_array($this->params)) {
+		if (is_array($this->params))
+		{
 			$registry = new JRegistry();
 			$registry->loadArray($this->params);
-			$this->params = $registry->toString();
+			$this->params = (string)$registry;
 		}
 
 		// Attempt to store the user data.
@@ -147,26 +141,28 @@ class WeblinksTableWeblink extends JTable
 	}
 
 	/**
-	 * Overloaded check method to ensure data integrity
+	 * Overloaded check method to ensure data integrity.
 	 *
-	 * @access public
-	 * @return boolean True on success
-	 * @since 1.0
+	 * @return	boolean	True on success.
 	 */
-	function check()
+	public function check()
 	{
 		if (JFilterInput::checkAttribute(array ('href', $this->url))) {
-			$this->setError(JText::_('Please provide a valid URL'));
+			$this->setError(JText::_('COM_WEBLINKS_ERR_TABLES_PROVIDE_URL'));
 			return false;
 		}
 
 		/** check for valid name */
 		if (trim($this->title) == '') {
-			$this->setError(JText::_('Your Weblink must contain a title.'));
+			$this->setError(JText::_('COM_WEBLINKS_ERR_TABLES_TITLE'));
 			return false;
 		}
 
-		if (!(eregi('http://', $this->url) || (eregi('https://', $this->url)) || (eregi('ftp://', $this->url)))) {
+		// check for http, https, ftp on webpage
+		if ((stripos($this->url, 'http://') === false)
+			&& (stripos($this->url, 'https://') === false)
+			&& (stripos($this->url, 'ftp://') === false))
+		{
 			$this->url = 'http://'.$this->url;
 		}
 
@@ -176,19 +172,98 @@ class WeblinksTableWeblink extends JTable
 
 		$xid = intval($this->_db->loadResult());
 		if ($xid && $xid != intval($this->id)) {
-			$this->setError(JText::sprintf('WARNNAMETRYAGAIN', JText::_('Web Link')));
+			$this->setError(JText::sprintf('WARNNAMETRYAGAIN', JText::_('COM_WEBLINKS_ERR_TABLES_NAME')));
 			return false;
 		}
 
 		if (empty($this->alias)) {
 			$this->alias = $this->title;
 		}
-		$this->alias = JFilterOutput::stringURLSafe($this->alias);
+		$this->alias = JApplication::stringURLSafe($this->alias);
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$datenow =& JFactory::getDate();
-			$this->alias = $datenow->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
 		}
 
+		return true;
+	}
+
+	/**
+	 * Method to set the publishing state for a row or list of rows in the database
+	 * table.  The method respects checked out rows by other users and will attempt
+	 * to checkin rows that it can after adjustments are made.
+	 *
+	 * @param	mixed	An optional array of primary key values to update.  If not
+	 *					set the instance property value is used.
+	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published]
+	 * @param	integer The user id of the user performing the operation.
+	 * @return	boolean	True on success.
+	 * @since	1.0.4
+	 */
+	public function publish($pks = null, $state = 1, $userId = 0)
+	{
+		// Initialise variables.
+		$k = $this->_tbl_key;
+
+		// Sanitize input.
+		JArrayHelper::toInteger($pks);
+		$userId = (int) $userId;
+		$state  = (int) $state;
+
+		// If there are no primary keys set check to see if the instance key is set.
+		if (empty($pks))
+		{
+			if ($this->$k) {
+				$pks = array($this->$k);
+			}
+			// Nothing to set publishing state on, return false.
+			else {
+				$this->setError(JText::_('JERROR_NO_ROWS_SELECTED'));
+				return false;
+			}
+		}
+
+		// Build the WHERE clause for the primary keys.
+		$where = $k.'='.implode(' OR '.$k.'=', $pks);
+
+		// Determine if there is checkin support for the table.
+		if (!property_exists($this, 'checked_out') || !property_exists($this, 'checked_out_time')) {
+			$checkin = '';
+		}
+		else {
+			$checkin = ' AND (checked_out = 0 OR checked_out = '.(int) $userId.')';
+		}
+
+		// Update the publishing state for rows with the given primary keys.
+		$this->_db->setQuery(
+			'UPDATE `'.$this->_tbl.'`' .
+			' SET `state` = '.(int) $state .
+			' WHERE ('.$where.')' .
+			$checkin
+		);
+		$this->_db->query();
+
+		// Check for a database error.
+		if ($this->_db->getErrorNum()) {
+			$this->setError($this->_db->getErrorMsg());
+			return false;
+		}
+
+		// If checkin is supported and all rows were adjusted, check them in.
+		if ($checkin && (count($pks) == $this->_db->getAffectedRows()))
+		{
+			// Checkin the rows.
+			foreach($pks as $pk)
+			{
+				$this->checkin($pk);
+			}
+		}
+
+		// If the JTable instance value is in the list of primary keys that were set, set the instance.
+		if (in_array($this->$k, $pks)) {
+			$this->state = $state;
+		}
+
+		$this->setError('');
 		return true;
 	}
 }

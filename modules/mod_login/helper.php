@@ -1,36 +1,36 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	mod_login
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-abstract class modLoginHelper
+class modLoginHelper
 {
-	public static function getReturnURL($params, $type)
+	static function getReturnURL($params, $type)
 	{
-		if($itemid =  $params->get($type))
+		if ($itemid =  $params->get($type))
 		{
-			$app = JFactory::getApplication();
-			$menu =& $app->getMenu();
+			$menu = &JSite::getMenu();
 			$item = $menu->getItem($itemid);
-			$url = $item->link;
+			$url = JRoute::_($item->link.'&Itemid='.$itemid, false);
 		}
 		else
 		{
-			// Redirect to login
+			// stay on the same page
 			$uri = JFactory::getURI();
-			$url = $uri->toString();
+			$url = $uri->toString(array('path', 'query', 'fragment'));
 		}
 
 		return base64_encode($url);
 	}
 
-	public static function getType()
+	static function getType()
 	{
 		$user = & JFactory::getUser();
 		return (!$user->get('guest')) ? 'logout' : 'login';

@@ -1,24 +1,28 @@
 <?php
+
+// No direct access
+defined('JPATH_BASE') or die();
+
 jimport('joomla.base.adapterinstance');
 
 class JUpdateAdapter extends JAdapterInstance {
-	var $xml_parser;
-	var $_stack = Array('base');
-	var $_update_site_id = 0;
-	var $_updatecols = Array('NAME', 'ELEMENT', 'TYPE', 'FOLDER', 'CLIENT', 'VERSION', 'DESCRIPTION');
+	protected $xml_parser;
+	protected $_stack = Array('base');
+	protected $_update_site_id = 0;
+	protected $_updatecols = Array('NAME', 'ELEMENT', 'TYPE', 'FOLDER', 'CLIENT', 'VERSION', 'DESCRIPTION');
 
 	/**
-     * Gets the reference to the current direct parent
-     *
-     * @return object
-     */
-	function _getStackLocation()
-    {
-            return implode('->', $this->_stack);
-    }
+	 * Gets the reference to the current direct parent
+	 *
+	 * @return object
+	 */
+	private function _getStackLocation()
+	{
+			return implode('->', $this->_stack);
+	}
 
-    function _getLastTag() {
-    	return $this->_stack[count($this->_stack) - 1];
-    }
+	function _getLastTag() {
+		return $this->_stack[count($this->_stack) - 1];
+	}
 
 }

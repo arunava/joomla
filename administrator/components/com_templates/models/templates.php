@@ -1,171 +1,131 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Templates Component Module Model
+ * Methods supporting a list of template extension records.
  *
  * @package		Joomla.Administrator
- * @subpackage	Content
- * @since 1.5
+ * @subpackage	com_templates
+ * @since		1.6
  */
-class TemplatesModelTemplates extends JModel
+class TemplatesModelTemplates extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	protected $_context = 'com_templates.templates';
 
 	/**
-	 * Category total
-	 *
-	 * @var integer
+	 * Method to auto-populate the model state.
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Client object
-	 *
-	 * @var object
-	 */
-	var $_client = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		global $mainframe, $option;
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$this->_client	=& JApplicationHelper::getClientInfo(JRequest::getVar('client', 0, '', 'int'));
-		$limit		= $mainframe->getUserStateFromRequest('global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int');
-		$limitstart = $mainframe->getUserStateFromRequest($option.'.'.$this->_client->id.'.limitstart', 'limitstart', 0, 'int');
+		$clientId = $app->getUserStateFromRequest($this->_context.'.filter.client_id', 'filter_client_id', null);
+		$this->setState('filter.client_id', $clientId);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		// Load the parameters.
+		$params = JComponentHelper::getParams('com_templates');
+		$this->setState('params', $params);
+
+		// List state information.
+		parent::_populateState('a.element', 'asc');
 	}
 
 	/**
-	 * Method to get Templates item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$this->_loadData();
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.client_id');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * Build an SQL query to load the list data.
+	 *
+	 * @return	JQuery
+	 */
+	protected function _getListQuery()
+	{
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.extension_id, a.name, a.element, a.client_id'
+			)
+		);
+		$query->from('`#__extensions` AS a');
+
+		// Filter by extension type.
+		$query->where('`type` = '.$db->quote('template'));
+
+		// Filter by client.
+		$clientId = $this->getState('filter.client_id');
+		if (is_numeric($clientId)) {
+			$query->where('a.client_id = '.(int) $clientId);
 		}
 
-		return $this->_data;
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.element LIKE '.$search.' OR a.name LIKE '.$search);
+			}
+		}
+
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.folder')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 
 	/**
-	 * Method to get the total number of Module items
-	 *
-	 * @access public
-	 * @return integer
+	 * Override parent getItems to add extra XML metadata.
 	 */
-	function getTotal()
+	public function &getItems()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$this->_loadData();
+		$items = parent::getItems();
+
+		foreach ($items as &$item) {
+			$client = JApplicationHelper::getClientInfo($item->client_id);
+			$item->xmldata = TemplatesHelper::parseXMLTemplateFile($client->path, $item->element);
 		}
-
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get a pagination object for the Templates
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get the client object
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getClient()
-	{
-		return $this->_client;
-	}
-
-	function setDefault($id)
-	{
-		$query = 'DELETE FROM #__templates_menu' .
-				' WHERE client_id = '.(int) $this->_client->id .
-				' AND (menuid = 0 OR template = '.$this->_db->Quote($id).')';
-		$this->_db->setQuery($query);
-		$this->_db->query();
-
-		$query = 'INSERT INTO #__templates_menu' .
-				' SET client_id = '.(int) $this->_client->id .', template = '.$this->_db->Quote($id).', menuid = 0';
-		$this->_db->setQuery($query);
-		$this->_db->query();
-	}
-
-	function _loadData()
-	{
-		require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
-
-		$tBaseDir = $this->_client->path.DS.'templates';
-
-		//get template xml file info
-		$rows = array();
-		$rows = TemplatesHelper::parseXMLTemplateFiles($tBaseDir);
-		$this->_total = count($rows);
-
-		// set dynamic template information
-		for($i = 0; $i < $this->_total; $i++)  {
-			$rows[$i]->assigned		= TemplatesHelper::isTemplateAssigned($rows[$i]->directory);
-			$rows[$i]->published	= TemplatesHelper::isTemplateDefault($rows[$i]->directory, $this->_client->id);
-		}
-
-		if ($this->getState('limit') > 0)
-			$this->_data = array_slice($rows, $this->getState('limitstart'), $this->getState('limit'));
-		else
-			$this->_data = $rows;
+		return $items;
 	}
 }

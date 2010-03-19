@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+// No direct access
+defined('_JEXEC') or die;
 
 /**
  * Renders a calendar element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Parameter
  * @since		1.5
  */
@@ -32,10 +32,9 @@ class JElementCalendar extends JElement
 
 		$format	= ($node->attributes('format') ? $node->attributes('format') : '%Y-%m-%d');
 		$class	= $node->attributes('class') ? $node->attributes('class') : 'inputbox';
+		$id		= $control_name.$name;
+		$name	= $control_name.'['.$name.']';
 
-		$id   = $control_name.$name;
-		$name = $control_name.'['.$name.']';
-
-		return JHtml::_('calendar', $value, $name, $id, $format, array('class' => $class));
+		return JHTML::_('calendar',$value, $name, $id, $format, array('class' => $class));
 	}
 }

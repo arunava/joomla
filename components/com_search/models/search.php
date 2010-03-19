@@ -1,21 +1,21 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Search
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.model');
 
 /**
  * Search Component Search Model
  *
- * @package		Joomla
+ * @package		Joomla.Site
  * @subpackage	Search
  * @since 1.5
  */
@@ -58,13 +58,12 @@ class SearchModelSearch extends JModel
 	{
 		parent::__construct();
 
-		global $mainframe;
-
 		//Get configuration
+		$app	= &JFactory::getApplication();
 		$config = JFactory::getConfig();
 
 		// Get the pagination request variables
-		$this->setState('limit', $mainframe->getUserStateFromRequest('com_search.limit', 'limit', $config->getValue('config.list_limit'), 'int'));
+		$this->setState('limit', $app->getUserStateFromRequest('com_search.limit', 'limit', $config->getValue('config.list_limit'), 'int'));
 		$this->setState('limitstart', JRequest::getVar('limitstart', 0, '', 'int'));
 
 		// Set the search parameters
@@ -83,20 +82,20 @@ class SearchModelSearch extends JModel
 	 *
 	 * @access	public
 	 * @param string search string
- 	 * @param string mathcing option, exact|any|all
- 	 * @param string ordering option, newest|oldest|popular|alpha|category
+	 * @param string mathcing option, exact|any|all
+	 * @param string ordering option, newest|oldest|popular|alpha|category
 	 */
 	function setSearch($keyword, $match = 'all', $ordering = 'newest')
 	{
-		if(isset($keyword)) {
+		if (isset($keyword)) {
 			$this->setState('keyword', $keyword);
 		}
 
-		if(isset($match)) {
+		if (isset($match)) {
 			$this->setState('match', $match);
 		}
 
-		if(isset($ordering)) {
+		if (isset($ordering)) {
 			$this->setState('ordering', $ordering);
 		}
 	}
@@ -127,21 +126,21 @@ class SearchModelSearch extends JModel
 		{
 			$areas = $this->getAreas();
 
-			JPluginHelper::importPlugin( 'search');
-			$dispatcher =& JDispatcher::getInstance();
-			$results = $dispatcher->trigger( 'onSearch', array(
+			JPluginHelper::importPlugin('search');
+			$dispatcher = &JDispatcher::getInstance();
+			$results = $dispatcher->trigger('onSearch', array(
 			$this->getState('keyword'),
 			$this->getState('match'),
 			$this->getState('ordering'),
-			$areas['active']) );
+			$areas['active']));
 
 			$rows = array();
 			foreach($results AS $result) {
-				$rows = array_merge( (array) $rows, (array) $result);
+				$rows = array_merge((array) $rows, (array) $result);
 			}
 
 			$this->_total	= count($rows);
-			if($this->getState('limit') > 0) {
+			if ($this->getState('limit') > 0) {
 				$this->_data	= array_splice($rows, $this->getState('limitstart'), $this->getState('limit'));
 			} else {
 				$this->_data = $rows;
@@ -174,7 +173,7 @@ class SearchModelSearch extends JModel
 		if (empty($this->_pagination))
 		{
 			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
+			$this->_pagination = new JPagination($this->getTotal(), $this->getState('limitstart'), $this->getState('limit'));
 		}
 
 		return $this->_pagination;
@@ -187,19 +186,20 @@ class SearchModelSearch extends JModel
 	 */
 	function getAreas()
 	{
-		global $mainframe;
-
 		// Load the Category data
 		if (empty($this->_areas['search']))
 		{
 			$areas = array();
 
-			JPluginHelper::importPlugin( 'search');
-			$dispatcher =& JDispatcher::getInstance();
-			$searchareas = $dispatcher->trigger( 'onSearchAreas' );
+			JPluginHelper::importPlugin('search');
+			$dispatcher = &JDispatcher::getInstance();
+			$searchareas = $dispatcher->trigger('onSearchAreas');
 
 			foreach ($searchareas as $area) {
-				$areas = array_merge( $areas, $area );
+				if(is_array($area))
+				{
+					$areas = array_merge($areas, $area);
+				}
 			}
 
 			$this->_areas['search'] = $areas;

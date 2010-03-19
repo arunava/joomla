@@ -1,166 +1,230 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Banners Component Banner Clients Model
+ * Methods supporting a list of banner records.
  *
  * @package		Joomla.Administrator
- * @subpackage	Banners
- * @since 1.6
+ * @subpackage	com_banners
+ * @since		1.6
  */
-class BannerModelClients extends JModel
+class BannersModelClients extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	protected $_context = 'com_banners.clients';
 
 	/**
-	 * Category total
-	 *
-	 * @var integer
+	 * Method to auto-populate the model state.
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Filter object
-	 *
-	 * @var object
-	 */
-	var $_filter = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.6
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		global $mainframe, $option;
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest('global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int');
-		$limitstart	= $mainframe->getUserStateFromRequest($option.'.limitstart', 'limitstart', 0, 'int');
+		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state', '', 'string');
+		$this->setState('filter.state', $state);
 
-		// In case limit has been changed, adjust limitstart accordingly
-		$limitstart = ($limit != 0 ? (floor($limitstart / $limit) * $limit) : 0);
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id', '');
+		$this->setState('filter.category_id', $categoryId);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		// Load the parameters.
+		$params = JComponentHelper::getParams('com_banners');
+		$this->setState('params', $params);
 
-		$context			= 'com_banners.client.list.';
-		$filter = new stdClass();
-		$filter->order		= $mainframe->getUserStateFromRequest($context.'filter_order',		'filter_order',		'a.name',		'cmd');
-		$filter->order_Dir	= $mainframe->getUserStateFromRequest($context.'filter_order_Dir',	'filter_order_Dir',	'',				'word');
-		$filter->state		= $mainframe->getUserStateFromRequest($context.'filter_state',		'filter_state',		'',				'word');
-		$filter->search		= $mainframe->getUserStateFromRequest($context.'search',			'search',			'',				'string');
-		$this->_filter = $filter;
+		// List state information.
+		parent::_populateState('a.name', 'asc');
 	}
 
 	/**
-	 * Method to get weblinks item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.access');
+		$id	.= ':'.$this->getState('filter.state');
+		$id	.= ':'.$this->getState('filter.category_id');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * Build an SQL query to load the list data.
+	 *
+	 * @return	JQuery
+	 */
+	protected function _getListQuery()
+	{
+		// Create a new query object.
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id AS id,'.
+				'a.name AS name,'.
+				'a.contact AS contact,'.
+				'a.checked_out AS checked_out,'.
+				'a.checked_out_time AS checked_out_time, ' .
+				'a.state AS state,'.
+				'a.metakey AS metakey,'.
+				'a.purchase_type as purchase_type'
+			)
+		);
+
+		$query->from('`#__banner_clients` AS a');
+
+		// Join over the banners for counting
+		$query->select('COUNT(b.id) as nbanners');
+		$query->join('LEFT', '#__banners AS b ON a.id = b.cid');
+
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+
+		// Filter by published state
+		$published = $this->getState('filter.state');
+		if (is_numeric($published)) {
+			$query->where('a.state = '.(int) $published);
+		} else if ($published === '') {
+			$query->where('(a.state IN (0, 1))');
 		}
 
-		return $this->_data;
-	}
+		$query->group('a.id');
 
-	/**
-	 * Method to get the total number of weblink items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.name LIKE '.$search);
+			}
 		}
 
-		return $this->_total;
-	}
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
-	/**
-	 * Method to get a pagination object for the weblinks
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination($this->getTotal(), $this->getState('limitstart'), $this->getState('limit'));
-		}
-
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get filter object for the weblinks
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getFilter()
-	{
-		return $this->_filter;
-	}
-
-	function _buildQuery()
-	{
-		jimport('joomla.database.query');
-		$query = new JQuery;
-
-		// Set up query
-		$query->select('a.*, count(b.bid) AS nbanners, u.name AS editor');
-		$query->from('#__bannerclient AS a');
-		$query->join('LEFT', '#__banner AS b ON a.cid = b.cid');
-		$query->join('LEFT', '#__users AS u ON u.id = a.checked_out');
-
-		if ($search = JString::strtolower($this->_filter->search)) {
-			$query->where('LOWER(a.name) LIKE '.$this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%', false));
-		}
-		$query->group('a.cid');
-		$query->order($this->_filter->order .' '. $this->_filter->order_Dir .', a.cid');
-
+		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
+	}
+	/**
+	 * Method to delete rows.
+	 *
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	public function delete(&$pks)
+	{
+		// Initialise variables
+		$user	= JFactory::getUser();
+
+		// Typecast variable.
+		$pks = (array) $pks;
+
+		// Get a row instance.
+		$table = &$this->getTable('Client','BannersTable');
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				// Access checks.
+				$allow = $user->authorise('core.delete', 'com_banners');
+
+				if ($allow)
+				{
+					if (!$table->delete($pk))
+					{
+						$this->setError($table->getError());
+						return false;
+					}
+				}
+				else
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JERROR_CORE_EDIT_STATE_NOT_PERMITTED'));
+				}
+			}
+			else
+			{
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to publish records.
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function publish(&$pks, $value = 1)
+	{
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$table	= $this->getTable('Client','BannersTable');
+		$pks	= (array) $pks;
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				// Access checks.
+				$allow = $user->authorise('core.edit.state', 'com_banners');
+
+				if (!$allow)
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+					JError::raiseWarning(403, JText::_('JERROR_CORE_DELETE_NOT_PERMITTED'));
+				}
+			}
+		}
+
+		// Attempt to change the state of the records.
+		if (!$table->publish($pks, $value, $user->get('id'))) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
 	}
 }

@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id:router.php 8876 2007-09-13 22:54:03Z jinx $
-* @package		Joomla.Framework
-* @subpackage	Application
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:router.php 8876 2007-09-13 22:54:03Z jinx $
+ * @package		Joomla.Framework
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Set the available masks for the routing mode
@@ -19,17 +19,15 @@ define('JROUTER_MODE_SEF', 1);
 /**
  * Class to create and parse routes
  *
- * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Application
  * @since		1.5
  */
-abstract class JRouter extends JClass
+class JRouter extends JObject
 {
 	/**
 	 * The rewrite mode
 	 *
-	 * @access protected
 	 * @var integer
 	 */
 	protected $_mode = null;
@@ -37,7 +35,6 @@ abstract class JRouter extends JClass
 	/**
 	 * An array of variables
 	 *
-	 * @access protected
 	 * @var array
 	 */
 	protected $_vars = array();
@@ -45,7 +42,6 @@ abstract class JRouter extends JClass
 	/**
 	 * An array of rules
 	 *
-	 * @access protected
 	 * @var array
 	 */
 	protected $_rules = array(
@@ -55,10 +51,8 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Class constructor
-	 *
-	 * @access public
 	 */
-	protected function __construct($options = array())
+	public function __construct($options = array())
 	{
 		if (array_key_exists('mode', $options)) {
 			$this->_mode = $options['mode'];
@@ -68,18 +62,14 @@ abstract class JRouter extends JClass
 	}
 
 	/**
-	 * Returns a reference to the global JRouter object, only creating it if it
+	 * Returns the global JRouter object, only creating it if it
 	 * doesn't already exist.
 	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $menu = &JRouter::getInstance();</pre>
-	 *
-	 * @access	public
-	 * @param string  $client  The name of the client
-	 * @param array   $options An associative array of options
+	 * @param	string	The name of the client
+	 * @param	array	An associative array of options
 	 * @return	JRouter	A router object.
 	 */
-	public static function &getInstance($client, $options = array())
+	public static function getInstance($client, $options = array())
 	{
 		static $instances;
 
@@ -87,23 +77,20 @@ abstract class JRouter extends JClass
 			$instances = array();
 		}
 
-		if (!isset($instances[$client]) || empty($instances[$client]))
-		{
+		if (empty($instances[$client])) {
 			//Load the router object
-			$info =& JApplicationHelper::getClientInfo($client, true);
+			$info = &JApplicationHelper::getClientInfo($client, true);
 
 			$path = $info->path.DS.'includes'.DS.'router.php';
-			if (file_exists($path))
-			{
+			if (file_exists($path)) {
 				require_once $path;
 
 				// Create a JRouter object
 				$classname = 'JRouter'.ucfirst($client);
 				$instance = new $classname($options);
-			}
-			else
-			{
-				throw new JException('Unable to load router', 1055, E_ERROR, $client, true);
+			} else {
+				$error = JError::raiseError(500, 'Unable to load router: '.$client);
+				return $error;
 			}
 
 			$instances[$client] = & $instance;
@@ -114,8 +101,6 @@ abstract class JRouter extends JClass
 
 	/**
 	 *  Function to convert a route to an internal URI
-	 *
-	 * @access public
 	 */
 	public function parse(&$uri)
 	{
@@ -134,19 +119,19 @@ abstract class JRouter extends JClass
 			$vars += $vars + $this->_parseSefRoute($uri);
 		}
 
-	 	return  array_merge($this->getVars(), $vars);
+		return  array_merge($this->getVars(), $vars);
 	}
 
 	/**
 	 * Function to convert an internal URI to a route
 	 *
-	 * @param	string	$string	The internal URL
+	 * @param	string	The internal URL
 	 * @return	string	The absolute search engine friendly URL
 	 */
-	public function &build($url)
+	public function build($url)
 	{
 		//Create the URI object
-		$uri =& $this->_createURI($url);
+		$uri = &$this->_createURI($url);
 
 		//Process the uri information based on custom defined rules
 		$this->_processBuildRules($uri);
@@ -166,32 +151,29 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Get the router mode
-	 *
-	 * @access public
 	 */
-	public function getMode() {
+	public function getMode()
+	{
 		return $this->_mode;
 	}
 
 	/**
 	 * Get the router mode
-	 *
-	 * @access public
 	 */
-	public function setMode($mode) {
+	public function setMode($mode)
+	{
 		$this->_mode = $mode;
 	}
 
 	/**
 	 * Set a router variable, creating it if it doesn't exist
 	 *
-	 * @access	public
-	 * @param	string  $key	The name of the variable
-	 * @param	mixed   $value  The value of the variable
-	 * @param	boolean $create If True, the variable will be created if it doesn't exist yet
- 	 */
-	public function setVar($key, $value, $create = true) {
-
+	 * @param	string	The name of the variable
+	 * @param	mixed	The value of the variable
+	 * @param	boolean	If True, the variable will be created if it doesn't exist yet
+	 */
+	public function setVar($key, $value, $create = true)
+	{
 		if (!$create && array_key_exists($key, $this->_vars)) {
 			$this->_vars[$key] = $value;
 		} else {
@@ -202,12 +184,11 @@ abstract class JRouter extends JClass
 	/**
 	 * Set the router variable array
 	 *
-	 * @access	public
-	 * @param	array   $vars   An associative array with variables
-	 * @param	boolean $create If True, the array will be merged instead of overwritten
- 	 */
-	public function setVars($vars = array(), $merge = true) {
-
+	 * @param	array	An associative array with variables
+	 * @param	boolean	If True, the array will be merged instead of overwritten
+	 */
+	public function setVars($vars = array(), $merge = true)
+	{
 		if ($merge) {
 			$this->_vars = array_merge($this->_vars, $vars);
 		} else {
@@ -218,10 +199,9 @@ abstract class JRouter extends JClass
 	/**
 	 * Get a router variable
 	 *
-	 * @access	public
-	 * @param	string $key   The name of the variable
-	 * $return  mixed  Value of the variable
- 	 */
+	 * @param	string	The name of the variable
+	 * @return  mixed	Value of the variable
+	 */
 	public function getVar($key)
 	{
 		$result = null;
@@ -234,19 +214,18 @@ abstract class JRouter extends JClass
 	/**
 	 * Get the router variable array
 	 *
-	 * @access	public
 	 * @return  array An associative array of router variables
- 	 */
-	public function getVars() {
+	 */
+	public function getVars()
+	{
 		return $this->_vars;
 	}
 
 	/**
 	 * Attach a build rule
 	 *
-	 * @access	public
-	 * @param   callback $callback The function to be called.
- 	 */
+	 * @param	callback	The function to be called.
+	 */
 	public function attachBuildRule($callback)
 	{
 		$this->_rules['build'][] = $callback;
@@ -255,9 +234,8 @@ abstract class JRouter extends JClass
 	/**
 	 * Attach a parse rule
 	 *
-	 * @access	public
-	 * @param   callback $callback The function to be called.
- 	 */
+	 * @param	callback	The function to be called.
+	 */
 	public function attachParseRule($callback)
 	{
 		$this->_rules['parse'][] = $callback;
@@ -265,9 +243,6 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Function to convert a raw route to an internal URI
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _parseRawRoute(&$uri)
 	{
@@ -276,9 +251,6 @@ abstract class JRouter extends JClass
 
 	/**
 	 *  Function to convert a sef route to an internal URI
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _parseSefRoute(&$uri)
 	{
@@ -287,31 +259,20 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Function to build a raw route
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _buildRawRoute(&$uri)
 	{
-
 	}
 
 	/**
 	 * Function to build a sef route
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _buildSefRoute(&$uri)
 	{
-
 	}
 
 	/**
 	 * Process the parsed router variables based on custom defined rules
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _processParseRules(&$uri)
 	{
@@ -326,9 +287,6 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Process the build uri query data based on custom defined rules
-	 *
-	 * @abstract
-	 * @access protected
 	 */
 	protected function _processBuildRules(&$uri)
 	{
@@ -339,18 +297,14 @@ abstract class JRouter extends JClass
 
 	/**
 	 * Create a uri based on a full or partial url string
-	 *
-	 * @access	protected
 	 * @return  JURI  A JURI object
- 	 */
-	protected function &_createURI($url)
+	 */
+	protected function _createURI($url)
 	{
 		// Create full URL if we are only appending variables to it
-		if (substr($url, 0, 1) == '&')
-		{
+		if (substr($url, 0, 1) == '&') {
 			$vars = array();
-			if (strpos($url, '&amp;') !== false)
-			{
+			if (strpos($url, '&amp;') !== false) {
 				$url = str_replace('&amp;','&',$url);
 			}
 
@@ -358,8 +312,7 @@ abstract class JRouter extends JClass
 
 			$vars = array_merge($this->getVars(), $vars);
 
-			foreach($vars as $key => $var)
-			{
+			foreach($vars as $key => $var) {
 				if ($var == "") {
 					unset($vars[$key]);
 				}
@@ -369,22 +322,19 @@ abstract class JRouter extends JClass
 		}
 
 		// Decompose link into url component parts
-		$uri = JURI::getInstance($url);
-
-		return $uri;
+		return new JURI($url);
 	}
 
 	/**
 	 * Encode route segments
 	 *
-	 * @access	protected
-	 * @param   array 	An array of route segments
+	 * @param	array	An array of route segments
 	 * @return  array
- 	 */
+	 */
 	protected function _encodeSegments($segments)
 	{
 		$total = count($segments);
-		for($i=0; $i<$total; $i++) {
+		for ($i=0; $i<$total; $i++) {
 			$segments[$i] = str_replace(':', '-', $segments[$i]);
 		}
 
@@ -394,18 +344,16 @@ abstract class JRouter extends JClass
 	/**
 	 * Decode route segments
 	 *
-	 * @access	protected
-	 * @param   array 	An array of route segments
+	 * @param	array	An array of route segments
 	 * @return  array
- 	 */
+	 */
 	protected function _decodeSegments($segments)
 	{
 		$total = count($segments);
-		for($i=0; $i<$total; $i++)  {
+		for ($i=0; $i<$total; $i++)  {
 			$segments[$i] = preg_replace('/-/', ':', $segments[$i], 1);
 		}
 
 		return $segments;
 	}
 }
-

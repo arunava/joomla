@@ -2,83 +2,76 @@
 /**
  * @version		$Id$
  * @package		Joomla.Administrator
- * @subpackage	Config
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @subpackage	com_config
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
-* @package		Joomla.Administrator
-* @subpackage	Config
-*/
+ * @package		Joomla.Administrator
+ * @subpackage	com_config
+ */
 class ConfigViewApplication extends JView
 {
-	/**
-	 * The configuration object
-	 *
-	 * @var JConfig
-	 */
-	protected $row;
-	protected $ftp;
-	protected $userparams;
-	protected $mediaparams;
+	public $state;
+	public $form;
+	public $data;
 
 	/**
-	 * Display the view
-	 *
-	 * @param	string	Optional sub-template
+	 * Method to display the view.
 	 */
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
-		// Initialize some variables
-		$row = new JConfig();
+		$form	= $this->get('Form');
+		$data	= $this->get('Data');
 
-		// MEMCACHE SETTINGS
-		if (!empty($row->memcache_settings) && !is_array($row->memcache_settings)) {
-			$row->memcache_settings = unserialize(stripslashes($row->memcache_settings));
+		// Check for model errors.
+		if ($errors = $this->get('Errors')) {
+			JError::raiseError(500, implode('<br />', $errors));
+			return false;
 		}
 
-		// Load component specific configurations
-		$table = &JTable::getInstance('component');
-		$table->loadByOption('com_users');
-		$userparams = new JParameter($table->params, JPATH_ADMINISTRATOR.DS.'components'.DS.'com_users'.DS.'config.xml');
-		$table->loadByOption('com_media');
-		$mediaparams = new JParameter($table->params, JPATH_ADMINISTRATOR.DS.'components'.DS.'com_media'.DS.'config.xml');
+		// Bind the form to the data.
+		if ($form && $data) {
+			$form->bind($data);
+		}
 
-		// Build the component's submenu
-		$submenu = $this->loadTemplate('navigation');
+		// Get the params for com_users.
+		$usersParams = JComponentHelper::getParams('com_users');
 
-		// Set document data
-		$document = &JFactory::getDocument();
-		$document->setBuffer($submenu, 'modules', 'submenu');
+		// Get the params for com_media.
+		$mediaParams = JComponentHelper::getParams('com_media');
 
-		// Load settings for the FTP layer
+		// Load settings for the FTP layer.
 		jimport('joomla.client.helper');
-		$ftp = &JClientHelper::setCredentialsFromRequest('ftp');
+		$ftp = JClientHelper::setCredentialsFromRequest('ftp');
 
-		$this->assignRef('row',			$row);
-		$this->assignRef('ftp',			$ftp);
-		$this->assignRef('userparams',	$userparams);
-		$this->assignRef('mediaparams',	$mediaparams);
+		$this->assignRef('form',	$form);
+		$this->assignRef('data',	$data);
+		$this->assignRef('ftp',		$ftp);
+		$this->assignRef('usersParams', $usersParams);
+		$this->assignRef('mediaParams', $mediaParams);
 
 		$this->_setToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Display the toolbar
 	 */
 	protected function _setToolbar()
 	{
-		JToolBarHelper::title(JText::_('Global Configuration'), 'config.png');
-		JToolBarHelper::save();
-		JToolBarHelper::apply();
-		JToolBarHelper::cancel('cancel', 'Close');
+		JToolBarHelper::title(JText::_('COM_CONFIG_GLOBAL_CONFIGURATION'), 'config.png');
+		JToolBarHelper::apply('application.apply', 'JTOOLBAR_APPLY');
+		JToolBarHelper::save('application.save', 'JTOOLBAR_SAVE');
+		JToolBarHelper::divider();
+		JToolBarHelper::cancel('application.cancel', 'JTOOLBAR_CANCEL');
+		JToolBarHelper::divider();
 		JToolBarHelper::help('screen.config');
 	}
 }

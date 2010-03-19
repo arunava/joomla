@@ -1,14 +1,13 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Document
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 jimport('joomla.application.module.helper');
 
@@ -20,34 +19,36 @@ jimport('joomla.application.module.helper');
  * @since		1.5
  */
 
+jimport('joomla.document.document');
+
 class JDocumentHTML extends JDocument
 {
-	 /**
+	/**
 	 * Array of Header <link> tags
 	 *
-	 * @var	 array
+	 * @var		array
 	 * @access  private
 	 */
-	public $_links = array();
+	var $_links = array();
 
 	/**
 	 * Array of custom tags
 	 *
-	 * @var	 string
+	 * @var		string
 	 * @access  private
 	 */
-	public $_custom = array();
+	var $_custom = array();
 
 	public $template = null;
 	public $baseurl = null;
 	public $params = null;
 	public $_file = null;
-	
+
 	/**
 	 * String holding parsed template
 	 */
 	protected $_template = '';
-	
+
 	/**
 	 * Array of parsed template JDoc tags
 	 */
@@ -56,10 +57,10 @@ class JDocumentHTML extends JDocument
 	/**
 	 * Class constructor
 	 *
-	 * @access public
+	 * @access	public
 	 * @param	array	$options Associative array of options
 	 */
-	public function __construct($options = array())
+	function __construct($options = array())
 	{
 		parent::__construct($options);
 
@@ -70,8 +71,8 @@ class JDocumentHTML extends JDocument
 		$this->_mime = 'text/html';
 
 		//set default document metadata
-		 $this->setMetaData('Content-Type', $this->_mime . '; charset=' . $this->_charset , true);
-		 $this->setMetaData('robots', 'index, follow');
+		$this->setMetaData('Content-Type', $this->_mime . '; charset=' . $this->_charset , true);
+		$this->setMetaData('robots', 'index, follow');
 	}
 
 	/**
@@ -80,7 +81,7 @@ class JDocumentHTML extends JDocument
 	 * @access	public
 	 * @return	array	The document head data in array form
 	 */
-	public function getHeadData()
+	function getHeadData()
 	{
 		$data = array();
 		$data['title']		= $this->title;
@@ -102,7 +103,7 @@ class JDocumentHTML extends JDocument
 	 * @access	public
 	 * @param	array	$data	The document head data in array form
 	 */
-	public function setHeadData($data)
+	function setHeadData($data)
 	{
 		$this->title		= (isset($data['title'])) ? $data['title'] : $this->title;
 		$this->description	= (isset($data['description'])) ? $data['description'] : $this->description;
@@ -116,40 +117,40 @@ class JDocumentHTML extends JDocument
 		$this->_custom		= (isset($data['custom'])) ? $data['custom'] : $this->_custom;
 	}
 
-	 /**
+	/**
 	 * Adds <link> tags to the head of the document
 	 *
 	 * <p>$relType defaults to 'rel' as it is the most common relation type used.
 	 * ('rev' refers to reverse relation, 'rel' indicates normal, forward relation.)
 	 * Typical tag: <link href="index.php" rel="Start"></p>
 	 *
-	 * @access   public
+	 * @access	public
 	 * @param	string  $href		The link that is being related.
-	 * @param	string  $relation   Relation of link.
+	 * @param	string  $relation	Relation of link.
 	 * @param	string  $relType	Relation type attribute.  Either rel or rev (default: 'rel').
-	 * @param	array   $attributes Associative array of remaining attributes.
-	 * @return   void
+	 * @param	array	$attributes Associative array of remaining attributes.
+	 * @return	void
 	 */
-	public function addHeadLink($href, $relation, $relType = 'rel', $attribs = array())
+	function addHeadLink($href, $relation, $relType = 'rel', $attribs = array())
 	{
 		$attribs = JArrayHelper::toString($attribs);
 		$generatedTag = '<link href="'.$href.'" '.$relType.'="'.$relation.'" '.$attribs;
 		$this->_links[] = $generatedTag;
 	}
 
-	 /**
+	/**
 	 * Adds a shortcut icon (favicon)
 	 *
 	 * <p>This adds a link to the icon shown in the favorites list or on
 	 * the left of the url in the address bar. Some browsers display
 	 * it on the tab, as well.</p>
 	 *
-	 * @param	 string  $href		The link that is being related.
-	 * @param	 string  $type		File type
-	 * @param	 string  $relation	Relation of link
+	 * @param	string  $href		The link that is being related.
+	 * @param	string  $type		File type
+	 * @param	string  $relation	Relation of link
 	 * @access	public
 	 */
-	public function addFavicon($href, $type = 'image/x-icon', $relation = 'shortcut icon')
+	function addFavicon($href, $type = 'image/x-icon', $relation = 'shortcut icon')
 	{
 		$href = str_replace('\\', '/', $href);
 		$this->_links[] = '<link href="'.$href.'" rel="'.$relation.'" type="'.$type.'"';
@@ -159,11 +160,11 @@ class JDocumentHTML extends JDocument
 	 * Adds a custom html string to the head block
 	 *
 	 * @param string The html to add to the head
-	 * @access   public
-	 * @return   void
+	 * @access	public
+	 * @return	void
 	 */
 
-	public function addCustomTag($html)
+	function addCustomTag($html)
 	{
 		$this->_custom[] = trim($html);
 	}
@@ -172,21 +173,21 @@ class JDocumentHTML extends JDocument
 	 * Get the contents of a document include
 	 *
 	 * @access public
-	 * @param string 	$type	The type of renderer
-	 * @param string 	$name	 The name of the element to render
-	 * @param array   	$attribs Associative array of remaining attributes.
-	 * @return 	The output of the renderer
+	 * @param string	$type	The type of renderer
+	 * @param string	$name	The name of the element to render
+	 * @param array		$attribs Associative array of remaining attributes.
+	 * @return	The output of the renderer
 	 */
-	public function getBuffer($type = null, $name = null, $attribs = array())
+	function getBuffer($type = null, $name = null, $attribs = array())
 	{
 		// If no type is specified, return the whole buffer
 		if ($type === null) {
 			return $this->_buffer;
 		}
 
-		$result = '';
+		$result = null;
 		if (isset($this->_buffer[$type][$name])) {
-			$result = $this->_buffer[$type][$name];
+			return $this->_buffer[$type][$name];
 		}
 
 		// If the buffer has been explicitly turned off don't display or attempt to render
@@ -194,45 +195,50 @@ class JDocumentHTML extends JDocument
 			return null;
 		}
 
-		$renderer =& $this->loadRenderer($type);
-		$result = $renderer->render($name, $attribs, $result);
-		
-		return $result;
+		$renderer = &$this->loadRenderer($type);
+		$this->setBuffer($renderer->render($name, $attribs, $result), $type, $name);
+
+		return $this->_buffer[$type][$name];
 	}
 
 	/**
 	 * Set the contents a document include
 	 *
-	 * @access public
-	 * @param string 	$type		The type of renderer
-	 * @param string 	$name		oke The name of the element to render
-	 * @param string 	$content	The content to be set in the buffer
+	 * @param	string	$content	The content to be set in the buffer.
+	 * @param	array	$options	Array of optional elements.
 	 */
-	public function setBuffer($contents, $type, $name = null)
+	public function setBuffer($content, $options = array())
 	{
-		$this->_buffer[$type][$name] = $contents;
+		// The following code is just for backward compatibility.
+		if (func_num_args() > 1 && !is_array($options)) {
+			$args = func_get_args(); $options = array();
+			$options['type'] = $args[1];
+			$options['name'] = (isset($args[2])) ? $args[2] : null;
+		}
+
+		$this->_buffer[$options['type']][$options['name']] = $content;
 	}
 
 	/**
 	 * Parses the template and populates the buffer
-	 * 
+	 *
 	 * @access public
 	 * @param array parameters for fetching the template
 	 */
-	public function parse($params = array()) {
+	function parse($params = array()) {
 		$this->_fetchTemplate($params);
-		$this->_parseTemplate();		
+		$this->_parseTemplate();
 	}
 
 	/**
 	 * Outputs the template to the browser.
 	 *
 	 * @access public
-	 * @param boolean 	$cache		If true, cache the output
+	 * @param boolean	$cache		If true, cache the output
 	 * @param array		$params		Associative array of attributes
-	 * @return 	The rendered data
+	 * @return	The rendered data
 	 */
-	public function render($caching = false, $params = array())
+	function render($caching = false, $params = array())
 	{
 		if (!empty($this->_template)) {
 			$data = $this->_renderTemplate();
@@ -240,7 +246,7 @@ class JDocumentHTML extends JDocument
 			$this->parse($params);
 			$data = $this->_renderTemplate();
 		}
-	
+
 		parent::render();
 		return $data;
 	}
@@ -249,15 +255,16 @@ class JDocumentHTML extends JDocument
 	 * Count the modules based on the given condition
 	 *
 	 * @access public
-	 * @param  string 	$condition	The condition to use
+	 * @param  string	$condition	The condition to use
 	 * @return integer  Number of modules found
 	 */
-	public function countModules($condition)
+	function countModules($condition)
 	{
 		$result = '';
 
-		$words = explode(' ', $condition);
-		for($i = 0; $i < count($words); $i+=2)
+		$operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<\=|\>\=|and|or|xor) ';
+		$words = preg_split('# '.$operators.' #', $condition, null, PREG_SPLIT_DELIM_CAPTURE);
+		for ($i = 0, $n = count($words); $i < $n; $i+=2)
 		{
 			// odd parts (modules)
 			$name		= strtolower($words[$i]);
@@ -275,43 +282,36 @@ class JDocumentHTML extends JDocument
 	 * @access public
 	 * @return integer Number of child menu items
 	 */
-	public function countMenuChildren() {
+	function countMenuChildren() {
 		static $children;
 		if (!isset($children)) {
-			$dbo =& JFactory::getDBO();
-			$menu =& JSite::getMenu();
+			$dbo = &JFactory::getDbo();
+			$menu = &JSite::getMenu();
 			$where = Array();
 			$active = $menu->getActive();
 			if ($active) {
 				$where[] = 'parent = ' . $active->id;
 				$where[] = 'published = 1';
 				$dbo->setQuery('SELECT COUNT(*) FROM #__menu WHERE '. implode(' AND ', $where));
-				try {
-					$children = $dbo->loadResult();
-				} catch(JException $e) {
-					$children = 0;
-				}
+				$children = $dbo->loadResult();
 			} else {
 				$children = 0;
 			}
 		}
+
 		return $children;
 	}
 
 	/**
 	 * Load a template file
 	 *
-	 * @param string 	$template	The name of the template
-	 * @param string 	$filename	The actual filename
+	 * @param string	$template	The name of the template
+	 * @param string	$filename	The actual filename
 	 * @return string The contents of the template
 	 */
-	protected function _loadTemplate($directory, $filename)
+	function _loadTemplate($directory, $filename)
 	{
-		$component	= JApplicationHelper::getComponentName();
-
-		// need for backwards compatibility
-		// @todo if legacy
-		$mainframe = JFactory::getApplication();
+//		$component	= JApplicationHelper::getComponentName();
 
 		$contents = '';
 
@@ -320,9 +320,6 @@ class JDocumentHTML extends JDocument
 		{
 			//store the file path
 			$this->_file = $directory.DS.$filename;
-
-			// @todo if ($legacy)
-			$option = $component;
 
 			//get the file content
 			ob_start();
@@ -333,15 +330,15 @@ class JDocumentHTML extends JDocument
 
 		// Try to find a favicon by checking the template and root folder
 		$path = $directory . DS;
-		$dirs = array($path, JPATH_BASE . DS);
+		$dirs = array($path, JPATH_BASE.DS);
 		foreach ($dirs as $dir)
 		{
-			$icon =   $dir . 'favicon.ico';
+			$icon = $dir.'favicon.ico';
 			if (file_exists($icon))
 			{
 				$path = str_replace(JPATH_BASE . DS, '', $dir);
 				$path = str_replace('\\', '/', $path);
-				$this->addFavicon(JURI::base(true).'/'.$path . 'favicon.ico');
+				$this->addFavicon(JURI::base(true).'/'.$path.'favicon.ico');
 				break;
 			}
 		}
@@ -350,39 +347,35 @@ class JDocumentHTML extends JDocument
 	}
 
 	/**
-	 * Fetch the template, and initialize the params
-	 * 
-	 * @param array parameters to determine the template 
-	 */		
-	 protected function _fetchTemplate($params = array()) {
+	 * Fetch the template, and initialise the params
+	 *
+	 * @param array parameters to determine the template
+	 */
+	protected function _fetchTemplate($params = array())
+	{
 		// check
 		$directory	= isset($params['directory']) ? $params['directory'] : 'templates';
-		$template	= JFilterInput::_($params['template'], 'cmd');
-		$file		= JFilterInput::_($params['file'], 'cmd');
+		$filter		= JFilterInput::getInstance();
+		$template	= $filter->clean($params['template'], 'cmd');
+		$file		= $filter->clean($params['file'], 'cmd');
 
 		if (!file_exists($directory.DS.$template.DS.$file)) {
 			$template = 'system';
 		}
 
-		// Parse the template INI file if it exists for parameters and insert
-		// them into the template.
-		if (is_readable($directory.DS.$template.DS.'params.ini'))
-		{
-			$content = file_get_contents($directory.DS.$template.DS.'params.ini');
-			$params = new JParameter($content);
-		}
-
 		// Load the language file for the template
-		$lang =& JFactory::getLanguage();
-		// 1.5 or core
-		$lang->load('tpl_'.$template);
+		$lang = &JFactory::getLanguage();
+		// 1.5 or core then
 		// 1.6
-		$lang->load('tpl_'.$template, $directory.DS.$template);
+			$lang->load('tpl_'.$template, JPATH_BASE, null, false, false)
+		||	$lang->load('tpl_'.$template, $directory.DS.$template, null, false, false)
+		||	$lang->load('tpl_'.$template, JPATH_BASE, $lang->getDefault(), false, false)
+		||	$lang->load('tpl_'.$template, $directory.DS.$template, $lang->getDefault(), false, false);
 
 		// Assign the variables
 		$this->template = $template;
 		$this->baseurl  = JURI::base(true);
-		$this->params   = $params;
+		$this->params	= isset($params['params']) ? $params['params'] : new JParameter;
 
 		// load
 		$this->_template = $this->_loadTemplate($directory.DS.$template, $file);
@@ -391,11 +384,10 @@ class JDocumentHTML extends JDocument
 	/**
 	 * Parse a document template
 	 *
-	 * @access public
-	 * @param string 	$data		The data too parse
-	 * @return The parsed contents of the template
+	 * @access	public
+	 * @return	The parsed contents of the template
 	 */
-	protected function _parseTemplate()
+	function _parseTemplate()
 	{
 		$replace = array();
 		$matches = array();
@@ -407,21 +399,20 @@ class JDocumentHTML extends JDocument
 
 			$count = count($matches[1]);
 
-			for($i = 0; $i < $count; $i++)
+			for ($i = 0; $i < $count; $i++)
 			{
 				$attribs = JUtility::parseAttributes($matches[2][$i]);
 				$type  = $matches[1][$i];
 
 				$name  = isset($attribs['name']) ? $attribs['name'] : null;
-				$this->getBuffer($type, $name, $attribs);
-				$this->_template_tags[$matches[0][$i]] = array('type'=>$type, 'name' => $name);
+				$this->_template_tags[$matches[0][$i]] = array('type'=>$type, 'name' => $name, 'attribs' => $attribs);
 			}
 		}
 	}
-	
+
 	/**
 	 * Render pre-parsed template
-	 * 
+	 *
 	 * @return string rendered template
 	 */
 	protected function _renderTemplate() {
@@ -429,7 +420,7 @@ class JDocumentHTML extends JDocument
 		$with = array();
 		foreach($this->_template_tags AS $jdoc => $args) {
 			$replace[] = $jdoc;
-			$with[] = $this->getBuffer($args['type'], $args['name']);
+			$with[] = $this->getBuffer($args['type'], $args['name'], $args['attribs']);
 		}
 		return str_replace($replace, $with, $this->_template);
 	}

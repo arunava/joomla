@@ -1,66 +1,86 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Modules
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+// No direct access.
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Modules component
+ * View class for a list of modules.
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Modules
- * @since 1.0
+ * @subpackage	com_modules
+ * @since		1.6
  */
 class ModulesViewModules extends JView
 {
-	protected $client;
-	protected $filter;
+	protected $state;
+	protected $items;
 	protected $pagination;
-	protected $rows;
-	protected $user;
 
-	function display($tpl = null)
+	/**
+	 * Display the view
+	 */
+	public function display($tpl = null)
 	{
-		// Set toolbar items for the page
-		JToolBarHelper::title(JText::_('Module Manager'), 'module.png');
-		JToolBarHelper::publishList();
-		JToolBarHelper::unpublishList();
-		JToolBarHelper::custom('copy', 'copy.png', 'copy_f2.png', 'Copy', true);
-		JToolBarHelper::deleteList();
-		JToolBarHelper::editListX();
-		JToolBarHelper::addNewX();
-		JToolBarHelper::help('screen.modules');
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
-		// Get data from the model
-		$rows		= & $this->get('Data');
-		$total		= & $this->get('Total');
-		$pagination = & $this->get('Pagination');
-		$filter		= & $this->get('Filter');
-		$client		= & $this->get('Client');
-
-		if ($client->id == 1) {
-			JSubMenuHelper::addEntry(JText::_('Site'), 'index.php?option=com_modules&client_id=0');
-			JSubMenuHelper::addEntry(JText::_('Administrator'), 'index.php?option=com_modules&client=1', true);
-		} else {
-			JSubMenuHelper::addEntry(JText::_('Site'), 'index.php?option=com_modules&client_id=0', true);
-			JSubMenuHelper::addEntry(JText::_('Administrator'), 'index.php?option=com_modules&client=1');
+		// Check for errors.
+		if (count($errors = $this->get('Errors')))
+		{
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		$this->assignRef('user',		JFactory::getUser());
-		$this->assignRef('rows',		$rows);
+		$this->assignRef('state',		$state);
+		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
-		$this->assignRef('filter',		$filter);
-		$this->assignRef('client',		$client);
 
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+
+	/**
+	 * Setup the Toolbar.
+	 */
+	protected function _setToolbar()
+	{
+		$state	= $this->get('State');
+		$canDo	= ModulesHelper::getActions();
+
+		JToolBarHelper::title(JText::_('COM_MODULES_MANAGER_MODULES'), 'module.png');
+		if ($canDo->get('core.create')) {
+			//JToolBarHelper::addNew('module.add');
+			$bar = &JToolBar::getInstance('toolbar');
+			$bar->appendButton('Popup', 'new', 'JTOOLBAR_NEW', 'index.php?option=com_modules&amp;view=select&amp;tmpl=component', 850, 400);
+		}
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::editList('module.edit','JTOOLBAR_EDIT');
+		}
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::custom('modules.duplicate', 'copy.png', 'copy_f2.png','JTOOLBAR_DUPLICATE', true);
+		}
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::custom('modules.publish', 'publish.png', 'publish_f2.png', 'JTOOLBAR_ENABLE', true);
+			JToolBarHelper::custom('modules.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_DISABLE', true);
+		}
+		if ($state->get('filter.state') == -2 && $canDo->get('core.delete')) {
+			JToolBarHelper::deleteList('', 'modules.delete','JTOOLBAR_EMPTY_TRASH');
+		}
+		else if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::trash('modules.trash','JTOOLBAR_TRASH');
+		}
+
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::preferences('com_modules');
+		}
+		JToolBarHelper::help('screen.module','JTOOLBAR_HELP');
 	}
 }

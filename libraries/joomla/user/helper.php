@@ -1,9 +1,12 @@
 <?php
 /**
-* @version		$Id:helper.php 6961 2007-03-15 16:06:53Z tcp $
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:helper.php 6961 2007-03-15 16:06:53Z tcp $
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Authorization helper class, provides static methods to perform various tasks relevant
@@ -12,11 +15,11 @@
  * This class has influences and some method logic from the Horde Auth package
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	User
  * @since		1.5
  */
-abstract class JUserHelper
+class JUserHelper
 {
 	/**
 	 * Method to add a user to a group.
@@ -25,52 +28,49 @@ abstract class JUserHelper
 	 * @param	integer		$groupId	The id of the group.
 	 * @return	mixed		Boolean true on success, JException on error.
 	 * @since	1.6
-	 * @throws	JException
 	 */
 	public static function addUserToGroup($userId, $groupId)
 	{
-		try
+		// Get the user object.
+		$user = new JUser((int) $userId);
+
+		// Add the user to the group if necessary.
+		if (!array_key_exists($groupId, $user->groups))
 		{
-			// Get the user object.
-			$user = &JUser::getInstance($userId);
+			// Get the title of the group.
+			$db	= &JFactory::getDbo();
+			$db->setQuery(
+				'SELECT `title`' .
+				' FROM `#__usergroups`' .
+				' WHERE `id` = '. (int) $groupId
+			);
+			$title = $db->loadResult();
 
-			// Add the user to the group if necessary.
-			if (!array_key_exists($groupId, $user->groups))
-			{
-				// Get the title of the group.
-				$db	= &JFactory::getDBO();
-				$db->setQuery(
-					'SELECT `title`' .
-					' FROM `#__usergroups`' .
-					' WHERE `id` = '.(int)$groupId
-				);
-				$title = $db->loadResult();
-
-				// If the group does not exist, throw an exception.
-				if (empty($title)) {
-					throw new JException(JText::_('ACCESS USERGROUP INVALID'));
-				}
-
-				// Add the group data to the user object.
-				$user->groups[$groupId] = $title;
-
-				// Store the user object.
-				if (!$user->save()) {
-					throw new JException($user->getError());
-				}
+			// Check for a database error.
+			if ($db->getErrorNum()) {
+				return new JException($db->getErrorMsg());
 			}
-		}
-		catch (JExcpetion $e) {
-			throw $e;
-			return false;
+
+			// If the group does not exist, return an exception.
+			if (!$title) {
+				return new JException(JText::_('Access_Usergroup_Invalid'));
+			}
+
+			// Add the group data to the user object.
+			$user->groups[$groupId] = $title;
+
+			// Store the user object.
+			if (!$user->save()) {
+				return new JException($user->getError());
+			}
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = &JFactory::getUser($userId);
+		$temp = & JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = &JFactory::getUser();
+		$temp = & JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -88,7 +88,7 @@ abstract class JUserHelper
 	public static function getUserGroups($userId)
 	{
 		// Get the user object.
-		$user = &JUser::getInstance($userId);
+		$user = &JUser::getInstance((int) $userId);
 
 		return isset($user->groups) ? $user->groups : array();
 	}
@@ -104,7 +104,7 @@ abstract class JUserHelper
 	public static function removeUserFromGroup($userId, $groupId)
 	{
 		// Get the user object.
-		$user = &JUser::getInstance($userId);
+		$user = & JUser::getInstance((int) $userId);
 
 		// Remove the user from the group if necessary.
 		if (array_key_exists($groupId, $user->groups))
@@ -119,11 +119,11 @@ abstract class JUserHelper
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = &JFactory::getUser($userId);
+		$temp = & JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = &JFactory::getUser();
+		$temp = & JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -134,6 +134,7 @@ abstract class JUserHelper
 	/**
 	 * Method to set the groups for a user.
 	 *
+	 * @access	public
 	 * @param	integer		$userId		The id of the user.
 	 * @param	array		$groups		An array of group ids to put the user in.
 	 * @return	mixed		Boolean true on success, JException on error.
@@ -142,14 +143,14 @@ abstract class JUserHelper
 	public static function setUserGroups($userId, $groups)
 	{
 		// Get the user object.
-		$user = &JUser::getInstance($userId);
+		$user = & JUser::getInstance((int) $userId);
 
 		// Set the group ids.
 		JArrayHelper::toInteger($groups);
 		$user->groups = array_fill_keys(array_values($groups), null);
 
 		// Get the titles for the user groups.
-		$db = &JFactory::getDBO();
+		$db = &JFactory::getDbo();
 		$db->setQuery(
 			'SELECT `id`, `title`' .
 			' FROM `#__usergroups`' .
@@ -173,11 +174,11 @@ abstract class JUserHelper
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = &JFactory::getUser($userId);
+		$temp = & JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = &JFactory::getUser();
+		$temp = & JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -186,16 +187,41 @@ abstract class JUserHelper
 	}
 
 	/**
+	 * Gets the user profile information
+	 */
+	function getProfile($userId = 0)
+	{
+		if ($userId == 0) {
+			$user	= & JFactory::getUser();
+			$userId	= $user->id;
+		}
+		else {
+			$user	= & JFactory::getUser((int) $userId);
+		}
+
+		// Get the dispatcher and load the users plugins.
+		$dispatcher	= &JDispatcher::getInstance();
+		JPluginHelper::importPlugin('users');
+
+		$data = new JObject;
+
+		// Trigger the data preparation event.
+		$results = $dispatcher->trigger('onPrepareUserProfileData', array($userId, &$data));
+
+		return $data;
+	}
+
+	/**
 	 * Method to activate a user
 	 *
 	 * @param	string	$activation	Activation string
-	 * @return 	boolean 			True on success
+	 * @return	boolean			True on success
 	 * @since	1.5
 	 */
 	public static function activateUser($activation)
 	{
-		//Initialize some variables
-		$db = & JFactory::getDBO();
+		// Initialize some variables.
+		$db = & JFactory::getDbo();
 
 		// Lets get the id of the user we want to activate
 		$query = 'SELECT id'
@@ -205,11 +231,7 @@ abstract class JUserHelper
 		. ' AND lastvisitDate = '.$db->Quote('0000-00-00 00:00:00');
 		;
 		$db->setQuery($query);
-		try {
-			$id = intval($db->loadResult());
-		} catch(JException $e) {
-			$id = 0;
-		}
+		$id = intval($db->loadResult());
 
 		// Is it a valid user to activate?
 		if ($id)
@@ -243,16 +265,12 @@ abstract class JUserHelper
 	 */
 	public static function getUserId($username)
 	{
-		// Initialize some variables
-		$db = & JFactory::getDBO();
+		// Initialise some variables
+		$db = & JFactory::getDbo();
 
 		$query = 'SELECT id FROM #__users WHERE username = ' . $db->Quote($username);
 		$db->setQuery($query, 0, 1);
-		try {
-			return $db->loadResult();
-		} catch (JException $e) {
-			return 0;
-		}
+		return $db->loadResult();
 	}
 
 	/**
@@ -361,7 +379,7 @@ abstract class JUserHelper
 	 * @param string $seed		The seed to get the salt from (probably a
 	 *							previously generated password). Defaults to
 	 *							generating a new seed.
-	 * @param string $plaintext   The plaintext password that we're generating
+	 * @param string $plaintext	The plaintext password that we're generating
 	 *							a salt for. Defaults to none.
 	 *
 	 * @return string  The generated or extracted salt.

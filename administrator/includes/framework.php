@@ -1,16 +1,17 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	Application
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+// No direct access.
+defined('_JEXEC') or die;
 
 /*
- * Joomla! system checks
+ * Joomla! system checks.
  */
 
 @set_magic_quotes_runtime(0);
@@ -19,7 +20,7 @@ defined('_JEXEC') or die('Restricted access');
 /*
  * Installation check, and check on removal of the install directory.
  */
-if (!file_exists(JPATH_CONFIGURATION . DS . 'configuration.php') || (filesize(JPATH_CONFIGURATION . DS . 'configuration.php') < 10) /*|| file_exists(JPATH_INSTALLATION . DS . 'index.php')*/) {
+if (!file_exists(JPATH_CONFIGURATION.DS.'configuration.php') || (filesize(JPATH_CONFIGURATION.DS.'configuration.php') < 10) /*|| file_exists(JPATH_INSTALLATION.DS.'index.php')*/) {
 	header('Location: ../installation/index.php');
 	exit();
 }
@@ -28,13 +29,13 @@ if (!file_exists(JPATH_CONFIGURATION . DS . 'configuration.php') || (filesize(JP
  * Joomla! system startup
  */
 
-// System includes
-require_once JPATH_LIBRARIES		.DS.'joomla'.DS.'import.php';
+// System includes.
+require_once JPATH_LIBRARIES.DS.'joomla'.DS.'import.php';
 
-// Pre-Load configuration
-require_once JPATH_CONFIGURATION	.DS.'configuration.php';
+// Pre-Load configuration.
+require_once JPATH_CONFIGURATION.DS.'configuration.php';
 
-// System configuration
+// System configuration.
 $CONFIG = new JConfig();
 
 if (@$CONFIG->error_reporting === 0) {
@@ -49,20 +50,16 @@ define('JDEBUG', $CONFIG->debug);
 unset($CONFIG);
 
 /*
- * Joomla! framework loading
+ * Joomla! framework loading.
  */
 
-// Include object abstract class
-jimport('joomla.utilities.compat.compat');
-
-// System profiler
+// System profiler.
 if (JDEBUG) {
 	jimport('joomla.error.profiler');
-	$_PROFILER =& JProfiler::getInstance('Application');
+	$_PROFILER = &JProfiler::getInstance('Application');
 }
 
-// Joomla! library imports
-jimport('joomla.acl.acl');
+// Joomla! library imports.
 jimport('joomla.application.menu');
 jimport('joomla.user.user');
 jimport('joomla.environment.uri');
@@ -73,4 +70,3 @@ jimport('joomla.event.event');
 jimport('joomla.event.dispatcher');
 jimport('joomla.language.language');
 jimport('joomla.utilities.string');
-

@@ -3,12 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Error
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Logging class
@@ -16,29 +16,29 @@ defined('JPATH_BASE') or die();
  * This class is designed to build log files based on the
  * W3C specification at: http://www.w3.org/TR/WD-logfile.html
  *
- * @package 	Joomla.Framework
+ * @package	Joomla.Framework
  * @subpackage	Error
  * @since		1.5
  */
-class JLog extends JClass
+class JLog extends JObject
 {
 	/**
 	 * Log File Pointer
 	 * @var	resource
 	 */
-	protected $_file;
+	var $_file;
 
 	/**
 	 * Log File Path
 	 * @var	string
 	 */
-	protected $_path;
+	var $_path;
 
 	/**
 	 * Log Format
 	 * @var	string
 	 */
-	protected $_format = "{DATE}\t{TIME}\t{LEVEL}\t{C-IP}\t{STATUS}\t{COMMENT}";
+	var $_format = "{DATE}\t{TIME}\t{LEVEL}\t{C-IP}\t{STATUS}\t{COMMENT}";
 
 	/**
 	 * Constructor
@@ -48,7 +48,7 @@ class JLog extends JClass
 	 * @param	array	$options	Log file options
 	 * @since	1.5
 	 */
-	protected function __construct($path, $options)
+	function __construct($path, $options)
 	{
 		// Set default values
 		$this->_path = $path;
@@ -56,30 +56,27 @@ class JLog extends JClass
 	}
 
 	/**
-	 * Returns a reference to the global log object, only creating it
+	 * Returns the global log object, only creating it
 	 * if it doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $log = & JLog::getInstance();</pre>
 	 *
 	 * @access	public
 	 * @static
 	 * @return	object	The JLog object.
 	 * @since	1.5
 	 */
-	public static function &getInstance($file = 'error.php', $options = null, $path = null)
+	static function getInstance($file = 'error.php', $options = null, $path = null)
 	{
 		static $instances;
 
 		// Set default path if not set
 		if (!$path)
 		{
-			$config =& JFactory::getConfig();
+			$config = &JFactory::getConfig();
 			$path = $config->getValue('config.log_path');
 		}
 
 		jimport('joomla.filesystem.path');
-		$path = JPath::clean($path . DS . $file);
+		$path = JPath :: clean($path . DS . $file);
 		$sig = md5($path);
 
 		if (!isset ($instances)) {
@@ -101,7 +98,7 @@ class JLog extends JClass
 	 * @return	boolean				True if successful
 	 * @since	1.5
 	 */
-	public function setOptions($options) {
+	function setOptions($options) {
 
 		if (isset ($options['format'])) {
 			$this->_format = $options['format'];
@@ -109,10 +106,10 @@ class JLog extends JClass
 		return true;
 	}
 
-	public function addEntry($entry)
+	function addEntry($entry)
 	{
 		// Set some default field values if not already set.
-		$date =& JFactory::getDate();
+		$date = &JFactory::getDate();
 		if (!isset ($entry['date'])) {
 
 			$entry['date'] = $date->toFormat("%Y-%m-%d");
@@ -155,19 +152,16 @@ class JLog extends JClass
 	/**
 	 * Open the log file pointer and create the file if it doesn't exist
 	 *
-	 * @access 	public
-	 * @return 	boolean	True on success
+	 * @access	public
+	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	protected function _openLog()
+	function _openLog()
 	{
 		// Only open if not already opened...
 		if (is_resource($this->_file)) {
 			return true;
 		}
-
-		$now =& JFactory::getDate();
-		$date = $now->toMySQL();
 
 		if (!file_exists($this->_path))
 		{
@@ -177,7 +171,7 @@ class JLog extends JClass
 			}
 			$header[] = "#<?php die('Direct Access To Log Files Not Permitted'); ?>";
 			$header[] = "#Version: 1.0";
-			$header[] = "#Date: " . $date;
+			$header[] = "#Date: " . JFactory::getDate()->toMySQL();
 
 			// Prepare the fields string
 			$fields = str_replace("{", "", $this->_format);
@@ -212,11 +206,11 @@ class JLog extends JClass
 	/**
 	 * Close the log file pointer
 	 *
-	 * @access 	public
-	 * @return 	boolean	True on success
+	 * @access	public
+	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	public function _closeLog()
+	function _closeLog()
 	{
 		if (is_resource($this->_file)) {
 			fclose($this->_file);

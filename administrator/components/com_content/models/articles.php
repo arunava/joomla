@@ -1,215 +1,163 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// no direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Content Component Articles Model
+ * Methods supporting a list of article records.
  *
  * @package		Joomla.Administrator
- * @subpackage	Content
- * @since 1.5
+ * @subpackage	com_content
  */
-class ContentModelArticles extends JModel
+class ContentModelArticles extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	protected $_context = 'com_content.articles';
 
 	/**
-	 * Category total
+	 * Method to auto-populate the model state.
 	 *
-	 * @var integer
+	 * @since	1.6
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Filter object
-	 *
-	 * @var object
-	 */
-	var $_filter = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		// Initialise variables.
+		$app = JFactory::getApplication();
 
-		global $mainframe, $option;
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest('global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int');
-		$limitstart	= $mainframe->getUserStateFromRequest($option.'.limitstart', 'limitstart', 0, 'int');
+		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
+		$this->setState('filter.access', $access);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		$published = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
-		$context			= 'com_content.viewcontent';
-		$filter = new stdClass();
-		$filter->order		= $mainframe->getUserStateFromRequest($context.'.filter_order',		'filter_order',		'name',	'cmd');
-		$filter->order_Dir	= $mainframe->getUserStateFromRequest($context.'.filter_order_Dir',	'filter_order_Dir',	'',				'word');
-		$filter->state		= $mainframe->getUserStateFromRequest($context.'.filter_state',		'filter_state',		'',				'word');
-		$filter->catid		= $mainframe->getUserStateFromRequest($context.'.filter_catid',		'filter_catid',		-1,				'int');
-		$filter->search		= $mainframe->getUserStateFromRequest($context.'.search',			'search',			'',				'string');
-		$filter->authorid	= $mainframe->getUserStateFromRequest($context.'.filter_authorid',	'filter_authorid',	0,	'int');
-		$this->_filter = $filter;
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id');
+		$this->setState('filter.category_id', $categoryId);
+
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
-	 * Method to get Content item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
+	 * @since	1.6
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id .= ':'.$this->getState('filter.access');
+		$id	.= ':'.$this->getState('filter.state');
+		$id	.= ':'.$this->getState('filter.category_id');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * Build an SQL query to load the list data.
+	 *
+	 * @return	JQuery
+	 */
+	protected function _getListQuery()
+	{
+		// Create a new query object.
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.title, a.alias, a.checked_out, a.checked_out_time, a.catid,' .
+				' a.state, a.access, a.created, a.hits, a.ordering, a.featured')
+		);
+		$query->from('#__content AS a');
+
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+
+		// Join over the asset groups.
+		$query->select('ag.title AS access_level');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+
+		// Join over the categories.
+		$query->select('c.title AS category_title');
+		$query->join('LEFT', '#__categories AS c ON c.id = a.catid');
+
+		// Join over the users for the author.
+		$query->select('ua.name AS author_name');
+		$query->join('LEFT', '#__users AS ua ON ua.id = a.created_by');
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$query->where('a.access = ' . (int) $access);
 		}
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the total number of section items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		// Filter by published state
+		$published = $this->getState('filter.published');
+		if (is_numeric($published)) {
+			$query->where('a.state = ' . (int) $published);
+		} else if ($published === '') {
+			$query->where('(a.state = 0 OR a.state = 1)');
 		}
 
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get a pagination object for the Content
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination($this->getTotal(), $this->getState('limitstart'), $this->getState('limit'));
+		// Filter by a single or group of categories.
+		$categoryId = $this->getState('filter.category_id');
+		if (is_numeric($categoryId)) {
+			$query->where('a.catid = '.(int) $categoryId);
+		} else if (is_array($categoryId)) {
+			JArrayHelper::toInteger($categoryId);
+			$categoryId = implode(',', $categoryId);
+			$query->where('a.catid IN ('.$categoryId.')');
 		}
 
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get filter object for the articles
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getFilter()
-	{
-		return $this->_filter;
-	}
-
-	function _buildQuery()
-	{
-		// Get the WHERE and ORDER BY clauses for the query
-		$where		= $this->_buildContentWhere($this->_filter->section);
-		$orderby	= $this->_buildContentOrderBy($this->_filter->catid);
-
-		$query = 'SELECT c.*, g.title AS groupname, cc.title AS name, u.name AS editor, f.content_id AS frontpage, v.name AS author' .
-				' FROM #__content AS c' .
-				' LEFT JOIN #__categories AS cc ON cc.id = c.catid' .
-				' LEFT JOIN #__access_assetgroups AS g ON g.id = c.access' .
-				' LEFT JOIN #__users AS u ON u.id = c.checked_out' .
-				' LEFT JOIN #__users AS v ON v.id = c.created_by' .
-				' LEFT JOIN #__content_frontpage AS f ON f.content_id = c.id' .
-				$where .
-				$orderby;
-
-		return $query;
-	}
-
-	function _buildContentOrderBy($category)
-	{
-		$orderby = ' ORDER BY '. $this->_filter->order .' '. $this->_filter->order_Dir .', cc.title, c.ordering';
-
-		return $orderby;
-	}
-
-	function _buildContentWhere($section)
-	{
-		$db					=& JFactory::getDBO();
-		$search				= JString::strtolower($this->_filter->search);
-
-		$where[] = 'c.state != -2';
-
-		/*
-		 * Add the filter specific information to the where clause
-		 */
-		// Category filter
-		if ($this->_filter->catid > 0) {
-			$where[] = 'c.catid = ' . (int) $this->_filter->catid;
+		// Filter by author
+		$authorId = $this->getState('filter.author_id');
+		if (is_numeric($authorId)) {
+			$type = $this->getState('filter.author_id.include', true) ? '= ' : '<>';
+			$query->where('a.created_by '.$type.(int) $authorId);
 		}
-		// Author filter
-		if ($this->_filter->authorid > 0) {
-			$where[] = 'c.created_by = ' . (int) $this->_filter->authorid;
-		}
-		// Content state filter
-		if ($this->_filter->state) {
-			if ($this->_filter->state == 'P') {
-				$where[] = 'c.state = 1';
+
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else if (stripos($search, 'author:') === 0) {
+				$search = $db->Quote('%'.$db->getEscaped(substr($search, 7), true).'%');
+				$query->where('ua.name LIKE '.$search.' OR ua.username LIKE '.$search);
 			} else {
-				if ($this->_filter->state == 'U') {
-					$where[] = 'c.state = 0';
-				} else if ($this->_filter->state == 'A') {
-					$where[] = 'c.state = -1';
-				} else {
-					$where[] = 'c.state != -2';
-				}
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
 			}
 		}
-		// Keyword filter
-		if ($search) {
-			$where[] = '(LOWER(c.title) LIKE ' . $db->Quote("%$search%") .
-				' OR c.id = ' . (int) $search . ')';
-		}
 
-		// Build the where clause of the content record query
-		$where = (count($where) ? ' WHERE '.implode(' AND ', $where) : '');
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.title')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
-		return $where;
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

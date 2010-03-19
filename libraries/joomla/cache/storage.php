@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id:storage.php 6961 2007-03-15 16:06:53Z tcp $
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:storage.php 6961 2007-03-15 16:06:53Z tcp $
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Abstract cache storage handler
@@ -18,35 +18,34 @@ defined('JPATH_BASE') or die();
  * @subpackage	Cache
  * @since		1.5
  */
-abstract class JCacheStorage extends JClass
+class JCacheStorage extends JObject
 {
-	protected $_application = null;
-	protected $_language = null;
-	protected $_locking = null;
-	protected $_lifetime = null;
-	protected $_now = null;
-
 	/**
 	* Constructor
 	*
 	* @access protected
 	* @param array $options optional parameters
 	*/
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
-		$this->setOptions($options);
-	}
-
-	protected function setOptions($options = array()) {
 		$this->_application	= (isset($options['application'])) ? $options['application'] : null;
 		$this->_language	= (isset($options['language'])) ? $options['language'] : 'en-GB';
 		$this->_locking		= (isset($options['locking'])) ? $options['locking'] : true;
 		$this->_lifetime	= (isset($options['lifetime'])) ? $options['lifetime'] : null;
 		$this->_now		= (isset($options['now'])) ? $options['now'] : time();
+
+		// Set time threshold value.  If the lifetime is not set, default to 60 (0 is BAD)
+		// _threshold is now available ONLY as a legacy (it's deprecated).  It's no longer used in the core.
+		if (empty($this->_lifetime)) {
+			$this->_threshold = $this->_now - 60;
+			$this->_lifetime = 60;
+		} else {
+			$this->_threshold = $this->_now - $this->_lifetime;
+		}
 	}
 
 	/**
-	 * Returns a reference to a cache storage hanlder object, only creating it
+	 * Returns a cache storage hanlder object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @static
@@ -54,31 +53,27 @@ abstract class JCacheStorage extends JClass
 	 * @return	object	A JCacheStorageHandler object
 	 * @since	1.5
 	 */
-	public static function &getInstance($handler = 'file', $options = array())
+	function getInstance($handler = 'file', $options = array())
 	{
-		static $instances = array();
 		static $now = null;
 		if (is_null($now)) {
 			$now = time();
 		}
-		if (!isset($instances[$handler])) {
-			$options['now'] = $now;
-			$handler = strtolower(preg_replace('/[^A-Z0-9_\.-]/i', '', $handler));
-			$class   = 'JCacheStorage'.ucfirst($handler);
-			if (!class_exists($class))
-			{
-				$path = dirname(__FILE__).DS.'storage'.DS.$handler.'.php';
-				if (file_exists($path)) {
-					require_once($path);
-				} else {
-					throw new JException('Unable to load Cache Storage: '.$handler, 1151, E_ERROR, $handler, true);
-				}
+		$options['now'] = $now;
+		//We can't cache this since options may change...
+		$handler = strtolower(preg_replace('/[^A-Z0-9_\.-]/i', '', $handler));
+		$class = 'JCacheStorage'.ucfirst($handler);
+		if (!class_exists($class))
+		{
+			$path = dirname(__FILE__).DS.'storage'.DS.$handler.'.php';
+			if (file_exists($path)) {
+				require_once $path;
+			} else {
+				return JError::raiseWarning(500, 'Unable to load Cache Storage: '.$handler);
 			}
-			$instances[$handler] = new $class($options);
 		}
-		$return = clone($instances[$handler]);
-		$return->setOptions($options);
-		return $return;
+
+		return new $class($options);
 	}
 
 	/**
@@ -92,8 +87,9 @@ abstract class JCacheStorage extends JClass
 	 * @return	mixed	Boolean false on failure or a cached data string
 	 * @since	1.5
 	 */
-	public function get($id, $group, $checkTime = true) {
-		return false;
+	function get($id, $group, $checkTime)
+	{
+		return;
 	}
 
 	/**
@@ -107,7 +103,10 @@ abstract class JCacheStorage extends JClass
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public abstract function store($id, $group, $data);
+	function store($id, $group, $data)
+	{
+		return true;
+	}
 
 	/**
 	 * Remove a cached data entry by id and group
@@ -119,7 +118,10 @@ abstract class JCacheStorage extends JClass
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public abstract function remove($id, $group);
+	function remove($id, $group)
+	{
+		return true;
+	}
 
 	/**
 	 * Clean cache for a group given a mode.
@@ -134,7 +136,10 @@ abstract class JCacheStorage extends JClass
 	 * @return	boolean	True on success, false otherwise
 	 * @since	1.5
 	 */
-	public abstract function clean($group, $mode);
+	function clean($group, $mode)
+	{
+		return true;
+	}
 
 	/**
 	 * Garbage collect expired cache data
@@ -143,17 +148,21 @@ abstract class JCacheStorage extends JClass
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public abstract function gc();
+	function gc()
+	{
+		return true;
+	}
 
 	/**
 	 * Test to see if the storage handler is available.
 	 *
+	 * @abstract
 	 * @static
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public static function test()
+	function test()
 	{
-		return false;
+		return true;
 	}
 }

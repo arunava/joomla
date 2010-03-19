@@ -1,84 +1,84 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Categories
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the Categories component
  *
  * @static
  * @package		Joomla.Administrator
- * @subpackage	Categories
- * @since 1.0
+ * @subpackage	com_categories
  */
 class CategoriesViewCategory extends JView
 {
-	protected $redirect;
-	protected $lists;
-	protected $row;
-	function display($tpl = null)
+	/**
+	 * Display the view
+	 */
+	public function display($tpl = null)
 	{
-		global $mainframe;
+		$state		= $this->get('State');
+		$item		= $this->get('Item');
+		$form		= $this->get('Form');
 
-		// Initialize variables
-		$db =& JFactory::getDBO();
-		$user =& JFactory::getUser();
-		$uid = $user->get('id');
-
-		$extension = JRequest::getCmd( 'extension', 'com_content' );
-		$cid = JRequest::getVar( 'cid', array(0), '', 'array' );
-		JArrayHelper::toInteger($cid, array(0));
-		$model =& $this->getModel();
-
-		//get the section
-		$row =& $this->get('data');
-		$edit = JRequest::getVar('edit',true);
-
-		// fail if checked out not by 'me'
-		if ( JTable::isCheckedOut($user->get ('id'), $row->checked_out )) {
-			$msg = JText::sprintf( 'DESCBEINGEDITTED', JText::_( 'The category' ), $row->title );
-			$mainframe->redirect( 'index.php?option=com_categories&extension='. $row->extension, $msg );
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		if ( $edit ) {
-			$model->checkout( $user->get('id'));
-		} else {
-			$row->published = 1;
-		}
+		$form->bind($item);
 
-		// build the html select list for ordering
-		$query = 'SELECT lft AS value, title AS text'
-		. ' FROM #__categories'
-		. ' WHERE extension = '.$db->Quote($row->extension)
-		. ' ORDER BY lft'
-		;
-		if($edit)
-			$lists['ordering'] = JHtml::_('list.specificordering',  $row, $cid[0], $query );
-		else
-			$lists['ordering'] = JHtml::_('list.specificordering',  $row, '', $query );
-
-		// build the html select list for the group access
-		$lists['access'] = JHtml::_('list.accesslevel',  $row );
-		// build the html radio buttons for published
-		$published = ($row->id) ? $row->published : 1;
-		$lists['published'] = JHtml::_('select.booleanlist',  'published', 'class="inputbox"', $published );
-		jimport('joomla.html.parameters');
-		$params = new JParameter($row->params, JPATH_ADMINISTRATOR.DS.'components'.DS.$extension.DS.'category.xml');
-		
-		$this->assignRef('extension',	$extension);
-		$this->assignRef('lists',		$lists);
-		$this->assignRef('row',			$row);
-		$this->assignRef('params',			$params);
+		$this->assignRef('state',	$state);
+		$this->assignRef('item',	$item);
+		$this->assignRef('form',	$form);
 
 		parent::display($tpl);
+		JRequest::setVar('hidemainmenu', true);
+		$this->_setToolBar();
+	}
+
+	/**
+	 * Build the default toolbar.
+	 *
+	 * @return	void
+	 */
+	protected function _setToolBar()
+	{
+		$user		= &JFactory::getUser();
+		$isNew		= ($this->item->id == 0);
+		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
+
+		JToolBarHelper::title(JText::_($isNew ? 'Categories_Category_Add_Title' : 'Categories_Category_Edit_Title'), 'category-add');
+
+
+		// If not checked out, can save the item.
+		if ($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'))
+		{
+			JToolBarHelper::apply('category.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('category.save', 'JToolbar_Save');
+			JToolBarHelper::addNew('category.save2new', 'JToolbar_Save_and_new');
+		}
+
+		// If an existing item, can save to a copy.
+		if (!$isNew) {
+			JToolBarHelper::custom('category.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_copy', false);
+		}
+
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('category.cancel','JTOOLBAR_CANCEL');
+		}
+		else {
+			JToolBarHelper::cancel('category.cancel', 'JToolbar_Close');
+		}
+			JToolBarHelper::divider();
+			JToolBarHelper::help('screen.categories.edit','JTOOLBAR_HELP');
 	}
 }

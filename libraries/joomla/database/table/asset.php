@@ -1,110 +1,119 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @package		Joomla.Framework
+ * @subpackage	Database
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
+
+jimport('joomla.database.tablenested');
 
 /**
- * Abstract table used for object that map to the access control system
+ * Table class supporting modified pre-order tree traversal behavior.
  *
- * @since	1.6
+ * @package		Joomla.Framework
+ * @subpackage	Database
+ * @since		1.6
+ * @link		http://docs.joomla.org/JTableAsset
  */
-abstract class JTableAsset extends JTable
+class JTableAsset extends JTableNested
 {
 	/**
-	 * Required property.  Maps to a value in the AXO Groups Table.
+	 * The primary key of the asset.
 	 *
-	 * @var		int
+	 * @var int
 	 */
-	protected $access = 0;
+	public $id = null;
 
 	/**
-	 * Abstract method to return the title of the object to insert into the AXO table
+	 * The unique name of the asset.
 	 *
-	 * @return	string
+	 * @var string
 	 */
-	protected abstract function getAssetSection();
+	public $name = null;
 
 	/**
-	 * Abstract method to return the section of the object to insert into the AXO table
+	 * The human readable title of the asset.
 	 *
-	 * @return	string
+	 * @var string
 	 */
-	protected abstract function getAssetTitle();
+	public $title = null;
 
 	/**
-	 * Stores the record, adds/updates the AXO Table and maps it to the appropriate AXO Group
-	 *
-	 * @param	boolean		Update null values in the object
-	 *
-	 * @return	boolean
+	 * @var	string
 	 */
-	function store($updateNulls = false)
+	public $rules = null;
+
+	/**
+	 * @param database A database connector object
+	 */
+	public function __construct(&$db)
 	{
-		if (!parent::store($updateNulls)) {
-			return false;
-		}
-
-		$name		= $this->getAssetTitle();
-		$section	= $this->getAssetSection();
-		$key		= $this->_tbl_key;
-		$id			= $this->$key;
-
-		jimport('joomla.acl.acladmin');
-		$group = JAclAdmin::getGroupForAssets($this->access);
-		if (JError::isError($group)) {
-			// Could not find the group so run with public
-			$group	= JAclAdmin::getGroupForAssets(0);
-		}
-
-		$result = JAclAdmin::registerAsset($section, $name, $id);
-		if (JError::isError($result)) {
-			$this->setError($result->getMessage());
-			return false;
-		}
-		else {
-			$axoId = $result;
-		}
-
-		$result = JAclAdmin::registerAssetInGroups($axoId, $group->id);
-		if (JError::isError($result)) {
-			$this->setError($result->getMessage());
-			return false;
-		}
-
-		return true;
+		parent::__construct('#__assets', 'id', $db);
 	}
 
 	/**
-	 * Deletes the AXO record and dependancies
+	 * Method to load an asset by it's name.
 	 *
-	 * @param	int $id
+	 * @param	string	The name of the asset.
 	 *
-	 * @return	boolean
+	 * @return	int
 	 */
-	function delete($id = null)
+	public function loadByName($name)
 	{
-		// Delete the base object first
-		if (!parent::delete($id)) {
+		// Get the asset id for the asset.
+		$this->_db->setQuery(
+			'SELECT `id`' .
+			' FROM `#__assets`' .
+			' WHERE `name` = '.$this->_db->Quote($name)
+		);
+		$assetId = (int) $this->_db->loadResult();
+
+		// Check for a database error.
+		if ($error = $this->_db->getErrorMsg())
+		{
+			$this->setError($error);
 			return false;
 		}
 
-		if (empty($id)) {
-			$key	= $this->_tbl_key;
-			$id		= $this->$key;
-		}
+		return $this->load($assetId);
+	}
 
-		$section = $this->getAssetSection();
+	/**
+	 * Asset that the nested set data is valid.
+	 *
+	 * @return	boolean	True if the instance is sane and able to be stored in the database.
+	 * @since	1.0
+	 * @link	http://docs.joomla.org/JTable/check
+	 */
+	public function check()
+	{
+		$this->parent_id = (int) $this->parent_id;
 
-		jimport('joomla.acl.acladmin');
-		$result = JAclAdmin::removeAsset($section, $id);
-		if (JError::isError($result)) {
-			$this->setError($result->getMessage());
-			return false;
+		// JTableNested does not allow parent_id = 0, override this.
+		if ($this->parent_id > 0)
+		{
+			$this->_db->setQuery(
+				'SELECT COUNT(id)' .
+				' FROM '.$this->_db->nameQuote($this->_tbl).
+				' WHERE `id` = '.$this->parent_id
+			);
+			if ($this->_db->loadResult()) {
+				return true;
+			}
+			else
+			{
+				if ($error = $this->_db->getErrorMsg()) {
+					$this->setError($error);
+				}
+				else {
+					$this->setError('JError_Invalid_parent_id');
+				}
+				return false;
+			}
 		}
 
 		return true;

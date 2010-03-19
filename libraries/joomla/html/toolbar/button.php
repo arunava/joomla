@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	HTML
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	HTML
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Button base class
@@ -16,7 +16,7 @@ defined('JPATH_BASE') or die();
  * The JButton is the base class for all JButton types
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -64,7 +64,7 @@ abstract class JButton extends JObject
 	public function render(&$definition)
 	{
 		/*
-		 * Initialize some variables
+		 * Initialise some variables
 		 */
 		$html	= null;
 		$id		= call_user_func_array(array(&$this, 'fetchId'), $definition);
@@ -76,9 +76,9 @@ abstract class JButton extends JObject
 		}
 
 		// Build the HTML Button
-		$html	.= "<td class=\"button\" $id>\n";
+		$html	.= "<li class=\"button\" $id>\n";
 		$html	.= $action;
-		$html	.= "</td>\n";
+		$html	.= "</li>\n";
 
 		return $html;
 	}

@@ -1,104 +1,128 @@
-<?php defined('_JEXEC') or die('Restricted access');
-	JHtml::_('behavior.tooltip');
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_banners
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// no direct access
+defined('_JEXEC') or die;
+
+JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
+JHtml::_('behavior.tooltip');
+JHTML::_('script','multiselect.js');
+$user	= JFactory::getUser();
+$userId	= $user->get('id');
 ?>
 
-<form action="<?php echo JRoute::_('index.php'); ?>" method="post" name="adminForm">
+<form action="<?php echo JRoute::_('index.php?option=com_banners&view=clients'); ?>" method="post" name="adminForm" id="adminForm">
+	<fieldset id="filter-bar">
+		<div class="filter-search fltlft">
+			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?>:</label>
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('COM_BANNERS_SEARCH_IN_TITLE'); ?>" />
+			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
+		</div>
+		<div class="filter-select fltrt">
 
-	<fieldset class="filter">
-		<div class="left">
-			<?php echo JText::_('Filter'); ?>:
-			<input type="text" name="search" id="search" value="<?php echo $this->filter->search;?>" class="text_area" onchange="document.adminForm.submit();" />
-			<button onclick="this.form.submit();"><?php echo JText::_('Go'); ?></button>
-			<button onclick="document.getElementById('search').value='';this.form.submit();"><?php echo JText::_('Reset'); ?></button>
+			<select name="filter_state" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_PUBLISHED');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions'), 'value', 'text', $this->state->get('filter.state'), true);?>
+			</select>
 		</div>
 	</fieldset>
+	<div class="clr"> </div>
 
 	<table class="adminlist">
 		<thead>
 			<tr>
 				<th width="20">
-					<?php echo JText::_('Num'); ?>
+					<input type="checkbox" name="toggle" value="" onclick="checkAll(this)" />
 				</th>
-				<th width="20">
-					<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($rows); ?>);" />
+				<th>
+					<?php echo JHtml::_('grid.sort', 'COM_BANNERS_HEADING_CLIENT', 'name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
-				<th nowrap="nowrap" class="title">
-					<?php echo JHtml::_('grid.sort',   'Client Name', 'a.name', @$this->filter->order_Dir, @$this->filter->order); ?>
+				<th width="30%">
+					<?php echo JHtml::_('grid.sort', 'COM_BANNERS_HEADING_CONTACT', 'contact', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
-				<th nowrap="nowrap" class="title">
-					<?php echo JHtml::_('grid.sort',   'Contact', 'a.contact', @$this->filter->order_Dir, @$this->filter->order); ?>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_PUBLISHED', 'state', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
-				<th align="center" nowrap="nowrap" width="5%">
-					<?php echo JHtml::_('grid.sort',   'No. of Active Banners', 'bid', @$this->filter->order_Dir, @$this->filter->order); ?>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'COM_BANNERS_HEADING_ACTIVE', 'nbanners', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
-				<th width="1%" nowrap="nowrap" width="5%">
-					<?php echo JHtml::_('grid.sort',   'ID', 'a.cid', @$this->filter->order_Dir, @$this->filter->order); ?>
+				<th width="5%" class="nowrap">
+					<?php echo JText::_('COM_BANNERS_HEADING_METAKEYWORDS'); ?>
 				</th>
-				<th width="40%">
-					&nbsp;
+				<th width="10%">
+					<?php echo JText::_('COM_BANNERS_HEADING_PURCHASETYPE'); ?>
+				</th>
+				<th width="1%" class="nowrap">
+					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_ID', 'id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="9">
+				<td colspan="8">
 					<?php echo $this->pagination->getListFooter(); ?>
 				</td>
 			</tr>
 		</tfoot>
 		<tbody>
-		<?php
-		for ($i=0, $n=count($this->items); $i < $n; $i++) :
-			$row = &$this->items[$i];
-
-			$row->id		= $row->cid;
-			$link			= JRoute::_('index.php?option=com_banners&c=client&task=edit&cid[]='. $row->id);
-
-			$checked		= JHtml::_('grid.checkedout',   $row, $i);
+		<?php foreach ($this->items as $i => $item) :
+			$ordering	= ($this->state->get('list.ordering') == 'ordering');
+			$canCreate	= $user->authorise('core.create',		'com_banners');
+			$canEdit	= $user->authorise('core.edit',			'com_banners');
+			$canChange	= $user->authorise('core.edit.state',	'com_banners');
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<td align="center">
-					<?php echo $this->pagination->getRowOffset($i); ?>
+				<td class="center">
+					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
 				</td>
 				<td>
-					<?php echo $checked; ?>
+					<?php if ($item->checked_out) : ?>
+						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+					<?php endif; ?>
+					<?php if ($canCreate || $canEdit) : ?>
+						<a href="<?php echo JRoute::_('index.php?option=com_banners&task=client.edit&id='.(int) $item->id); ?>">
+							<?php echo $this->escape($item->name); ?></a>
+					<?php else : ?>
+							<?php echo $this->escape($item->name); ?>
+					<?php endif; ?>
+				</td>
+				<td class="center">
+					<?php echo $item->contact;?>
+				</td>
+				<td class="center">
+					<?php echo JHtml::_('jgrid.published', $item->state, $i, 'clients.', $canChange);?>
+				</td>
+				<td class="center">
+					<?php echo $item->nbanners; ?>
 				</td>
 				<td>
-					<?php
-					if ( JTable::isCheckedOut($this->user->get ('id'), $row->checked_out)) {
-						echo $row->name;
-					} else {
-						?>
-							<span class="editlinktip hasTip" title="<?php echo JText::_('Edit');?>::<?php echo $row->name; ?>">
-						<a href="<?php echo $link; ?>">
-							<?php echo $row->name; ?></a>
-							</span>
-						<?php
-					}
-					?>
+					<?php echo $item->metakey; ?>
 				</td>
-				<td>
-					<?php echo $row->contact; ?>
+				<td class="center">
+					<?php if ($item->purchase_type<0):?>
+						<?php echo JText::sprintf('COM_BANNERS_DEFAULT',JText::_('COM_BANNERS_FIELD_VALUE_'.$this->params->get('purchase_type')));?>
+					<?php else:?>
+						<?php echo JText::_('COM_BANNERS_FIELD_VALUE_'.$item->purchase_type);?>
+					<?php endif;?>
 				</td>
-				<td align="center">
-					<?php echo $row->nbanners;?>
-				</td>
-				<td align="center">
-					<?php echo $row->cid; ?>
-				</td>
-				<td>
-					&nbsp;
+				<td class="center">
+					<?php echo $item->id; ?>
 				</td>
 			</tr>
-			<?php endfor; ?>
+			<?php endforeach; ?>
 		</tbody>
 	</table>
 
-	<input type="hidden" name="c" value="client" />
-	<input type="hidden" name="option" value="com_banners" />
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->filter->order; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filter->order_Dir; ?>" />
+	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
 	<?php echo JHtml::_('form.token'); ?>
 </form>

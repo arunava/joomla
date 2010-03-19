@@ -1,229 +1,162 @@
-<?php defined('_JEXEC') or die('Restricted access'); ?>
-
 <?php
-	jimport('joomla.utilities.date');
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_content
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-	// Initialize variables
-	$db		=& JFactory::getDBO();
-	$user	=& JFactory::getUser();
-	$config	=& JFactory::getConfig();
-	$now	=& JFactory::getDate();
-	$nullDate 	= $db->getNullDate();
+// no direct access
+defined('_JEXEC') or die;
 
-	//Ordering allowed ?
-	$ordering = ($this->filter->order == 'name' || $this->filter->order == 'cc.name');
-	JHtml::_('behavior.tooltip');
+JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
+JHtml::_('behavior.tooltip');
+
+$user	= JFactory::getUser();
 ?>
+<form action="<?php echo JRoute::_('index.php?option=com_content&view=articles');?>" method="post" name="adminForm">
+	<fieldset id="filter-bar">
+		<div class="filter-search fltlft">
+			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSearch_Filter_Label'); ?>:</label>
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('Content_Filter_Search_Desc'); ?>" />
 
-<form action="<?php echo JRoute::_('index.php?option=com_content'); ?>" method="post" name="adminForm">
-	<table>
-		<tr>
-			<td width="100%">
-				<?php echo JText::_('Filter'); ?>:
-				<input type="text" name="search" id="search" value="<?php echo $this->filter->search;?>" class="text_area" onchange="document.adminForm.submit();" title="<?php echo JText::_('Filter by title or enter article ID');?>"/>
-				<button onclick="this.form.submit();"><?php echo JText::_('Go'); ?></button>
-				<button onclick="document.getElementById('search').value='';this.form.getElementById('filter_sectionid').value='-1';this.form.getElementById('filter_catid').value='0';this.form.getElementById('filter_authorid').value='0';this.form.getElementById('filter_state').value='';this.form.submit();"><?php echo JText::_('Reset'); ?></button>
-			</td>
-			<td nowrap="nowrap">
-				<?php
-				echo JHtml::_('list.category', 'filter_catid', 'com_content', NULL, (int) $this->filter->catid, ' onchange="submitform();"', 1, 1, 1);
-				echo JHtml::_('contentgrid.author', 'filter_authorid', $this->filter->authorid);
-				echo JHtml::_('grid.state', $this->filter->state, 'Published', 'Unpublished', 'Archived');
-				?>
-			</td>
-		</tr>
-	</table>
+			<button type="submit" class="btn"><?php echo JText::_('JSearch_Filter_Submit'); ?></button>
+			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSearch_Filter_Clear'); ?></button>
 
-	<table class="adminlist" cellspacing="1">
-	<thead>
-		<tr>
-			<th width="5">
-				<?php echo JText::_('Num'); ?>
-			</th>
-			<th width="5">
-				<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows); ?>);" />
-			</th>
-			<th class="title">
-				<?php echo JHtml::_('grid.sort',   'Title', 'c.title', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th width="1%" nowrap="nowrap">
-				<?php echo JHtml::_('grid.sort',   'Published', 'c.state', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th nowrap="nowrap" width="1%">
-				<?php echo JHtml::_('grid.sort',   'Front Page', 'frontpage', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th width="12%">
-				<?php echo JHtml::_('grid.sort',   'Order', 'section_name', @$this->filter->order_Dir, @$this->filter->order); ?>
-				<?php echo JHtml::_('grid.order',  $this->rows); ?>
-			</th>
-			<th width="7%">
-				<?php echo JHtml::_('grid.sort',   'Access', 'groupname', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th  class="title" width="8%" nowrap="nowrap">
-				<?php echo JHtml::_('grid.sort',   'Category', 'cc.name', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th  class="title" width="8%" nowrap="nowrap">
-				<?php echo JHtml::_('grid.sort',   'Author', 'author', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th align="center" width="10">
-				<?php echo JHtml::_('grid.sort',   'Date', 'c.created', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th align="center" width="10">
-				<?php echo JHtml::_('grid.sort',   'Hits', 'c.hits', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-			<th width="1%" class="title">
-				<?php echo JHtml::_('grid.sort',   'ID', 'c.id', @$this->filter->order_Dir, @$this->filter->order); ?>
-			</th>
-		</tr>
-	</thead>
-	<tfoot>
-	<tr>
-		<td colspan="15">
-			<?php echo $this->pagination->getListFooter(); ?>
-		</td>
-	</tr>
-	</tfoot>
-	<tbody>
-	<?php
-	$k = 0;
-	for ($i=0, $n=count($this->rows); $i < $n; $i++)
-	{
-		$row = &$this->rows[$i];
+		</div>
+		<div class="filter-select fltrt">
+			<select name="filter_access" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Access');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('access.assetgroups'), 'value', 'text', $this->state->get('filter.access'));?>
+			</select>
 
-		$link 	= 'index.php?option=com_content&sectionid='. $this->redirect .'&task=edit&cid[]='. $row->id;
+			<select name="filter_published" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Published');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions'), 'value', 'text', $this->state->get('filter.published'), true);?>
+			</select>
 
-		$row->sect_link = JRoute::_('index.php?option=com_sections&task=edit&cid[]='. $row->sectionid);
-		$row->cat_link 	= JRoute::_('index.php?option=com_categories&task=edit&cid[]='. $row->catid);
+			<select name="filter_category_id" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOption_Select_Category');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('category.options', 'com_content'), 'value', 'text', $this->state->get('filter.category_id'));?>
+			</select>
+		</div>
+	</fieldset>
+	<div class="clr"> </div>
 
-		$publish_up = new JDate($row->publish_up);
-		$publish_down = new JDate($row->publish_down);
-		$publish_up->setOffset($config->getValue('config.offset'));
-		$publish_down->setOffset($config->getValue('config.offset'));
-		if ($now->toUnix() <= $publish_up->toUnix() && $row->state == 1) {
-			$img = 'publish_y.png';
-			$alt = JText::_('Published');
-		} else if (($now->toUnix() <= $publish_down->toUnix() || $row->publish_down == $nullDate) && $row->state == 1) {
-			$img = 'publish_g.png';
-			$alt = JText::_('Published');
-		} else if ($now->toUnix() > $publish_down->toUnix() && $row->state == 1) {
-			$img = 'publish_r.png';
-			$alt = JText::_('Expired');
-		} else if ($row->state == 0) {
-			$img = 'publish_x.png';
-			$alt = JText::_('Unpublished');
-		} else if ($row->state == -1) {
-			$img = 'disabled.png';
-			$alt = JText::_('Archived');
-		}
-		$times = '';
-		if (isset($row->publish_up)) {
-			if ($row->publish_up == $nullDate) {
-				$times .= JText::_('Start: Always');
-			} else {
-				$times .= JText::_('Start') .": ". $publish_up->toFormat();
-			}
-		}
-		if (isset($row->publish_down)) {
-			if ($row->publish_down == $nullDate) {
-				$times .= "<br />". JText::_('Finish: No Expiry');
-			} else {
-				$times .= "<br />". JText::_('Finish') .": ". $publish_down->toFormat();
-			}
-		}
-
-		if ($user->authorize('com_users', 'manage')) {
-			if ($row->created_by_alias) {
-				$author = $row->created_by_alias;
-			} else {
-				$linkA 	= 'index.php?option=com_users&task=edit&cid[]='. $row->created_by;
-				$author = '<a href="'. JRoute::_($linkA) .'" title="'. JText::_('Edit User') .'">'. $row->author .'</a>';
-			}
-		} else {
-			if ($row->created_by_alias) {
-				$author = $row->created_by_alias;
-			} else {
-				$author = $row->author;
-			}
-		}
-
-		$checked 	= JHtml::_('grid.checkedout',   $row, $i);
-		?>
-		<tr class="<?php echo "row$k"; ?>">
-			<td>
-				<?php echo $this->pagination->getRowOffset($i); ?>
-			</td>
-			<td align="center">
-				<?php echo $checked; ?>
-			</td>
-			<td>
-			<?php
-				if ( JTable::isCheckedOut($user->get ('id'), $row->checked_out)) {
-					echo $row->title;
-				} else if ($row->state == -1) {
-					echo htmlspecialchars($row->title, ENT_QUOTES, 'UTF-8');
-					echo ' [ '. JText::_('Archived') .' ]';
-				} else {
-					?>
-					<a href="<?php echo JRoute::_($link); ?>">
-						<?php echo htmlspecialchars($row->title, ENT_QUOTES); ?></a>
-					<?php
-				}
-				?>
-				<div style="float:right"><?php echo JHtml::_('content.warnings', $row);?></div>
-			</td>
-			<?php
-			if ($times) {
-				?>
-				<td align="center">
-					<span class="editlinktip hasTip" title="<?php echo JText::_('Publish Information');?>::<?php echo $times; ?>"><a href="javascript:void(0);" onclick="return listItemTask('cb<?php echo $i;?>','<?php echo $row->state ? 'unpublish' : 'publish' ?>')">
-						<img src="images/<?php echo $img;?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /></a></span>
+	<table class="adminlist">
+		<thead>
+			<tr>
+				<th width="20">
+					<input type="checkbox" name="toggle" value="" onclick="checkAll(this)" />
+				</th>
+				<th>
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Title', 'a.title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Published', 'a.state', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'Content_Heading_Featured', 'a.featured', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="10%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Category', 'a.catid', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="10%" class="nowrap">
+					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Ordering', 'a.ordering', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.order',  $this->items, 'filesave.png', 'articles.saveorder'); ?>
+				</th>
+				<th width="10%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Access', 'access_level', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="10%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Created_by', 'a.created_by', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'Content_Heading_Date', 'a.created', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Hits', 'a.hits', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="1%" class="nowrap">
+					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<td colspan="15">
+					<?php echo $this->pagination->getListFooter(); ?>
 				</td>
-				<?php
-			}
+			</tr>
+		</tfoot>
+		<tbody>
+		<?php foreach ($this->items as $i => $item) :
+			$item->max_ordering = 0; //??
+			$ordering	= ($this->state->get('list.ordering') == 'a.ordering');
+			$canCreate	= $user->authorise('core.create',		'com_content.category.'.$item->catid);
+			$canEdit	= $user->authorise('core.edit',			'com_content.article.'.$item->id);
+			$canChange	= $user->authorise('core.edit.state',	'com_content.article.'.$item->id);
 			?>
-			<td align="center">
-				<a href="javascript:void(0);" onclick="return listItemTask('cb<?php echo $i;?>','toggle_frontpage')" title="<?php echo ($row->frontpage) ? JText::_('Yes') : JText::_('No');?>">
-					<img src="images/<?php echo ($row->frontpage) ? 'tick.png' : ($row->state != -1 ? 'publish_x.png' : 'disabled.png');?>" width="16" height="16" border="0" alt="<?php echo ($row->frontpage) ? JText::_('Yes') : JText::_('No');?>" /></a>
-			</td>
-			<td class="order">
-				<span><?php echo $this->pagination->orderUpIcon($i, ($row->catid == @$this->rows[$i-1]->catid), 'orderup', 'Move Up', $ordering); ?></span>
-				<span><?php echo $this->pagination->orderDownIcon($i, $n, ($row->catid == @$this->rows[$i+1]->catid), 'orderdown', 'Move Down', $ordering); ?></span>
-				<?php $disabled = $ordering ?  '' : 'disabled="disabled"'; ?>
-				<input type="text" name="order[]" size="5" value="<?php echo $row->ordering; ?>" <?php echo $disabled; ?> class="text_area" style="text-align: center" />
-			</td>
-			<td align="center">
-				<?php echo $row->groupname;?>
-			</td>
-			<td>
-				<a href="<?php echo $row->cat_link; ?>" title="<?php echo JText::_('Edit Category'); ?>">
-					<?php echo $row->name; ?></a>
-			</td>
-			<td>
-				<?php echo $author; ?>
-			</td>
-			<td nowrap="nowrap">
-				<?php echo JHtml::_('date',  $row->created, JText::_('DATE_FORMAT_LC4')); ?>
-			</td>
-			<td nowrap="nowrap" align="center">
-				<?php echo $row->hits ?>
-			</td>
-			<td>
-				<?php echo $row->id; ?>
-			</td>
-		</tr>
-		<?php
-		$k = 1 - $k;
-	}
-	?>
-	</tbody>
+			<tr class="row<?php echo $i % 2; ?>">
+				<td class="center">
+					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
+				</td>
+				<td>
+					<?php if ($item->checked_out) : ?>
+						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+					<?php endif; ?>
+					<?php if ($canCreate || $canEdit) : ?>
+					<a href="<?php echo JRoute::_('index.php?option=com_content&task=article.edit&id='.$item->id);?>">
+						<?php echo $this->escape($item->title); ?></a>
+					<?php else : ?>
+						<?php echo $this->escape($item->title); ?>
+					<?php endif; ?>
+					<p class="smallsub">
+						(<span><?php echo JText::_('JFIELD_ALIAS_LABEL'); ?>:</span> <?php echo $this->escape($item->alias);?>)</p>
+				</td>
+				<td class="center">
+					<?php echo JHtml::_('jgrid.published', $item->state, $i, 'articles.', $canChange); ?>
+				</td>
+				<td class="center">
+					<?php echo JHtml::_('content.featured', $item->featured, $i, $canChange); ?>
+				</td>
+				<td class="center">
+					<?php echo $this->escape($item->category_title); ?>
+				</td>
+				<td class="order">
+					<?php if ($canChange) : ?>
+						<span><?php echo $this->pagination->orderUpIcon($i, ($item->catid == @$this->items[$i-1]->catid), 'articles.orderup', 'JGrid_Move_Up', $ordering); ?></span>
+						<span><?php echo $this->pagination->orderDownIcon($i, $this->pagination->total, ($item->catid == @$this->items[$i+1]->catid), 'articles.orderdown', 'JGrid_Move_Down', $ordering); ?></span>
+						<?php $disabled = $ordering ?  '' : 'disabled="disabled"'; ?>
+						<input type="text" name="order[]" size="5" value="<?php echo $item->ordering;?>" <?php echo $disabled ?> class="text-area-order" />
+					<?php else : ?>
+						<?php echo $item->ordering; ?>
+					<?php endif; ?>
+				</td>
+				<td class="center">
+					<?php echo $this->escape($item->access_level); ?>
+				</td>
+				<td class="center">
+					<?php echo $this->escape($item->author_name); ?>
+				</td>
+				<td class="center">
+					<?php echo JHTML::_('date',$item->created, '%Y.%m.%d'); ?>
+				</td>
+				<td class="center">
+					<?php echo (int) $item->hits; ?>
+				</td>
+				<td class="center">
+					<?php echo (int) $item->id; ?>
+				</td>
+			</tr>
+			<?php endforeach; ?>
+		</tbody>
 	</table>
-	<?php JHtml::_('content.legend'); ?>
 
-<input type="hidden" name="option" value="com_content" />
-<input type="hidden" name="task" value="" />
-<input type="hidden" name="boxchecked" value="0" />
-<input type="hidden" name="redirect" value="<?php echo $this->redirect;?>" />
-<input type="hidden" name="filter_order" value="<?php echo $this->filter->order; ?>" />
-<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filter->order_Dir; ?>" />
-<?php echo JHtml::_('form.token'); ?>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

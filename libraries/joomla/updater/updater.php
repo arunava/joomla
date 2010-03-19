@@ -5,9 +5,9 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Updater
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
-  */
+ */
 
 // Check to ensure this file is within the rest of the framework
 defined('JPATH_BASE') or die();
@@ -27,7 +27,7 @@ class JUpdater extends JAdapter {
 	/**
 	 * Constructor
 	 */
-	function __construct() {
+	public function __construct() {
 		// adapter base path, class prefix
 		parent::__construct(dirname(__FILE__),'JUpdater');
 	}
@@ -39,7 +39,7 @@ class JUpdater extends JAdapter {
 	 * @static
 	 * @return	object	An installer object
 	 */
-	function &getInstance()
+	public function &getInstance()
 	{
 		static $instance;
 
@@ -54,11 +54,11 @@ class JUpdater extends JAdapter {
 	 * @param int Extension Identifier; if zero use all sites
 	 * @return boolean If there are updates or not
 	 */
-	function findUpdates($eid=0) {
+	public function findUpdates($eid=0) {
 		$dbo =& $this->getDBO();
 		$retval = false;
 		// push it into an array
-		if (!is_array($eid)) {
+		if(!is_array($eid)) {
 			$query = 'SELECT DISTINCT update_site_id, type, location FROM #__update_sites WHERE enabled = 1';
 		} else {
 			$query = 'SELECT DISTINCT update_site_id, type, location FROM #__update_sites WHERE update_site_id IN (SELECT update_site_id FROM #__update_sites_extensions WHERE extension_id IN ('. implode(',', $eid) .'))';
@@ -70,32 +70,32 @@ class JUpdater extends JAdapter {
 			$result =& $results[$i];
 			$this->setAdapter($result['type']);
 			$update_result = $this->_adapters[$result['type']]->findUpdate($result);
-			if (is_array($update_result)) {
-				if (array_key_exists('update_sites',$update_result) && count($update_result['update_sites'])) {
+			if(is_array($update_result)) {
+				if(array_key_exists('update_sites',$update_result) && count($update_result['update_sites'])) {
 					$results = $this->arrayUnique(array_merge($results, $update_result['update_sites']));
 					$result_count = count($results);
 				}
-				if (array_key_exists('updates', $update_result) && count($update_result['updates'])) {
+				if(array_key_exists('updates', $update_result) && count($update_result['updates'])) {
 					for($k = 0; $k < count($update_result['updates']); $k++) {
 						$current_update =& $update_result['updates'][$k];
 						$update =& JTable::getInstance('update');
 						$extension =& JTable::getInstance('extension');
-						$uid = $update->find(Array('element'=>strtolower($current_update->element),
-								'type'=>strtolower($current_update->type),
-								'client_id'=>strtolower($current_update->client_id),
-								'folder'=>strtolower($current_update->folder)));
+						$uid = $update->find(Array('element'=>strtolower($current_update->get('element')),
+								'type'=>strtolower($current_update->get('type')),
+								'client_id'=>strtolower($current_update->get('client_id')),
+								'folder'=>strtolower($current_update->get('folder'))));
 
-						$eid = $extension->find(Array('element'=>strtolower($current_update->element),
-								'type'=>strtolower($current_update->type),
-								'client_id'=>strtolower($current_update->client_id),
-								'folder'=>strtolower($current_update->folder)));
-						if (!$uid) {
+						$eid = $extension->find(Array('element'=>strtolower($current_update->get('element')),
+								'type'=>strtolower($current_update->get('type')),
+								'client_id'=>strtolower($current_update->get('client_id')),
+								'folder'=>strtolower($current_update->get('folder'))));
+						if(!$uid) {
 							// set the extension id
-							if ($eid) {
+							if($eid) {
 								// we have an installed extension, check the update is actually newer
 								$extension->load($eid);
 								$data = unserialize($extension->manifest_cache);
-								if (version_compare($current_update->version, $data['version'], '>') == 1) {
+								if(version_compare($current_update->version, $data['version'], '>') == 1) {
 									//echo '<p>Storing extension since '. $attrs['VERSION'] .' > ' . $data['version']. '</p>';
 									$current_update->extension_id = $eid;
 									$current_update->store();
@@ -108,7 +108,7 @@ class JUpdater extends JAdapter {
 						} else {
 							$update->load($uid);
 							// if there is an update, check that the version is newer then replaces
-							if (version_compare($current_update->version, $update->version, '>') == 1) {
+							if(version_compare($current_update->version, $update->version, '>') == 1) {
 								//echo '<p>Storing extension since '. $attrs['VERSION'] .' > ' . $data['version']. '</p>';
 								$current_update->store();
 							}
@@ -128,29 +128,30 @@ class JUpdater extends JAdapter {
 	 * Borrowed from PHP.net
 	 * @url http://au2.php.net/manual/en/function.array-unique.php
 	 */
-	function arrayUnique($myArray)
+	public function arrayUnique($myArray)
 	{
-	    if (!is_array($myArray))
-	           return $myArray;
+		if (!is_array($myArray)) {
+			return $myArray;
+		}
 
-	    foreach ($myArray as &$myvalue){
-	        $myvalue=serialize($myvalue);
-	    }
+		foreach ($myArray as &$myvalue){
+			$myvalue=serialize($myvalue);
+		}
 
-	    $myArray=array_unique($myArray);
+		$myArray=array_unique($myArray);
 
-	    foreach ($myArray as &$myvalue){
-	        $myvalue=unserialize($myvalue);
-	    }
+		foreach ($myArray as &$myvalue){
+			$myvalue=unserialize($myvalue);
+		}
 
-	    return $myArray;
+		return $myArray;
 	}
 
-	function update($id) {
+	public function update($id) {
 		$updaterow =& JTable::getInstance('update');
 		$updaterow->load($id);
 		$update = new JUpdate();
-		if ($update->loadFromXML($updaterow->detailsurl)) {
+		if($update->loadFromXML($updaterow->detailsurl)) {
 			return $update->install();
 		}
 		return false;

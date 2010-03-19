@@ -1,118 +1,136 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Messages
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Messages Component Messages Model
+ * Message configuration model.
  *
  * @package		Joomla.Administrator
- * @subpackage	Messages
- * @since 1.5
+ * @subpackage	com_messages
+ * @since		1.6
  */
-class MessagesModelConfig extends JModel
+class MessagesModelConfig extends JModelForm
 {
 	/**
-	 * Data array
-	 *
-	 * @var array
+	 * Method to auto-populate the model state.
 	 */
-	var $_data = null;
-
-	/**
-	 * User ID
-	 *
-	 * @var string
-	 */
-	var $_user_id = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app	= JFactory::getApplication('administrator');
+		$user	= JFactory::getUser();
+
+		$this->setState('user.id', $user->get('id'));
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_messages');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to get contacts item data
+	 * Method to get a single record.
 	 *
-	 * @access public
-	 * @return array
-	 */
-	function getData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$this->_loadData();
-		}
-
-		return $this->_data;
-	}
-
-	function _loadData()
-	{
-		$user				=& JFactory::getUser();
-
-		$query = 'SELECT cfg_name, cfg_value'
-			. ' FROM #__messages_cfg'
-			. ' WHERE user_id = '.(int) $user->get('id')
-		;
-		$this->_db->setQuery( $query );
-		$data = $this->_db->loadObjectList( 'cfg_name' );
-
-		// initialize values if they do not exist
-		$this->_data['lock'] = isset($data['lock']->cfg_value) ? $data['lock']->cfg_value : 0;
-		$this->_data['mail_on_new'] = isset($data['mail_on_new']->cfg_value) ? $data['mail_on_new']->cfg_value : 0;
-		$this->_data['auto_purge'] = isset($data['auto_purge']->cfg_value) ? $data['auto_purge']->cfg_value : 7;
-	}
-
-	/**
-	 * Method to store the config info
+	 * @param	integer	The id of the primary key.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @return	mixed	Object on success, false on failure.
 	 */
-	function store($vars)
+	public function &getItem()
 	{
-		$user	=& JFactory::getUser();
+		// Initialise variables.
+		$item = new JObject;
 
-		$query = 'DELETE FROM #__messages_cfg'
-			. ' WHERE user_id = '.(int) $user->get('id')
-		;
-		$this->_db->setQuery( $query );
-		if ($this->_db->query() === false)
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+		$query->select('cfg_name, cfg_value');
+		$query->from('#__messages_cfg');
+		$query->where('user_id = '.(int) $this->getState('user.id'));
+
+		$db->setQuery($query);
+		$rows = $db->loadObjectList();
+
+		if ($error = $db->getErrorMsg()) {
+			$this->setError($error);
 			return false;
-
-		// Multi-row INSERT query
-		$values = array();
-		foreach ($vars as $k=>$v) {
-			$values[] = '( '.(int) $user->get('id').', '.$this->_db->Quote($k).', '.$this->_db->Quote($this->_db->getEscaped( $v )).' )';
 		}
-		if (count($values)) {
-			$query = 'INSERT INTO #__messages_cfg'
-				. ' ( user_id, cfg_name, cfg_value )'
-				. ' VALUES '
-				. implode( ', ', $values )
-			;
-			$this->_db->setQuery( $query );
-			if ($this->_db->query() === false)
+
+		foreach ($rows as $row) {
+			$item->set($row->cfg_name, $row->cfg_value);
+		}
+
+		return $item;
+	}
+
+	/**
+	 * Method to get the record form.
+	 *
+	 * @return	mixed	JForm object on success, false on failure.
+	 */
+	public function getForm()
+	{
+		// Initialise variables.
+		$app	= JFactory::getApplication();
+
+		// Get the form.
+		$form = parent::getForm('config', 'com_messages.config', array('array' => 'jform', 'event' => 'onPrepareForm'));
+
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
+			return false;
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 */
+	public function save($data)
+	{
+		$db = $this->getDbo();
+
+		if ($userId = (int) $this->getState('user.id')) {
+			$db->setQuery(
+				'DELETE FROM #__messages_cfg'.
+				' WHERE user_id = '. $userId
+			);
+			$db->query();
+			if ($error = $db->getErrorMsg()) {
+				$this->setError($error);
 				return false;
-		}
+			}
 
-		return true;
+			$tuples = array();
+			foreach ($data as $k => $v) {
+				$tuples[] =  '('.$userId.', '.$db->Quote($k).', '.$db->Quote($v).')';
+			}
+
+			if ($tuples) {
+				$db->setQuery(
+					'INSERT INTO #__messages_cfg'.
+					' (user_id, cfg_name, cfg_value)'.
+					' VALUES '.implode(',', $tuples)
+				);
+				$db->query();
+				if ($error = $db->getErrorMsg()) {
+					$this->setError($error);
+					return false;
+				}
+			}
+			return true;
+		} else {
+			$this->setError('COM_MESSAGES_ERR_INVALID_USER');
+			return false;
+		}
 	}
 }

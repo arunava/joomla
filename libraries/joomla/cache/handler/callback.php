@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Cache callback type object
@@ -26,15 +26,15 @@ class JCacheCallback extends JCache
 	 * as long as the first argument passed is the callback definition.
 	 *
 	 * The callback definition can be in several forms:
-	 * 	- Standard PHP Callback array <http://php.net/callback> [recommended]
-	 * 	- Function name as a string eg. 'foo' for function foo()
-	 * 	- Static method name as a string eg. 'MyClass::myMethod' for method myMethod() of class MyClass
+	 *	- Standard PHP Callback array <http://php.net/callback> [recommended]
+	 *	- Function name as a string eg. 'foo' for function foo()
+	 *	- Static method name as a string eg. 'MyClass::myMethod' for method myMethod() of class MyClass
 	 *
 	 * @access	public
 	 * @return	mixed	Result of the callback
 	 * @since	1.5
 	 */
-	public function call()
+	function call()
 	{
 		// Get callback and arguments
 		$args		= func_get_args();
@@ -52,17 +52,28 @@ class JCacheCallback extends JCache
 	 * @return	mixed	Result of the callback
 	 * @since	1.5
 	 */
-	public function get($callback, $args, $id=false)
+	function get($callback, $args, $id=false)
 	{
 		// Normalize callback
-		if (is_callable($callback)) {
+		if (is_array($callback)) {
 			// We have a standard php callback array -- do nothing
 		} elseif (strstr($callback, '::')) {
 			// This is shorthand for a static method callback classname::methodname
 			list($class, $method) = explode('::', $callback);
 			$callback = array(trim($class), trim($method));
+		} elseif (strstr($callback, '->')) {
+			/*
+			 * This is a really not so smart way of doing this... we provide this for backward compatability but this
+			 * WILL!!! disappear in a future version.  If you are using this syntax change your code to use the standard
+			 * PHP callback array syntax: <http://php.net/callback>
+			 *
+			 * We have to use some silly global notation to pull it off and this is very unreliable
+			 */
+			list($object_123456789, $method) = explode('->', $callback);
+			global $$object_123456789;
+			$callback = array($$object_123456789, $method);
 		} else {
-			throw new JException('Callback not supported', 1152, E_WARNING, $callback, true);
+			// We have just a standard function -- do nothing
 		}
 
 		if (!$id) {
@@ -105,7 +116,7 @@ class JCacheCallback extends JCache
 	 * @return	string	MD5 Hash : function cache id
 	 * @since	1.5
 	 */
-	protected function _makeId($callback, $args)
+	function _makeId($callback, $args)
 	{
 		if (is_array($callback) && is_object($callback[0])) {
 			$vars = get_object_vars($callback[0]);

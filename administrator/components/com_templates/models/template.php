@@ -3,273 +3,151 @@
  * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Templates
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.model' );
+jimport('joomla.application.component.model');
 
 /**
  * @package		Joomla.Administrator
- * @subpackage	Templates
+ * @subpackage	com_templates
+ * @since		1.6
  */
 class TemplatesModelTemplate extends JModel
 {
 	/**
-	 * Template id
+	 * Cache for the template information.
 	 *
-	 * @var int
+	 * @var		object
 	 */
-	var $_id = null;
+	private $_template = null;
 
 	/**
-	 * Template data
-	 *
-	 * @var array
+	 * Method to auto-populate the model state.
 	 */
-	var $_data = null;
-
-	/**
-	 * client object
-	 *
-	 * @var object
-	 */
-	var $_client = null;
-
-	/**
-	 * params object
-	 *
-	 * @var object
-	 */
-	var $_params = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$id			= JRequest::getVar('id', '', 'method', 'cmd');
-		$cid		= JRequest::getVar('cid', array($id), 'method', 'array');
-		$cid		= array(JFilterInput::clean(@$cid[0], 'cmd'));
-		$this->setId($cid[0]);
+		// Load the User state.
+		$pk = (int) JRequest::getInt('id');
+		$this->setState('extension.id', $pk);
 
-		$this->_client	=& JApplicationHelper::getClientInfo(JRequest::getVar('client', '0', '', 'int'));
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_templates');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to set the Template identifier
+	 * Internal method to get file properties.
 	 *
-	 * @access	public
-	 * @param	int Template identifier
-	 */
-	function setId($id)
-	{
-		// Set Template id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
-
-	/**
-	 * Method to get a Template
+	 * @param	string $path	The base path.
+	 * @param	string $name	The file name.
 	 *
-	 * @since 1.6
+	 * @return	object
 	 */
-	function &getData()
+	private function _getFile($path, $name)
 	{
-		// Load the data
-		if (!$this->_loadData())
-			$this->_initData();
+		$temp = new stdClass;
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the client object
-	 *
-	 * @since 1.6
-	 */
-	function &getClient()
-	{
-		return $this->_client;
-	}
-
-	function &getParams()
-	{
-		$this->getData();
-		return $this->_params;
-	}
-
-	function &getTemplate()
-	{
-		return $this->_id;
-	}
-
-	/**
-	 * Method to store the Template
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function store($params)
-	{
-		$menus		= JRequest::getVar('selections', array(), 'post', 'array');
-		$default	= JRequest::getBool('default');
-		JArrayHelper::toInteger($menus);
-
-		// Set FTP credentials, if given
-		jimport('joomla.client.helper');
-		JClientHelper::setCredentialsFromRequest('ftp');
-		$ftp = JClientHelper::getCredentials('ftp');
-
-		$file = $this->_client->path.DS.'templates'.DS.$this->_id.DS.'params.ini';
-
-		jimport('joomla.filesystem.file');
-		if (JFile::exists($file) && count($params))
+		if ($this->_template)
 		{
-			$txt = null;
-			foreach ($params as $k => $v) {
-				$txt .= "$k=$v\n";
-			}
-
-			// Try to make the params file writeable
-			if (!$ftp['enabled'] && JPath::isOwner($file) && !JPath::setPermissions($file, '0755')) {
-				$this->setError( JText::_('Could not make the template parameter file writable'));
-				return false;
-			}
-
-			$return = JFile::write($file, $txt);
-
-			// Try to make the params file unwriteable
-			if (!$ftp['enabled'] && JPath::isOwner($file) && !JPath::setPermissions($file, '0555')) {
-				$this->setError( JText::_('Could not make the template parameter file unwritable'));
-				return false;
-			}
-
-			if (!$return) {
-				$this->setError( JText::_('Operation Failed').': '.JText::sprintf('Failed to open file for writing.', $file));
-				return false;
-			}
+			$temp->name = $name;
+			$temp->exists = file_exists($path.$name);
+			$temp->id = urlencode(base64_encode($this->_template->extension_id.':'.$name));
+			return $temp;
 		}
+	}
 
-		// Reset all existing assignments
-		$query = 'DELETE FROM #__templates_menu' .
-				' WHERE client_id = 0' .
-				' AND template = '.$this->_db->Quote( $this->_id );
-		$this->_db->setQuery($query);
-		$this->_db->query();
-
-		if ($default) {
-			$menus = array( 0 );
-		}
-
-		foreach ($menus as $menuid)
+	/**
+	 * Method to get the template information.
+	 *
+	 * @return	mixed	Object if successful, false if not and internal error is set.
+	 */
+	public function &getTemplate()
+	{
+		if (empty($this->_template))
 		{
-			// If 'None' is not in array
-			if ((int) $menuid >= 0)
+			// Initialise variables.
+			$pk		= $this->getState('extension.id');
+			$db		= $this->getDbo();
+			$result	= false;
+
+			// Get the template information.
+			$db->setQuery(
+				'SELECT extension_id, client_id, element' .
+				' FROM #__extensions' .
+				' WHERE extension_id = '.(int) $pk.
+				'  AND type = '.$db->quote('template')
+			);
+
+			$result = $db->loadObject();
+			if (empty($result))
 			{
-				// check if there is already a template assigned to this menu item
-				$query = 'DELETE FROM #__templates_menu' .
-						' WHERE client_id = 0' .
-						' AND menuid = '.(int) $menuid;
-				$this->_db->setQuery($query);
-				if (!$this->_db->query()) {
-					return JError::raiseWarning( 500, $this->_db->getError() );
+				if ($error = $db->getErrorMsg()) {
+					$this->setError($error);
 				}
-
-				$query = 'INSERT INTO #__templates_menu' .
-						' SET client_id = 0, template = '. $this->_db->Quote( $this->_id ) .', menuid = '.(int) $menuid;
-				$this->_db->setQuery($query);
-				if (!$this->_db->query()) {
-					return JError::raiseWarning( 500, $this->_db->getError() );
+				else {
+					$this->setError(JText::_('COM_TEMPLATES_ERROR_EXTENSION_RECORD_NOT_FOUND'));
 				}
+				$this->_template = false;
+			}
+			else {
+				$this->_template = $result;
 			}
 		}
 
-		return true;
+		return $this->_template;
 	}
 
 	/**
-	 * Method to load Template data
+	 * Method to get a list of all the files to edit in a template.
 	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
+	 * @return	array	A nested array of relevant files.
 	 */
-	function _loadData()
+	public function getFiles()
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
+		// Initialise variables.
+		$result	= array();
+
+		if ($this->_template)
 		{
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'template.php';
+			jimport('joomla.filesystem.folder');
 
-			$tBaseDir	= JPath::clean($this->_client->path.DS.'templates');
+			$client = JApplicationHelper::getClientInfo($this->_template->client_id);
+			$path	= JPath::clean($client->path.'/templates/'.$this->_template->element.'/');
 
-			if (!is_dir( $tBaseDir . DS . $this->_id )) {
-				return JError::raiseWarning( 500, JText::_('Template not found') );
+			// Check if the template path exists.
+			if (is_dir($path))
+			{
+				$result['main'] = array();
+				$result['css'] = array();
+				$result['clo'] = array();
+				$result['mlo'] = array();
+
+				// Handle the main PHP files.
+				$result['main']['index'] = $this->_getFile($path, 'index.php');
+				$result['main']['error'] = $this->_getFile($path, 'error.php');
+				$result['main']['print'] = $this->_getFile($path, 'component.php');
+
+				// Handle the CSS files.
+				$files = JFolder::files($path.'/css', '\.css$', false, false);
+
+				foreach ($files as $file)
+				{
+					$result['css'][] = $this->_getFile($path.'/css/', 'css/'.$file);
+				}
 			}
-			$lang =& JFactory::getLanguage();
-			 // 1.5 or Core
-			$lang->load( 'tpl_'.$this->_id, $this->_client->path );
-			// 1.6 3PD Templates
-			$lang->load( 'joomla', $this->_client->path.DS.'templates'.DS.$templates );
-
-			$ini	= $this->_client->path.DS.'templates'.DS.$this->_id.DS.'params.ini';
-			$xml	= $this->_client->path.DS.'templates'.DS.$this->_id.DS.'templateDetails.xml';
-			$row	= TemplatesHelper::parseXMLTemplateFile($tBaseDir, $this->_id);
-
-			jimport('joomla.filesystem.file');
-			// Read the ini file
-			if (JFile::exists($ini)) {
-				$content = JFile::read($ini);
-			} else {
-				$content = null;
+			else
+			{
+				$this->setError(JText::_('COM_TEMPLATES_ERROR_TEMPLATE_FOLDER_NOT_FOUND'));
 			}
-
-			$this->_params = new JParameter($content, $xml, 'template');
-
-			$assigned = TemplatesHelper::isTemplateAssigned($row->directory);
-			$default = TemplatesHelper::isTemplateDefault($row->directory, $this->_client->id);
-			if ($default) {
-				$row->pages = 'all';
-			} elseif (!$assigned) {
-				$row->pages = 'none';
-			} else {
-				$row->pages = null;
-			}
-
-			$this->_data = $row;
-			return (boolean) $this->_data;
 		}
-		return true;
-	}
 
-	/**
-	 * Method to initialise the Template data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.6
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$template = new stdClass();
-			$template->name					= null;
-			$template->description			= null;
-			$template->pages				= null;
-			$this->_data = $template;
-			return (boolean) $this->_data;
-		}
-		return true;
+		return $result;
 	}
 }

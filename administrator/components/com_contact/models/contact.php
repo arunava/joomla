@@ -1,235 +1,359 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Contacts Component Contact Model
+ * Item Model for Contacts.
  *
  * @package		Joomla.Administrator
- * @subpackage	Contact
- * @since 1.5
+ * @subpackage	com_contact
+ * @version		1.6
  */
-class ContactsModelContact extends JModel
+class ContactModelContact extends JModelForm
 {
 	/**
-	 * Contact id
+	 * Model context string.
 	 *
-	 * @var int
+	 * @var		string
 	 */
-	var $_id = null;
+	protected $_context		= 'com_contact.item';
 
 	/**
-	 * Contact data
+	 * Returns a Table object, always creating it
 	 *
-	 * @var array
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
 	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	public function getTable($type = 'Contact', $prefix = 'ContactTable', $config = array())
 	{
-		parent::__construct();
-
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if($edit)
-			$this->setId((int)$array[0]);
+		return JTable::getInstance($type, $prefix, $config);
 	}
 
 	/**
-	 * Method to set the contact identifier
+	 * Method to auto-populate the model state.
 	 *
-	 * @access	public
-	 * @param	int Contact identifier
+	 * @return	void
 	 */
-	function setId($id)
+	protected function _populateState()
 	{
-		// Set contact id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
+		$app	= &JFactory::getApplication('administrator');
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_contact.edit.contact.id'))) {
+			$pk = (int) JRequest::getInt('item_id');
+		}
+		$this->setState('contact.id',			$pk);
+
+		// Load the parameters.
+		$params	= &JComponentHelper::getParams('com_contact');
+		// Load the parameters.
+		$this->setState('params', $params);
+			}
+
 
 	/**
-	 * Method to get a contact
+	 * Method to get an item.
 	 *
-	 * @since 1.5
+	 * @param	integer	The id of the  item to get.
+	 *
+	 * @return	mixed	Item data object on success, false on failure.
 	 */
-	function &getData()
+	public function &getItem($itemId = null)
 	{
-		// Load the contact data
-		if ($this->_loadData())
+		// Initialise variables.
+		$itemId = (!empty($itemId)) ? $itemId : (int)$this->getState('contact.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+		// Attempt to load the row.
+		$return = $table->load($itemId);
+
+		// Check for a table object error.
+		if ($return === false && $table->getError()) {
+			$this->setError($table->getError());
+			return $false;
+		}
+
+		// Prime required properties.
+		if (empty($table->id))
 		{
-			// Initialize some variables
+			$table->parent_id	= $this->getState('item.parent_id');
+			//$table->menutype	= $this->getState('item.menutype');
+			//$table->type		= $this->getState('item.type');
+		}
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		$registry->loadJSON($table->params);
+		$table->params = $registry->toArray();
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		//$registry->loadJSON($table->metadata);
+		$table->metadata = $registry->toArray();
+
+
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		return $value;
+	}
+
+	/**
+	 * Method to get the row form.
+	 *
+	 * @return	mixed	JForm object on success, false on failure.
+	 * @since	1.6
+	 */
+	public function getForm()
+	{
+		// Initialise variables.
+		$app	= &JFactory::getApplication();
+		JImport('joomla.form.form');
+		JForm::addFieldPath('JPATH_ADMINISTRATOR/components/com_users/models/fields');
+		// Get the form.
+		$form = parent::getForm('contact', 'com_contact.contact', array('array' => 'jform', 'event' => 'onPrepareForm'));
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
+			return false;
+		}
+
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_contact.edit.contact.data', array());
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		// Initialise variables;
+		$dispatcher = & JDispatcher::getInstance();
+		$table		= &$this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('contact.id');
+		$isNew		= true;
+
+		// Include the contact plugins for the onSave events.
+		JPluginHelper::importPlugin('contact');
+
+		// Load the row if saving an existing item.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
+		}
+
+		// Bind the data.
+		// Load email_form params into params array
+		foreach ($data['email_form'] as $key => $value) {
+			$data['params'][$key] = $value;
+		}
+		$data['email_form'] = array();
+
+		if (!$table->bind($data)) {
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			return false;
+		}
+
+		// Check the data.
+		if (!$table->check()) {
+			$this->setError($table->getError());
+			return false;
+			}
+		$result = $dispatcher->trigger('onBeforeContactSave', array(&$table, $isNew));
+		if (in_array(false, $result, true)) {
+			JError::raiseError(500, $row->getError());
+			return false;
+			}
+
+		// Store the data.
+		if (!$table->store()) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Clean the cache.
+		$cache = &JFactory::getCache('com_contact');
+		$cache->clean();
+
+		$dispatcher->trigger('onAfterContactSave', array(&$table, $isNew));
+		return true;
+	}
+		/**
+	 * Method to delete rows.
+	 *
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	public function delete($pks)
+	{
+		$dispatcher = & JDispatcher::getInstance();
+		// Include the content plugins for the onSave events.
+		JPluginHelper::importPlugin('content');
+
+		// Sanitize the ids.
+		$pks = (array) $pks;
+		JArrayHelper::toInteger($pks);
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $itemId)
+		{
+			$table->load($itemId); // get contact for onBeforeContacttDelete event
+			$result = $dispatcher->trigger('onBeforeContacttDelete', array($table));
+			if (in_array(false, $result, true))
+			{
+				JError::raiseError(500, $row->getError());
+				return false;
+			}
+
+			// delete row
+			if (!$table->delete($itemId))
+			{
+				$this->setError($table->getError());
+				return false;
+			}
+
+			$dispatcher->trigger('onAfterContactDelete', array($itemId));
+		}
+
+
+		return true;
+	}
+	/**
+	 * Method to publish
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	public function publish($pks, $value = 1)
+	{
+		// Sanitize the ids.
+		$pks = (array) $pks;
+		JArrayHelper::toInteger($pks);
+
+		// Get the current user object.
+		$user = &JFactory::getUser();
+
+		// Get a category row instance.
+		$table = &$this->getTable();
+
+		// Attempt to publish the items.
+		if (!$table->publish($pks, $value, $user->get('id'))) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+	}
+	/**
+	 * Method to adjust the ordering of a row.
+	 *
+	 * @param	int		The numeric id of the row to move.
+	 * @param	integer	Increment, usually +1 or -1
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function ordering($pk, $direction = 0)
+	{
+		// Sanitize the id and adjustment.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('contact.id');
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Attempt to adjust the row ordering.
+		if (!$table->ordering((int) $direction, $pk)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+	}
+	/**
+
+	 * Method to checkin a row.
+	 *
+	 * @param	integer	$id		The numeric id of a row
+	 * @return	boolean	True on success/false on failure
+	 * @since	1.6
+	 */
+
+	public function checkin($pk = null)
+	{
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('contact.id');
+		// Only attempt to check the row in if it exists.
+		if ($pk)
+		{
+			$user	= &JFactory::getUser();
+
+			// Get an instance of the row to checkin.
+			$table = &$this->getTable();
+			if (!$table->load($pk)) {
+				$this->setError($table->getError());
+				return false;
+			}
+			// Check if this is the user having previously checked out the row.
+			if ($table->checked_out > 0 && $table->checked_out != $user->get('id')) {
+				$this->setError(JText::_('JERROR_CHECKIN_USER_MISMATCH'));
+				return false;
+			}
+
+			// Attempt to check the row in.
+			if (!$table->checkin($contactId)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+		return true;
+	}
+	/**
+	 * Method to check-out a row for editing.
+	 *
+	 * @param	int		$pk	The numeric id of the row to check-out.
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function checkout($pk = null)
+	{
+		// Initialise variables.
+		$pk		= (!empty($pk)) ? $pk : (int) $this->getState('contact.id');
+
+		// Only attempt to check the row in if it exists.
+		if ($pk)
+		{
+			// Get a row instance.
+			$table = &$this->getTable();
+
+			// Get the current user object.
 			$user = &JFactory::getUser();
 
-			// Check to see if the category is published
-			if (!$this->_data->cat_pub) {
-				JError::raiseError( 404, JText::_("Resource Not Found") );
-				return;
-			}
-
-			// Check whether category access level allows access
-			if ($this->_data->cat_access > $user->get('aid', 0)) {
-				JError::raiseError( 403, JText::_('ALERTNOTAUTH') );
-				return;
-			}
-		}
-		else  $this->_initData();
-
-		return $this->_data;
-	}
-
-	/**
-	 * Tests if contact is checked out
-	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.5
-	 */
-	function isCheckedOut( $uid=0 )
-	{
-		if ($this->_loadData())
-		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
-			}
-		}
-	}
-
-	/**
-	 * Method to checkin/unlock the contact
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkin()
-	{
-		if ($this->_id)
-		{
-			$contact = & $this->getTable();
-			if(! $contact->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Method to checkout/lock the contact
-	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the contact out
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkout($uid = null)
-	{
-		if ($this->_id)
-		{
-			// Make sure we have a user id to checkout the contact with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$contact = & $this->getTable();
-			if(!$contact->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Method to store the contact
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function store($data)
-	{
-		$row =& $this->getTable();
-
-		// Bind the form fields to the web link table
-		if (!$row->bind($data)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// if new item, order last in appropriate group
-		if (!$row->id) {
-			$where = 'catid = ' . (int) $row->catid ;
-			$row->ordering = $row->getNextOrder( $where );
-		}
-
-		// Make sure the web link table is valid
-		if (!$row->check()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		// Store the web link table to the database
-		if (!$row->store()) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if ($row->default_con) {
-			$query = 'UPDATE #__contact_details'
-			. ' SET default_con = 0'
-			. ' WHERE id <> '. (int) $row->id
-			. ' AND default_con = 1'
-			;
-			$db->setQuery( $query );
-			$db->query();
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to remove a contact
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function delete($cid = array())
-	{
-		$result = false;
-
-		if (count( $cid ))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-			$query = 'DELETE FROM #__contact_details'
-				. ' WHERE id IN ( '.$cids.' )';
-			$this->_db->setQuery( $query );
-			if(!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+			// Attempt to check the row out.
+			if (!$table->checkout($user->get('id'), $pk)) {
+				$this->setError($table->getError());
 				return false;
 			}
 		}
@@ -238,197 +362,86 @@ class ContactsModelContact extends JModel
 	}
 
 	/**
-	 * Method to (un)publish a contact
+	 * Method to perform batch operations on a category or a set of contacts.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	array	An array of commands to perform.
+	 * @param	array	An array of category ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
 	 */
-	function publish($cid = array(), $publish = 1)
+	function batch($commands, $pks)
 	{
-		$user 	=& JFactory::getUser();
+		// Sanitize user ids.
+		$pks = array_unique($pks);
+		JArrayHelper::toInteger($pks);
 
-		if (count( $cid ))
+		// Remove any values of zero.
+		if (array_search(0, $pks, true)) {
+			unset($pks[array_search(0, $pks, true)]);
+		}
+
+		if (empty($pks)) {
+			$this->setError(JText::_('COM_CONTACT_NO_CONTACT_SELECTED'));
+			return false;
+		}
+
+		$done = false;
+
+		if (!empty($commands['assetgroup_id']))
 		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-
-			$query = 'UPDATE #__contact_details'
-				. ' SET published = '.(int) $publish
-				. ' WHERE id IN ( '.$cids.' )'
-				. ' AND ( checked_out = 0 OR ( checked_out = '.(int) $user->get('id').' ) )'
-			;
-			$this->_db->setQuery( $query );
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+			if (!$this->_batchAccess($commands['assetgroup_id'], $pks)) {
 				return false;
 			}
+			$done = true;
 		}
 
-		return true;
-	}
-
-	/**
-	 * Method to move a contact
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function move($direction)
-	{
-		$row =& $this->getTable();
-		if (!$row->load($this->_id)) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if (!$row->move( $direction, ' catid = '.(int) $row->catid.' AND published >= 0 ' )) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a contact
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function saveorder($cid, $order)
-	{
-		$row =& $this->getTable();
-		$groupings = array();
-
-		// update ordering values
-		for( $i=0; $i < count($cid); $i++ )
+		if (!empty($commands['menu_id']))
 		{
-			$row->load( (int) $cid[$i] );
-			// track categories
-			$groupings[] = $row->catid;
+			$cmd = JArrayHelper::getValue($commands, 'move_copy', 'c');
 
-			if ($row->ordering != $order[$i])
+			if ($cmd == 'c' && !$this->_batchCopy($commands['menu_id'], $pks)) {
+				return false;
+			}
+			else if ($cmd == 'm' && !$this->_batchMove($commands['menu_id'], $pks)) {
+				return false;
+			}
+			$done = true;
+		}
+
+		if (!$done)
+		{
+			$this->setError('COM_MENUS_ERROR_INSUFFICIENT_BATCH_INFORMATION');
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Batch access level changes for a group of rows.
+	 *
+	 * @param	int		The new value matching an Asset Group ID.
+	 * @param	array	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 */
+	protected function _batchAccess($value, $pks)
+	{
+		$table = &$this->getTable();
+		foreach ($pks as $pk)
+		{
+			$table->reset();
+			$table->load($pk);
+			$table->access = (int) $value;
+			if (!$table->store())
 			{
-				$row->ordering = $order[$i];
-				if (!$row->store()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
-				}
-			}
-		}
-
-		// execute updateOrder for each parent group
-		$groupings = array_unique( $groupings );
-		foreach ($groupings as $group){
-			$row->reorder('catid = '.(int) $group);
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to load contact data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _loadData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT c.*, cc.title AS category,'.
-					' cc.published AS cat_pub, cc.access AS cat_access'.
-					' FROM #__contact_details AS c' .
-					' LEFT JOIN #__categories AS cc ON cc.id = c.catid' .
-					' WHERE c.id = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
-
-	/**
-	 * Method to initialise the contact data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$contact = new stdClass();
-			$contact->id				= 0;
-			$contact->catid				= 0;
-			$contact->user_id			= 0;
-			$contact->name				= null;
-			$contact->alias				= null;
-			$contact->con_position		= null;
-			$contact->address			= null;
-			$contact->suburb			= null;
-			$contact->state				= null;
-			$contact->country			= null;
-			$contact->postcode			= null;
-			$contact->telephone			= null;
-			$contact->fax				= null;
-			$contact->misc				= null;
-			$contact->image				= null;
-			$contact->imagepos			= null;
-			$contact->email_to			= null;
-			$contact->default_con		= null;
-			$contact->mobile			= null;
-			$contact->webpage			= null;
-			$contact->access			= 0;
-			$contact->published			= 0;
-			$contact->checked_out		= 0;
-			$contact->checked_out_time	= 0;
-			$contact->ordering			= 0;
-			$contact->archived			= 0;
-			$contact->approved			= 0;
-			$contact->params			= null;
-			$contact->category			= null;
-			$this->_data				= $contact;
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
-
-	/**
-	 * Method to set the contact access
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function setAccess($cid = array(), $access = 0)
-	{
-		if (count( $cid ))
-		{
-			$user 	=& JFactory::getUser();
-
-			JArrayHelper::toInteger($cid);
-			$cids = implode( ',', $cid );
-
-			$query = 'UPDATE #__contact_details'
-				. ' SET access = '.(int) $access
-				. ' WHERE id IN ( '.$cids.' )'
-				. ' AND ( checked_out = 0 OR ( checked_out = '.(int) $user->get('id').' ) )'
-			;
-			$this->_db->setQuery( $query );
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
+				$this->setError($table->getError());
 				return false;
 			}
 		}
 
 		return true;
 	}
+
+
 }

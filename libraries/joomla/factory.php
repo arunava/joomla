@@ -2,9 +2,12 @@
 /**
  * @version		$Id$
  * @package		Joomla.Framework
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla Framework Factory class
@@ -27,14 +30,14 @@ abstract class JFactory
 	/**
 	 * Get a application object
 	 *
-	 * Returns a reference to the global {@link JApplication} object, only creating it
+	 * Returns the global {@link JApplication} object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @param	mixed	$id 		A client identifier or name.
-	 * @param	array	$config 	An optional associative array of configuration settings.
+	 * @param	mixed	$id		A client identifier or name.
+	 * @param	array	$config	An optional associative array of configuration settings.
 	 * @return object JApplication
 	 */
-	public static function &getApplication($id = null, $config = array(), $prefix='J')
+	public static function getApplication($id = null, $config = array(), $prefix='J')
 	{
 		if (!is_object(JFactory::$application))
 		{
@@ -53,14 +56,14 @@ abstract class JFactory
 	/**
 	 * Get a configuration object
 	 *
-	 * Returns a reference to the global {@link JRegistry} object, only creating it
+	 * Returns the global {@link JRegistry} object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @param string	The path to the configuration file
 	 * @param string	The type of the configuration file
 	 * @return object JRegistry
 	 */
-	public static function &getConfig($file = null, $type = 'PHP')
+	public static function getConfig($file = null, $type = 'PHP')
 	{
 		if (!is_object(JFactory::$config))
 		{
@@ -77,13 +80,13 @@ abstract class JFactory
 	/**
 	 * Get a session object
 	 *
-	 * Returns a reference to the global {@link JSession} object, only creating it
+	 * Returns the global {@link JSession} object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @param array An array containing session options
 	 * @return object JSession
 	 */
-	public static function &getSession($options = array())
+	public static function getSession($options = array())
 	{
 		if (!is_object(JFactory::$session)) {
 			JFactory::$session = JFactory::_createSession($options);
@@ -95,12 +98,12 @@ abstract class JFactory
 	/**
 	 * Get a language object
 	 *
-	 * Returns a reference to the global {@link JLanguage} object, only creating it
+	 * Returns the global {@link JLanguage} object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @return object JLanguage
 	 */
-	public static function &getLanguage()
+	public static function getLanguage()
 	{
 		if (!is_object(JFactory::$language))
 		{
@@ -118,12 +121,12 @@ abstract class JFactory
 	/**
 	 * Get a document object
 	 *
-	 * Returns a reference to the global {@link JDocument} object, only creating it
+	 * Returns the global {@link JDocument} object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @return object JLanguage
+	 * @return object JDocument
 	 */
-	public static function &getDocument()
+	public static function getDocument()
 	{
 		if (!is_object(JFactory::$document)) {
 			JFactory::$document = JFactory::_createDocument();
@@ -135,21 +138,20 @@ abstract class JFactory
 	/**
 	 * Get an user object
 	 *
-	 * Returns a reference to the global {@link JUser} object, only creating it
+	 * Returns the global {@link JUser} object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @param 	int 	$id 	The user to load - Can be an integer or string - If string, it is converted to ID automatically.
+	 * @param	int	$id	The user to load - Can be an integer or string - If string, it is converted to ID automatically.
 	 *
 	 * @return object JUser
 	 */
-	public static function &getUser($id = null)
+	public static function getUser($id = null)
 	{
 		jimport('joomla.user.user');
 
 		if (is_null($id))
 		{
-			$session  = &JFactory::getSession();
-			$instance = &$session->get('user');
+			$instance = JFactory::getSession()->get('user');
 			if (!$instance INSTANCEOF JUser) {
 				$instance = &JUser::getInstance();
 			}
@@ -165,14 +167,14 @@ abstract class JFactory
 	/**
 	 * Get a cache object
 	 *
-	 * Returns a reference to the global {@link JCache} object
+	 * Returns the global {@link JCache} object
 	 *
 	 * @param string The cache group name
 	 * @param string The handler to use
 	 * @param string The storage method
 	 * @return object JCache
 	 */
-	public static function &getCache($group = '', $handler = 'callback', $storage = null)
+	public static function getCache($group = '', $handler = 'callback', $storage = null)
 	{
 		$handler = ($handler == 'function') ? 'callback' : $handler;
 
@@ -183,11 +185,11 @@ abstract class JFactory
 		}
 
 		$options = array(
-			'defaultgroup' => $group,
-			'cachebase' => $conf->getValue('config.cache_path'),
-			'lifetime' => $conf->getValue('config.cachetime') * 60,	// minutes to seconds
-			'language' => $conf->getValue('config.language'),
-			'storage' => $storage
+			'defaultgroup'	=> $group,
+			'cachebase'		=> $conf->getValue('config.cache_path'),
+			'lifetime'		=> $conf->getValue('config.cachetime') * 60,	// minutes to seconds
+			'language'		=> $conf->getValue('config.language'),
+			'storage'		=> $storage
 		);
 
 		jimport('joomla.cache.cache');
@@ -200,24 +202,17 @@ abstract class JFactory
 	/**
 	 * Get an authorization object
 	 *
-	 * Returns a reference to the global {@link JACL} object, only creating it
+	 * Returns the global {@link JACL} object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @return object JACL
 	 */
-	public static function &getACL()
+	public static function getACL()
 	{
 		if (!is_object(JFactory::$acl)) {
-			jimport('joomla.user.authorization');
-		$db = & JFactory::getDBO();
+			jimport('joomla.access.access');
 
-			$options = array(
-				'db'				=> &$db,
-				'db_table_prefix'	=> $db->getPrefix() . 'core_acl_',
-				'debug'				=> 0
-			);
-
-			JFactory::$acl = new JAuthorization($options);
+			JFactory::$acl = new JAccess();
 		}
 
 		return JFactory::$acl;
@@ -226,116 +221,165 @@ abstract class JFactory
 	/**
 	 * Get a database object
 	 *
-	 * Returns a reference to the global {@link JDatabase} object, only creating it
+	 * Returns the global {@link JDatabase} object, only creating it
 	 * if it doesn't already exist.
 	 *
 	 * @return object JDatabase
 	 */
-	public static function &getDBO()
+	public static function getDbo()
 	{
-		if (!is_object(JFactory::$database))
+	
+		if (!is_object(self::$database))
 		{
 			//get the debug configuration setting
-			$conf = &JFactory::getConfig();
+			$conf = &self::getConfig();
 			$debug = $conf->getValue('config.debug');
 
-			JFactory::$database = JFactory::_createDBO();
-			JFactory::$database->debug($debug);
+			self::$database = self::_createDbo();
+			self::$database->debug($debug);
 		}
-
-		return JFactory::$database;
+		return self::$database;
 	}
 
 	/**
 	 * Get a mailer object
 	 *
-	 * Returns a reference to the global {@link JMail} object, only creating it
+	 * Returns the global {@link JMail} object, only creating it
 	 * if it doesn't already exist
 	 *
 	 * @return object JMail
 	 */
-	public static function &getMailer()
+	public static function getMailer()
 	{
 		if (! is_object(JFactory::$mailer)) {
 			JFactory::$mailer = JFactory::_createMailer();
 		}
-		$copy	= clone(JFactory::$mailer);
+		$copy	= clone JFactory::$mailer;
 		return $copy;
 	}
 
 	/**
 	 * Get a parsed XML Feed Source
-	 * 
+	 *
 	 * @since: 1.6
 	 * @static
 	 * @param string url for feed source
 	 * @param int time to cache feed for (using internal cache mechanism)
 	 * @return mixed Parsed SimplePie object on success, false on failure
 	 */
-	public static function &getFeedParser($url, $cache_time = 0) 
+	public static function getFeedParser($url, $cache_time = 0)
 	{
 		jimport('simplepie.simplepie');
 		if (!is_writable(JPATH_CACHE)) {
 			$cache_time = 0;
 		}
 		$simplepie = new SimplePie($url, JPATH_CACHE, $cache_time);
-		if ($simplepie->data) {
+		$simplepie->force_feed(true);
+		if ($simplepie->init()) {
 			return $simplepie;
 		} else {
-			JError::raiseWarning('SOME_ERROR_CODE', JText::_('ERROR LOADING FEED DATA'));
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('JERROR_LOADING_FEED_DATA'));
 		}
-		$data = false;
-		return $data;
+
+		return false;
 	}
-	
+
 	/**
 	 * Get an XML document
 	 *
 	 * @param string The type of xml parser needed 'DOM', 'RSS' or 'Simple'
 	 * @param array:
-	 * 		boolean ['lite'] When using 'DOM' if true or not defined then domit_lite is used
-	 * 		string  ['rssUrl'] the rss url to parse when using "RSS"
-	 * 		string	['cache_time'] with 'RSS' - feed cache time. If not defined defaults to 3600 sec
+	 *		string  ['rssUrl'] the rss url to parse when using "RSS"
+	 *		string	['cache_time'] with 'RSS' - feed cache time. If not defined defaults to 3600 sec
 	 * @return object Parsed XML document object
 	 * @deprecated
 	 */
-	public static function &getXMLParser($type = '', $options = array())
-	 {
+	public static function getXMLParser($type = '', $options = array())
+	{
 		$doc = null;
 
 		switch (strtolower($type))
 		{
 			case 'rss' :
 			case 'atom' :
-			{
-				$cache_time = isset($options['cache_time']) ? $options['cache_time'] : 0;
-				$doc = JFactory::getFeedParser($options['rssUrl'], $cache_time);	
-			}	break;
+				{
+					$cache_time = isset($options['cache_time']) ? $options['cache_time'] : 0;
+					$doc = JFactory::getFeedParser($options['rssUrl'], $cache_time);
+				}	break;
 
-			case 'simple' :
-			{
+			case 'simple':
+				// JError::raiseWarning('SOME_ERROR_CODE', 'JSimpleXML is deprecated. Use JFactory::getXML instead');
 				jimport('joomla.utilities.simplexml');
 				$doc = new JSimpleXML();
-			}	break;
+				break;
 
-			case 'dom'  :
+			case 'dom':
+				JError::raiseWarning('SOME_ERROR_CODE', 'DommitDocument is deprecated.  Use DomDocument instead');
+				$doc = null;
+				break;
+
 				throw new JException('DommitDocument is deprecated.  Use DomDocument instead');
 			default :
-			{
 				$doc = null;
-			}
 		}
 
 		return $doc;
 	}
 
 	/**
-	* Get an editor object
-	*
-	* @param string $editor The editor to load, depends on the editor plugins that are installed
-	* @return object JEditor
-	*/
-	public static function &getEditor($editor = null)
+	 * Reads a XML file.
+	 *
+	 * @todo This may go in a separate class - error reporting may be improved.
+	 *
+	 * @param string $data Full path and file name.
+	 * @param boolean $isFile true to load a file | false to load a string.
+	 *
+	 * @return mixed JXMLElement on success | false on error.
+	 */
+	public static function getXML($data, $isFile = true)
+	{
+		jimport('joomla.utilities.xmlelement');
+
+		// Disable libxml errors and allow to fetch error information as needed
+		libxml_use_internal_errors(true);
+
+		if($isFile)
+		{
+			// Try to load the xml file
+			$xml = simplexml_load_file($data, 'JXMLElement');
+		}
+		else
+		{
+			// Try to load the xml string
+			$xml = simplexml_load_string($data, 'JXMLElement');
+		}
+
+		if( ! $xml)
+		{
+			// There was an error
+			JError::raiseWarning(100, JText::_('Failed loading XML file'));
+
+			if($isFile)
+			{
+				JError::raiseWarning(100, $data);
+			}
+
+			foreach(libxml_get_errors() as $error)
+			{
+				JError::raiseWarning(100, 'XML: '.$error->message);
+			}
+		}
+
+		return $xml ;
+	}
+
+	/**
+	 * Get an editor object
+	 *
+	 * @param string $editor The editor to load, depends on the editor plugins that are installed
+	 * @return object JEditor
+	 */
+	public static function getEditor($editor = null)
 	{
 		jimport('joomla.html.editor');
 
@@ -346,9 +390,7 @@ abstract class JFactory
 			$editor = $conf->getValue('config.editor');
 		}
 
-		$instance = &JEditor::getInstance($editor);
-
-		return $instance;
+		return JEditor::getInstance($editor);
 	}
 
 	/**
@@ -357,23 +399,22 @@ abstract class JFactory
 	 * @return object JURI
 	 * @since 1.5
 	 */
-	public static function &getURI($uri = 'SERVER')
+	public static function getURI($uri = 'SERVER')
 	{
 		jimport('joomla.environment.uri');
 
-		$instance = &JURI::getInstance($uri);
-		return $instance;
+		return JURI::getInstance($uri);
 	}
 
 	/**
-	 * Return a reference to the {@link JDate} object
+	 * Return the {@link JDate} object
 	 *
 	 * @param mixed $time The initial time for the JDate object
-	 * @param int $tzOffset The timezone offset.
+	 * @param mixed $tzOffset The timezone offset.
 	 * @return object JDate
 	 * @since 1.5
 	 */
-	public static function &getDate($time = 'now', $tzOffset = 0)
+	public static function getDate($time = 'now', $tzOffset = null)
 	{
 		jimport('joomla.utilities.date');
 		static $instances;
@@ -405,15 +446,16 @@ abstract class JFactory
 		}
 		$key = $time . '-' . $tzOffset;
 
-		if (!isset($instances[$classname][$key])) {
-			$tmp = new $classname($time, $tzOffset);
-			//We need to serialize to break the reference
-			$instances[$classname][$key] = serialize($tmp);
-			unset($tmp);
-		}
+		//		if (!isset($instances[$classname][$key])) {
+		$tmp = new $classname($time, $tzOffset);
+		//We need to serialize to break the reference
+		//			$instances[$classname][$key] = serialize($tmp);
+		//			unset($tmp);
+		//		}
 
-		$date = unserialize($instances[$classname][$key]);
-		return $date;
+		//		$date = unserialize($instances[$classname][$key]);
+		//		return $date;
+		return $tmp;
 	}
 
 
@@ -426,7 +468,7 @@ abstract class JFactory
 	 * @return object JRegistry
 	 * @since 1.5
 	 */
-	private static function &_createConfig($file, $type = 'PHP')
+	private static function _createConfig($file, $type = 'PHP')
 	{
 		jimport('joomla.registry.registry');
 
@@ -451,7 +493,7 @@ abstract class JFactory
 	 * @return object JSession
 	 * @since 1.5
 	 */
-	private static function &_createSession($options = array())
+	private static function _createSession($options = array())
 	{
 		jimport('joomla.session.session');
 
@@ -476,31 +518,31 @@ abstract class JFactory
 	 * @return object JDatabase
 	 * @since 1.5
 	 */
-	private static function &_createDBO()
+	private static function _createDbo()
 	{
 		jimport('joomla.database.database');
 		jimport('joomla.database.table');
 
 		$conf = &JFactory::getConfig();
 
-		$host 		= $conf->getValue('config.host');
-		$user 		= $conf->getValue('config.user');
-		$password 	= $conf->getValue('config.password');
+		$host		= $conf->getValue('config.host');
+		$user		= $conf->getValue('config.user');
+		$password	= $conf->getValue('config.password');
 		$database	= $conf->getValue('config.db');
-		$prefix 	= $conf->getValue('config.dbprefix');
-		$driver 	= $conf->getValue('config.dbtype');
-		$debug 		= $conf->getValue('config.debug');
+		$prefix	= $conf->getValue('config.dbprefix');
+		$driver	= $conf->getValue('config.dbtype');
+		$debug		= $conf->getValue('config.debug');
 
 		$options	= array ('driver' => $driver, 'host' => $host, 'user' => $user, 'password' => $password, 'database' => $database, 'prefix' => $prefix);
 
 		$db = &JDatabase::getInstance($options);
 
 		if (JError::isError($db)) {
-			jexit('Database Error: ' . $db->toString());
+			jexit('Database Error: ' . (string)$db);
 		}
 
 		if ($db->getErrorNum() > 0) {
-			JError::raiseError(500 , 'JDatabase::getInstance: Could not connect to database <br/>' . 'joomla.library:'.$db->getErrorNum().' - '.$db->getErrorMsg());
+			JError::raiseError(500 , 'JDatabase::getInstance: Could not connect to database <br />' . 'joomla.library:'.$db->getErrorNum().' - '.$db->getErrorMsg());
 		}
 
 		$db->debug($debug);
@@ -510,26 +552,29 @@ abstract class JFactory
 	/**
 	 * Create a mailer object
 	 *
+	 * @access private
 	 * @return object JMail
 	 * @since 1.5
 	 */
-	private static function &_createMailer()
+	function _createMailer()
 	{
 		jimport('joomla.mail.mail');
 
 		$conf	= &JFactory::getConfig();
 
-		$sendmail 	= $conf->getValue('config.sendmail');
-		$smtpauth 	= $conf->getValue('config.smtpauth');
-		$smtpuser 	= $conf->getValue('config.smtpuser');
-		$smtppass  	= $conf->getValue('config.smtppass');
-		$smtphost 	= $conf->getValue('config.smtphost');
-		$mailfrom 	= $conf->getValue('config.mailfrom');
-		$fromname 	= $conf->getValue('config.fromname');
-		$mailer 	= $conf->getValue('config.mailer');
+		$sendmail	= $conf->getValue('config.sendmail');
+		$smtpauth	= $conf->getValue('config.smtpauth');
+		$smtpuser	= $conf->getValue('config.smtpuser');
+		$smtppass	= $conf->getValue('config.smtppass');
+		$smtphost	= $conf->getValue('config.smtphost');
+		$smtpsecure	= $conf->getValue('config.smtpsecure');
+		$smtpport	= $conf->getValue('config.smtpport');
+		$mailfrom	= $conf->getValue('config.mailfrom');
+		$fromname	= $conf->getValue('config.fromname');
+		$mailer		= $conf->getValue('config.mailer');
 
 		// Create a JMail object
-		$mail 		= &JMail::getInstance();
+		$mail		= &JMail::getInstance();
 
 		// Set default sender
 		$mail->setSender(array ($mailfrom, $fromname));
@@ -538,7 +583,7 @@ abstract class JFactory
 		switch ($mailer)
 		{
 			case 'smtp' :
-				$mail->useSMTP($smtpauth, $smtphost, $smtpuser, $smtppass);
+				$mail->useSMTP($smtpauth, $smtphost, $smtpuser, $smtppass, $smtpsecure, $smtpport);
 				break;
 			case 'sendmail' :
 				$mail->IsSendmail();
@@ -557,7 +602,7 @@ abstract class JFactory
 	 * @return object JLanguage
 	 * @since 1.5
 	 */
-	private static function &_createLanguage()
+	private static function _createLanguage()
 	{
 		jimport('joomla.language.language');
 
@@ -575,7 +620,7 @@ abstract class JFactory
 	 * @return object JDocument
 	 * @since 1.5
 	 */
-	private static function &_createDocument()
+	private static function _createDocument()
 	{
 		jimport('joomla.document.document');
 
@@ -593,8 +638,7 @@ abstract class JFactory
 			'direction'	=> $lang->isRTL() ? 'rtl' : 'ltr'
 		);
 
-		$doc = &JDocument::getInstance($type, $attributes);
-		return $doc;
+		return JDocument::getInstance($type, $attributes);
 	}
 
 	/**
@@ -604,7 +648,7 @@ abstract class JFactory
 	 * @param string UA User agent to use
 	 * @param boolean User agent masking (prefix Mozilla)
 	 */
-	function &getStream($use_prefix=true, $use_network=true,$ua=null, $uamask=false) {
+	function getStream($use_prefix=true, $use_network=true,$ua=null, $uamask=false) {
 		jimport('joomla.filesystem.stream');
 		// Setup the context; Joomla! UA and overwrite
 		$context = Array();
@@ -612,7 +656,7 @@ abstract class JFactory
 		// set the UA for HTTP and overwrite for FTP
 		$context['http']['user_agent'] = $version->getUserAgent($ua, $uamask);
 		$context['ftp']['overwrite'] = true;
-		if ($use_prefix) {
+		if($use_prefix) {
 			jimport('joomla.client.helper');
 			$FTPOptions = JClientHelper::getCredentials('ftp');
 			$SCPOptions = JClientHelper::getCredentials('scp');
@@ -620,7 +664,7 @@ abstract class JFactory
 				$prefix = 'ftp://'. $FTPOptions['user'] .':'. $FTPOptions['pass'] .'@'. $FTPOptions['host'];
 				$prefix .= $FTPOptions['port'] ? ':'. $FTPOptions['port'] : '';
 				$prefix .= $FTPOptions['root'];
-			} else if ($SCPOptions['enabled'] == 1 && $use_network) {
+			} else if($SCPOptions['enabled'] == 1 && $use_network) {
 				$prefix = 'ssh2.sftp://'. $SCPOptions['user'] .':'. $SCPOptions['pass'] .'@'. $SCPOptions['host'];
 				$prefix .= $SCPOptions['port'] ? ':'. $SCPOptions['port'] : '';
 				$prefix .= $SCPOptions['root'];

@@ -1,55 +1,37 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Media
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
  * HTML View class for the Media component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Media
+ * @subpackage	com_media
  * @since 1.0
  */
 class MediaViewMedia extends JView
 {
-	protected $session = null;
-	protected $config = null;
-	protected $state = null;
-	protected $require_ftp = null;
-	protected $folders = null;
-	protected $folders_id = null;
-
-	public function display($tpl = null)
+	function display($tpl = null)
 	{
-		$mainframe = JFactory::getApplication();
+		$app	= &JFactory::getApplication();
+		$config = &JComponentHelper::getParams('com_media');
 
-		$config =& JComponentHelper::getParams('com_media');
+		$style = $app->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
 
-		$style = $mainframe->getUserStateFromRequest('media.list.layout', 'layout', 'thumbs', 'word');
+		$document = &JFactory::getDocument();
+		$document->setBuffer($this->loadTemplate('navigation'), 'modules', 'submenu');
 
-		$listStyle = "
-			<ul id=\"submenu\">
-				<li><a id=\"thumbs\" onclick=\"MediaManager.setViewType('thumbs')\">".JText::_('Thumbnail View')."</a></li>
-				<li><a id=\"details\" onclick=\"MediaManager.setViewType('details')\">".JText::_('Detail View')."</a></li>
-			</ul>
-		";
-
-		$document =& JFactory::getDocument();
-		$document->setBuffer($listStyle, 'modules', 'submenu');
-
-		JHtml::_('behavior.mootools');
-		$document->addScript('components/com_media/assets/mediamanager.js');
-		$document->addStyleSheet('components/com_media/assets/mediamanager.css');
+		JHtml::_('behavior.framework', true);
+		$document->addScript('../media/media/js/mediamanager.js');
+		$document->addStyleSheet('../media/media/css/mediamanager.css');
 
 		JHtml::_('behavior.modal');
 		$document->addScriptDeclaration("
@@ -57,16 +39,45 @@ class MediaViewMedia extends JView
 			document.preview = SqueezeBox;
 		});");
 
-		JHtml::script('mootree.js');
-		JHtml::stylesheet('mootree.css');
+		JHTML::_('script','system/mootree.js', false, true);
+		JHTML::_('stylesheet','system/mootree.css', array(), true);
 
 		if ($config->get('enable_flash', 1)) {
-			JHtml::_('behavior.uploader', 'file-upload', array('onAllComplete' => 'function(){ MediaManager.refreshFrame(); }'));
+			$fileTypes = $config->get('image_extensions', 'bmp,gif,jpg,png,jpeg');
+			$types = explode(',', $fileTypes);
+			$displayTypes = '';		// this is what the user sees
+			$filterTypes = '';		// this is what controls the logic
+			$firstType = true;
+			foreach($types AS $type) {
+				if(!$firstType) {
+					$displayTypes .= ', ';
+					$filterTypes .= '; ';
+				} else {
+					$firstType = false;
+				}
+				$displayTypes .= '*.'.$type;
+				$filterTypes .= '*.'.$type;
+			}
+			$typeString = '{ \'Images ('.$displayTypes.')\': \''.$filterTypes.'\' }';
+
+			JHtml::_('behavior.uploader', 'upload-flash',
+				array(
+					'onComplete' => 'function(){ MediaManager.refreshFrame(); }',
+					'targetURL' => '\\$(\'uploadForm\').action',
+					'typeFilter' => $typeString
+				)
+			);
 		}
 
-		$base = str_replace("\\","/",JPATH_ROOT);
+		if (DS == '\\')
+		{
+			$base = str_replace(DS,"\\\\",COM_MEDIA_BASE);
+		} else {
+			$base = COM_MEDIA_BASE;
+		}
+
 		$js = "
-			var basepath = '".COM_MEDIA_BASE."';
+			var basepath = '".$base."';
 			var viewstyle = '".$style."';
 		" ;
 		$document->addScriptDeclaration($js);
@@ -95,20 +106,21 @@ class MediaViewMedia extends JView
 	function _setToolBar()
 	{
 		// Get the toolbar object instance
-		$bar =& JToolBar::getInstance('toolbar');
+		$bar = &JToolBar::getInstance('toolbar');
 
 		// Set the titlebar text
-		JToolBarHelper::title( JText::_( 'Media Manager' ), 'mediamanager.png');
+		JToolBarHelper::title(JText::_('MEDIA_MANAGER'), 'mediamanager.png');
 
 		// Add a delete button
 		$title = JText::_('Delete');
 		$dhtml = "<a href=\"#\" onclick=\"MediaManager.submit('folder.delete')\" class=\"toolbar\">
-					<span class=\"icon-32-delete\" title=\"$title\" type=\"Custom\"></span>
+					<span class=\"icon-32-delete\" title=\"$title\"></span>
 					$title</a>";
-		$bar->appendButton( 'Custom', $dhtml, 'delete' );
-
-		// Add a popup configuration button
-		JToolBarHelper::help( 'screen.mediamanager' );
+		$bar->appendButton('Custom', $dhtml, 'delete');
+		JToolBarHelper::divider();
+		JToolBarHelper::preferences('com_media');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.mediamanager','JTOOLBAR_HELP');
 	}
 
 	function getFolderLevel($folder)

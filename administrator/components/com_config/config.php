@@ -2,35 +2,23 @@
 /**
  * @version		$Id$
  * @package		Joomla.Administrator
- * @subpackage	Cache
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @subpackage	com_config
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-if (!JAcl::authorise('core', 'config.manage')) {
-	JFactory::getApplication()->redirect('index.php', JText::_('ALERTNOTAUTH'));
-}
+// Access checks are done internally because of different requirements for the two controllers.
 
-// Require specific controller if requested
-if($controller = JRequest::getWord('controller', 'application')) {
-	$path = JPATH_COMPONENT.DS.'controllers'.DS.$controller.'.php';
-	if (file_exists($path)) {
-		require_once $path;
-	} else {
-		$controller = '';
-	}
-}
+// Include dependancies
+jimport('joomla.application.component.controller');
 
-// Create the controller
-$classname	= 'ConfigController'.ucfirst($controller);
-$controller	= new $classname( );
+// Tell the browser not to cache this page.
+JResponse::setHeader('Expires', 'Mon, 26 Jul 1997 05:00:00 GMT', true);
 
-// What is this for?
-JResponse::setHeader( 'Expires', 'Mon, 26 Jul 1997 05:00:00 GMT', true );
-
-// Perform the Request task
-$controller->execute( JRequest::getCmd( 'task' ) );
+// Execute the controller.
+$controller = JController::getInstance('Config');
+$controller->execute(JRequest::getCmd('task'));
 $controller->redirect();

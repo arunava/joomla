@@ -1,25 +1,24 @@
 <?php
 /**
- * @version		$Id: form.php 11476 2009-01-25 06:58:51Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @subpackage	com_weblinks
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('_JEXEC') or die('Restricted access');
+// no direct access
+defined('_JEXEC') or die;
 
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
-//JHtml::_('behavior.formvalidation');
+JHtml::_('behavior.formvalidation');
 ?>
 <script type="text/javascript">
 <!--
 	function submitbutton(task)
 	{
-		// Validation is currently busted
-		//if (task == 'weblink.cancel' || document.formvalidator.isValid($('weblink-form'))) {
-		if (task == 'weblink.cancel') {
+		if (task == 'weblink.cancel' || document.formvalidator.isValid(document.id('weblink-form'))) {
 			submitform(task);
 		}
 		// @todo Deal with the editor methods
@@ -28,76 +27,61 @@ JHtml::_('behavior.tooltip');
 // -->
 </script>
 
-<form action="<?php JRoute::_('index.php?option=com_weblinks'); ?>" method="post" name="adminForm" id="weblink-form">
-	<fieldset style="width:45%; float:left;">
-		<legend><?php echo empty($this->item->id) ? JText::_('Weblinks_New_Weblink') : JText::sprintf('Weblinks_Edit_Weblink', $this->item->id); ?></legend>
+<form action="<?php JRoute::_('index.php?option=com_weblinks'); ?>" method="post" name="adminForm" id="weblink-form" class="form-validate">
+<div class="width-70 fltlft">
+	<fieldset class="adminform">
+		<legend><?php echo empty($this->item->id) ? JText::_('COM_WEBLINKS_NEW_WEBLINK') : JText::sprintf('COM_WEBLINKS_EDIT_WEBLINK', $this->item->id); ?></legend>
 
-		<ol>
-			<li>
-				<?php echo $this->form->getLabel('title'); ?><br />
-				<?php echo $this->form->getInput('title'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('alias'); ?><br />
-				<?php echo $this->form->getInput('alias'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('url'); ?><br />
-				<?php echo $this->form->getInput('url'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('state'); ?><br />
-				<?php echo $this->form->getInput('state'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('catid'); ?><br />
-				<?php echo $this->form->getInput('catid'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('ordering'); ?><br />
-				<?php echo $this->form->getInput('ordering'); ?>
-			</li>
-			<li>
-				<?php echo $this->form->getLabel('description'); ?><br />
-				<?php echo $this->form->getInput('description'); ?>
-			</li>
-		</ol>
+			<?php echo $this->form->getLabel('title'); ?>
+			<?php echo $this->form->getInput('title'); ?>
+
+			<?php echo $this->form->getLabel('alias'); ?>
+			<?php echo $this->form->getInput('alias'); ?>
+
+			<?php echo $this->form->getLabel('url'); ?>
+			<?php echo $this->form->getInput('url'); ?>
+
+			<?php echo $this->form->getLabel('state'); ?>
+			<?php echo $this->form->getInput('state'); ?>
+
+			<?php echo $this->form->getLabel('catid'); ?>
+			<?php echo $this->form->getInput('catid'); ?>
+
+			<?php echo $this->form->getLabel('ordering'); ?>
+			<div id="jform_ordering" class="fltlft"><?php echo $this->form->getInput('ordering'); ?></div>
+
+			<?php echo $this->form->getLabel('access'); ?>
+			<?php echo $this->form->getInput('access'); ?>
+
+			<?php echo $this->form->getLabel('language'); ?>
+			<?php echo $this->form->getInput('language'); ?>
+
+			<?php echo $this->form->getLabel('description'); ?>
+			<div class="clr"></div>
+			<?php echo $this->form->getInput('description'); ?>
+
 	</fieldset>
+</div>
+<div class="width-30 fltrt">
+	<fieldset class="adminform">
+		<legend><?php echo JText::_('COM_WEBLINKS_OPTIONS'); ?></legend>
 
-	<fieldset style="width:45%; float:right;">
-		<legend><?php echo JText::_('Weblinks_Options'); ?></legend>
-
-		<table>
 		<?php foreach($this->form->getFields('params') as $field): ?>
 			<?php if ($field->hidden): ?>
 				<?php echo $field->input; ?>
 			<?php else: ?>
-				<tr>
-					<td class="paramlist_key" width="40%">
-						<?php echo $field->label; ?>
-					</td>
-					<td class="paramlist_value">
-						<?php echo $field->input; ?>
-					</td>
-				</tr>
+			<div class="paramrow">
+				<?php echo $field->label; ?>
+				<?php echo $field->input; ?>
+			</div>
 			<?php endif; ?>
 		<?php endforeach; ?>
-		</table>
 
 	</fieldset>
+</div>
+
+<div class="clr"></div>
 
 	<input type="hidden" name="task" value="" />
 	<?php echo JHtml::_('form.token'); ?>
 </form>
-
-<script type="text/javascript">
-// Attach the onblur event to auto-create the alias
-e = document.getElementById('jform_title');
-e.onblur = function(){
-	title = document.getElementById('jform_title');
-	alias = document.getElementById('jform_alias');
-	if (alias.value=='') {
-		alias.value = title.value.replace(/[\s\-]+/g,'-').replace(/&/g,'and').replace(/[^A-Z0-9\-\_]/ig,'').toLowerCase();
-	}
-}
-</script>

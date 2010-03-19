@@ -3,12 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Modules
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 /**
  * @package		Joomla.Administrator
@@ -16,15 +16,15 @@ defined('_JEXEC') or die('Restricted access');
  */
 class ModulesHelperXML
 {
-	function parseXMLModuleFile(&$rows )
+	function parseXMLModuleFile(&$rows)
 	{
 		foreach ($rows as $i => $row)
 		{
 			if ($row->module == '')
 			{
-				$rows[$i]->name 	= 'custom';
-				$rows[$i]->module 	= 'custom';
-				$rows[$i]->descrip 	= 'Custom created module, using Module Manager `New` function';
+				$rows[$i]->name		= 'custom';
+				$rows[$i]->module	= 'custom';
+				$rows[$i]->descrip	= 'Custom created module, using Module Manager `New` function';
 			}
 			else
 			{

@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Cache view type object
@@ -30,11 +30,10 @@ class JCacheView extends JCache
 	 * @return	boolean	True if the cache is hit (false else)
 	 * @since	1.5
 	 */
-	public function get(&$view, $method, $id=false)
+	function get(&$view, $method, $id=false)
 	{
-		$appl = JFactory::getApplication();
-
-		// Initialize variables
+		// Initialise variables.
+		$app = &JFactory::getApplication();
 		$data = false;
 
 		// If an id is not given generate it from the request
@@ -54,7 +53,7 @@ class JCacheView extends JCache
 			if (isset($data['pathway']) && is_array($data['pathway']))
 			{
 				// Push the pathway data into the pathway object.
-				$pathway = &$appl->getPathWay();
+				$pathway = &$app->getPathWay();
 				$pathway->setPathway($data['pathway']);
 			}
 
@@ -109,7 +108,7 @@ class JCacheView extends JCache
 			$cached['head'] = $document->getHeadData();
 
 			// Pathway data
-			$pathway			= &$appl->getPathWay();
+			$pathway			= &$app->getPathWay();
 			$cached['pathway']	= $pathway->getPathway();
 
 			// Get the module buffer after component execution.
@@ -138,7 +137,7 @@ class JCacheView extends JCache
 	 * @return	string	MD5 Hash : view cache id
 	 * @since	1.5
 	 */
-	protected function _makeId(&$view, $method)
+	function _makeId(&$view, $method)
 	{
 		return md5(serialize(array(JRequest::getURI(), get_class($view), $method)));
 	}

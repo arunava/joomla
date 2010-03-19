@@ -1,19 +1,20 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	mod_stats
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
 // Include the syndicate functions only once
 require_once dirname(__FILE__).DS.'helper.php';
 
-$serverinfo = $params->get( 'serverinfo' );
-$siteinfo 	= $params->get( 'siteinfo' );
+$serverinfo = $params->get('serverinfo');
+$siteinfo	= $params->get('siteinfo');
 
 $list = modStatsHelper::getList($params);
-require(JModuleHelper::getLayoutPath('mod_stats'));
+require JModuleHelper::getLayoutPath('mod_stats', $params->get('layout', 'default'));

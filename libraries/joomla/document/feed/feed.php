@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Document
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * DocumentFeed class, provides an easy interface to parse and display any feed document
@@ -17,6 +17,8 @@ defined('JPATH_BASE') or die();
  * @subpackage	Document
  * @since		1.5
  */
+
+jimport('joomla.document.document');
 
 class JDocumentFeed extends JDocument
 {
@@ -28,9 +30,9 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $syndicationURL = "";
+	var $syndicationURL = "";
 
-	 /**
+	/**
 	 * Image feed element
 	 *
 	 * optional
@@ -38,7 +40,7 @@ class JDocumentFeed extends JDocument
 	 * @var		object
 	 * @access	public
 	 */
-	 public $image = null;
+	var $image = null;
 
 	/**
 	 * Copyright feed elememnt
@@ -48,9 +50,9 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $copyright = "";
+	var $copyright = "";
 
-	 /**
+	/**
 	 * Published date feed element
 	 *
 	 *  optional
@@ -58,9 +60,9 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $pubDate = "";
+	var $pubDate = "";
 
-	 /**
+	/**
 	 * Lastbuild date feed element
 	 *
 	 * optional
@@ -68,9 +70,9 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $lastBuildDate = "";
+	var $lastBuildDate = "";
 
-	 /**
+	/**
 	 * Editor feed element
 	 *
 	 * optional
@@ -78,7 +80,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $editor = "";
+	var $editor = "";
 
 	/**
 	 * Docs feed element
@@ -86,9 +88,9 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $docs = "";
+	var $docs = "";
 
-	 /**
+	/**
 	 * Editor email feed element
 	 *
 	 * optional
@@ -96,7 +98,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $editorEmail = "";
+	var $editorEmail = "";
 
 	/**
 	 * Webmaster email feed element
@@ -106,7 +108,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $webmaster = "";
+	var $webmaster = "";
 
 	/**
 	 * Category feed element
@@ -116,7 +118,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $category = "";
+	var $category = "";
 
 	/**
 	 * TTL feed attribute
@@ -126,7 +128,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $ttl = "";
+	var $ttl = "";
 
 	/**
 	 * Rating feed element
@@ -136,7 +138,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $rating = "";
+	var $rating = "";
 
 	/**
 	 * Skiphours feed element
@@ -146,7 +148,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $skipHours = "";
+	var $skipHours = "";
 
 	/**
 	 * Skipdays feed element
@@ -156,7 +158,7 @@ class JDocumentFeed extends JDocument
 	 * @var		string
 	 * @access	public
 	 */
-	 public $skipDays = "";
+	var $skipDays = "";
 
 	/**
 	 * The feed items collection
@@ -164,15 +166,15 @@ class JDocumentFeed extends JDocument
 	 * @var array
 	 * @access public
 	 */
-	public $items = array();
+	var $items = array();
 
 	/**
 	 * Class constructor
 	 *
-	 * @access public
+	 * @access protected
 	 * @param	array	$options Associative array of options
 	 */
-	public function __construct($options = array())
+	function __construct($options = array())
 	{
 		parent::__construct($options);
 
@@ -184,13 +186,13 @@ class JDocumentFeed extends JDocument
 	 * Render the document
 	 *
 	 * @access public
-	 * @param boolean 	$cache		If true, cache the output
+	 * @param boolean	$cache		If true, cache the output
 	 * @param array		$params		Associative array of attributes
-	 * @return 	The rendered data
+	 * @return	The rendered data
 	 */
-	public function render($cache = false, $params = array())
+	function render($cache = false, $params = array())
 	{
-		$component	= JApplicationHelper::getComponentName();
+		global $option;
 
 		// Get the feed type
 		$type = JRequest::getCmd('type', 'rss');
@@ -204,11 +206,14 @@ class JDocumentFeed extends JDocument
 
 		// set filename for rss feeds
 		$file = strtolower(str_replace('.', '', $type));
-		$file = $cache_path.DS.$file.'_'.$component.'.xml';
+		$file = $cache_path.DS.$file.'_'.$option.'.xml';
 
 
 		// Instantiate feed renderer and set the mime encoding
-		$renderer =& $this->loadRenderer(($type) ? $type : 'rss');
+		$renderer = &$this->loadRenderer(($type) ? $type : 'rss');
+		if (!is_a($renderer, 'JDocumentRenderer')) {
+			JError::raiseError(404, JText::_('JCOMMON_RESOURCE_NOT_FOUND'));
+		}
 		$this->setMimeEncoding($renderer->getContentType());
 
 		//output
@@ -222,7 +227,7 @@ class JDocumentFeed extends JDocument
 		}
 
 		// Render the feed
-		$data .= $renderer->render(null);
+		$data .= $renderer->render();
 
 		parent::render();
 		return $data;
@@ -234,36 +239,17 @@ class JDocumentFeed extends JDocument
 	 * @param object JFeedItem $item The feeditem to add to the feed.
 	 * @access public
 	 */
-	public function addItem(&$item)
+	function addItem(&$item)
 	{
+		$item->source = $this->link;
 		$this->items[] = $item;
-	}
-
-	/**
-	 * Get the document head data
-	 *
-	 * @access	public
-	 * @return	array	The document head data in array form
-	 */
-	public function getHeadData(){
-		return false;
-	}
-
-	/**
-	 * Set the document head data
-	 *
-	 * @access	public
-	 * @param	array	$data	The document head data in array form
-	 */
-	public function setHeadData($data) {
-		return false;
 	}
 }
 
 /**
  * JFeedItem is an internal class that stores feed item information
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Document
  * @since	1.5
  */
@@ -277,7 +263,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	public $title;
+	var $title;
 
 	/**
 	 * Link item element
@@ -287,7 +273,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	public $link;
+	var $link;
 
 	/**
 	 * Description item element
@@ -297,7 +283,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $description;
+	 var $description;
 
 	/**
 	 * Author item element
@@ -307,7 +293,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $author;
+	 var $author;
 
 	 /**
 	 * Author email element
@@ -317,17 +303,8 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $authorEmail;
+	 var $authorEmail;
 
-	/**
-	 * Date element
-	 *
-	 * optional
-	 *
-	 * @var		string
-	 * @access	public
-	 */
-	 public $date;
 
 	/**
 	 * Category element
@@ -337,7 +314,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $category;
+	 var $category;
 
 	 /**
 	 * Comments element
@@ -347,7 +324,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $comments;
+	 var $comments;
 
 	 /**
 	 * Enclosure element
@@ -355,7 +332,7 @@ class JFeedItem extends JObject
 	 * @var		object
 	 * @access	public
 	 */
-	 public $enclosure =  null;
+	 var $enclosure =  null;
 
 	 /**
 	 * Guid element
@@ -365,7 +342,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $guid;
+	 var $guid;
 
 	/**
 	 * Published date
@@ -387,7 +364,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $pubDate;
+	 var $pubDate;
 
 	 /**
 	 * Source element
@@ -397,7 +374,7 @@ class JFeedItem extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $source;
+	 var $source;
 
 
 	 /**
@@ -406,7 +383,7 @@ class JFeedItem extends JObject
 	 * @access public
 	 * @param object $enclosure The JFeedItem to add to the feed.
 	 */
-	 public function setEnclosure($enclosure)	{
+	 function setEnclosure($enclosure)	{
 		 $this->enclosure = $enclosure;
 	 }
 }
@@ -414,9 +391,9 @@ class JFeedItem extends JObject
 /**
  * JFeedEnclosure is an internal class that stores feed enclosure information
  *
- * @package 	Joomla.Framework
- * @subpackage		Document
- * @since	1.5
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @since		1.5
  */
 class JFeedEnclosure extends JObject
 {
@@ -428,7 +405,7 @@ class JFeedEnclosure extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $url = "";
+	 var $url = "";
 
 	/**
 	 * Lenght enclosure element
@@ -438,7 +415,7 @@ class JFeedEnclosure extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $length = "";
+	 var $length = "";
 
 	 /**
 	 * Type enclosure element
@@ -448,15 +425,15 @@ class JFeedEnclosure extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $type = "";
+	 var $type = "";
 }
 
 /**
  * JFeedImage is an internal class that stores feed image information
  *
- * @package 	Joomla.Framework
- * @subpackage		Document
- * @since	1.5
+ * @package		Joomla.Framework
+ * @subpackage	Document
+ * @since		1.5
  */
 class JFeedImage extends JObject
 {
@@ -468,7 +445,7 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $title = "";
+	 var $title = "";
 
 	 /**
 	 * URL image attribute
@@ -478,7 +455,7 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	public $url = "";
+	var $url = "";
 
 	/**
 	 * Link image attribute
@@ -488,7 +465,7 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $link = "";
+	 var $link = "";
 
 	 /**
 	 * witdh image attribute
@@ -498,7 +475,7 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $width;
+	 var $width;
 
 	 /**
 	 * Title feed attribute
@@ -508,7 +485,7 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $height;
+	 var $height;
 
 	 /**
 	 * Title feed attribute
@@ -518,5 +495,5 @@ class JFeedImage extends JObject
 	 * @var		string
 	 * @access	public
 	 */
-	 public $description;
+	 var $description;
 }

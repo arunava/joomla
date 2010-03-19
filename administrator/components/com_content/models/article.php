@@ -1,668 +1,511 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Content
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modelform');
 
 /**
- * Content Component Category Model
+ * Article model.
  *
  * @package		Joomla.Administrator
- * @subpackage	Content
- * @since 1.5
+ * @subpackage	com_content
  */
-class ContentModelArticle extends JModel
+class ContentModelArticle extends JModelForm
 {
 	/**
-	 * Category id
-	 *
-	 * @var int
+	 * Method to auto-populate the model state.
 	 */
-	var $_id = null;
-
-	/**
-	 * Category data
-	 *
-	 * @var array
-	 */
-	var $_data = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		//parent::__construct(array('name' => 'content'));
-		parent::__construct();
+		$app = JFactory::getApplication('administrator');
 
-		$array = JRequest::getVar('cid', array(0), '', 'array');
-		$edit	= JRequest::getVar('edit',true);
-		if ($edit)
-			$this->setId((int)$array[0]);
-	}
-
-	/**
-	 * Method to set the article identifier
-	 *
-	 * @access	public
-	 * @param	int Category identifier
-	 */
-	function setId($id)
-	{
-		// Set article id and wipe data
-		$this->_id		= $id;
-		$this->_data	= null;
-	}
-
-	/**
-	 * Method to get an article
-	 *
-	 * @since 1.5
-	 */
-	function &getData()
-	{
-		// Load the article data
-		if (!$this->_loadData())
-			$this->_initData();
-
-		return $this->_data;
-	}
-
-	/**
-	 * Tests if article is checked out
-	 *
-	 * @access	public
-	 * @param	int	A user id
-	 * @return	boolean	True if checked out
-	 * @since	1.5
-	 */
-	function isCheckedOut($uid=0)
-	{
-		if ($this->_loadData())
-		{
-			if ($uid) {
-				return ($this->_data->checked_out && $this->_data->checked_out != $uid);
-			} else {
-				return $this->_data->checked_out;
-			}
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_content.edit.article.id'))) {
+			$pk = (int) JRequest::getInt('id');
 		}
+		$this->setState('article.id', $pk);
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_content');
+		$this->setState('params', $params);
 	}
 
 	/**
-	 * Method to checkin/unlock the article
+	 * Returns a Table object, always creating it.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkin()
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
+	 * @return	JTable	A database object
+	*/
+	public function getTable($type = 'Content', $prefix = 'JTable', $config = array())
 	{
-		if ($this->_id)
-		{
-			$article = & JTable::getInstance('content');
-			if (! $article->checkin($this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-			return true;
+		return JTable::getInstance($type, $prefix, $config);
+	}
+
+	/**
+	 * Method to override check-out a row for editing.
+	 *
+	 * @param	int		The ID of the primary key.
+	 * @return	boolean
+	 */
+	public function checkout($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('article.id');
+
+		return parent::checkout($pk);
+	}
+
+	/**
+	 * Method to checkin a row.
+	 *
+	 * @param	integer	The ID of the primary key.
+	 *
+	 * @return	boolean
+	 */
+	public function checkin($pk = null)
+	{
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('article.id');
+
+		return parent::checkin($pk);
+	}
+
+	/**
+	 * Method to get a single record.
+	 *
+	 * @param	integer	The id of the primary key.
+	 *
+	 * @return	mixed	Object on success, false on failure.
+	 */
+	public function &getItem($pk = null)
+	{
+		// Initialise variables.
+		$pk = (!empty($pk)) ? $pk : (int)$this->getState('article.id');
+		$false	= false;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Attempt to load the row.
+		$return = $table->load($pk);
+
+		// Check for a table object error.
+		if ($return === false && $table->getError()) {
+			$this->setError($table->getError());
+			return $false;
 		}
-		return false;
-	}
 
-	/**
-	 * Method to checkout/lock the article
-	 *
-	 * @access	public
-	 * @param	int	$uid	User ID of the user checking the article out
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function checkout($uid = null)
-	{
-		if ($this->_id)
+		// Prime required properties.
+		if (empty($table->id))
 		{
-			// Make sure we have a user id to checkout the article with
-			if (is_null($uid)) {
-				$user	=& JFactory::getUser();
-				$uid	= $user->get('id');
-			}
-			// Lets get to it and checkout the thing...
-			$article = & JTable::getInstance('content');
-			if (!$article->checkout($uid, $this->_id)) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-			return true;
+			// Prepare data for a new record.
 		}
-		return false;
+
+		// Convert to the JObject before adding other data.
+		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		$registry->loadJSON($table->attribs);
+		$value->attribs = $registry->toArray();
+
+		// Convert the params field to an array.
+		$registry = new JRegistry;
+		$registry->loadJSON($table->metadata);
+		$value->metadata = $registry->toArray();
+
+		$value->articletext = $value->introtext . "<hr id=\"system-readmore\" />" . $value->fulltext;
+
+		return $value;
 	}
 
 	/**
-	 * Method to store the article
+	 * Method to get the record form.
 	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @return	mixed	JForm object on success, false on failure.
+	 * @since	1.6
 	 */
-	function store($data)
+	public function getForm()
 	{
-		jimport('joomla.utilities.date');
-		$user		= & JFactory::getUser();
-		$details	= JArrayHelper::getValue($data, 'params', array(), 'array');
-		$nullDate	= $this->_db->getNullDate();
+		// Initialise variables.
+		$app	= JFactory::getApplication();
 
-		$row = & JTable::getInstance('content');
-		if (!$row->bind($data)) {
-			JError::raiseError(500, $this->_db->stderr());
+		// Get the form.
+		$form = parent::getForm('article', 'com_content.article', array('array' => 'jform', 'event' => 'onPrepareForm'));
+
+		// Check for an error.
+		if (JError::isError($form)) {
+			$this->setError($form->getMessage());
 			return false;
 		}
-		$row->bind($details);
 
-		// sanitise id field
-		$row->id = (int) $row->id;
-
-		// Are we saving from an item edit?
-		if ($row->id) {
-			$datenow =& JFactory::getDate();
-			$row->modified 		= $datenow->toMySQL();
-			$row->modified_by 	= $user->get('id');
-		}
-
-		$row->created_by 	= $row->created_by ? $row->created_by : $user->get('id');
-
-		if ($row->created && strlen(trim($row->created)) <= 10) {
-			$row->created 	.= ' 00:00:00';
-		}
-
-		$config =& JFactory::getConfig();
-		$tzoffset = $config->getValue('config.offset');
-		$date =& JFactory::getDate($row->created, $tzoffset);
-		$row->created = $date->toMySQL();
-
-		// Append time if not added to publish date
-		if (strlen(trim($row->publish_up)) <= 10) {
-			$row->publish_up .= ' 00:00:00';
-		}
-
-		$date =& JFactory::getDate($row->publish_up, $tzoffset);
-		$row->publish_up = $date->toMySQL();
-
-		// Handle never unpublish date
-		if (trim($row->publish_down) == JText::_('Never') || trim($row->publish_down) == '')
+		// Determine correct permissions to check.
+		if ($this->getState('article.id'))
 		{
-			$row->publish_down = $nullDate;
+			// Existing record. Can only edit in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.edit');
 		}
 		else
 		{
-			if (strlen(trim($row->publish_down)) <= 10) {
-				$row->publish_down .= ' 00:00:00';
-			}
-			$date =& JFactory::getDate($row->publish_down, $tzoffset);
-			$row->publish_down = $date->toMySQL();
+			// New record. Can only create in selected categories.
+			$form->setFieldAttribute('catid', 'action', 'core.create');
 		}
 
-		// Get a state and parameter variables from the request
-		$row->state	= JRequest::getVar('state', 0, '', 'int');
-		$params		= JRequest::getVar('params', null, 'post', 'array');
+		// Check the session for previously entered form data.
+		$data = $app->getUserState('com_content.edit.article.data', array());
 
-		// Build parameter INI string
-		if (is_array($params))
-		{
-			$row->attribs = json_encode($params);
+		// Bind the form data if present.
+		if (!empty($data)) {
+			$form->bind($data);
 		}
 
-		// Get metadata string
-		$metadata = JRequest::getVar('meta', null, 'post', 'array');
-		if (is_array($metadata))
-		{
-			$txt = array();
-			foreach ($metadata as $k => $v) {
-				if ($k == 'description') {
-					$row->metadesc = $v;
-				} elseif ($k == 'keywords') {
-					$row->metakey = $v;
-				} else {
-					$txt[] = "$k=$v";
-				}
-			}
-			$row->metadata = implode("\n", $txt);
+		return $form;
+	}
+
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		// Initialise variables;
+		$dispatcher = JDispatcher::getInstance();
+		$table		= $this->getTable();
+		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('article.id');
+		$isNew		= true;
+
+		// Include the content plugins for the onSave events.
+		JPluginHelper::importPlugin('content');
+
+		// Load the row if saving an existing record.
+		if ($pk > 0) {
+			$table->load($pk);
+			$isNew = false;
 		}
 
-		// Prepare the content for saving to the database
-		$this->saveContentPrep($row);
-
-		// Make sure the data is valid
-		if (!$row->check()) {
-			JError::raiseError(500, $this->_db->stderr());
+		// Bind the data.
+		if (!$table->bind($data)) {
+			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
 			return false;
 		}
 
-		// Increment the content version number
-		$row->version++;
+		// Bind the rules.
+		if (isset($data['rules']))
+		{
+			$rules = new JRules($data['rules']);
+			$table->setRules($rules);
+		}
 
-		// Store the content to the database
-		if (!$row->store()) {
-			JError::raiseError(500, $this->_db->stderr());
+		// Prepare the row for saving
+		$this->_prepareTable($table);
+
+		// Check the data.
+		if (!$table->check()) {
+			$this->setError($table->getError());
 			return false;
 		}
 
-		// Check the article and update item order
-		$row->checkin();
-		$row->reorder('catid = '.(int) $row->catid.' AND state >= 0');
+		// Increment the content version number.
+		$table->version++;
 
-		// Save ID so controller can find data
-		$this->setId($row->id);
+		// Trigger the onBeforeContentSave event.
+		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
 
-		/*
-		 * We need to update frontpage status for the article.
-		 *
-		 * First we include the frontpage table and instantiate an instance of it.
-		 */
-		$fp = & JTable::getInstance('frontpage', 'Table');
+		// Store the data.
+		if (!$table->store()) {
+			$this->setError($table->getError());
+			return false;
+		}
 
-		// Is the article viewable on the frontpage?
-		if ($data['frontpage'])
+		$this->featured($table->id, $data['featured']);
+
+		// Clean the cache.
+		$cache = JFactory::getCache('com_content');
+		$cache->clean();
+
+		// Trigger the onAfterContentSave event.
+		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
+
+		$this->setState('article.id', $table->id);
+
+		return true;
+	}
+
+	/**
+	 * Prepare and sanitise the table prior to saving.
+	 */
+	protected function _prepareTable(&$table)
+	{
+		// TODO.
+	}
+
+	/**
+	 * Method to delete rows.
+	 *
+	 * @param	array	An array of item ids.
+	 *
+	 * @return	boolean	Returns true on success, false on failure.
+	 */
+	public function delete($pks)
+	{
+		// Typecast variable.
+		$pks = (array) $pks;
+
+		// Get a row instance.
+		$table = &$this->getTable();
+
+		// Iterate the items to delete each one.
+		foreach ($pks as $pk)
 		{
-			// Is the item already viewable on the frontpage?
-			if (!$fp->load($row->id))
+			if (!$table->delete($pk))
 			{
-				// Insert the new entry
-				$query = 'INSERT INTO #__content_frontpage' .
-						' VALUES ('. (int) $row->id .', 1)';
-				$this->_db->setQuery($query);
-				if (!$this->_db->query())
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to publish records.
+	 *
+	 * @param	array	The ids of the items to publish.
+	 * @param	int		The value of the published state
+	 *
+	 * @return	boolean	True on success.
+	 */
+	function publish($pks, $value = 1)
+	{
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$table	= $this->getTable();
+		$pks	= (array) $pks;
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if (!$user->authorise('core.edit.state', 'com_content.article.'.(int) $pk))
+			{
+				// Prune items that you can't change.
+				unset($pks[$i]);
+				JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+			}
+		}
+
+		// Attempt to change the state of the records.
+		if (!$table->publish($pks, $value, $user->get('id'))) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to adjust the ordering of a row.
+	 *
+	 * @param	int		The ID of the primary key to move.
+	 * @param	integer	Increment, usually +1 or -1
+	 * @return	boolean	False on failure or error, true otherwise.
+	 */
+	public function reorder($pk, $direction = 0)
+	{
+		// Initialise variables.
+		$pk	= (!empty($pk)) ? $pk : (int) $this->getState('article.id');
+		$user = JFactory::getUser();
+
+		// Access checks.
+		if (!$user->authorise('core.edit.state', 'com_content.article.'.(int) $pk))
+		{
+			$this->setError(JText::_('JError_Core_Edit_State_not_permitted'));
+			return false;
+		}
+
+		// Get an instance of the record's table.
+		$table = $this->getTable();
+
+		// Attempt to check-out and move the row.
+		if (!$this->checkout($pk)) {
+			return false;
+		}
+
+		// Load the row.
+		if (!$table->load($pk)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		// Move the row.
+		$table->move($direction, 'catid = '.$table->catid);
+
+		// Check-in the row.
+		if (!$this->checkin($pk)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Saves the manually set order of records.
+	 *
+	 * @param	array	An array of primary key ids.
+	 * @param	int		+/-1
+	 */
+	function saveorder(&$pks, $order)
+	{
+		// Initialise variables.
+		$table		= $this->getTable();
+		$conditions	= array();
+		$user 		= JFactory::getUser();
+
+		if (empty($pks)) {
+			return JError::raiseWarning(500, JText::_('JError_No_items_selected'));
+		}
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			if (!$user->authorise('core.edit.state', 'com_content.article.'.(int) $pk))
+			{
+				// Prune items that you can't change.
+				unset($pks[$i]);
+				JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
+			}
+		}
+
+		// update ordering values
+		foreach ($pks as $i => $pk)
+		{
+			$table->load((int) $pk);
+			if ($table->ordering != $order[$i])
+			{
+				$table->ordering = $order[$i];
+				if (!$table->store())
 				{
-					JError::raiseError(500, $this->_db->stderr());
+					$this->setError($table->getError());
 					return false;
 				}
-				$fp->ordering = 1;
-			}
-		}
-		else
-		{
-			// Delete the item from frontpage if it exists
-			if (!$fp->delete($article->id)) {
-				$msg .= $fp->stderr();
-			}
-			$fp->ordering = 0;
-		}
-		$fp->reorder();
-
-		return true;
-	}
-
-	/**
-	 * Method to remove a article
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function delete($cid = array())
-	{
-		$result = false;
-
-		if (count($cid))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-			$query = 'DELETE FROM #__content'
-				. ' WHERE id IN ('.$cids.')';
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move an article to the trash
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function trash($cid = array())
-	{
-		$result = false;
-
-		if (count($cid))
-		{
-			// Removed content gets put in the trash [state = -2] and ordering is always set to 0
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-			$nullDate	= $this->_db->getNullDate();
-			$state		= '-2';
-			$ordering	= '0';
-			$query = 'UPDATE #__content' .
-					' SET state = '.(int) $state .
-					', ordering = '.(int) $ordering .
-					', checked_out = 0, checked_out_time = '.$this->_db->Quote($nullDate).
-					' WHERE id IN ('. $cids. ')';
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to set article state
-	 * Published = 1
-	 * Not published = 0
-	 * Archived = -1
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function setArticleState($cid = array(), $new_state = 1)
-	{
-		$user 	=& JFactory::getUser();
-
-		if (count($cid))
-		{
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-
-			$query = 'UPDATE #__content'
-				. ' SET state = '.(int) $new_state
-				. ' WHERE id IN ('.$cids.')'
-				. ' AND (checked_out = 0 OR (checked_out = '.(int) $user->get('id').'))'
-			;
-			$this->_db->setQuery($query);
-			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a article
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function move($direction)
-	{
-		$cid	= JRequest::getVar('cid', array(), 'post', 'array');
-
-		$row = & JTable::getInstance('content');
-		if (!$row->load((int) $cid[0])) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		if (!$row->move($direction, ' catid = '.(int) $row->catid.' AND state >= 0 ')) {
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Method to move a article
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function saveorder($cid = array(), $order)
-	{
-		$row = & JTable::getInstance('content');
-		$conditions	= array ();
-
-		// Update the ordering for items in the cid array
-		for ($i = 0; $i < count($cid); $i ++)
-		{
-			$row->load((int) $cid[$i]);
-			if ($row->ordering != $order[$i]) {
-				$row->ordering = $order[$i];
-				if (!$row->store()) {
-					JError::raiseError(500, $this->_db->getErrorMsg());
-					return false;
-				}
-				// remember to updateOrder this group
-				$condition = 'catid = '.(int) $row->catid.' AND state >= 0';
+				// remember to reorder this category
+				$condition = 'catid = '.(int) $table->catid;
 				$found = false;
 				foreach ($conditions as $cond)
-					if ($cond[1] == $condition) {
+				{
+					if ($cond[1] == $condition)
+					{
 						$found = true;
 						break;
 					}
-				if (!$found)
-					$conditions[] = array ($row->id, $condition);
+				}
+				if (!$found) {
+					$conditions[] = array ($table->id, $condition);
+				}
 			}
 		}
 
-		// execute updateOrder for each group
+		// Execute reorder for each category.
 		foreach ($conditions as $cond)
 		{
-			$row->load($cond[0]);
-			$row->reorder($cond[1]);
+			$table->load($cond[0]);
+			$table->reorder($cond[1]);
 		}
+
+		// Clear the component's cache
+		$cache = JFactory::getCache('com_content');
+		$cache->clean();
 
 		return true;
 	}
 
 	/**
-	 * Method to load article data
+	 * Method to toggle the featured setting of articles.
 	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
+	 * @param	array	The ids of the items to toggle.
+	 * @param	int		The value to toggle to.
+	 *
+	 * @return	boolean	True on success.
 	 */
-	function _loadData()
+	function featured($pks, $value = 0)
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT c.* '.
-					' FROM #__content AS c' .
-					' WHERE c.id = '.(int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
+		// Sanitize the ids.
+		$pks = (array) $pks;
+		JArrayHelper::toInteger($pks);
 
-			if (!$this->_data) {
-				return false;
-			}
-
-			$query = 'SELECT name' .
-					' FROM #__users'.
-					' WHERE id = '. (int) $this->_data->created_by;
-			$this->_db->setQuery($query);
-			$this->_data->creator = $this->_db->loadResult();
-
-			// test to reduce unneeded query
-			if ($this->_data->created_by == $this->_data->modified_by) {
-				$this->_data->modifier = $this->_data->creator;
-			} else {
-				$query = 'SELECT name' .
-						' FROM #__users' .
-						' WHERE id = '. (int) $this->_data->modified_by;
-				$this->_db->setQuery($query);
-				$this->_data->modifier = $this->_db->loadResult();
-			}
-
-			$query = 'SELECT COUNT(content_id)' .
-					' FROM #__content_frontpage' .
-					' WHERE content_id = '. (int) $this->_id;
-			$this->_db->setQuery($query);
-			$this->_data->frontpage = $this->_db->loadResult();
-			if (!$this->_data->frontpage) {
-				$this->_data->frontpage = 0;
-			}
-
-			return (boolean) $this->_data;
+		if (empty($pks)) {
+			$this->setError(JText::_('JError_No_items_selected'));
+			return false;
 		}
-		return true;
-	}
 
-	/**
-	 * Method to initialise the article data
-	 *
-	 * @access	private
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function _initData()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
+		$table = $this->getTable('Featured', 'ContentTable');
+
+		try
 		{
-			$article = new stdClass();
-			$article->id 				= null;
-			$article->name 				= null;
-			$article->alias				= null;
-			$article->title 				= null;
-			$article->title_alias		= null;
-			$article->introtext 			= null;
-			$article->fulltext			= null;
-			$article->sectionid	 		= null;
-			$article->catid				= 0;
-			$article->state				= 0;
-			$article->mask				= 0;
-			$article->created_by 		= 0;
-			$article->created_by_alias	= null;
-			$article->modified	 		= 0;
-			$article->modified_by	 	= 0;
-			$article->checked_out 		= 0;
-			$article->checked_out_time 	= 0;
-			$article->publish_up			= 0;
-			$article->publish_down		= 0;
-			$article->images				= null;
-			$article->urls 				= null;
-			$article->attribs			= null;
-			$article->version 			= 1;
-			$article->parent_id 			= null;
-			$article->ordering 			= null;
-			$article->metakey			= null;
-			$article->metadesc			= null;
-			$article->metadata			= null;
-			$article->access 			= null;
-			$article->hits 				= null;
-
-			$this->_data				= $article;
-			return (boolean) $this->_data;
-		}
-		return true;
-	}
-
-	/**
-	 * Method to set the article access
-	 *
-	 * @access	public
-	 * @return	boolean	True on success
-	 * @since	1.5
-	 */
-	function setAccess($cid = array(), $access = 0)
-	{
-		if (count($cid))
-		{
-			$user 	=& JFactory::getUser();
-
-			JArrayHelper::toInteger($cid);
-			$cids = implode(',', $cid);
-
-			$query = 'UPDATE #__content'
-				. ' SET access = '.(int) $access
-				. ' WHERE id IN ('.$cids.')'
-				. ' AND (checked_out = 0 OR (checked_out = '.(int) $user->get('id').'))'
-			;
-			$this->_db->setQuery($query);
+			$this->_db->setQuery(
+				'UPDATE #__content AS a' .
+				' SET a.featured = '.(int) $value.
+				' WHERE a.id IN ('.implode(',', $pks).')'
+			);
 			if (!$this->_db->query()) {
-				$this->setError($this->_db->getErrorMsg());
-				return false;
+				throw new Exception($this->_db->getErrorMsg());
 			}
-		}
 
-		return true;
-	}
-
-	function saveContentPrep(&$row)
-	{
-		// Get submitted text from the request variables
-		$text = JRequest::getVar('text', '', 'post', 'string', JREQUEST_ALLOWRAW);
-
-		// Clean text for xhtml transitional compliance
-		$text		= str_replace('<br>', '<br />', $text);
-
-		// Search for the {readmore} tag and split the text up accordingly.
-		$tagPos	= JString::strpos($text, '<hr id="system-readmore" />');
-
-		if ($tagPos === false)
-		{
-			$row->introtext	= $text;
-		} else
-		{
-			$row->introtext	= JString::substr($text, 0, $tagPos);
-			$row->fulltext	= JString::substr($text, $tagPos + 27);
-		}
-
-		// Filter settings
-		jimport('joomla.application.component.helper');
-		$config	= JComponentHelper::getParams('com_content');
-		$user	= &JFactory::getUser();
-		$gid	= $user->get('gid');
-
-		$filterGroups	= (array) $config->get('filter_groups');
-		if (in_array($gid, $filterGroups))
-		{
-			$filterType		= $config->get('filter_type');
-			$filterTags		= preg_split('#[,\s]+#', trim($config->get('filter_tags')));
-			$filterAttrs	= preg_split('#[,\s]+#', trim($config->get('filter_attritbutes')));
-			switch ($filterType)
+			// Adjust the mapping table.
+			if ($value == 0)
 			{
-				case 'NH':
-					$filter	= new JFilterInput();
-					break;
-				case 'WL':
-					$filter	= new JFilterInput($filterTags, $filterAttrs, 0, 0);
-					break;
-				case 'BL':
-				default:
-					$filter	= new JFilterInput($filterTags, $filterAttrs, 1, 1);
-					break;
+				// Unfeaturing.
+				$this->_db->setQuery(
+					'DELETE FROM #__content_frontpage' .
+					' WHERE content_id IN ('.implode(',', $pks).')'
+				);
+				if (!$this->_db->query()) {
+					throw new Exception($this->_db->getErrorMsg());
+				}
 			}
-			$row->introtext	= $filter->clean($row->introtext);
-			$row->fulltext	= $filter->clean($row->fulltext);
+			else
+			{
+				// Featuring.
+				$tuples = array();
+				foreach ($pks as $i => $pk) {
+					$tuples[] = '('.$pk.', '.(int)($i + 1).')';
+				}
+
+				$this->_db->setQuery(
+					'INSERT INTO #__content_frontpage (`content_id`, `ordering`)' .
+					' VALUES '.implode(',', $tuples)
+				);
+				if (!$this->_db->query()) {
+					$this->setError($this->_db->getErrorMsg());
+					return false;
+				}
+			}
+		}
+		catch (Exception $e)
+		{
+			$this->setError($e->getMessage());
+			return false;
 		}
 
-		return true;
-	}
+		$table->reorder();
 
-	/**
-	* Function to reset Hit count of an article
-	*
-	*/
-	function resetHits()
-	{
-		// Instantiate and load an article table
-		$row = & JTable::getInstance('content');
-		$row->Load($this->_id);
-		$row->hits = 0;
-		$row->store();
-		$row->checkin();
+		$cache = JFactory::getCache('com_content');
+		$cache->clean();
+
+		return true;
 	}
 }

@@ -1,36 +1,47 @@
 <?php
 /**
  * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_admin
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
-// No direct access
-defined('_JEXEC') or die('Restricted access');
 
+// no direct access
+defined('_JEXEC') or die;
 ?>
-<div class="submenu-box">
-	<div class="submenu-pad">
-		<ul id="submenu" class="information">
-			<li>
-				<a id="site" class="active">
-					<?php echo JText::_('System Info'); ?></a>
-			</li>
-			<li>
-				<a id="phpsettings">
-					<?php echo JText::_('PHP Settings'); ?></a>
-			</li>
-			<li>
-				<a id="config">
-					<?php echo JText::_('Configuration File'); ?></a>
-			</li>
-			<li>
-				<a id="directory">
-					<?php echo JText::_('Directory Permissions'); ?></a>
-			</li>
-			<li>
-				<a id="phpinfo">
-					<?php echo JText::_('PHP Information'); ?></a>
-			</li>
-		</ul>
+<div id="submenu-box">
+	<div class="t"><div class="t"><div class="t"></div></div></div>
+	<div class="m">
+		<div class="submenu-box">
+			<div class="submenu-pad">
+				<ul id="submenu" class="information">
+					<li>
+						<a href="#" onclick="return false;" id="site" class="active">
+							<?php echo JText::_('COM_ADMIN_SYSTEM_INFO'); ?></a>
+					</li>
+					<li>
+						<a href="#" onclick="return false;" id="phpsettings">
+							<?php echo JText::_('COM_ADMIN_PHP_SETTINGS'); ?></a>
+					</li>
+					<li>
+						<a href="#" onclick="return false;" id="config">
+							<?php echo JText::_('COM_ADMIN_CONFIGURATION_FILE'); ?></a>
+					</li>
+					<li>
+						<a href="#" onclick="return false;" id="directory">
+							<?php echo JText::_('COM_ADMIN_DIRECTORY_PERMISSIONS'); ?></a>
+					</li>
+					<li>
+						<a href="#" onclick="return false;" id="phpinfo">
+							<?php echo JText::_('COM_ADMIN_PHP_INFORMATION'); ?></a>
+					</li>
+				</ul>
+				<div class="clr"></div>
+			</div>
+		</div>
 		<div class="clr"></div>
 	</div>
+	<div class="b"><div class="b"><div class="b"></div></div></div>
 </div>
-<div class="clr"></div>
+

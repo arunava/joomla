@@ -1,25 +1,25 @@
 <?php
 /**
-* @version		$Id:sessionstorage.php 6961 2007-03-15 16:06:53Z tcp $
-* @package		Joomla.Framework
-* @subpackage	Session
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:sessionstorage.php 6961 2007-03-15 16:06:53Z tcp $
+ * @package		Joomla.Framework
+ * @subpackage	Session
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
 * Custom session storage handler for PHP
 *
 * @abstract
-* @package		Joomla.Framework
-* @subpackage	Session
-* @since		1.5
+ * @package		Joomla.Framework
+ * @subpackage	Session
+ * @since		1.5
 * @see http://www.php.net/manual/en/function.session-set-save-handler.php
-*/
-abstract class JSessionStorage extends JClass
+ */
+class JSessionStorage extends JObject
 {
 	/**
 	* Constructor
@@ -27,29 +27,28 @@ abstract class JSessionStorage extends JClass
 	* @access protected
 	* @param array $options optional parameters
 	*/
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
 		$this->register($options);
 	}
 
 	/**
-	 * Returns a reference to a session storage handler object, only creating it
+	 * Returns a session storage handler object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @access public
-	 * @param name 	$name The session store to instantiate
+	 * @param name	$name The session store to instantiate
 	 * @return database A JSessionStorage object
 	 * @since 1.5
 	 */
-	public static function &getInstance($name = 'none', $options = array())
+	public static function getInstance($name = 'none', $options = array())
 	{
 		static $instances;
 
 		if (!isset ($instances)) {
-			$instances = array();
+			$instances = array ();
 		}
 
-		$name = strtolower(JFilterInput::_($name, 'word'));
+		$name = strtolower(JFilterInput::getInstance()->clean($name, 'word'));
 		if (empty ($instances[$name]))
 		{
 			$class = 'JSessionStorage'.ucfirst($name);
@@ -76,7 +75,7 @@ abstract class JSessionStorage extends JClass
 	* @access public
 	* @param array $options optional parameters
 	*/
-	public function register($options = array())
+	function register($options = array())
 	{
 		// use this object as the session handler
 		session_set_save_handler(
@@ -94,11 +93,14 @@ abstract class JSessionStorage extends JClass
 	 *
 	 * @abstract
 	 * @access public
-	 * @param string $save_path	 The path to the session object.
+	 * @param string $save_path	The path to the session object.
 	 * @param string $session_name  The name of the session.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public function open($save_path, $session_name);
+	function open($save_path, $session_name)
+	{
+		return true;
+	}
 
 	/**
 	 * Close the SessionHandler backend.
@@ -107,18 +109,24 @@ abstract class JSessionStorage extends JClass
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public function close();
+	function close()
+	{
+		return true;
+	}
 
- 	/**
- 	 * Read the data for a particular session identifier from the
- 	 * SessionHandler backend.
- 	 *
- 	 * @abstract
- 	 * @access public
- 	 * @param string $id  The session identifier.
- 	 * @return string  The session data.
- 	 */
-	abstract public function read($id);
+	/**
+	 * Read the data for a particular session identifier from the
+	 * SessionHandler backend.
+	 *
+	 * @abstract
+	 * @access public
+	 * @param string $id  The session identifier.
+	 * @return string  The session data.
+	 */
+	function read($id)
+	{
+		return;
+	}
 
 	/**
 	 * Write session data to the SessionHandler backend.
@@ -129,7 +137,10 @@ abstract class JSessionStorage extends JClass
 	 * @param string $session_data  The session data.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public function write($id, $session_data);
+	function write($id, $session_data)
+	{
+		return true;
+	}
 
 	/**
 	 * Destroy the data for a particular session identifier in the
@@ -140,7 +151,10 @@ abstract class JSessionStorage extends JClass
 	 * @param string $id  The session identifier.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public function destroy($id);
+	function destroy($id)
+	{
+		return true;
+	}
 
 	/**
 	 * Garbage collect stale sessions from the SessionHandler backend.
@@ -150,7 +164,10 @@ abstract class JSessionStorage extends JClass
 	 * @param integer $maxlifetime  The maximum age of a session.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public function gc($maxlifetime);
+	function gc($maxlifetime)
+	{
+		return true;
+	}
 
 	/**
 	 * Test to see if the SessionHandler is available.
@@ -160,5 +177,8 @@ abstract class JSessionStorage extends JClass
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	abstract public static function test();
+	function test()
+	{
+		return true;
+	}
 }

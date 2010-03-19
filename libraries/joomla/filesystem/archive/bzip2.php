@@ -3,19 +3,19 @@
  * @version		$Id:bzip2.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 jimport('joomla.filesystem.stream');
 
 /**
  * Bzip2 format adapter for the JArchive class
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -25,7 +25,7 @@ class JArchiveBzip2 extends JObject
 	 * Bzip2 file data buffer
 	 * @var string
 	 */
-	protected $_data = null;
+	var $_data = null;
 
 	/**
 	 * Constructor tries to load the bz2 extension of not loaded
@@ -34,7 +34,7 @@ class JArchiveBzip2 extends JObject
 	 * @return	void
 	 * @since	1.5
 	 */
-	public function __construct()
+	function __construct()
 	{
 		// Is bz2 extension loaded?  If not try to load it
 		if (!extension_loaded('bz2')) {
@@ -56,9 +56,9 @@ class JArchiveBzip2 extends JObject
 	* @return	boolean	True if successful
 	* @since	1.5
 	*/
-	public function extract($archive, $destination, $options = array ())
+	function extract($archive, $destination, $options = array ())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$this->_data = null;
 
 		if (!extension_loaded('bz2')) {
@@ -88,13 +88,13 @@ class JArchiveBzip2 extends JObject
 		// New style! streams!
 		$input =& JFactory::getStream();
 		$input->set('processingmethod','bz'); // use bzip
-		if (!$input->open($archive)) {
+		if(!$input->open($archive)) {
 			$this->set('error.message', 'Unable to read archive (bz2)');
 			return JError::raiseWarning(100, $this->get('error.message'));
 		}
 
 		$output =& JFactory::getStream();
-		if (!$output->open($destination, 'w')) {
+		if(!$output->open($destination, 'w')) {
 			$this->set('error.message', 'Unable to write archive (bz2)');
 			$input->close(); // close the previous file
 			return JError::raiseWarning(100, $this->get('error.message'));
@@ -103,8 +103,8 @@ class JArchiveBzip2 extends JObject
 		$written = 0;
 		do {
 			$this->_data = $input->read($input->get('chunksize', 8196));
-			if ($this->_data) {
-				if (!$output->write($this->_data)) {
+			if($this->_data) {
+				if(!$output->write($this->_data)) {
 					$this->set('error.message', 'Unable to write file (bz2)');
 					return JError::raiseWarning(100, $this->get('error.message'));
 				}

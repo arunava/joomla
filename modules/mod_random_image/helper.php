@@ -1,26 +1,26 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	mod_random_image
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
-
+defined('_JEXEC') or die;
 
 class modRandomImageHelper
 {
 	function getRandomImage(&$params, $images)
 	{
-		$width 		= $params->get( 'width' );
-		$height 	= $params->get( 'height' );
+		$width		= $params->get('width');
+		$height	= $params->get('height');
 
-		$i 				= count($images);
-		$random 		= mt_rand(0, $i - 1);
-		$image 			= $images[$random];
-		$size 			= getimagesize (JPATH_BASE.DS.$image->folder .DS. $image->name);
+		$i				= count($images);
+		$random		= mt_rand(0, $i - 1);
+		$image			= $images[$random];
+		$size			= getimagesize (JPATH_BASE.DS.$image->folder .DS. $image->name);
 
 
 		if ($width == '') {
@@ -43,16 +43,16 @@ class modRandomImageHelper
 			}
 		}
 
-		$image->width 	= $width;
+		$image->width	= $width;
 		$image->height	= $height;
-		$image->folder	= str_replace( '\\', '/', $image->folder );
+		$image->folder	= str_replace('\\', '/', $image->folder);
 
 		return $image;
 	}
 
 	function getImages(&$params, $folder)
 	{
-		$type 		= $params->get( 'type', 'jpg' );
+		$type		= $params->get('type', 'jpg');
 
 		$files	= array();
 		$images	= array();
@@ -64,7 +64,7 @@ class modRandomImageHelper
 		{
 			if ($handle = opendir($dir)) {
 				while (false !== ($file = readdir($handle))) {
-					if ($file != '.' && $file != '..' && $file != 'CVS' && $file != 'index.html' ) {
+					if ($file != '.' && $file != '..' && $file != 'CVS' && $file != 'index.html') {
 						$files[] = $file;
 					}
 				}
@@ -77,7 +77,7 @@ class modRandomImageHelper
 				if (!is_dir($dir .DS. $img))
 				{
 					if (eregi($type, $img)) {
-						$images[$i]->name 	= $img;
+						$images[$i]->name	= $img;
 						$images[$i]->folder	= $folder;
 						++$i;
 					}
@@ -90,17 +90,17 @@ class modRandomImageHelper
 
 	function getFolder(&$params)
 	{
-		$folder 	= $params->get( 'folder' );
+		$folder	= $params->get('folder');
 
-		$LiveSite 	= JURI::base();
+		$LiveSite	= JURI::base();
 
 		// if folder includes livesite info, remove
-		if ( JString::strpos($folder, $LiveSite) === 0 ) {
-			$folder = str_replace( $LiveSite, '', $folder );
+		if (JString::strpos($folder, $LiveSite) === 0) {
+			$folder = str_replace($LiveSite, '', $folder);
 		}
 		// if folder includes absolute path, remove
-		if ( JString::strpos($folder, JPATH_SITE) === 0 ) {
-			$folder= str_replace( JPATH_BASE, '', $folder );
+		if (JString::strpos($folder, JPATH_SITE) === 0) {
+			$folder= str_replace(JPATH_BASE, '', $folder);
 		}
 		$folder = str_replace('\\',DS,$folder);
 		$folder = str_replace('/',DS,$folder);

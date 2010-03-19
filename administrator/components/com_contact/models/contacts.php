@@ -1,202 +1,144 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Contact
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// no direct access
+defined('_JEXEC') or die;
 
-jimport('joomla.application.component.model');
+jimport('joomla.application.component.modellist');
 
 /**
- * Contacts Component Contacts Model
+ * About Page Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Contact
- * @since 1.5
+ * @subpackage	com_contact
  */
-class ContactsModelContacts extends JModel
+class ContactModelContacts extends JModelList
 {
 	/**
-	 * Category ata array
+	 * Model context string.
 	 *
-	 * @var array
+	 * @var		string
 	 */
-	var $_data = null;
+	public $_context = 'com_contact.contacts';
 
 	/**
-	 * Category total
+	 * Method to auto-populate the model state.
 	 *
-	 * @var integer
+	 * @since	1.6
 	 */
-	var $_total = null;
-
-	/**
-	 * Pagination object
-	 *
-	 * @var object
-	 */
-	var $_pagination = null;
-
-	/**
-	 * Filter object
-	 *
-	 * @var object
-	 */
-	var $_filter = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @since 1.5
-	 */
-	function __construct()
+	protected function _populateState()
 	{
-		parent::__construct();
+		$app = JFactory::getApplication();
 
-		global $mainframe, $option;
+		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Get the pagination request variables
-		$limit		= $mainframe->getUserStateFromRequest( 'global.list.limit', 'limit', $mainframe->getCfg('list_limit'), 'int' );
-		$limitstart	= $mainframe->getUserStateFromRequest( $option.'.limitstart', 'limitstart', 0, 'int' );
+		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
+		$this->setState('filter.access', $access);
 
-		$this->setState('limit', $limit);
-		$this->setState('limitstart', $limitstart);
+		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
-		$filter = new stdClass();
-		$filter->order		= $mainframe->getUserStateFromRequest( $option.'filter_order',		'filter_order',		'a.ordering',	'cmd' );
-		$filter->order_Dir	= $mainframe->getUserStateFromRequest( $option.'filter_order_Dir',	'filter_order_Dir',	'',				'word' );
-		$filter->state		= $mainframe->getUserStateFromRequest( $option.'filter_state',		'filter_state',		'',				'word' );
-		$filter->catid		= $mainframe->getUserStateFromRequest( $option.'filter_catid',		'filter_catid',		0,				'int' );
-		$filter->search		= $mainframe->getUserStateFromRequest( $option.'search',			'search',			'',				'string' );
-		$this->_filter = $filter;
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.category_id', 'filter_category_id');
+		$this->setState('filter.category_id', $categoryId);
+
+		// List state information.
+		parent::_populateState('a.name', 'asc');
 	}
 
 	/**
-	 * Method to get contacts item data
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @access public
-	 * @return array
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param	string		$id	A prefix for the store id.
+	 *
+	 * @return	string		A store id.
 	 */
-	function getData()
+	protected function _getStoreId($id = '')
 	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = $this->_buildQuery();
-			$this->_data = $this->_getList($query, $this->getState('limitstart'), $this->getState('limit'));
+		// Compile the store id.
+		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.published');
+
+		return parent::_getStoreId($id);
+	}
+
+	/**
+	 * @param	boolean	True to join selected foreign information
+	 *
+	 * @return	string
+	 */
+	function _getListQuery($resolveFKs = true)
+	{
+		// Create a new query object.
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
+
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.name, a.alias, a.checked_out, a.checked_out_time, a.published, a.access, a.ordering, a.catid')
+		);
+		$query->from('#__contact_details AS a');
+
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+
+		// Join over the asset groups.
+		$query->select('ag.title AS access_level');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+
+		// Join over the categories.
+		$query->select('c.title AS category_title');
+		$query->join('LEFT', '#__categories AS c ON c.id = a.catid');
+
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$query->where('a.access = ' . (int) $access);
 		}
 
-		return $this->_data;
-	}
-
-	/**
-	 * Method to get the total number of contact items
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getTotal()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_total))
-		{
-			$query = $this->_buildQuery();
-			$this->_total = $this->_getListCount($query);
+		// Filter by published state
+		$published = $this->getState('filter.published');
+		if (is_numeric($published)) {
+			$query->where('a.published = ' . (int) $published);
+		} else if ($published === '') {
+			$query->where('(a.published = 0 OR a.published = 1)');
 		}
 
-		return $this->_total;
-	}
-
-	/**
-	 * Method to get a pagination object for the contacts
-	 *
-	 * @access public
-	 * @return integer
-	 */
-	function getPagination()
-	{
-		// Lets load the content if it doesn't already exist
-		if (empty($this->_pagination))
-		{
-			jimport('joomla.html.pagination');
-			$this->_pagination = new JPagination( $this->getTotal(), $this->getState('limitstart'), $this->getState('limit') );
+		// Filter by category.
+		$categoryId = $this->getState('filter.category_id');
+		if (is_numeric($categoryId)) {
+			$query->where('a.catid = ' . (int) $categoryId);
 		}
 
-		return $this->_pagination;
-	}
-
-	/**
-	 * Method to get filter object for the contacts
-	 *
-	 * @access public
-	 * @return object
-	 */
-	function getFilter()
-	{
-		return $this->_filter;
-	}
-
-	function _buildQuery()
-	{
-		// Get the WHERE and ORDER BY clauses for the query
-		$where		= $this->_buildContentWhere();
-		$orderby	= $this->_buildContentOrderBy();
-
-		$query = ' SELECT a.*, cc.title AS category, u.name AS editor, g.name AS groupname, v.name AS user '
-			. ' FROM #__contact_details AS a '
-			. ' LEFT JOIN #__categories AS cc ON cc.id = a.catid '
-			. ' LEFT JOIN #__users AS u ON u.id = a.checked_out '
-			. ' LEFT JOIN #__core_acl_axo_groups AS g ON g.value = a.access'
-			. ' LEFT JOIN #__users AS v ON v.id = a.user_id'
-			. $where
-			. $orderby
-		;
-
-		return $query;
-	}
-
-	function _buildContentOrderBy()
-	{
-		global $mainframe, $option;
-
-		if ($this->_filter->order == 'a.ordering'){
-			$orderby 	= ' ORDER BY category, a.ordering '.$this->_filter->order_Dir;
-		} else {
-			$orderby 	= ' ORDER BY '.$this->_filter->order.' '.$this->_filter->order_Dir.' , category, a.ordering ';
-		}
-
-		return $orderby;
-	}
-
-	function _buildContentWhere()
-	{
-		global $mainframe, $option;
-
-		$search				= JString::strtolower( $this->_filter->search );
-
-		$where = array();
-
-		if ($this->_filter->catid > 0) {
-			$where[] = 'a.catid = '.(int) $this->_filter->catid;
-		}
-		if ($search) {
-			$where[] = 'LOWER(a.name) LIKE '.$this->_db->Quote('%'.$this->_db->getEscaped( $search, true ).'%', false);
-		}
-		if ( $this->_filter->state ) {
-			if ( $this->_filter->state == 'P' ) {
-				$where[] = 'a.published = 1';
-			} else if ($this->_filter->state == 'U' ) {
-				$where[] = 'a.published = 0';
+		// Filter by search in  name
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else if (stripos($search, 'author:') === 0) {
+				$search = $db->Quote('%'.$db->getEscaped(substr($search, 7), true).'%');
+				$query->where('ua.name LIKE '.$search.' OR ua.username LIKE '.$search);
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.name LIKE '.$search.' OR a.alias LIKE '.$search);
 			}
 		}
 
-		$where 		= ( count( $where ) ? ' WHERE '. implode( ' AND ', $where ) : '' );
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
-		return $where;
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

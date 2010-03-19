@@ -3,42 +3,39 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Registry
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Abstract Format for JRegistry
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Registry
  * @since		1.5
  */
-abstract class JRegistryFormat extends JClass
+abstract class JRegistryFormat extends JObject
 {
 	/**
-	 * Returns a reference to a Format object, only creating it
+	 * Returns a Format object, only creating it
 	 * if it doesn't already exist.
 	 *
-	 * @static
-	 * @param	string	$format	The format to load
+	 * @param	string	The format to load
 	 * @return	object	Registry format handler
-	 * @since	1.5
 	 */
-	public static function &getInstance($format)
+	public static function getInstance($format)
 	{
-		static $instances = array();
-		static $filter = null;
+		static $instances;
 
-		if (empty($filter)) {
-			$filter = JFilterInput::getInstance();
+		if (!isset ($instances)) {
+			$instances = array ();
 		}
 
-		$format = strtolower($filter->clean($format, 'word'));
+		$format = strtolower(JFilterInput::getInstance()->clean($format, 'word'));
 		if (empty ($instances[$format]))
 		{
 			$class = 'JRegistryFormat'.$format;
@@ -48,7 +45,7 @@ abstract class JRegistryFormat extends JClass
 				if (file_exists($path)) {
 					require_once $path;
 				} else {
-					throw new JException(JText::_('Unable to load format class'), 500, E_ERROR, $format);
+					JError::raiseError(500,JText::_('Unable to load format class'));
 				}
 			}
 
@@ -60,22 +57,18 @@ abstract class JRegistryFormat extends JClass
 	/**
 	 * Converts an XML formatted string into an object
 	 *
-	 * @abstract
-	 * @access	public
 	 * @param	string	$data	Formatted string
 	 * @return	object	Data Object
 	 * @since	1.5
 	 */
-	abstract public function stringToObject($data, $process_sections=false);
+	abstract public function stringToObject($data, $namespace='');
 
 	/**
 	 * Converts an object into a formatted string
 	 *
-	 * @abstract
-	 * @access	public
 	 * @param	object	$object	Data Source Object
 	 * @return	string	Formatted string
 	 * @since	1.5
 	 */
-	abstract public function objectToString(&$object, $params);
+	abstract public function objectToString($object, $params);
 }

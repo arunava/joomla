@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Cache output type object
@@ -19,9 +19,6 @@ defined('JPATH_BASE') or die();
  */
 class JCacheOutput extends JCache
 {
-	protected $_id = null;
-	protected $_group = null;
-
 	/**
 	 * Start the cache
 	 *
@@ -31,7 +28,7 @@ class JCacheOutput extends JCache
 	 * @return	boolean	True if the cache is hit (false else)
 	 * @since	1.5
 	 */
-	public function start($id, $group=null)
+	function start($id, $group=null)
 	{
 		// If we have data in cache use that...
 		$data = $this->get($id, $group);
@@ -56,7 +53,7 @@ class JCacheOutput extends JCache
 	 * @return	boolean	True if cache stored
 	 * @since	1.5
 	 */
-	public function end()
+	function end()
 	{
 		// Get data from output buffer and echo it
 		$data = ob_get_contents();

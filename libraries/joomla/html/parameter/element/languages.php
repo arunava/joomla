@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Renders a languages element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */
@@ -30,22 +30,18 @@ class JElementLanguages extends JElement
 
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$user	= & JFactory::getUser();
-
-		/*
-		 * @TODO: change to acl_check method
-		 */
-		if (!($user->get('gid') >= 23) && $node->attributes('client') == 'administrator') {
-			return JText::_('No Access');
-		}
-
-
 		$client = $node->attributes('client');
 
 		jimport('joomla.language.helper');
 		$languages = JLanguageHelper::createLanguageList($value, constant('JPATH_'.strtoupper($client)), true);
-		array_unshift($languages, JHtml::_('select.option', '', '- '.JText::_('Select Language').' -'));
+		array_unshift($languages, JHtml::_('select.option', '', '- '.JText::_('SELECT_LANGUAGE').' -'));
 
-		return JHtml::_('select.genericlist',  $languages, ''.$control_name.'['.$name.']', 'class="inputbox"', 'value', 'text', $value, $control_name.$name);
+		return JHtml::_('select.genericlist', $languages, $control_name .'['. $name .']',
+			array(
+				'id' => $control_name.$name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
+		);
 	}
 }

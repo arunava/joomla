@@ -3,14 +3,12 @@
  * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	Cpanel
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
-
-jimport( 'joomla.application.component.controller' );
+defined('_JEXEC') or die;
 
 /**
  * Cpanel Controller

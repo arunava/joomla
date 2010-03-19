@@ -1,19 +1,16 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	mod_title
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// no direct access
-defined( '_JEXEC' ) or die( 'Restricted access' );
+// No direct access.
+defined('_JEXEC') or die;
 
 // Get the component title div
-$app	= &JFactory::getApplication();
-$title	= $app->get('JComponentTitle');
+$title = JFactory::getApplication()->get('JComponentTitle');
 
-// Echo title if it exists
-if (!empty($title)) {
-	echo $title;
-}
+require JModuleHelper::getLayoutPath('mod_title', $params->get('layout', 'default'));

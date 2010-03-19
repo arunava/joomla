@@ -3,23 +3,23 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Client
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /** Error Codes:
- * 1200: Unable to connect to host
- * 1201: Bad response from host
- * 1202: Unable to login
- * 1203: Unable to use Passive Mode
- * 1204: Data Transfer Error
- * 1205: Local filesystem error
- * 1206: Unrecognized Response
- * 1207: Not connected to host
- * 1208: Unable to send command to server
+ *  - 30 : Unable to connect to host
+ *  - 31 : Not connected
+ *  - 32 : Unable to send command to server
+ *  - 33 : Bad username
+ *  - 34 : Bad password
+ *  - 35 : Bad response
+ *  - 36 : Passive mode failed
+ *  - 37 : Data transfer error
+ *  - 38 : Local filesystem error
  */
 
 if (!defined('CRLF')) {
@@ -54,7 +54,7 @@ if (!defined('FTP_NATIVE')) {
  * @subpackage	Client
  * @since		1.5
  */
-class JFTP extends JClass
+class JFTP extends JObject
 {
 
 	/**
@@ -63,7 +63,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var socket resource
 	 */
-	protected $_conn = null;
+	var $_conn = null;
 
 	/**
 	 * Data port connection resource
@@ -71,7 +71,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var socket resource
 	 */
-	protected $_dataconn = null;
+	var $_dataconn = null;
 
 	/**
 	 * Passive connection information
@@ -79,7 +79,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var array
 	 */
-	protected $_pasv = null;
+	var $_pasv = null;
 
 	/**
 	 * Response Message
@@ -87,7 +87,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var string
 	 */
-	protected $_response = null;
+	var $_response = null;
 
 	/**
 	 * Timeout limit
@@ -95,7 +95,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var int
 	 */
-	protected $_timeout = 15;
+	var $_timeout = 15;
 
 	/**
 	 * Transfer Type
@@ -103,7 +103,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var int
 	 */
-	protected $_type = null;
+	var $_type = null;
 
 	/**
 	 * Native OS Type
@@ -111,7 +111,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var string
 	 */
-	protected $_OS = null;
+	var $_OS = null;
 
 	/**
 	 * Array to hold ascii format file extensions
@@ -120,7 +120,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var array
 	 */
-	protected $_autoAscii = array ("asp", "bat", "c", "cpp", "csv", "h", "htm", "html", "shtml", "ini", "inc", "log", "php", "php3", "pl", "perl", "sh", "sql", "txt", "xhtml", "xml");
+	var $_autoAscii = array ("asp", "bat", "c", "cpp", "csv", "h", "htm", "html", "shtml", "ini", "inc", "log", "php", "php3", "pl", "perl", "sh", "sql", "txt", "xhtml", "xml");
 
 	/**
 	 * Array to hold native line ending characters
@@ -129,7 +129,7 @@ class JFTP extends JClass
 	 * @access private
 	 * @var array
 	 */
-	protected $_lineEndings = array ('UNIX' => "\n", 'MAC' => "\r", 'WIN' => "\r\n");
+	var $_lineEndings = array ('UNIX' => "\n", 'MAC' => "\r", 'WIN' => "\r\n");
 
 	/**
 	 * JFTP object constructor
@@ -138,7 +138,7 @@ class JFTP extends JClass
 	 * @param array $options Associative array of options to set
 	 * @since 1.5
 	 */
-	protected function __construct($options=array()) {
+	function __construct($options=array()) {
 
 		// If default transfer type is no set, set it to autoascii detect
 		if (!isset ($options['type'])) {
@@ -160,6 +160,11 @@ class JFTP extends JClass
 			// Autoloading fails for JBuffer as the class is used as a stream handler
 			JLoader::load('JBuffer');
 		}
+
+		// Register faked "destructor" in PHP4 to close all connections we might have made
+		if (version_compare(PHP_VERSION, '5') == -1) {
+			register_shutdown_function(array(&$this, '__destruct'));
+		}
 	}
 
 	/**
@@ -170,18 +175,15 @@ class JFTP extends JClass
 	 * @access protected
 	 * @since 1.5
 	 */
-	public function __destruct() {
+	function __destruct() {
 		if (is_resource($this->_conn)) {
 			$this->quit();
 		}
 	}
 
 	/**
-	 * Returns a reference to the global FTP connector object, only creating it
+	 * Returns the global FTP connector object, only creating it
 	 * if it doesn't already exist.
-	 *
-	 * This method must be invoked as:
-	 * 		<pre>  $ftp = &JFTP::getInstance($host);</pre>
 	 *
 	 * You may optionally specify a username and password in the parameters. If you do so,
 	 * you may not login() again with different credentials using the same object.
@@ -196,7 +198,7 @@ class JFTP extends JClass
 	 * @return	JFTP	The FTP Client object.
 	 * @since 1.5
 	 */
-	public static function &getInstance($host = '127.0.0.1', $port = '21', $options = null, $user = null, $pass = null)
+	function getInstance($host = '127.0.0.1', $port = '21', $options = null, $user = null, $pass = null)
 	{
 		static $instances = array();
 
@@ -227,7 +229,7 @@ class JFTP extends JClass
 	 * @param array $options Associative array of options to set
 	 * @return boolean True if successful
 	 */
-	public function setOptions($options) {
+	function setOptions($options) {
 
 		if (isset ($options['type'])) {
 			$this->_type = $options['type'];
@@ -246,9 +248,9 @@ class JFTP extends JClass
 	 * @param string $port Port to connect on [Default: port 21]
 	 * @return boolean True if successful
 	 */
-	public function connect($host = '127.0.0.1', $port = 21) {
+	function connect($host = '127.0.0.1', $port = 21) {
 
-		// Initialize variables
+		// Initialise variables.
 		$errno = null;
 		$err = null;
 
@@ -260,8 +262,8 @@ class JFTP extends JClass
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			$this->_conn = @ftp_connect($host, $port, $this->_timeout);
-			if (! $this->_conn) {
-				JError::raiseWarning(1200, 'JFTP::connect: Could not connect to host "'.$host.'" on port '.$port);
+			if ($this->_conn === false) {
+				JError::raiseWarning('30', 'JFTP::connect: Could not connect to host "'.$host.'" on port '.$port);
 				return false;
 			}
 			// Set the timeout for this connection
@@ -272,7 +274,7 @@ class JFTP extends JClass
 		// Connect to the FTP server.
 		$this->_conn = @ fsockopen($host, $port, $errno, $err, $this->_timeout);
 		if (!$this->_conn) {
-			JError::raiseWarning(1200, 'JFTP::connect: Could not connect to host "'.$host.'" on port '.$port, 'Socket error number '.$errno.' and error message: '.$err);
+			JError::raiseWarning('30', 'JFTP::connect: Could not connect to host "'.$host.'" on port '.$port, 'Socket error number '.$errno.' and error message: '.$err);
 			return false;
 		}
 
@@ -281,7 +283,7 @@ class JFTP extends JClass
 
 		// Check for welcome response code
 		if (!$this->_verifyResponse(220)) {
-			JError::raiseWarning(1201, 'JFTP::connect: Bad response', 'Server response: '.$this->_response.' [Expected: 220]');
+			JError::raiseWarning('35', 'JFTP::connect: Bad response', 'Server response: '.$this->_response.' [Expected: 220]');
 			return false;
 		}
 
@@ -295,7 +297,7 @@ class JFTP extends JClass
 	 * @return	boolean	True if connected
 	 * @since	1.5
 	 */
-	public function isConnected()
+	function isConnected()
 	{
 		return is_resource($this->_conn);
 	}
@@ -308,12 +310,12 @@ class JFTP extends JClass
 	 * @param string $pass Password to login to the server
 	 * @return boolean True if successful
 	 */
-	public function login($user = 'anonymous', $pass = 'jftp@joomla.org') {
+	function login($user = 'anonymous', $pass = 'jftp@joomla.org') {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_login($this->_conn, $user, $pass) === false) {
-				JError::raiseWarning(1202, 'JFTP::login: Unable to login');
+				JError::raiseWarning('30', 'JFTP::login: Unable to login');
 				return false;
 			}
 			return true;
@@ -321,7 +323,7 @@ class JFTP extends JClass
 
 		// Send the username
 		if (!$this->_putCmd('USER '.$user, array(331, 503))) {
-			JError::raiseWarning(1202, 'JFTP::login: Unable to login', 'Server response: '.$this->_response.' [Expected: 331] Username sent: '.$user);
+			JError::raiseWarning('33', 'JFTP::login: Bad Username', 'Server response: '.$this->_response.' [Expected: 331] Username sent: '.$user);
 			return false;
 		}
 
@@ -332,7 +334,7 @@ class JFTP extends JClass
 
 		// Send the password
 		if (!$this->_putCmd('PASS '.$pass, 230)) {
-			JError::raiseWarning(1202, 'JFTP::login: Unable to login', 'Server response: '.$this->_response.' [Expected: 230] Password sent: '.str_repeat('*', strlen($pass)));
+			JError::raiseWarning('34', 'JFTP::login: Bad Password', 'Server response: '.$this->_response.' [Expected: 230] Password sent: '.str_repeat('*', strlen($pass)));
 			return false;
 		}
 
@@ -345,7 +347,7 @@ class JFTP extends JClass
 	 * @access public
 	 * @return boolean True if successful
 	 */
-	public function quit() {
+	function quit() {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
@@ -366,23 +368,23 @@ class JFTP extends JClass
 	 * @access public
 	 * @return string Current working directory
 	 */
-	public function pwd() {
+	function pwd() {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (($ret = @ftp_pwd($this->_conn)) === false) {
-				JError::raiseWarning(1201, 'JFTP::pwd: Bad response');
+				JError::raiseWarning('35', 'JFTP::pwd: Bad response');
 				return false;
 			}
 			return $ret;
 		}
 
-		// Initialize variables
+		// Initialise variables.
 		$match = array (null);
 
 		// Send print working directory command and verify success
 		if (!$this->_putCmd('PWD', 257)) {
-			JError::raiseWarning(1201, 'JFTP::pwd: Bad response', 'Server response: '.$this->_response.' [Expected: 257]');
+			JError::raiseWarning('35', 'JFTP::pwd: Bad response', 'Server response: '.$this->_response.' [Expected: 257]');
 			return false;
 		}
 
@@ -399,18 +401,18 @@ class JFTP extends JClass
 	 * @access public
 	 * @return string System identifier string
 	 */
-	public function syst() {
+	function syst() {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (($ret = @ftp_systype($this->_conn)) === false) {
-				JError::raiseWarning(1201, 'JFTP::syst: Bad response');
+				JError::raiseWarning('35', 'JFTP::syst: Bad response');
 				return false;
 			}
 		} else {
 			// Send print working directory command and verify success
 			if (!$this->_putCmd('SYST', 215)) {
-				JError::raiseWarning(1201, 'JFTP::syst: Bad response', 'Server response: '.$this->_response.' [Expected: 215]');
+				JError::raiseWarning('35', 'JFTP::syst: Bad response', 'Server response: '.$this->_response.' [Expected: 215]');
 				return false;
 			}
 			$ret = $this->_response;
@@ -436,12 +438,12 @@ class JFTP extends JClass
 	 * @param string $path Path to change into on the server
 	 * @return boolean True if successful
 	 */
-	public function chdir($path) {
+	function chdir($path) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_chdir($this->_conn, $path) === false) {
-				JError::raiseWarning(1201, 'JFTP::chdir: Bad response');
+				JError::raiseWarning('35', 'JFTP::chdir: Bad response');
 				return false;
 			}
 			return true;
@@ -449,7 +451,7 @@ class JFTP extends JClass
 
 		// Send change directory command and verify success
 		if (!$this->_putCmd('CWD '.$path, 250)) {
-			JError::raiseWarning(1201, 'JFTP::chdir: Bad response', 'Server response: '.$this->_response.' [Expected: 250] Path sent: '.$path);
+			JError::raiseWarning('35', 'JFTP::chdir: Bad response', 'Server response: '.$this->_response.' [Expected: 250] Path sent: '.$path);
 			return false;
 		}
 
@@ -457,27 +459,27 @@ class JFTP extends JClass
 	}
 
 	/**
-	 * Method to reinitialize the server, ie. need to login again
+	 * Method to reinitialise the server, ie. need to login again
 	 *
 	 * NOTE: This command not available on all servers
 	 *
 	 * @access public
 	 * @return boolean True if successful
 	 */
-	public function reinit() {
+	function reinit() {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_site($this->_conn, 'REIN') === false) {
-				JError::raiseWarning(1201, 'JFTP::reinit: Bad response');
+				JError::raiseWarning('35', 'JFTP::reinit: Bad response');
 				return false;
 			}
 			return true;
 		}
 
-		// Send reinitialize command to the server
+		// Send reinitialise command to the server
 		if (!$this->_putCmd('REIN', 220)) {
-			JError::raiseWarning(1201, 'JFTP::reinit: Bad response', 'Server response: '.$this->_response.' [Expected: 220]');
+			JError::raiseWarning('35', 'JFTP::reinit: Bad response', 'Server response: '.$this->_response.' [Expected: 220]');
 			return false;
 		}
 
@@ -492,12 +494,12 @@ class JFTP extends JClass
 	 * @param string $to Path to change file/folder to
 	 * @return boolean True if successful
 	 */
-	public function rename($from, $to) {
+	function rename($from, $to) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_rename($this->_conn, $from, $to) === false) {
-				JError::raiseWarning(1201, 'JFTP::rename: Bad response');
+				JError::raiseWarning('35', 'JFTP::rename: Bad response');
 				return false;
 			}
 			return true;
@@ -505,13 +507,13 @@ class JFTP extends JClass
 
 		// Send rename from command to the server
 		if (!$this->_putCmd('RNFR '.$from, 350)) {
-			JError::raiseWarning(1201, 'JFTP::rename: Bad response', 'Server response: '.$this->_response.' [Expected: 320] From path sent: '.$from);
+			JError::raiseWarning('35', 'JFTP::rename: Bad response', 'Server response: '.$this->_response.' [Expected: 320] From path sent: '.$from);
 			return false;
 		}
 
 		// Send rename to command to the server
 		if (!$this->_putCmd('RNTO '.$to, 250)) {
-			JError::raiseWarning(1201, 'JFTP::rename: Bad response', 'Server response: '.$this->_response.' [Expected: 250] To path sent: '.$to);
+			JError::raiseWarning('35', 'JFTP::rename: Bad response', 'Server response: '.$this->_response.' [Expected: 250] To path sent: '.$to);
 			return false;
 		}
 
@@ -526,7 +528,7 @@ class JFTP extends JClass
 	 * @param string/int	$mode	Octal value to change mode to, e.g. '0777', 0777 or 511
 	 * @return boolean		True if successful
 	 */
-	public function chmod($path, $mode) {
+	function chmod($path, $mode) {
 
 		// If no filename is given, we assume the current directory is the target
 		if ($path == '') {
@@ -542,7 +544,7 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			if (@ftp_site($this->_conn, 'CHMOD '.$mode.' '.$path) === false) {
 				if ($this->_OS != 'WIN') {
-					JError::raiseWarning(1201, 'JFTP::chmod: Bad response');
+					JError::raiseWarning('35', 'JFTP::chmod: Bad response');
 				}
 				return false;
 			}
@@ -552,7 +554,7 @@ class JFTP extends JClass
 		// Send change mode command and verify success [must convert mode from octal]
 		if (!$this->_putCmd('SITE CHMOD '.$mode.' '.$path, array(200, 250))) {
 			if ($this->_OS != 'WIN') {
-				JError::raiseWarning(1201, 'JFTP::chmod: Bad response', 'Server response: '.$this->_response.' [Expected: 200 or 250] Path sent: '.$path.' Mode sent: '.$mode);
+				JError::raiseWarning('35', 'JFTP::chmod: Bad response', 'Server response: '.$this->_response.' [Expected: 200 or 250] Path sent: '.$path.' Mode sent: '.$mode);
 			}
 			return false;
 		}
@@ -566,13 +568,13 @@ class JFTP extends JClass
 	 * @param string $path Path to delete
 	 * @return boolean True if successful
 	 */
-	public function delete($path) {
+	function delete($path) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_delete($this->_conn, $path) === false) {
 				if (@ftp_rmdir($this->_conn, $path) === false) {
-					JError::raiseWarning(1201, 'JFTP::delete: Bad response');
+					JError::raiseWarning('35', 'JFTP::delete: Bad response');
 					return false;
 				}
 			}
@@ -582,7 +584,7 @@ class JFTP extends JClass
 		// Send delete file command and if that doesn't work, try to remove a directory
 		if (!$this->_putCmd('DELE '.$path, 250)) {
 			if (!$this->_putCmd('RMD '.$path, 250)) {
-				JError::raiseWarning(1201, 'JFTP::delete: Bad response', 'Server response: '.$this->_response.' [Expected: 250] Path sent: '.$path);
+				JError::raiseWarning('35', 'JFTP::delete: Bad response', 'Server response: '.$this->_response.' [Expected: 250] Path sent: '.$path);
 				return false;
 			}
 		}
@@ -596,12 +598,12 @@ class JFTP extends JClass
 	 * @param string $path Directory to create
 	 * @return boolean True if successful
 	 */
-	public function mkdir($path) {
+	function mkdir($path) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_mkdir($this->_conn, $path) === false) {
-				JError::raiseWarning(1201, 'JFTP::mkdir: Bad response');
+				JError::raiseWarning('35', 'JFTP::mkdir: Bad response');
 				return false;
 			}
 			return true;
@@ -609,7 +611,7 @@ class JFTP extends JClass
 
 		// Send change directory command and verify success
 		if (!$this->_putCmd('MKD '.$path, 257)) {
-			JError::raiseWarning(1201, 'JFTP::mkdir: Bad response', 'Server response: '.$this->_response.' [Expected: 257] Path sent: '.$path);
+			JError::raiseWarning('35', 'JFTP::mkdir: Bad response', 'Server response: '.$this->_response.' [Expected: 257] Path sent: '.$path);
 			return false;
 		}
 		return true;
@@ -622,12 +624,12 @@ class JFTP extends JClass
 	 * @param int $point Byte to restart transfer at
 	 * @return boolean True if successful
 	 */
-	public function restart($point) {
+	function restart($point) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			if (@ftp_site($this->_conn, 'REST '.$point) === false) {
-				JError::raiseWarning(1201, 'JFTP::restart: Bad response');
+				JError::raiseWarning('35', 'JFTP::restart: Bad response');
 				return false;
 			}
 			return true;
@@ -635,7 +637,7 @@ class JFTP extends JClass
 
 		// Send restart command and verify success
 		if (!$this->_putCmd('REST '.$point, 350)) {
-			JError::raiseWarning(1201, 'JFTP::restart: Bad response', 'Server response: '.$this->_response.' [Expected: 350] Restart point sent: '.$point);
+			JError::raiseWarning('35', 'JFTP::restart: Bad response', 'Server response: '.$this->_response.' [Expected: 350] Restart point sent: '.$point);
 			return false;
 		}
 
@@ -649,19 +651,19 @@ class JFTP extends JClass
 	 * @param string $path Path local file to store on the FTP server
 	 * @return boolean True if successful
 	 */
-	public function create($path) {
+	function create($path) {
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::create: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::create: Unable to use passive mode');
 				return false;
 			}
 
 			$buffer = fopen('buffer://tmp', 'r');
 			if (@ftp_fput($this->_conn, $path, $buffer, FTP_ASCII) === false) {
-				JError::raiseWarning(1201, 'JFTP::create: Bad response');
+				JError::raiseWarning('35', 'JFTP::create: Bad response');
 				fclose($buffer);
 				return false;
 			}
@@ -671,13 +673,13 @@ class JFTP extends JClass
 
 		// Start passive mode
 		if (!$this->_passive()) {
-			JError::raiseWarning(1203, 'JFTP::create: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::create: Unable to use passive mode');
 			return false;
 		}
 
 		if (!$this->_putCmd('STOR '.$path, array (150, 125))) {
 			@ fclose($this->_dataconn);
-			JError::raiseWarning(1201, 'JFTP::create: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
+			JError::raiseWarning('35', 'JFTP::create: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
 			return false;
 		}
 
@@ -685,7 +687,7 @@ class JFTP extends JClass
 		fclose($this->_dataconn);
 
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::create: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
+			JError::raiseWarning('37', 'JFTP::create: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
 			return false;
 		}
 
@@ -700,7 +702,7 @@ class JFTP extends JClass
 	 * @param string $buffer Buffer variable to read file contents into
 	 * @return boolean True if successful
 	 */
-	public function read($remote, &$buffer) {
+	function read($remote, &$buffer) {
 
 		// Determine file type
 		$mode = $this->_findMode($remote);
@@ -709,14 +711,14 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::read: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::read: Unable to use passive mode');
 				return false;
 			}
 
 			$tmp = fopen('buffer://tmp', 'br+');
 			if (@ftp_fget($this->_conn, $tmp, $remote, $mode) === false) {
 				fclose($tmp);
-				JError::raiseWarning(1201, 'JFTP::read: Bad response');
+				JError::raiseWarning('35', 'JFTP::read: Bad response');
 				return false;
 			}
 			// Read tmp buffer contents
@@ -733,13 +735,13 @@ class JFTP extends JClass
 
 		// Start passive mode
 		if (!$this->_passive()) {
-			JError::raiseWarning(1203, 'JFTP::read: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::read: Unable to use passive mode');
 			return false;
 		}
 
 		if (!$this->_putCmd('RETR '.$remote, array (150, 125))) {
 			@ fclose($this->_dataconn);
-			JError::raiseWarning(1201, 'JFTP::read: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
+			JError::raiseWarning('35', 'JFTP::read: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
 			return false;
 		}
 
@@ -758,7 +760,7 @@ class JFTP extends JClass
 		}
 
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::read: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
+			JError::raiseWarning('37', 'JFTP::read: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
 			return false;
 		}
 
@@ -773,7 +775,7 @@ class JFTP extends JClass
 	 * @param string $remote Path to remote file to get on the FTP server
 	 * @return boolean True if successful
 	 */
-	public function get($local, $remote) {
+	function get($local, $remote) {
 
 		// Determine file type
 		$mode = $this->_findMode($remote);
@@ -782,12 +784,12 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::get: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::get: Unable to use passive mode');
 				return false;
 			}
 
 			if (@ftp_get($this->_conn, $local, $remote, $mode) === false) {
-				JError::raiseWarning(1201, 'JFTP::get: Bad response');
+				JError::raiseWarning('35', 'JFTP::get: Bad response');
 				return false;
 			}
 			return true;
@@ -798,19 +800,19 @@ class JFTP extends JClass
 		// Check to see if the local file can be opened for writing
 		$fp = fopen($local, "wb");
 		if (!$fp) {
-			JError::raiseWarning(1205, 'JFTP::get: Unable to open local file for writing', 'Local path: '.$local);
+			JError::raiseWarning('38', 'JFTP::get: Unable to open local file for writing', 'Local path: '.$local);
 			return false;
 		}
 
 		// Start passive mode
 		if (!$this->_passive()) {
-			JError::raiseWarning(1203, 'JFTP::get: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::get: Unable to use passive mode');
 			return false;
 		}
 
 		if (!$this->_putCmd('RETR '.$remote, array (150, 125))) {
 			@ fclose($this->_dataconn);
-			JError::raiseWarning(1201, 'JFTP::get: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
+			JError::raiseWarning('35', 'JFTP::get: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
 			return false;
 		}
 
@@ -825,7 +827,7 @@ class JFTP extends JClass
 		fclose($fp);
 
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::get: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
+			JError::raiseWarning('37', 'JFTP::get: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
 			return false;
 		}
 
@@ -840,7 +842,7 @@ class JFTP extends JClass
 	 * @param string $remote FTP path to file to create
 	 * @return boolean True if successful
 	 */
-	public function store($local, $remote = null) {
+	function store($local, $remote = null) {
 
 		// If remote file not given, use the filename of the local file in the current
 		// working directory
@@ -855,12 +857,12 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::store: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::store: Unable to use passive mode');
 				return false;
 			}
 
 			if (@ftp_put($this->_conn, $remote, $local, $mode) === false) {
-				JError::raiseWarning(1201, 'JFTP::store: Bad response');
+				JError::raiseWarning('35', 'JFTP::store: Bad response');
 				return false;
 			}
 			return true;
@@ -872,18 +874,18 @@ class JFTP extends JClass
 		if (@ file_exists($local)) {
 			$fp = fopen($local, "rb");
 			if (!$fp) {
-				JError::raiseWarning(1205, 'JFTP::store: Unable to open local file for reading', 'Local path: '.$local);
+				JError::raiseWarning('38', 'JFTP::store: Unable to open local file for reading', 'Local path: '.$local);
 				return false;
 			}
 		} else {
-			JError::raiseWarning(1205, 'JFTP::store: Unable to find local path', 'Local path: '.$local);
+			JError::raiseWarning('38', 'JFTP::store: Unable to find local path', 'Local path: '.$local);
 			return false;
 		}
 
 		// Start passive mode
 		if (!$this->_passive()) {
 			@ fclose($fp);
-			JError::raiseWarning(1203, 'JFTP::store: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::store: Unable to use passive mode');
 			return false;
 		}
 
@@ -891,7 +893,7 @@ class JFTP extends JClass
 		if (!$this->_putCmd('STOR '.$remote, array (150, 125))) {
 			@ fclose($fp);
 			@ fclose($this->_dataconn);
-			JError::raiseWarning(1201, 'JFTP::store: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
+			JError::raiseWarning('35', 'JFTP::store: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
 			return false;
 		}
 
@@ -900,7 +902,7 @@ class JFTP extends JClass
 			$line = fread($fp, 4096);
 			do {
 				if (($result = @ fwrite($this->_dataconn, $line)) === false) {
-					JError::raiseWarning(1204, 'JFTP::store: Unable to write to data port socket');
+					JError::raiseWarning('37', 'JFTP::store: Unable to write to data port socket');
 					return false;
 				}
 				$line = substr($line, $result);
@@ -911,7 +913,7 @@ class JFTP extends JClass
 		fclose($this->_dataconn);
 
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::store: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
+			JError::raiseWarning('37', 'JFTP::store: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
 			return false;
 		}
 
@@ -926,7 +928,7 @@ class JFTP extends JClass
 	 * @param string $buffer Contents to write to the FTP server
 	 * @return boolean True if successful
 	 */
-	public function write($remote, &$buffer) {
+	function write($remote, $buffer) {
 
 		// Determine file type
 		$mode = $this->_findMode($remote);
@@ -935,7 +937,7 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::write: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::write: Unable to use passive mode');
 				return false;
 			}
 
@@ -944,7 +946,7 @@ class JFTP extends JClass
 			rewind($tmp);
 			if (@ftp_fput($this->_conn, $remote, $tmp, $mode) === false) {
 				fclose($tmp);
-				JError::raiseWarning(1201, 'JFTP::write: Bad response');
+				JError::raiseWarning('35', 'JFTP::write: Bad response');
 				return false;
 			}
 			fclose($tmp);
@@ -956,13 +958,13 @@ class JFTP extends JClass
 
 		// Start passive mode
 		if (!$this->_passive()) {
-			JError::raiseWarning(1203, 'JFTP::write: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::write: Unable to use passive mode');
 			return false;
 		}
 
 		// Send store command to the FTP server
 		if (!$this->_putCmd('STOR '.$remote, array (150, 125))) {
-			JError::raiseWarning(1201, 'JFTP::write: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
+			JError::raiseWarning('35', 'JFTP::write: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$remote);
 			@ fclose($this->_dataconn);
 			return false;
 		}
@@ -970,7 +972,7 @@ class JFTP extends JClass
 		// Write buffer to the data connection port
 		do {
 			if (($result = @ fwrite($this->_dataconn, $buffer)) === false) {
-				JError::raiseWarning(1204, 'JFTP::write: Unable to write to data port socket');
+				JError::raiseWarning('37', 'JFTP::write: Unable to write to data port socket');
 				return false;
 			}
 			$buffer = substr($buffer, $result);
@@ -981,7 +983,7 @@ class JFTP extends JClass
 
 		// Verify that the server recieved the transfer
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::write: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
+			JError::raiseWarning('37', 'JFTP::write: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$remote);
 			return false;
 		}
 
@@ -998,16 +1000,16 @@ class JFTP extends JClass
 	 * @param string $path Path local file to store on the FTP server
 	 * @return string Directory listing
 	 */
-	public function listNames($path = null) {
+	function listNames($path = null) {
 
-		// Initialize variables
+		// Initialise variables.
 		$data = null;
 
 		// If native FTP support is enabled lets use it...
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::listNames: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::listNames: Unable to use passive mode');
 				return false;
 			}
 
@@ -1016,7 +1018,7 @@ class JFTP extends JClass
 				if ($this->listDetails($path, 'files') === array()) {
 					return array();
 				}
-				JError::raiseWarning(1201, 'JFTP::listNames: Bad response');
+				JError::raiseWarning('35', 'JFTP::listNames: Bad response');
 				return false;
 			}
 			$list = preg_replace('#^'.preg_quote($path, '#').'[/\\\\]?#', '', $list);
@@ -1037,7 +1039,7 @@ class JFTP extends JClass
 
 		// Start passive mode
 		if (!$this->_passive()) {
-			JError::raiseWarning(1203, 'JFTP::listNames: Unable to use passive mode');
+			JError::raiseWarning('36', 'JFTP::listNames: Unable to use passive mode');
 			return false;
 		}
 
@@ -1047,7 +1049,7 @@ class JFTP extends JClass
 			if ($this->listDetails($path, 'files') === array()) {
 				return array();
 			}
-			JError::raiseWarning(1201, 'JFTP::listNames: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
+			JError::raiseWarning('35', 'JFTP::listNames: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
 			return false;
 		}
 
@@ -1059,7 +1061,7 @@ class JFTP extends JClass
 
 		// Everything go okay?
 		if (!$this->_verifyResponse(226)) {
-			JError::raiseWarning(1204, 'JFTP::listNames: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
+			JError::raiseWarning('37', 'JFTP::listNames: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
 			return false;
 		}
 
@@ -1082,9 +1084,9 @@ class JFTP extends JClass
 	 * @param boolean $search Recursively search subdirectories
 	 * @return mixed : if $type is raw: string Directory listing, otherwise array of string with file-names
 	 */
-	public function listDetails($path = null, $type = 'all') {
+	function listDetails($path = null, $type = 'all') {
 
-		// Initialize variables
+		// Initialise variables.
 		$dir_list = array();
 		$data = null;
 		$regs = null;
@@ -1096,12 +1098,12 @@ class JFTP extends JClass
 		if (FTP_NATIVE) {
 			// turn passive mode on
 			if (@ftp_pasv($this->_conn, true) === false) {
-				JError::raiseWarning(1203, 'JFTP::listDetails: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::listDetails: Unable to use passive mode');
 				return false;
 			}
 
 			if (($contents = @ftp_rawlist($this->_conn, $path)) === false) {
-				JError::raiseWarning(1201, 'JFTP::listDetails: Bad response');
+				JError::raiseWarning('35', 'JFTP::listDetails: Bad response');
 				return false;
 			}
 		} else {
@@ -1109,7 +1111,7 @@ class JFTP extends JClass
 
 			// Start passive mode
 			if (!$this->_passive()) {
-				JError::raiseWarning(1203, 'JFTP::listDetails: Unable to use passive mode');
+				JError::raiseWarning('36', 'JFTP::listDetails: Unable to use passive mode');
 				return false;
 			}
 
@@ -1120,7 +1122,7 @@ class JFTP extends JClass
 
 			// Request the file listing
 			if (!$this->_putCmd(($recurse == true) ? 'LIST -R' : 'LIST'.$path, array (150, 125))) {
-				JError::raiseWarning(1201, 'JFTP::listDetails: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
+				JError::raiseWarning('35', 'JFTP::listDetails: Bad response', 'Server response: '.$this->_response.' [Expected: 150 or 125] Path sent: '.$path);
 				@ fclose($this->_dataconn);
 				return false;
 			}
@@ -1133,7 +1135,7 @@ class JFTP extends JClass
 
 			// Everything go okay?
 			if (!$this->_verifyResponse(226)) {
-				JError::raiseWarning(1204, 'JFTP::listDetails: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
+				JError::raiseWarning('37', 'JFTP::listDetails: Transfer Failed', 'Server response: '.$this->_response.' [Expected: 226] Path sent: '.$path);
 				return false;
 			}
 
@@ -1173,7 +1175,7 @@ class JFTP extends JClass
 			}
 		}
 		if (!$osType) {
-			JError::raiseWarning(1206, 'JFTP::listDetails: Unrecognized directory listing format');
+			JError::raiseWarning('SOME_ERROR_CODE', 'JFTP::listDetails: Unrecognized directory listing format');
 			return false;
 		}
 
@@ -1279,17 +1281,17 @@ class JFTP extends JClass
 	 * @param mixed $expected Integer response code or array of integer response codes
 	 * @return boolean True if command executed successfully
 	 */
-	private function _putCmd($cmd, $expectedResponse) {
+	function _putCmd($cmd, $expectedResponse) {
 
 		// Make sure we have a connection to the server
 		if (!is_resource($this->_conn)) {
-			JError::raiseWarning(1207, 'JFTP::_putCmd: Not connected to the control port');
+			JError::raiseWarning('31', 'JFTP::_putCmd: Not connected to the control port');
 			return false;
 		}
 
 		// Send the command to the server
 		if (!fwrite($this->_conn, $cmd."\r\n")) {
-			JError::raiseWarning(1208, 'JFTP::_putCmd: Unable to send command: '.$cmd);
+			JError::raiseWarning('32', 'JFTP::_putCmd: Unable to send command: '.$cmd);
 		}
 
 		return $this->_verifyResponse($expectedResponse);
@@ -1302,9 +1304,9 @@ class JFTP extends JClass
 	 * @param mixed $expected Integer response code or array of integer response codes
 	 * @return boolean True if response code from the server is expected
 	 */
-	private function _verifyResponse($expected) {
+	function _verifyResponse($expected) {
 
-		// Initialize variables
+		// Initialise variables.
 		$parts = null;
 
 		// Wait for a response from the server, but timeout after the set time limit
@@ -1316,7 +1318,7 @@ class JFTP extends JClass
 
 		// Catch a timeout or bad response
 		if (!isset($parts[1])) {
-			JError::raiseWarning(1201, 'JFTP::_verifyResponse: Timeout or unrecognized response while waiting for a response from the server', 'Server response: '.$this->_response);
+			JError::raiseWarning('SOME_ERROR_CODE', 'JFTP::_verifyResponse: Timeout or unrecognized response while waiting for a response from the server', 'Server response: '.$this->_response);
 			return false;
 		}
 
@@ -1347,9 +1349,9 @@ class JFTP extends JClass
 	 * @access private
 	 * @return boolean True if successful
 	 */
-	private function _passive() {
+	function _passive() {
 
-		//Initialize variables
+		// Initialize variables.
 		$match = array();
 		$parts = array();
 		$errno = null;
@@ -1357,7 +1359,7 @@ class JFTP extends JClass
 
 		// Make sure we have a connection to the server
 		if (!is_resource($this->_conn)) {
-			JError::raiseWarning(1207, 'JFTP::_passive: Not connected to the control port');
+			JError::raiseWarning('31', 'JFTP::_passive: Not connected to the control port');
 			return false;
 		}
 
@@ -1373,7 +1375,7 @@ class JFTP extends JClass
 
 		// Catch a timeout or bad response
 		if (!isset($parts[1])) {
-			JError::raiseWarning(1201, 'JFTP::_passive: Timeout or unrecognized response while waiting for a response from the server', 'Server response: '.$this->_response);
+			JError::raiseWarning('SOME_ERROR_CODE', 'JFTP::_passive: Timeout or unrecognized response while waiting for a response from the server', 'Server response: '.$this->_response);
 			return false;
 		}
 
@@ -1383,13 +1385,13 @@ class JFTP extends JClass
 
 		// If it's not 227, we weren't given an IP and port, which means it failed.
 		if ($this->_responseCode != '227') {
-			JError::raiseWarning(1203, 'JFTP::_passive: Unable to obtain IP and port for data transfer', 'Server response: '.$this->_responseMsg);
+			JError::raiseWarning('36', 'JFTP::_passive: Unable to obtain IP and port for data transfer', 'Server response: '.$this->_responseMsg);
 			return false;
 		}
 
 		// Snatch the IP and port information, or die horribly trying...
 		if (preg_match('~\((\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))\)~', $this->_responseMsg, $match) == 0) {
-			JError::raiseWarning(1203, 'JFTP::_passive: IP and port for data transfer not valid', 'Server response: '.$this->_responseMsg);
+			JError::raiseWarning('36', 'JFTP::_passive: IP and port for data transfer not valid', 'Server response: '.$this->_responseMsg);
 			return false;
 		}
 
@@ -1399,7 +1401,7 @@ class JFTP extends JClass
 		// Connect, assuming we've got a connection.
 		$this->_dataconn =  @fsockopen($this->_pasv['ip'], $this->_pasv['port'], $errno, $err, $this->_timeout);
 		if (!$this->_dataconn) {
-			JError::raiseWarning(1200, 'JFTP::_passive: Could not connect to host '.$this->_pasv['ip'].' on port '.$this->_pasv['port'].'.  Socket error number '.$errno.' and error message: '.$err);
+			JError::raiseWarning('30', 'JFTP::_passive: Could not connect to host '.$this->_pasv['ip'].' on port '.$this->_pasv['port'].'.  Socket error number '.$errno.' and error message: '.$err);
 			return false;
 		}
 
@@ -1416,7 +1418,7 @@ class JFTP extends JClass
 	 * @param	string	$fileName	Name of the file
 	 * @return	integer	Transfer-mode for this filetype [FTP_ASCII|FTP_BINARY]
 	 */
-	private function _findMode($fileName) {
+	function _findMode($fileName) {
 		if ($this->_type == FTP_AUTOASCII) {
 			$dot = strrpos($fileName, '.') + 1;
 			$ext = substr($fileName, $dot);
@@ -1442,15 +1444,15 @@ class JFTP extends JClass
 	 *  Defined constants can also be used [FTP_BINARY|FTP_ASCII]
 	 * @return boolean True if successful
 	 */
-	private function _mode($mode) {
+	function _mode($mode) {
 		if ($mode == FTP_BINARY) {
 			if (!$this->_putCmd("TYPE I", 200)) {
-				JError::raiseWarning(1201, 'JFTP::_mode: Bad response', 'Server response: '.$this->_response.' [Expected: 200] Mode sent: Binary');
+				JError::raiseWarning('35', 'JFTP::_mode: Bad response', 'Server response: '.$this->_response.' [Expected: 200] Mode sent: Binary');
 				return false;
 			}
 		} else {
 			if (!$this->_putCmd("TYPE A", 200)) {
-				JError::raiseWarning(1201, 'JFTP::_mode: Bad response', 'Server response: '.$this->_response.' [Expected: 200] Mode sent: Ascii');
+				JError::raiseWarning('35', 'JFTP::_mode: Bad response', 'Server response: '.$this->_response.' [Expected: 200] Mode sent: Ascii');
 				return false;
 			}
 		}

@@ -1,16 +1,17 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @package		Joomla.Site
+ * @subpackage	com_wrapper
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 /**
  * @param	array
  * @return	array
  */
-function WrapperBuildRoute( &$query )
+function WrapperBuildRoute(&$query)
 {
 	$segments = array();
 
@@ -25,7 +26,7 @@ function WrapperBuildRoute( &$query )
  * @param	array
  * @return	array
  */
-function WrapperParseRoute( $segments )
+function WrapperParseRoute($segments)
 {
 	$vars = array();
 

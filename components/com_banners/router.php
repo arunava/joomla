@@ -1,27 +1,27 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla
- * @subpackage	Banners
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @package		Joomla.Site
+ * @subpackage	com_banners
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
  * @param	array	A named array
  * @return	array
  */
-function BannersBuildRoute( &$query )
+function BannersBuildRoute(&$query)
 {
 	$segments = array();
 
 	if (isset($query['task'])) {
 		$segments[] = $query['task'];
-		unset( $query['task'] );
+		unset($query['task']);
 	}
-	if (isset($query['bid'])) {
-		$segments[] = $query['bid'];
-		unset( $query['bid'] );
+	if (isset($query['id'])) {
+		$segments[] = $query['id'];
+		unset($query['id']);
 	}
 
 	return $segments;
@@ -33,11 +33,11 @@ function BannersBuildRoute( &$query )
  *
  * Formats:
  *
- * index.php?/banners/task/bid/Itemid
+ * index.php?/banners/task/id/Itemid
  *
- * index.php?/banners/bid/Itemid
+ * index.php?/banners/id/Itemid
  */
-function BannersParseRoute( $segments )
+function BannersParseRoute($segments)
 {
 	$vars = array();
 
@@ -47,9 +47,9 @@ function BannersParseRoute( $segments )
 	if ($count)
 	{
 		$count--;
-		$segment = array_shift( $segments );
-		if (is_numeric( $segment )) {
-			$vars['bid'] = $segment;
+		$segment = array_shift($segments);
+		if (is_numeric($segment)) {
+			$vars['id'] = $segment;
 		} else {
 			$vars['task'] = $segment;
 		}
@@ -58,9 +58,9 @@ function BannersParseRoute( $segments )
 	if ($count)
 	{
 		$count--;
-		$segment = array_shift( $segments) ;
-		if (is_numeric( $segment )) {
-			$vars['bid'] = $segment;
+		$segment = array_shift($segments) ;
+		if (is_numeric($segment)) {
+			$vars['id'] = $segment;
 		}
 	}
 

@@ -1,19 +1,19 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Parameter
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Parameter
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Renders a filelist element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */
@@ -44,12 +44,12 @@ class JElementFilelist extends JElement
 
 		if (!$node->attributes('hide_none'))
 		{
-			$options[] = JHtml::_('select.option', '-1', '- '.JText::_('Do not use').' -');
+			$options[] = JHtml::_('select.option', '-1', '- '.JText::_('DO_NOT_USE').' -');
 		}
 
 		if (!$node->attributes('hide_default'))
 		{
-			$options[] = JHtml::_('select.option', '', '- '.JText::_('Use default').' -');
+			$options[] = JHtml::_('select.option', '', '- '.JText::_('USE_DEFAULT').' -');
 		}
 
 		if (is_array($files))
@@ -71,6 +71,12 @@ class JElementFilelist extends JElement
 			}
 		}
 
-		return JHtml::_('select.genericlist',  $options, ''.$control_name.'['.$name.']', 'class="inputbox"', 'value', 'text', $value, "param$name");
+		return JHtml::_('select.genericlist', $options, $control_name .'['. $name .']',
+			array(
+				'id' => 'param'.$name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
+		);
 	}
 }

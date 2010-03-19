@@ -1,15 +1,14 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @copyright	Copyright (C) 2008 - 2009 JXtended, LLC. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die('Restricted Access');
+defined('JPATH_BASE') or die;
 
 jimport('joomla.html.html');
-jimport('joomla.form.field');
+jimport('joomla.form.formfield');
 
 /**
  * Form Field class for the Joomla Framework.
@@ -25,7 +24,7 @@ class JFormFieldRadio extends JFormField
 	 *
 	 * @var		string
 	 */
-	public $type = 'Radio';
+	protected $type = 'Radio';
 
 	/**
 	 * Method to get the field input.
@@ -34,13 +33,47 @@ class JFormFieldRadio extends JFormField
 	 */
 	protected function _getInput()
 	{
-		$options = array();
-
 		// Get the options for the radio list.
+		$readonly = (string)$this->_element->attributes()->readonly == 'true';
+
+		$options = array();
 		foreach ($this->_element->children() as $option) {
-			$options[] = JHtml::_('select.option', $option->attributes('value'), JText::_($option->data()));
+			$tmp = JHtml::_('select.option', (string)$option->attributes()->value, trim((string)$option),'value','text',(string)$option->attributes()->disabled=='true');
+			$tmp->class = (string)$option->attributes()->class;
+			$tmp->onclick = (string)$option->attributes()->onclick ? ' onclick="'.$this->_replacePrefix((string)$option->attributes()->onclick).'"' : '';
+			$options[] = $tmp;
+		}
+		reset($options);
+
+		// Get the fieldset class.
+		$class = (string)$this->_element->attributes()->class ? ' class="radio '.$this->_element->attributes()->class.'"': ' class="radio"';
+
+		$html = array();
+		$html[] = '<fieldset id="'.$this->inputId.'"'.$class.'>';
+
+		foreach ($options as $i => $option) {
+			if (is_array($this->value)) {
+				foreach ($this->value as $val) {
+					$value = is_object($val) ? $val->value : $val;
+					if ($option->value == $value) {
+						$bool = ' selected="selected"';
+						break;
+					}
+				}
+			} else {
+				$bool = ((string) $option->value == (string) $this->value ? ' checked="checked"' : null);
+			}
+
+			// Get the defined class for the option if set.
+			$class = isset($option->class) ? ' class="'.$option->class.'"' : null;
+
+
+			$html[] = '<input id="'.$this->inputId.$i.'" type="radio" name="'.$this->inputName.'" value="'.htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8').'"'.$bool.$option->onclick.' '.($option->disable?' disabled="disabled"':'').'/>';
+			$html[] = '<label for="'.$this->inputId.$i.'"'.$class.'>'.JText::_($option->text).'</label>';
 		}
 
-		return JHtml::_('select.radiolist', $options, $this->inputName, '', 'value', 'text', $this->value, $this->inputId);
+		$html[] = '</fieldset>';
+
+		return implode($html);
 	}
 }

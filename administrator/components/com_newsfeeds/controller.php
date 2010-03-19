@@ -1,198 +1,56 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Newsfeeds
- * @copyright	Copyright (C) 2005 - 2007 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.controller' );
+jimport('joomla.application.component.controller');
 
 /**
- * Newsfeeds Controller
+ * Newsfeeds master display controller.
  *
  * @package		Joomla.Administrator
- * @subpackage	Newsfeeds
- * @since 1.5
+ * @subpackage	com_newsfeeds
+ * @since		1.6
  */
 class NewsfeedsController extends JController
 {
-	function __construct($config = array())
+	/**
+	 * Method to display a view.
+	 */
+	public function display()
 	{
-		parent::__construct($config);
+		require_once JPATH_COMPONENT.'/helpers/newsfeeds.php';
 
-		// Register Extra tasks
-		$this->registerTask( 'add',  'display' );
-		$this->registerTask( 'edit', 'display' );
-	}
+		// Get the document object.
+		$document	= JFactory::getDocument();
 
-	function display( )
-	{
-		switch($this->getTask())
+		// Set the default view name and format from the Request.
+		$vName		= JRequest::getWord('view', 'newsfeeds');
+		$vFormat	= $document->getType();
+		$lName		= JRequest::getWord('layout', 'default');
+
+		// Get and render the view.
+		if ($view = &$this->getView($vName, $vFormat))
 		{
-			case 'add':
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view'  , 'newsfeed');
-				JRequest::setVar( 'edit', false );
+			// Get the model for the view.
+			$model = &$this->getModel($vName);
 
-				// Checkout the newsfeed
-				$model = $this->getModel('newsfeed');
-				$model->checkout();
-			} break;
-			case 'edit':
-			{
-				JRequest::setVar( 'hidemainmenu', 1 );
-				JRequest::setVar( 'view'  , 'newsfeed');
-				JRequest::setVar( 'edit', true );
+			// Push the model into the view (as default).
+			$view->setModel($model, true);
+			$view->setLayout($lName);
 
-				// Checkout the newsfeed
-				$model = $this->getModel('newsfeed');
-				$model->checkout();
-			} break;
+			// Push document object into the view.
+			$view->assignRef('document', $document);
+
+			$view->display();
+
+			// Load the submenu.
+			NewsfeedsHelper::addSubmenu($vName);
 		}
-
-		parent::display();
-	}
-
-	function save()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$post	= JRequest::get('post');
-		$cid	= JRequest::getVar( 'cid', array(0), 'post', 'array' );
-		$post['id'] = (int) $cid[0];
-
-		$model = $this->getModel('newsfeed');
-
-		if ($model->store($post)) {
-			$msg = JText::_( 'Newsfeed Saved' );
-		} else {
-			$msg = JText::_( 'Error Saving Newsfeed' );
-		}
-
-		// Check the table in so it can be edited.... we are done with it anyway
-		$model->checkin();
-		$link = 'index.php?option=com_newsfeeds';
-		$this->setRedirect($link, $msg);
-	}
-
-	function remove()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to delete' ) );
-		}
-
-		$model = $this->getModel('newsfeed');
-		if(!$model->delete($cid)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds' );
-	}
-
-
-	function publish()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to publish' ) );
-		}
-
-		$model = $this->getModel('newsfeed');
-		if(!$model->publish($cid, 1)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds' );
-	}
-
-
-	function unpublish()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid = JRequest::getVar( 'cid', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-
-		if (count( $cid ) < 1) {
-			JError::raiseError(500, JText::_( 'Select an item to unpublish' ) );
-		}
-
-		$model = $this->getModel('newsfeed');
-		if(!$model->publish($cid, 0)) {
-			echo "<script> alert('".$model->getError(true)."'); window.history.go(-1); </script>\n";
-		}
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds' );
-	}
-
-	function cancel()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		// Checkin the newsfeed
-		$model = $this->getModel('newsfeed');
-		$model->checkin();
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds' );
-	}
-
-
-	function orderup()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$model = $this->getModel('newsfeed');
-		$model->move(-1);
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds');
-	}
-
-	function orderdown()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$model = $this->getModel('newsfeed');
-		$model->move(1);
-
-		$this->setRedirect( 'index.php?option=com_newsfeeds');
-	}
-
-	function saveorder()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-
-		$cid 	= JRequest::getVar( 'cid', array(), 'post', 'array' );
-		$order 	= JRequest::getVar( 'order', array(), 'post', 'array' );
-		JArrayHelper::toInteger($cid);
-		JArrayHelper::toInteger($order);
-
-		$model = $this->getModel('newsfeed');
-		$model->saveorder($cid, $order);
-
-		$msg = 'New ordering saved';
-		$this->setRedirect( 'index.php?option=com_newsfeeds', $msg );
 	}
 }

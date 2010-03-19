@@ -1,30 +1,25 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Administrator
- * @subpackage	Menus
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access
+defined('_JEXEC') or die;
+
 // Import library dependencies
-require_once(dirname(__FILE__).DS.'extension.php');
+require_once dirname(__FILE__).DS.'extension.php';
 
 /**
  * Installer Manage Model
  *
  * @package		Joomla.Administrator
- * @subpackage	Installer
+ * @subpackage	com_installer
  * @since		1.5
  */
 class InstallerModelManage extends InstallerModel
 {
-	/**
-	 * Extension Type
-	 * @var	string
-	 */
-	var $_type = 'extension';
-
 	/**
 	 * Enable an extension
 	 *
@@ -34,7 +29,7 @@ class InstallerModelManage extends InstallerModel
 	 */
 	function enable($eid=array())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$result	= false;
 
 		/*
@@ -70,7 +65,7 @@ class InstallerModelManage extends InstallerModel
 	 */
 	function disable($eid=array())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$result		= false;
 
 		/*
@@ -98,50 +93,32 @@ class InstallerModelManage extends InstallerModel
 		return $result;
 	}
 
-	function _loadItems()
+	/**
+	 * Refreshes the cached manifest information for an extension
+	 * @param int extension identifier (key in #__extensions)
+	 * @return boolean result of refresh
+	 * @since 1.6
+	 */
+	function refresh($eid)
 	{
-		global $mainframe, $option;
-
-		jimport('joomla.filesystem.folder');
-
-		/* Get a database connector */
+		if (!is_array($eid)) {
+			$eid = array($eid => 0);
+		}
+		// Get a database connector
 		$db =& JFactory::getDBO();
 
-		$query = 'SELECT *' .
-				' FROM #__extensions' .
-				' WHERE state = 0' . // get only regular non hidden non discovered extensions
-				$this->_buildWhere() .
-				' ORDER BY protected, type, client_id, folder, name';
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
+		// Get an installer object for the extension type
+		jimport('joomla.installer.installer');
+		$installer = & JInstaller::getInstance();
+		$row =& JTable::getInstance('extension');
 
-		$apps =& JApplicationHelper::getClientInfo();
-
-		$numRows = count($rows);
-		for($i=0;$i < $numRows; $i++)
+		$result = 0;
+		// Uninstall the chosen extensions
+		foreach ($eid as $id)
 		{
-			$row =& $rows[$i];
-			if(strlen($row->manifest_cache)) {
-				$data = unserialize($row->manifest_cache);
-				if($data) {
-					foreach($data as $key => $value) {
-						$row->$key = $value;
-					}
-				}
-			}
-			$row->jname = JString::strtolower(str_replace(" ", "_", $row->name));
-			if(isset($apps[$row->client_id])) {
-				$row->client = ucfirst($apps[$row->client_id]->name);
-			} else {
-				$row->client = $row->client_id;
-			}
+			$result	|= $installer->refreshManifestCache($id);
 		}
-		$this->setState('pagination.total', $numRows);
-		if($this->_state->get('pagination.limit') > 0) {
-			$this->_items = array_slice( $rows, $this->_state->get('pagination.offset'), $this->_state->get('pagination.limit') );
-		} else {
-			$this->_items = $rows;
-		}
+		return $result;
 	}
 
 	/**
@@ -154,9 +131,7 @@ class InstallerModelManage extends InstallerModel
 	 */
 	function remove($eid=array())
 	{
-		global $mainframe;
-
-		// Initialize variables
+		// Initialise variables.
 		$failed = array ();
 
 		/*
@@ -178,10 +153,11 @@ class InstallerModelManage extends InstallerModel
 		// Uninstall the chosen extensions
 		foreach ($eid as $id)
 		{
-			$id		= trim( $id );
+			$id		= trim($id);
 			$row->load($id);
-			if($row->type) {
-				$result	= $installer->uninstall($row->type, $id );
+			if ($row->type)
+			{
+				$result	= $installer->uninstall($row->type, $id);
 
 
 				// Build an array of extensions that failed to uninstall
@@ -193,17 +169,21 @@ class InstallerModelManage extends InstallerModel
 			}
 		}
 
-		if (count($failed)) {
+		if (count($failed))
+		{
 			// There was an error in uninstalling the package
-			$msg = JText::sprintf('UNINSTALLEXT', JText::_($this->_type), JText::_('Error'));
+			$msg = JText::sprintf('UNINSTALLEXT', JText::_($row->type), JText::_('Error'));
 			$result = false;
-		} else {
+		}
+		else
+		{
 			// Package uninstalled sucessfully
-			$msg = JText::sprintf('UNINSTALLEXT', JText::_($this->_type), JText::_('Success'));
+			$msg = JText::sprintf('UNINSTALLEXT', JText::_($row->type), JText::_('Success'));
 			$result = true;
 		}
 
-		$mainframe->enqueueMessage($msg);
+		$app	= &JFactory::getApplication();
+		$app->enqueueMessage($msg);
 		$this->setState('action', 'remove');
 		$this->setState('name', $installer->get('name'));
 		$this->setState('message', $installer->message);
@@ -212,12 +192,18 @@ class InstallerModelManage extends InstallerModel
 		return $result;
 	}
 
-	function _buildWhere() {
+	/**
+	 * Builds the where query
+	 * @return The where clause
+	 */
+	function _buildWhere()
+	{
 		$retval = Array();
 		$filter = JRequest::getVar('filter','');
-		if($filter) {
+		if ($filter)
+		{
 			$string = '(name LIKE "%'. $filter.'%" OR element LIKE "%'. $filter .'%"';
-			if(intval($filter)) {
+			if (intval($filter)) {
 				$string .= ' OR extension_id = '. intval($filter);
 			}
 
@@ -226,20 +212,22 @@ class InstallerModelManage extends InstallerModel
 		}
 
 		$hideprotected = JRequest::getBool('hideprotected',1);
-		if($hideprotected) {
+		if ($hideprotected) {
 			$retval[] = 'protected != 1';
 		}
 
 		$type = JRequest::getVar('extensiontype','All');
-		if($type != 'All') {
+		if ($type != 'All') {
 			$retval[] = 'type = "'. $type .'"';
 		}
 
 		$folder = JRequest::getVar('folder','All');
 		$valid_folders = Array('plugin','library','All'); // only plugins and libraries have folders
-		if(in_array($type, $valid_folders)) { // if the type supports folders, look for that
-			if($folder != 'All') {
-				if($folder == 'N/A') {
+		if (in_array($type, $valid_folders))
+		{ // if the type supports folders, look for that
+			if ($folder != 'All')
+			{
+				if ($folder == 'N/A') {
 					$folder = '';
 				}
 				$retval[] = 'folder = "'. $folder .'"';
@@ -249,30 +237,62 @@ class InstallerModelManage extends InstallerModel
 		}
 
 
-		if(count($retval)) {
+		if (count($retval)) {
 			return ' AND '. implode(' AND ', $retval);
 		} else return '';
 	}
 
-	function refresh($eid) {
-		if (!is_array($eid)) {
-			$eid = array($eid => 0);
-		}
+	/**
+	 * Loads the list of extensions
+	 */
+	function _loadItems()
+	{
+		jimport('joomla.filesystem.folder');
 
-		// Get a database connector
+		/* Get a database connector */
 		$db =& JFactory::getDBO();
 
-		// Get an installer object for the extension type
-		jimport('joomla.installer.installer');
-		$installer = & JInstaller::getInstance();
-		$row =& JTable::getInstance('extension');
+		$query = 'SELECT *' .
+				' FROM #__extensions' .
+				' WHERE state = 0' . // get only regular non hidden non discovered extensions
+		$this->_buildWhere() .
+				' ORDER BY protected, type, client_id, folder, name';
+		$db->setQuery($query);
+		$rows = $db->loadObjectList();
 
-		$result = 0;
-		// Uninstall the chosen extensions
-		foreach ($eid as $id)
+		$apps =& JApplicationHelper::getClientInfo();
+
+		$numRows = count($rows);
+		for($i=0;$i < $numRows; $i++)
 		{
-			$result	|= $installer->refreshManifestCache($id);
+			$row =& $rows[$i];
+			if (strlen($row->manifest_cache))
+			{
+				$data = unserialize($row->manifest_cache);
+				if ($data)
+				{
+					foreach($data as $key => $value)
+					{
+						if ($key == 'type') {
+							continue; // ignore the type field
+						}
+						$row->$key = $value;
+					}
+				}
+			}
+			$row->jname = JString::strtolower(str_replace(" ", "_", $row->name));
+			if (isset($apps[$row->client_id])) {
+				$row->client = ucfirst($apps[$row->client_id]->name);
+			} else {
+				$row->client = $row->client_id;
+			}
 		}
-		return $result;
+
+		$this->setState('pagination.total', $numRows);
+		if ($this->_state->get('pagination.limit') > 0) {
+			$this->_items = array_slice($rows, $this->_state->get('pagination.offset'), $this->_state->get('pagination.limit'));
+		} else {
+			$this->_items = $rows;
+		}
 	}
 }

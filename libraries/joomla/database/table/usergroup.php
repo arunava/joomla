@@ -1,57 +1,23 @@
 <?php
 /**
-* @version		$Id$
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
+
+jimport('joomla.database.table');
 
 /**
- * Users table
+ * Usergroup table class.
  *
- * @package 	Joomla.Framework
- * @subpackage	Table
- * @since		1.6
+ * @package		Joomla.Framework
+ * @subpackage	Database
+ * @version		1.0
  */
 class JTableUsergroup extends JTable
 {
-	/**
-	 * @var int unsigned
-	 */
-	var $id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $parent_id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $left_id;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $right_id;
-
-	/**
-	 * @var varchar
-	 */
-	var $title;
-
-	/**
-	 * @var int unsigned
-	 */
-	var $section_id;
-
-	/**
-	 * @var varchar
-	 */
-	var $section;
-
 	/**
 	 * Constructor
 	 *
@@ -80,12 +46,6 @@ class JTableUsergroup extends JTable
 			return false;
 		}
 
-		// Validate the section.
-		if (empty($this->section_id)) {
-			$this->setError(JText::_('Usergroup must have a section'));
-			return false;
-		}
-
 		return true;
 	}
 
@@ -100,48 +60,46 @@ class JTableUsergroup extends JTable
 	 */
 	function rebuild($parent_id = 0, $left = 0)
 	{
-		try {
-			// get the database object
-			$db = &$this->_db;
+		// get the database object
+		$db = &$this->_db;
 
-			// get all children of this node
-			$db->setQuery(
-				'SELECT id FROM '. $this->_tbl .
-				' WHERE parent_id='. (int)$parent_id .
-				' ORDER BY parent_id, title'
-			);
-			$children = $db->loadResultArray();
+		// get all children of this node
+		$db->setQuery(
+			'SELECT id FROM '. $this->_tbl .
+			' WHERE parent_id='. (int)$parent_id .
+			' ORDER BY parent_id, title'
+		);
+		$children = $db->loadResultArray();
 
-			// the right value of this node is the left value + 1
-			$right = $left + 1;
+		// the right value of this node is the left value + 1
+		$right = $left + 1;
 
-			// execute this function recursively over all children
-			for ($i=0,$n=count($children); $i < $n; $i++)
-			{
-				// $right is the current right value, which is incremented on recursion return
-				$right = $this->rebuild($children[$i], $right);
+		// execute this function recursively over all children
+		for ($i=0,$n=count($children); $i < $n; $i++)
+		{
+			// $right is the current right value, which is incremented on recursion return
+			$right = $this->rebuild($children[$i], $right);
 
-				// if there is an update failure, return false to break out of the recursion
-				if ($right === false) {
-					return false;
-				}
-			}	
-
-			// we've got the left value, and now that we've processed
-			// the children of this node we also know the right value
-			$db->setQuery(
-				'UPDATE '. $this->_tbl .
-				' SET left_id='. (int)$left .', right_id='. (int)$right .
-				' WHERE id='. (int)$parent_id
-			);
 			// if there is an update failure, return false to break out of the recursion
-			$db->query();
-			// return the right value of this node + 1
-			return $right + 1;
-		} catch(JException $e) {
-			$this->setError($e, true);
+			if ($right === false) {
+				return false;
+			}
+		}
+
+		// we've got the left value, and now that we've processed
+		// the children of this node we also know the right value
+		$db->setQuery(
+			'UPDATE '. $this->_tbl .
+			' SET lft='. (int)$left .', rgt='. (int)$right .
+			' WHERE id='. (int)$parent_id
+		);
+		// if there is an update failure, return false to break out of the recursion
+		if (!$db->query()) {
 			return false;
 		}
+
+		// return the right value of this node + 1
+		return $right + 1;
 	}
 
 	/**
@@ -149,7 +107,7 @@ class JTableUsergroup extends JTable
 	 *
 	 * @access	public
 	 * @param	boolean		If false, null object variables are not updated
-	 * @return	boolean 	True successful, false otherwise and an internal error message is set`
+	 * @return	boolean		True successful, false otherwise and an internal error message is set`
 	 */
 	function store($updateNulls = false)
 	{
@@ -173,35 +131,26 @@ class JTableUsergroup extends JTable
 			$this->load($oid);
 		}
 		if ($this->id == 0) {
-			$this->setError(JText::_('Category not found'));
-			return false;
+			return new JException(JText::_('Category not found'));
 		}
 		if ($this->parent_id == 0) {
-			$this->setError(JText::_('Root categories cannot be deleted'));
-			return false;
+			return new JException(JText::_('Root categories cannot be deleted'));
 		}
-		if ($this->left_id == 0 or $this->right_id == 0) {
-			$this->setError(JText::_('Left-Right data inconsistency. Cannot delete category.'));
-			return false;
+		if ($this->lft == 0 or $this->rgt == 0) {
+			return new JException(JText::_('Left-Right data inconsistency. Cannot delete category.'));
 		}
 
-		$db = &$this->getDBO();
+		$db = &$this->getDbo();
 
 		// Select the category ID and it's children
 		$db->setQuery(
 			'SELECT c.id' .
 			' FROM `'.$this->_tbl.'` AS c' .
-			' WHERE c.left_id >= '.(int) $this->left_id.' AND c.right_id <= '.$this->right_id
+			' WHERE c.lft >= '.(int) $this->lft.' AND c.rgt <= '.$this->rgt
 		);
-		try {
-			$ids = $db->loadResultArray();
-		} catch(JException $e) {
-			$this->setError($e, true);
-			return false;
-		}
+		$ids = $db->loadResultArray();
 		if (empty($ids)) {
-			$this->setError(JText::_('Left-Right data inconsistency. Cannot delete category.'));
-			return false;
+			return new JException(JText::_('Left-Right data inconsistency. Cannot delete category.'));
 		}
 		$ids = implode(',', $ids);
 
@@ -213,18 +162,21 @@ class JTableUsergroup extends JTable
 			'DELETE FROM `'.$this->_tbl.'`' .
 			' WHERE id IN ('.$ids.')'
 		);
-		try {
-			$db->query();
+		if (!$db->query()) {
+			$this->setError($db->getErrorMsg());
+			return false;
+		}
 
-			// Delete the user to usergroup mappings for the group(s) from the database.
-			$db->setQuery(
-				'DELETE FROM `#__user_usergroup_map`' .
-				' WHERE `group_id` IN ('.$ids.')'
-			);
-			$db->query();
+		// Delete the user to usergroup mappings for the group(s) from the database.
+		$db->setQuery(
+			'DELETE FROM `#__user_usergroup_map`' .
+			' WHERE `group_id` IN ('.$ids.')'
+		);
+		$db->query();
 
-		} catch(JException $e) {
-			$this->setError($e, true);
+		// Check for a database error.
+		if ($db->getErrorNum()) {
+			$this->setError($db->getErrorMsg());
 			return false;
 		}
 

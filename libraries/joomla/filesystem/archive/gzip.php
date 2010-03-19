@@ -3,12 +3,12 @@
  * @version		$Id:gzip.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Gzip format adapter for the JArchive class
@@ -19,7 +19,7 @@ defined('JPATH_BASE') or die();
  * @contributor  Michael Slusarz <slusarz@horde.org>
  * @contributor  Michael Cochrane <mike@graftonhall.co.nz>
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -29,7 +29,7 @@ class JArchiveGzip extends JObject
 	 * Gzip file flags.
 	 * @var array
 	 */
-	protected $_flags = array (
+	var $_flags = array (
 		'FTEXT' => 0x01,
 		'FHCRC' => 0x02,
 		'FEXTRA' => 0x04,
@@ -41,11 +41,7 @@ class JArchiveGzip extends JObject
 	 * Gzip file data buffer
 	 * @var string
 	 */
-	protected $_data = null;
-	
-	public function __construct() {
-		
-	}
+	var $_data = null;
 
 	/**
 	* Extract a Gzip compressed file to a given path
@@ -57,9 +53,9 @@ class JArchiveGzip extends JObject
 	* @return	boolean	True if successful
 	* @since	1.5
 	*/
-	public function extract($archive, $destination, $options = array ())
+	function extract($archive, $destination, $options = array ())
 	{
-		// Initialize variables
+		// Initialise variables.
 		$this->_data = null;
 
 		if (!extension_loaded('zlib')) {
@@ -89,13 +85,13 @@ class JArchiveGzip extends JObject
 		// New style! streams!
 		$input =& JFactory::getStream();
 		$input->set('processingmethod','gz'); // use gz
-		if (!$input->open($archive)) {
+		if(!$input->open($archive)) {
 			$this->set('error.message', 'Unable to read archive (gz)');
 			return JError::raiseWarning(100, $this->get('error.message'));
 		}
 
 		$output =& JFactory::getStream();
-		if (!$output->open($destination, 'w')) {
+		if(!$output->open($destination, 'w')) {
 			$this->set('error.message', 'Unable to write archive (gz)');
 			$input->close(); // close the previous file
 			return JError::raiseWarning(100, $this->get('error.message'));
@@ -104,8 +100,8 @@ class JArchiveGzip extends JObject
 		$written = 0;
 		do {
 			$this->_data = $input->read($input->get('chunksize', 8196));
-			if ($this->_data) {
-				if (!$output->write($this->_data)) {
+			if($this->_data) {
+				if(!$output->write($this->_data)) {
 					$this->set('error.message', 'Unable to write file (gz)');
 					return JError::raiseWarning(100, $this->get('error.message'));
 				}
@@ -123,7 +119,7 @@ class JArchiveGzip extends JObject
 	* @return	int	Data position marker for archive
 	* @since	1.5
 	*/
-	protected function _getFilePosition()
+	function _getFilePosition()
 	{
 		// gzipped file... unpack it first
 		$position = 0;

@@ -1,103 +1,95 @@
-<?php defined('_JEXEC') or die('Restricted access'); ?>
+<?php
+/**
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_messages
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-<form action="<?php echo JRoute::_('index.php?option=com_messages'); ?>" method="post" name="adminForm">
+// No direct access.
+defined('_JEXEC') or die;
 
-<table>
-<tr>
-	<td align="left" width="100%">
-		<?php echo JText::_( 'Search' ); ?>:
-		<input type="text" name="search" id="search" value="<?php echo $this->filter->search;?>" class="text_area" onchange="document.adminForm.submit();" />
-		<button onclick="this.form.submit();"><?php echo JText::_( 'Go' ); ?></button>
-		<button onclick="document.getElementById('search').value='';this.form.getElementById('filter_state').value='';this.form.submit();"><?php echo JText::_( 'Reset' ); ?></button>
-	</td>
-	<td nowrap="nowrap">
-		<?php
-		echo JHtml::_('grid.state',  $this->filter->state, 'Read', 'Unread' );
-		?>
-	</td>
-</tr>
-</table>
+// Include the component HTML helpers.
+JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
+JHtml::_('behavior.tooltip');
 
-<div id="tablecell">
+$user	= JFactory::getUser();
+?>
+
+<form action="<?php echo JRoute::_('index.php?option=com_messages&view=messages'); ?>" method="post" name="adminForm" id="adminForm">
+	<fieldset id="filter-bar">
+		<div class="filter-search fltlft">
+			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?></label>
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('COM_MESSAGES_SEARCH_IN_SUBJECT'); ?>" />
+			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
+		</div>
+		<div class="filter-select fltrt">
+			<select name="filter_state" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('COM_MESSAGES_OPTION_SELECT_STATE');?></option>
+				<?php echo JHtml::_('select.options', MessagesHelper::getStateOptions(), 'value', 'text', $this->state->get('filter.state'));?>
+			</select>
+		</div>
+	</fieldset>
+	<div class="clr"> </div>
+
 	<table class="adminlist">
-	<thead>
-		<tr>
-			<th width="20">
-				<?php echo JText::_( 'NUM' ); ?>
-			</th>
-			<th width="20" class="title">
-				<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows); ?>);" />
-			</th>
-			<th width="50%" class="title">
-				<?php echo JHtml::_('grid.sort',   'Subject', 'a.subject', $this->filter->order_Dir, $this->filter->order ); ?>
-			</th>
-			<th width="5%" class="title" align="center">
-				<?php echo JHtml::_('grid.sort',   'Read', 'a.state', $this->filter->order_Dir, $this->filter->order ); ?>
-			</th>
-			<th width="25%" class="title">
-				<?php echo JHtml::_('grid.sort',   'From', 'user_from', $this->filter->order_Dir, $this->filter->order ); ?>
-			</th>
-			<th width="15%" class="title" nowrap="nowrap" align="center">
-				<?php echo JHtml::_('grid.sort',   'Date', 'a.date_time', $this->filter->order_Dir, $this->filter->order ); ?>
-			</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<tr>
-			<td colspan="6">
-				<?php echo $this->pagination->getListFooter(); ?>
-			</td>
-		</tr>
-	</tfoot>
-	<tbody>
-	<?php
-	$k = 0;
-	for ($i=0, $n=count( $this->rows ); $i < $n; $i++) {
-		$row =& $this->rows[$i];
-		$img = $row->state ? 'tick.png' : 'publish_x.png';
-		$alt = $row->state ? JText::_( 'Read' ) : JText::_( 'Read' );
-
-		if ( $this->user->authorize( 'com_users', 'manage' ) ) {
-			$linkA 	= 'index.php?option=com_users&view=user&task=edit&cid[]='. $row->user_id_from;
-			$author = '<a href="'. JRoute::_( $linkA ) .'" title="'. JText::_( 'Edit User' ) .'">'. $row->user_from .'</a>';
-		} else {
-			$author = $row->user_from;
-		}
-
-		?>
-		<tr class="<?php echo "row$k"; ?>">
-			<td>
-				<?php echo $i+1+$this->pagination->limitstart;?>
-			</td>
-			<td>
-				<?php echo JHtml::_('grid.id', $i, $row->message_id ); ?>
-			</td>
-			<td>
-				<a href="#edit" onclick="return listItemTask('cb<?php echo $i;?>','view')">
-					<?php echo $row->subject; ?></a>
-			</td>
-			<td align="center">
-				<a href="javascript: void(0);">
-					<img src="images/<?php echo $img;?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /></a>
-			</td>
-			<td>
-				<?php echo $author; ?>
-			</td>
-			<td>
-				<?php echo JHtml::_('date', $row->date_time, JText::_('DATE_FORMAT_LC2')); ?>
-			</td>
-		</tr>
-		<?php $k = 1 - $k;
-		}
-	?>
-	</tbody>
+		<thead>
+			<tr>
+				<th width="20">
+					<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items); ?>);" />
+				</th>
+				<th class="title">
+					<?php echo JHtml::_('grid.sort',  'COM_MESSAGES_HEADING_SUBJECT', 'a.subject', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'COM_MESSAGES_HEADING_READ', 'a.state', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="15%">
+					<?php echo JHtml::_('grid.sort', 'COM_MESSAGES_HEADING_FROM', 'a.user_id_from', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+				<th width="20%" nowrap="nowrap">
+					<?php echo JHtml::_('grid.sort', 'COM_MESSAGES_HEADING_DATE', 'a.date_time', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+				</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					<?php echo $this->pagination->getListFooter(); ?>
+				</td>
+			</tr>
+		</tfoot>
+		<tbody>
+		<?php foreach ($this->items as $i => $item) :
+			$canChange	= $user->authorise('core.edit.state', 'com_messages');
+			?>
+			<tr class="row<?php echo $i % 2; ?>">
+				<td>
+					<?php echo JHtml::_('grid.id', $i, $item->message_id); ?>
+				</td>
+				<td>
+					<a href="<?php echo JRoute::_('index.php?option=com_messages&view=message&message_id='.(int) $item->message_id); ?>">
+						<?php echo $this->escape($item->subject); ?></a>
+				</td>
+				<td class="center">
+					<?php echo JHtml::_('messages.state', $item->state, $i, $canChange); ?>
+				</td>
+				<td>
+					<?php echo $item->user_from; ?>
+				</td>
+				<td>
+					<?php echo JHTML::_('date',$item->date_time, JText::_('DATE_FORMAT_LC2')); ?>
+				</td>
+			</tr>
+			<?php endforeach; ?>
+		</tbody>
 	</table>
-</div>
 
-<input type="hidden" name="option" value="<?php echo $option;?>" />
-<input type="hidden" name="task" value="" />
-<input type="hidden" name="boxchecked" value="0" />
-<input type="hidden" name="filter_order" value="<?php echo $this->filter->order; ?>" />
-<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filter->order_Dir; ?>" />
-<?php echo JHtml::_( 'form.token' ); ?>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

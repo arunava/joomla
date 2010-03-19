@@ -3,9 +3,12 @@
  * @version		$Id:buffer.php 6961 2007-03-15 16:06:53Z tcp $
  * @package		Joomla.Framework
  * @subpackage	Utilities
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+// No direct access
+defined('JPATH_BASE') or die;
 
 /**
  * Generic Buffer stream handler
@@ -13,7 +16,7 @@
  * This class provides a generic buffer stream.  It can be used to store/retrieve/manipulate
  * string buffers with the standard PHP filesystem I/O methods.
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Utilities
  * @since		1.5
  */
@@ -23,21 +26,21 @@ class JBuffer
 	 * Stream position
 	 * @var int
 	 */
-	public $position = 0;
+	var $position = 0;
 
 	/**
 	 * Buffer name
 	 * @var string
 	 */
-	public $name = null;
+	var $name = null;
 
 	/**
 	 * Buffer hash
 	 * @var array
 	 */
-	protected $_buffers = array ();
+	var $_buffers = array ();
 
-	public function stream_open($path, $mode, $options, & $opened_path)
+	function stream_open($path, $mode, $options, & $opened_path)
 	{
 		$url = parse_url($path);
 		$this->name = $url["host"];
@@ -47,14 +50,14 @@ class JBuffer
 		return true;
 	}
 
-	public function stream_read($count)
+	function stream_read($count)
 	{
 		$ret = substr($this->_buffers[$this->name], $this->position, $count);
 		$this->position += strlen($ret);
 		return $ret;
 	}
 
-	public function stream_write($data)
+	function stream_write($data)
 	{
 		$left = substr($this->_buffers[$this->name], 0, $this->position);
 		$right = substr($this->_buffers[$this->name], $this->position + strlen($data));
@@ -63,15 +66,15 @@ class JBuffer
 		return strlen($data);
 	}
 
-	public function stream_tell() {
+	function stream_tell() {
 		return $this->position;
 	}
 
-	public function stream_eof() {
+	function stream_eof() {
 		return $this->position >= strlen($this->_buffers[$this->name]);
 	}
 
-	public function stream_seek($offset, $whence)
+	function stream_seek($offset, $whence)
 	{
 		switch ($whence)
 		{

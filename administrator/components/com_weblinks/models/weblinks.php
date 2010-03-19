@@ -1,82 +1,57 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
-
-// Add a table include path.
-JTable::addIncludePath(JPATH_COMPONENT.DS.'tables');
 
 /**
- * Members Model for JXtended Members.
+ * Methods supporting a list of weblink records.
  *
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
- * @version		1.5
+ * @subpackage	com_weblinks
+ * @since		1.6
  */
 class WeblinksModelWeblinks extends JModelList
 {
 	/**
 	 * Model context string.
 	 *
-	 * @access	protected
 	 * @var		string
 	 */
-	 var $_context = 'weblinks.weblinks';
+	protected $_context = 'com_weblinks.weblinks';
 
 	/**
-	 * Method to build an SQL query to load the list data.
-	 *
-	 * @return	string	An SQL query
-	 * @since	1.6
+	 * Method to auto-populate the model state.
 	 */
-	protected function _getListQuery()
+	protected function _populateState()
 	{
-		// Create a new query object.
-		$query = new JQuery;
+		// Initialise variables.
+		$app = JFactory::getApplication('administrator');
 
-		// Select all fields from the users table.
-		$query->select($this->getState('list.select', 'a.*'));
-		$query->select('cc.title AS category');
-		$query->select('u.name AS editor');
-		$query->from('`#__weblinks` AS a');
+		// Load the filter state.
+		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$this->setState('filter.search', $search);
 
-		// Join over the categories.
-		$query->join('LEFT', '#__categories AS cc ON cc.id = a.catid');
+		$accessId = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', null, 'int');
+		$this->setState('filter.access', $accessId);
 
-		// Join over the users.
-		$query->join('LEFT', '#__users AS u ON u.id = a.checked_out');
+		$published = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '', 'string');
+		$this->setState('filter.state', $published);
 
-		// Filter by category
-		$categoryId = $this->getState('filter.category_id');
-		if (is_numeric($categoryId)) {
-			$query->where('a.catid = '.(int) $categoryId);
-		}
+		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id', '');
+		$this->setState('filter.category_id', $categoryId);
 
-		// Filter by state
-		$state = $this->getState('filter.state');
-		if (is_numeric($state)) {
-			$query->where('a.state = '.(int) $state);
-		}
+		// Load the parameters.
+		$params = JComponentHelper::getParams('com_weblinks');
+		$this->setState('params', $params);
 
-		// Filter by search in title
-		$search = $this->getState('filter.search');
-		if (!empty($search)) {
-			$search = $db->Quote( $db->getEscaped( $search, true ).'%', false );
-			$query->where('(a.title LIKE '.$search);
-		}
-
-		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.username')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
-
-		//echo nl2br(str_replace('#__','jos_',$query->toString())).'<hr/>';
-		return $query;
+		// List state information.
+		parent::_populateState('a.title', 'asc');
 	}
 
 	/**
@@ -87,103 +62,88 @@ class WeblinksModelWeblinks extends JModelList
 	 * ordering requirements.
 	 *
 	 * @param	string		$id	A prefix for the store id.
+	 *
 	 * @return	string		A store id.
-	 * @since	1.6
 	 */
 	protected function _getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('list.start');
-		$id	.= ':'.$this->getState('list.limit');
-		$id	.= ':'.$this->getState('list.ordering');
-		$id	.= ':'.$this->getState('list.direction');
-		$id	.= ':'.$this->getState('check.state');
-		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.search');
+		$id	.= ':'.$this->getState('filter.access');
+		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.category_id');
 
-		return md5($id);
+		return parent::_getStoreId($id);
 	}
 
 	/**
-	 * Method to auto-populate the model state.
+	 * Build an SQL query to load the list data.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
-	 *
-	 * @return	void
-	 * @since	1.6
+	 * @return	JQuery
 	 */
-	protected function _populateState()
+	protected function _getListQuery()
 	{
-		// Initialize variables.
-		$app		= &JFactory::getApplication('administrator');
-		$user		= &JFactory::getUser();
-		$params		= JComponentHelper::getParams('com_members');
-		$context	= 'com_members.members.';
+		// Create a new query object.
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
 
-		// Load the filter state.
-		$this->setState('filter.search', $app->getUserStateFromRequest($context.'filter.search', 'filter_search', ''));
-		$this->setState('filter.state', $app->getUserStateFromRequest($context.'filter.state', 'filter_state', '*', 'string'));
-		$this->setState('filter.category_id', $app->getUserStateFromRequest($context.'filter.category_id', 'filter_catid', null, 'int'));
+		// Select the required fields from the table.
+		$query->select(
+			$this->getState(
+				'list.select',
+				'a.id, a.title, a.alias, a.checked_out, a.checked_out_time, a.catid,' .
+				'a.hits,' .
+				' a.state, a.access, a.ordering, a.language'
+			)
+		);
+		$query->from('`#__weblinks` AS a');
 
-		// Load the list state.
-		$this->setState('list.start', $app->getUserStateFromRequest($context.'list.start', 'limitstart', 0, 'int'));
-		$this->setState('list.limit', $app->getUserStateFromRequest($context.'list.limit', 'limit', $app->getCfg('list_limit', 25), 'int'));
-		$this->setState('list.ordering', $app->getUserStateFromRequest($context.'list.ordering', 'filter_order', 'a.id', 'cmd'));
-		$this->setState('list.direction', $app->getUserStateFromRequest($context.'list.direction', 'filter_order_Dir', 'ASC', 'word'));
+		// Join over the users for the checked out user.
+		$query->select('uc.name AS editor');
+		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
 
-		// Load the user parameters.
-		$this->setState('user',	$user);
-		$this->setState('user.id', (int) $user->id);
-		$this->setState('user.aid', (int )$user->get('aid'));
+		// Join over the asset groups.
+		$query->select('ag.title AS access_level');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
 
-		// Load the check parameters.
-		if ($this->_state->get('filter.state') === '*') {
-			$this->setState('check.state', false);
-		} else {
-			$this->setState('check.state', true);
+		// Join over the categories.
+		$query->select('c.title AS category_title');
+		$query->join('LEFT', '#__categories AS c ON c.id = a.catid');
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access')) {
+			$query->where('a.access = '.(int) $access);
 		}
 
-		// Load the parameters.
-		$this->setState('params', $params);
-	}
+		// Filter by published state
+		$published = $this->getState('filter.state');
+		if (is_numeric($published)) {
+			$query->where('a.state = '.(int) $published);
+		} else if ($published === '') {
+			$query->where('(a.state IN (0, 1))');
+		}
 
-	function setStates($cid, $state = 0)
-	{
-		$user = &JFactory::getUser();
+		// Filter by category.
+		$categoryId = $this->getState('filter.category_id');
+		if (is_numeric($categoryId)) {
+			$query->where('a.catid = '.(int) $categoryId);
+		}
 
-		// Get a labels row instance.
-		$table = JTable::getInstance('Weblink', 'WeblinksTable');
-
-		// Update the state for each row
-		for ($i=0; $i < count($cid); $i++)
-		{
-			// Load the row.
-			$table->load($cid[$i]);
-
-			// Make sure the label isn't checked out by someone else.
-			if ($table->checked_out != 0 && $table->checked_out != $user->id)
-			{
-				$this->setError(JText::sprintf('LABELS_LABEL_CHECKED_OUT', $cid[$i]));
-				return false;
-			}
-
-			// Check the current ordering.
-			if ($table->state != $state)
-			{
-				// Set the new ordering.
-				$table->state = $state;
-
-				// Save the row.
-				if (!$table->store()) {
-					$this->setError($this->_db->getErrorMsg());
-					return false;
-				}
+		// Filter by search in title
+		$search = $this->getState('filter.search');
+		if (!empty($search)) {
+			if (stripos($search, 'id:') === 0) {
+				$query->where('a.id = '.(int) substr($search, 3));
+			} else {
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
 			}
 		}
 
-		return true;
+		// Add the list ordering clause.
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+
+		//echo nl2br(str_replace('#__','jos_',$query));
+		return $query;
 	}
 }

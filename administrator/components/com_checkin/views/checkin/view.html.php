@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Checkin
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	Checkin
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die();
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
@@ -22,65 +22,29 @@ jimport('joomla.application.component.view');
  */
 class CheckinViewCheckin extends JView
 {
-	protected $rows;
+	protected $tables;
 
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
-		global $mainframe, $option;
+		$model = $this->getModel();
+		$tables = $model->checkin();
 
-		// get parameters from the URL or submitted form
-		$db			= &JFactory::getDBO();
-		$nullDate	= $db->getNullDate();
+		$this->assignRef('tables', $tables);
 
-		// Set toolbar items for the page
-		JToolBarHelper::title(JText::_('Global Check-in'), 'checkin.png');
-		JToolBarHelper::help('screen.checkin');
-
-		$tables = $db->getTableList();
-		foreach ($tables as $tn) {
-			// make sure we get the right tables based on prefix
-			if (!preg_match("/^".$mainframe->getCfg('dbprefix')."/i", $tn)) {
-				continue;
-			}
-			$fields = $db->getTableFields(array($tn));
-
-			$foundCO = false;
-			$foundCOT = false;
-			$foundE = false;
-
-			$foundCO	= isset($fields[$tn]['checked_out']);
-			$foundCOT	= isset($fields[$tn]['checked_out_time']);
-			$foundE		= isset($fields[$tn]['editor']);
-
-			if ($foundCO && $foundCOT) {
-				if ($foundE) {
-					$query = 'SELECT checked_out, editor FROM '.$tn.' WHERE checked_out > 0';
-				} else {
-					$query = 'SELECT checked_out FROM '.$tn.' WHERE checked_out > 0';
-				}
-				$db->setQuery($query);
-				$res = $db->query();
-				$num = $db->getNumRows($res);
-
-				if ($foundE) {
-					$query = 'UPDATE '.$tn.' SET checked_out = 0, checked_out_time = '.$db->Quote($nullDate).', editor = NULL WHERE checked_out > 0';
-				} else {
-					$query = 'UPDATE '.$tn.' SET checked_out = 0, checked_out_time = '.$db->Quote($nullDate).' WHERE checked_out > 0';
-				}
-				$db->setQuery($query);
-				$res = $db->query();
-
-				if ($res == 1) {
-					$rows[] = array(
-							'table' => $tn,
-							'checked_in' => $num,
-					);
-				}
-			}
-		}
-
-		$this->assignRef('rows',		$rows);
-
+		$this->_setToolbar();
 		parent::display($tpl);
+	}
+	/**
+	 * Display the toolbar
+	 */
+	protected function _setToolbar()
+	{
+		JToolBarHelper::title(JText::_('COM_CHECKIN_GLOBAL_CHECK_IN'), 'checkin.png');
+		if (JFactory::getUser()->authorise('core.admin', 'com_checkin'))
+		{
+			JToolBarHelper::preferences('com_checkin');
+			JToolBarHelper::divider();
+		}
+		JToolBarHelper::help('screen.checkin','JTOOLBAR_HELP');
 	}
 }

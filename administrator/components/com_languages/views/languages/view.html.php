@@ -1,66 +1,100 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Administrator
-* @subpackage	Languages
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die;
 
-jimport( 'joomla.application.component.view');
+jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the Languages component
+ * HTML Languages View class for the Languages component
  *
- * @static
  * @package		Joomla.Administrator
- * @subpackage	Languages
- * @since 1.0
+ * @subpackage	com_languages
+ * @since		1.6
  */
 class LanguagesViewLanguages extends JView
 {
-	protected $client;
-	protected $ftp;
-	protected $filter;
-	protected $pagination;
-	protected $rows;
-	protected $user;
+	/**
+	 * @var array languages information
+	 */
+	protected $rows=null;
+
+	/**
+	 * @var object pagination information
+	 */
+	protected $pagination=null;
+
+	/**
+	 * @var boolean|JExeption True, if FTP settings should be shown, or an exeption
+	 */
+	protected $ftp = null;
+
+	/**
+	 * @var object client object
+	 */
+	protected $client = null;
+
+	/**
+	 * @var object user object
+	 */
+	protected $user = null;
+
+	/**
+	 * @var string option name
+	 */
+	protected $option = null;
+
+
+	/**
+	 * Display the view
+	 */
 	function display($tpl = null)
 	{
-		// Set toolbar items for the page
-		JToolBarHelper::title( JText::_( 'Language Manager' ), 'langmanager.png' );
-		JToolBarHelper::makeDefault( 'publish' );
-		JToolBarHelper::help( 'screen.languages' );
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
-		// Set FTP credentials, if given
-		jimport('joomla.client.helper');
-		$ftp =& JClientHelper::setCredentialsFromRequest('ftp');
-
-		// Get data from the model
-		$rows		= & $this->get( 'Data');
-		$total		= & $this->get( 'Total');
-		$pagination = & $this->get( 'Pagination' );
-		$filter		= & $this->get( 'Filter');
-		$client		= & $this->get( 'Client');
-
-		if ($client->id == 1) {
-			JSubMenuHelper::addEntry(JText::_('Site'),'#" onclick="javascript:document.adminForm.client.value=\'0\';submitbutton(\'\');');
-			JSubMenuHelper::addEntry(JText::_('Administrator'), '#" onclick="javascript:document.adminForm.client.value=\'1\';submitbutton(\'\');', true );
-		} else {
-			JSubMenuHelper::addEntry(JText::_('Site'), '#" onclick="javascript:document.adminForm.client.value=\'0\';submitbutton(\'\');', true );
-			JSubMenuHelper::addEntry(JText::_('Administrator'), '#" onclick="javascript:document.adminForm.client.value=\'1\';submitbutton(\'\');');
+		// Check for errors.
+		if (count($errors = $this->get('Errors'))) {
+			JError::raiseError(500, implode("\n", $errors));
+			return false;
 		}
 
-		$this->assignRef('user',		JFactory::getUser());
-		$this->assignRef('rows',		$rows);
-		$this->assignRef('pagination',	$pagination);
-		$this->assignRef('filter',		$filter);
-		$this->assignRef('ftp',			$ftp);
-		$this->assignRef('client',		$client);
+		$this->assignRef('state',			$state);
+		$this->assignRef('items',			$items);
+		$this->assignRef('pagination',		$pagination);
 
 		parent::display($tpl);
+		$this->_setToolbar();
+	}
+
+	/**
+	 * Setup the Toolbar
+	 *
+	 * @since	1.6
+	 */
+	protected function _setToolBar()
+	{
+		JToolBarHelper::title(JText::_('COM_LANGS_VIEW_LANGUAGES_TITLE'), 'generic.png');
+		JToolBarHelper::addNew('language.add','JTOOLBAR_NEW');
+				JToolBarHelper::editList('language.edit','JTOOLBAR_EDIT');
+				JToolBarHelper::divider();
+		JToolBarHelper::publishList('languages.publish','JTOOLBAR_PUBLISH');
+		JToolBarHelper::unpublishList('languages.unpublish','JTOOLBAR_UNPUBLISH');
+		if ($this->state->get('filter.published') == -2) {
+			JToolBarHelper::deleteList('', 'languages.delete', 'JToolbar_Empty_trash');
+		}
+		else {
+			JToolBarHelper::trash('languages.trash','JTOOLBAR_TRASH');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::preferences('com_languages');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.languages','JTOOLBAR_HELP');
 	}
 }

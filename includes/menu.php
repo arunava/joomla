@@ -1,76 +1,77 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.Framework
- * @subpackage	Application
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
-// No direct access
-defined('JPATH_BASE') or die();
+// No direct access.
+defined('_JEXEC') or die;
 
 /**
  * JMenu class
  *
- * @package		Joomla.Framework
+ * @package		Joomla.Site
  * @subpackage	Application
  * @since		1.5
  */
 class JMenuSite extends JMenu
 {
 	/**
-	 * Loads the entire menu table into memory
+	 * Loads the entire menu table into memory.
 	 *
-	 * @access public
 	 * @return array
 	 */
-	function load()
+	public function load()
 	{
-		// Initialize some variables
-		$db		= & JFactory::getDBO();
+		$cache = &JFactory::getCache('_system', 'output');
 
-		$sql	= 'SELECT m.*, c.`option` as component' .
-				' FROM #__menu AS m' .
-				' LEFT JOIN #__components AS c ON m.componentid = c.id'.
-				' WHERE m.published = 1'.
-				' ORDER BY m.sublevel, m.parent, m.ordering';
-		$db->setQuery($sql);
+		if (!$data = $cache->get('menu_items')) {
+			// Initialise variables.
+			$db		= JFactory::getDbo();
+			$query	= $db->getQuery(true);
 
-		if (!($menus = $db->loadObjectList('id'))) {
-			JError::raiseWarning('SOME_ERROR_CODE', "Error loading Menus: ".$db->getErrorMsg());
-			return false;
-		}
+			$query->select('m.id, m.menutype, m.title, m.alias, m.path AS route, m.link, m.type, m.level');
+			$query->select('m.browserNav, m.access, m.params, m.home, m.img, m.template_style_id, m.component_id, m.parent_id');
+			$query->select('e.element as component');
+			$query->from('#__menu AS m');
+			$query->leftJoin('#__extensions AS e ON m.component_id = e.extension_id');
+			$query->where('m.published = 1');
+			$query->where('m.parent_id > 0');
+			$query->order('m.lft');
 
-		foreach($menus as $key => $menu)
-		{
-			//Get parent information
-			$parent_route = '';
-			$parent_tree  = array();
-			if(($parent = $menus[$key]->parent) && (isset($menus[$parent])) &&
-				(is_object($menus[$parent])) && (isset($menus[$parent]->route)) && isset($menus[$parent]->tree)) {
-				$parent_route = $menus[$parent]->route.'/';
-				$parent_tree  = $menus[$parent]->tree;
+			$db->setQuery($query);
+			if (!($menus = $db->loadObjectList('id'))) {
+				JError::raiseWarning(500, "Error loading Menus: ".$db->getErrorMsg());
+				return false;
 			}
 
-			//Create tree
-			array_push($parent_tree, $menus[$key]->id);
-			$menus[$key]->tree   = $parent_tree;
+			foreach ($menus as &$menu) {
+				// Get parent information.
+				$parent_tree = array();
+				if (($parent = $menu->parent_id) && (isset($menus[$parent])) &&
+					(is_object($menus[$parent])) && (isset($menus[$parent]->route)) && isset($menus[$parent]->tree)) {
+					$parent_tree  = $menus[$parent]->tree;
+				}
 
-			//Create route
-			$route = $parent_route.$menus[$key]->alias;
-			$menus[$key]->route  = $route;
+				// Create tree.
+				array_push($parent_tree, $menu->id);
+				$menu->tree = $parent_tree;
 
-			//Create the query array
-			$url = str_replace('index.php?', '', $menus[$key]->link);
-			if(strpos($url, '&amp;') !== false)
-			{
-				$url = str_replace('&amp;','&',$url);
+				// Create the query array.
+				$url = str_replace('index.php?', '', $menu->link);
+				if (strpos($url, '&amp;') !== false) {
+					$url = str_replace('&amp;','&',$url);
+				}
+
+				parse_str($url, $menu->query);
 			}
 
-			parse_str($url, $menus[$key]->query);
-		}
+			$cache->store(serialize($menus), 'menu_items');
 
-		$this->_items = $menus;
+			$this->_items = $menus;
+		} else {
+			$this->_items = unserialize($data);
+		}
 	}
 }

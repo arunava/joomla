@@ -1,39 +1,36 @@
 <?php
 /**
  * @version		$Id$
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+// No direct access
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.view');
 
 /**
- * HTML View class for the WebLinks component
+ * View class for a list of weblinks.
  *
  * @package		Joomla.Administrator
- * @subpackage	Weblinks
+ * @subpackage	com_weblinks
  * @since		1.5
  */
 class WeblinksViewWeblinks extends JView
 {
-	public $state;
-	public $items;
-	public $pagination;
-	public $filter_state;
+	protected $state;
+	protected $items;
+	protected $pagination;
 
 	/**
 	 * Display the view
-	 *
-	 * @return	void
 	 */
 	public function display($tpl = null)
 	{
-		$state		= &$this->get('State');
-		$items		= &$this->get('Items');
-		$pagination = &$this->get('Pagination');
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -41,12 +38,12 @@ class WeblinksViewWeblinks extends JView
 			return false;
 		}
 
-		$this->assignRef('state',			$state);
-		$this->assignRef('items',			$items);
-		$this->assignRef('pagination',		$pagination);
+		$this->assignRef('state',		$state);
+		$this->assignRef('items',		$items);
+		$this->assignRef('pagination',	$pagination);
 
-		parent::display($tpl);
 		$this->_setToolbar();
+		parent::display($tpl);
 	}
 
 	/**
@@ -54,18 +51,38 @@ class WeblinksViewWeblinks extends JView
 	 */
 	protected function _setToolbar()
 	{
-		JToolBarHelper::title(JText::_('Weblinks_Manager_Weblinks'), 'generic.png');
-		JToolBarHelper::publishList('weblinks.publish');
-		JToolBarHelper::unpublishList('weblinks.unpublish');
-		if ($this->state->get('filter.state') == -2) {
-			JToolBarHelper::deleteList('', 'weblinks.delete', 'JToolbar_Empty_trash');
+		require_once JPATH_COMPONENT.DS.'helpers'.DS.'weblinks.php';
+
+		$state	= $this->get('State');
+		$canDo	= WeblinksHelper::getActions($state->get('filter.category_id'));
+
+		JToolBarHelper::title(JText::_('COM_WEBLINKS_MANAGER_WEBLINKS'), 'generic.png');
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::addNew('weblink.add','JTOOLBAR_NEW');
 		}
-		else {
-			JToolBarHelper::trash('weblinks.trash');
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::editList('weblink.edit','JTOOLBAR_EDIT');
 		}
-		JToolBarHelper::editListX('weblink.edit');
-		JToolBarHelper::addNewX('weblink.add');
-		JToolBarHelper::preferences('com_weblinks', '480', '570', 'JToolbar_Options');
-		JToolBarHelper::help('screen.weblink');
+		JToolBarHelper::divider();
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::custom('weblinks.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
+			JToolBarHelper::custom('weblinks.unpublish', 'unpublish.png', 'unpublish_f2.png','JTOOLBAR_UNPUBLISH', true);
+			JToolBarHelper::divider();
+			if ($state->get('filter.published') != -1) {
+				JToolBarHelper::archiveList('weblinks.archive','JTOOLBAR_ARCHIVE');
+			}
+		}
+		if ($state->get('filter.published') == -2 && $canDo->get('core.delete')) {
+			JToolBarHelper::deleteList('', 'weblinks.delete','JTOOLBAR_EMPTY_TRASH');
+		}
+		else if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::trash('weblinks.trash','JTOOLBAR_TRASH');
+		}
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::divider();
+			JToolBarHelper::preferences('com_weblinks');
+		}
+		JToolBarHelper::divider();
+		JToolBarHelper::help('screen.weblink','JTOOLBAR_HELP');
 	}
 }

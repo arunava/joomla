@@ -1,14 +1,14 @@
 <?php
 /**
-* @version		$Id$
-* @package		Joomla.Framework
-* @subpackage	Cache
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id$
+ * @package		Joomla.Framework
+ * @subpackage	Cache
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
  * Joomla! Cache page type object
@@ -19,8 +19,21 @@ defined('JPATH_BASE') or die();
  */
 class JCachePage extends JCache
 {
-	protected $_id = null;
-	protected $_group = null;
+	/**
+	 * ID property for the cache page object.
+	 *
+	 * @var		integer
+	 * @since	1.6
+	 */
+	protected $id;
+
+	/**
+	 * Cache group
+	 *
+	 * @var		string
+	 * @since	1.6
+	 */
+	protected $group;
 
 	/**
 	 * Get the cached page data
@@ -31,9 +44,9 @@ class JCachePage extends JCache
 	 * @return	boolean	True if the cache is hit (false else)
 	 * @since	1.5
 	 */
-	public function get($id=false, $group='page')
+	function get($id=false, $group='page')
 	{
-		// Initialize variables
+		// Initialise variables.
 		$data = false;
 
 		// If an id is not given generate it from the request
@@ -61,8 +74,8 @@ class JCachePage extends JCache
 		}
 
 		// Set id and group placeholders
-		$this->_id	= $id;
-		$this->_group	= $group;
+		$this->id		= $id;
+		$this->group	= $group;
 		return false;
 	}
 
@@ -73,16 +86,16 @@ class JCachePage extends JCache
 	 * @return	boolean	True if cache stored
 	 * @since	1.5
 	 */
-	public function store()
+	function store()
 	{
 		// Get page data from JResponse body
 		$data = JResponse::getBody();
 
 		// Get id and group and reset them placeholders
-		$id		= $this->_id;
-		$group	= $this->_group;
-		$this->_id		= null;
-		$this->_group	= null;
+		$id		= $this->id;
+		$group	= $this->group;
+		$this->id		= null;
+		$this->group	= null;
 
 		// Only attempt to store if page data exists
 		if ($data) {
@@ -99,7 +112,7 @@ class JCachePage extends JCache
 	 * @return	string	MD5 Hash : page cache id
 	 * @since	1.5
 	 */
-	protected function _makeId()
+	function _makeId()
 	{
 		return md5(JRequest::getURI());
 	}
@@ -111,13 +124,13 @@ class JCachePage extends JCache
 	 * @return	void
 	 * @since	1.5
 	 */
-	protected function _noChange()
+	function _noChange()
 	{
-		$appl = JFactory::getApplication();
+		$app = &JFactory::getApplication();
 
 		// Send not modified header and exit gracefully
 		header('HTTP/1.x 304 Not Modified', true);
-		$appl->close();
+		$app->close();
 	}
 
 	/**
@@ -127,7 +140,7 @@ class JCachePage extends JCache
 	 * @return	void
 	 * @since	1.5
 	 */
-	protected function _setEtag($etag)
+	function _setEtag($etag)
 	{
 		JResponse::setHeader('ETag', $etag, true);
 	}

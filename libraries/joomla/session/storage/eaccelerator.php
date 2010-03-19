@@ -1,23 +1,23 @@
 <?php
 /**
-* @version		$Id:eaccelerator.php 6961 2007-03-15 16:06:53Z tcp $
-* @package		Joomla.Framework
-* @subpackage	Session
-* @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
-* @license		GNU General Public License, see LICENSE.php
-*/
+ * @version		$Id:eaccelerator.php 6961 2007-03-15 16:06:53Z tcp $
+ * @package		Joomla.Framework
+ * @subpackage	Session
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 // No direct access
-defined('JPATH_BASE') or die();
+defined('JPATH_BASE') or die;
 
 /**
 * eAccelerator session storage handler for PHP
 *
-* @package		Joomla.Framework
-* @subpackage	Session
-* @since		1.5
+ * @package		Joomla.Framework
+ * @subpackage	Session
+ * @since		1.5
 * @see http://www.php.net/manual/en/function.session-set-save-handler.php
-*/
+ */
 class JSessionStorageEaccelerator extends JSessionStorage
 {
 	/**
@@ -26,11 +26,12 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	* @access protected
 	* @param array $options optional parameters
 	*/
-	protected function __construct($options = array())
+	function __construct($options = array())
 	{
-		if (!self::test()) {
-			throw new JException("The eaccelerator extension isn't available", 500, E_ERROR);
+		if (!$this->test()) {
+			return JError::raiseError(404, "THE_EACCELERATOR_EXTENSION_IS_NOT_AVAILABLE");
 		}
+
 		parent::__construct($options);
 	}
 
@@ -38,11 +39,11 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * Open the SessionHandler backend.
 	 *
 	 * @access public
-	 * @param string $save_path	 The path to the session object.
+	 * @param string $save_path	The path to the session object.
 	 * @param string $session_name  The name of the session.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function open($save_path, $session_name)
+	function open($save_path, $session_name)
 	{
 		return true;
 	}
@@ -53,20 +54,20 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function close()
+	function close()
 	{
 		return true;
 	}
 
- 	/**
- 	 * Read the data for a particular session identifier from the
- 	 * SessionHandler backend.
- 	 *
- 	 * @access public
- 	 * @param string $id  The session identifier.
- 	 * @return string  The session data.
- 	 */
-	public function read($id)
+	/**
+	 * Read the data for a particular session identifier from the
+	 * SessionHandler backend.
+	 *
+	 * @access public
+	 * @param string $id  The session identifier.
+	 * @return string  The session data.
+	 */
+	function read($id)
 	{
 		$sess_id = 'sess_'.$id;
 		return (string) eaccelerator_get($sess_id);
@@ -80,7 +81,7 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * @param string $session_data  The session data.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function write($id, $session_data)
+	function write($id, $session_data)
 	{
 		$sess_id = 'sess_'.$id;
 		return eaccelerator_put($sess_id, $session_data, ini_get("session.gc_maxlifetime"));
@@ -94,7 +95,7 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * @param string $id  The session identifier.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function destroy($id)
+	function destroy($id)
 	{
 		$sess_id = 'sess_'.$id;
 		return eaccelerator_rm($sess_id);
@@ -107,7 +108,7 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * @param integer $maxlifetime  The maximum age of a session.
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public function gc($maxlifetime)
+	function gc($maxlifetime)
 	{
 		eaccelerator_gc();
 		return true;
@@ -120,7 +121,7 @@ class JSessionStorageEaccelerator extends JSessionStorage
 	 * @access public
 	 * @return boolean  True on success, false otherwise.
 	 */
-	public static function test() {
+	function test() {
 		return (extension_loaded('eaccelerator') && function_exists('eaccelerator_get'));
 	}
 }

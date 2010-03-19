@@ -3,9 +3,9 @@
  * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	FileSystem
- * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License, see LICENSE.php
-  */
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ */
 
 /** boolean True if a Windows based host */
 define('JPATH_ISWIN', (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'));
@@ -22,28 +22,16 @@ if (!defined('JPATH_ROOT')) {
 	define('JPATH_ROOT', JPath::clean(JPATH_SITE));
 }
 
-jimport('joomla.filesystem.filesystem');
-
 /**
  * A Path handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
-abstract class JPath
+class JPath
 {
-
-	private static $filesystem = null;
-
-	protected static function &getFileSystem() {
-		if (!is_object(JPath::$filesystem)) {
-			JPath::$filesystem = JFileSystem::getInstance();
-		}
-		return JPath::$filesystem;
-	}
-
 	/**
 	 * Checks if a path's permissions can be changed
 	 *
@@ -51,15 +39,14 @@ abstract class JPath
 	 * @return	boolean	True if path can have mode changed
 	 * @since	1.5
 	 */
-	public static function canChmod($path)
+	function canChmod($path)
 	{
-		$backend = JPath::getFileSystem();
-		$perms = $backend->perms($path);
+		$perms = fileperms($path);
 		if ($perms !== false)
 		{
-			if ($backend->chmod($path, $perms ^ 0001))
+			if (@ chmod($path, $perms ^ 0001))
 			{
-				$backend->chmod($path, $perms);
+				@chmod($path, $perms);
 				return true;
 			}
 		}
@@ -75,9 +62,9 @@ abstract class JPath
 	 * @return	boolean	True if successful [one fail means the whole operation failed]
 	 * @since	1.5
 	 */
-	public static function setPermissions($path, $filemode = '0644', $foldermode = '0755') {
-		$backend = JPath::getFileSystem();
-		// Initialize return value
+	function setPermissions($path, $filemode = '0644', $foldermode = '0755') {
+
+		// Initialise return value
 		$ret = true;
 
 		if (is_dir($path))
@@ -93,7 +80,7 @@ abstract class JPath
 						}
 					} else {
 						if (isset ($filemode)) {
-							if (!$backend->chmod($fullpath, octdec($filemode))) {
+							if (!@ chmod($fullpath, octdec($filemode))) {
 								$ret = false;
 							}
 						}
@@ -102,7 +89,7 @@ abstract class JPath
 			} // while
 			closedir($dh);
 			if (isset ($foldermode)) {
-				if (!$backend->chmod($path, octdec($foldermode))) {
+				if (!@ chmod($path, octdec($foldermode))) {
 					$ret = false;
 				}
 			}
@@ -110,7 +97,7 @@ abstract class JPath
 		else
 		{
 			if (isset ($filemode)) {
-				$ret = $backend->chmod($path, octdec($filemode));
+				$ret = @ chmod($path, octdec($filemode));
 			}
 		} // if
 		return $ret;
@@ -123,11 +110,10 @@ abstract class JPath
 	 * @return	string	Filesystem permissions
 	 * @since	1.5
 	 */
-	public static function getPermissions($path)
+	function getPermissions($path)
 	{
-		$backend = JPath::getFileSystem();
 		$path = JPath::clean($path);
-		$mode = @ decoct($backend->perms($path) & 0777);
+		$mode = @ decoct(@ fileperms($path) & 0777);
 
 		if (strlen($mode) < 3) {
 			return '---------';
@@ -168,7 +154,6 @@ abstract class JPath
 	/**
 	 * Function to strip additional / or \ in a path name
 	 *
-	 * @static
 	 * @param	string	$path	The path to clean
 	 * @param	string	$ds		Directory separator (optional)
 	 * @return	string	The cleaned path
@@ -191,14 +176,12 @@ abstract class JPath
 	/**
 	 * Method to determine if script owns the path
 	 *
-	 * @static
 	 * @param	string	$path	Path to check ownership
 	 * @return	boolean	True if the php script owns the path passed
 	 * @since	1.5
 	 */
 	public static function isOwner($path)
 	{
-		$backend = JPath::getFileSystem();
 		jimport('joomla.filesystem.file');
 		jimport('joomla.user.helper');
 
@@ -217,10 +200,10 @@ abstract class JPath
 
 			// Create the test file
 			$blank = '';
-			JFile::write($test, $blank);
+			JFile::write($test, $blank, false);
 
 			// Test ownership
-			$return = ($backend->owner($test) == $backend->owner($path));
+			$return = (fileowner($test) == fileowner($path));
 
 			// Delete the test file
 			JFile::delete($test);
@@ -234,7 +217,6 @@ abstract class JPath
 	/**
 	 * Searches the directory paths for a given file.
 	 *
-	 * @access	protected
 	 * @param	array|string	$path	An path or array of path to search in
 	 * @param	string	$file	The file name to look for.
 	 * @return	mixed	The full path and file name for the target file, or boolean false if the file is not found in any of the paths.
