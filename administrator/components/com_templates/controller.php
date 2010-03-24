@@ -59,7 +59,7 @@ class TemplatesController extends JController
 	*/
 	function preview()
 	{
-		JRequest::setVar('view', 'preview');
+		JRequest::setVar('view', 'prevuuw');
 		parent::display();
 	}
 }

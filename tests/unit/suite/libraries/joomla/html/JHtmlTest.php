@@ -21,7 +21,6 @@ class JHtmlTest extends JoomlaTestCase
 	 */
 	protected function setUp()
 	{
-//		$this->object = new JHtml;
 		$this->saveFactoryState();
 	}
 
@@ -164,8 +163,6 @@ class JHtmlTest extends JoomlaTestCase
 			$this->isFalse(),
 			'Unregister return true when it should have failed'
 		);		
-
-
 
 	}
 
@@ -571,4 +568,3 @@ class JHtmlTest extends JoomlaTestCase
 		);
 	}
 }
-?>
