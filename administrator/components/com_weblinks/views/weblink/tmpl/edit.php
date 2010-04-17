@@ -66,14 +66,14 @@ JHtml::_('behavior.formvalidation');
 	<fieldset class="adminform">
 		<legend><?php echo JText::_('COM_WEBLINKS_OPTIONS'); ?></legend>
 
-		<?php foreach($this->form->getFields('params') as $field): ?>
+		<?php foreach($this->form->getGroup('params') as $field): ?>
 			<?php if ($field->hidden): ?>
 				<?php echo $field->input; ?>
 			<?php else: ?>
-			<div class="paramrow">
+			
 				<?php echo $field->label; ?>
 				<?php echo $field->input; ?>
-			</div>
+			
 			<?php endif; ?>
 		<?php endforeach; ?>
 

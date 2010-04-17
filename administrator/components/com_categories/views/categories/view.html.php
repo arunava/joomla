@@ -41,9 +41,7 @@ class CategoriesViewCategories extends JView
 		// Preprocess the list of items to find ordering divisions.
 		foreach ($items as $i => &$item)
 		{
-			// TODO: Complete the ordering stuff with nested sets
-			$item->order_up = true;
-			$item->order_dn = true;
+			$this->ordering[$item->parent_id][] = $item->id;
 		}
 
 		$this->assignRef('state',		$state);
@@ -65,10 +63,10 @@ class CategoriesViewCategories extends JView
 
 		// Need to load the menu language file as mod_menu hasn't been loaded yet.
 		$lang = &JFactory::getLanguage();
-			$lang->load($component.'.menu', JPATH_BASE, null, false, false)
-		||	$lang->load($component.'.menu', JPATH_ADMINISTRATOR.'/components/'.$component, null, false, false)
-		||	$lang->load($component.'.menu', JPATH_BASE, $lang->getDefault(), false, false)
-		||	$lang->load($component.'.menu', JPATH_ADMINISTRATOR.'/components/'.$component, $lang->getDefault(), false, false);
+			$lang->load($component.'.sys', JPATH_BASE, null, false, false)
+		||	$lang->load($component.'.sys', JPATH_ADMINISTRATOR.'/components/'.$component, null, false, false)
+		||	$lang->load($component.'.sys', JPATH_BASE, $lang->getDefault(), false, false)
+		||	$lang->load($component.'.sys', JPATH_ADMINISTRATOR.'/components/'.$component, $lang->getDefault(), false, false);
 
 		JToolBarHelper::title(
 			JText::sprintf(
@@ -82,18 +80,18 @@ class CategoriesViewCategories extends JView
 		JToolBarHelper::divider();
 		JToolBarHelper::custom('categories.publish', 'publish.png', 'publish_f2.png', 'JTOOLBAR_PUBLISH', true);
 		JToolBarHelper::custom('categories.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_UNPUBLISH', true);
-		if ($state->get('filter.published') != -1) {
-			JToolBarHelper::divider();
+		JToolBarHelper::divider();
+		if ($state->get('filter.published') != 2) {
 			JToolBarHelper::archiveList('categories.archive','JTOOLBAR_ARCHIVE');
 		}
-		if ($state->get('filter.published') == -2) {
+		if ($state->get('filter.published') == -2 && JFactory::getUser()->authorise('core.delete', 'com_content')) {
 			JToolBarHelper::deleteList('', 'categories.delete','JTOOLBAR_EMPTY_TRASH');
 		}
 		else {
 			JToolBarHelper::trash('categories.trash','JTOOLBAR_TRASH');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::custom('categories.rebuild', 'refresh.png', 'refresh_f2.png', 'JToolbar_Rebuild', false);
+		JToolBarHelper::custom('categories.rebuild', 'refresh.png', 'refresh_f2.png', 'JTOOLBAR_REBUILD', false);
 		JToolBarHelper::divider();
 		JToolBarHelper::help('screen.categories','JTOOLBAR_HELP');
 

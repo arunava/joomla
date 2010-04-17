@@ -40,11 +40,10 @@ class UsersModelReset extends JModelForm
 	function &getForm()
 	{
 		// Get the form.
-		$form = parent::getForm('reset_request', 'com_users.reset_request', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		try {
+			$form = parent::getForm('com_users.reset_request', 'reset_request', array('control' => 'jform'));
+		} catch (Exception $e) {
+			$this->setError($e->getMessage());
 			return false;
 		}
 
@@ -111,7 +110,7 @@ class UsersModelReset extends JModelForm
 		$config	= &JFactory::getConfig();
 
 		// Get the form.
-		$form = &$this->getForm();
+		$form = &$this->getResetRequestForm();
 
 		// Check for an error.
 		if (JError::isError($form)) {
@@ -142,7 +141,7 @@ class UsersModelReset extends JModelForm
 
 		// Make sure the user exists.
 		if (empty($userId)) {
-			$this->setError(JText::_('COM_USERS_USER_NOT_FOUND'));
+			$this->setError(JText::_('USERS_USER_NOT_FOUND'));
 			return false;
 		}
 
@@ -151,7 +150,7 @@ class UsersModelReset extends JModelForm
 
 		// Make sure the user isn't blocked.
 		if ($user->block) {
-			$this->setError(JText::_('COM_USERS_USER_BLOCKED'));
+			$this->setError(JText::_('USERS_USER_BLOCKED'));
 			return false;
 		}
 
@@ -161,24 +160,22 @@ class UsersModelReset extends JModelForm
 
 		// Save the user to the database.
 		if (!$user->save(true)) {
-			return new JException(JText::sprintf('COM_USERS_USER_SAVE_FAILED', $user->getError()), 500);
+			return new JException(JText::sprintf('USERS_USER_SAVE_FAILED', $user->getError()), 500);
 		}
 
 		// Assemble the password reset confirmation link.
-		$mode = $config->getValue('force_ssl', 0) == 2 ? 1 : -1;
+		$mode = $config->get('force_ssl', 0) == 2 ? 1 : -1;
 		$link = 'index.php?option=com_users&task=reset.confirm&username='.$user->username.'&token='.$token.'&'.JUtility::getToken(true).'=1';
 
 		// Put together the e-mail template data.
 		$data = $user->getProperties();
-		$data['fromname']	= $config->getValue('fromname');
-		$data['mailfrom']	= $config->getValue('mailfrom');
-		$data['sitename']	= $config->getValue('sitename');
+		$data['fromname']	= $config->get('fromname');
+		$data['mailfrom']	= $config->get('mailfrom');
+		$data['sitename']	= $config->get('sitename');
 		$data['link_text']	= JRoute::_($link, false, $mode);
 		$data['link_html']	= JRoute::_($link, true, $mode);
 		$data['token']		= $token;
-		$data['subject']	= JText::sprintf('COM_USERS_PASSWORD_RESET_MAIL_SUBJECT', $data['sitename']);
-		$data['text']		= JText::sprintf('COM_USERS_PASSWORD_RESET_MAIL_TEXT', $data['sitename'], $data['token'], $data['link_text']);
-/*
+
 		// Load the mail template.
 		jimport('joomla.utilities.simpletemplate');
 		$template = new JSimpleTemplate();
@@ -194,13 +191,13 @@ class UsersModelReset extends JModelForm
 		$toEmail	= $user->email;
 		$subject	= $template->getTitle();
 		$message	= $template->getHtml();
-*/
+
 		// Send the password reset request e-mail.
-		$return = JUtility::sendMail($data['mailfrom'], $data['fromname'], $data['email'], $data['subject'], $data['text']);
+		$return = JUtility::sendMail($data['mailfrom'], $data['fromname'], $toEmail, $subject, $message);
 
 		// Check for an error.
 		if ($return !== true) {
-			return new JException(JText::_('COM_USERS_PASSWORD_RESET_SENDMAIL_FAILED'), 500);
+			return new JException(JText::_('USERS_MAIL_FAILED'), 500);
 		}
 
 		return true;
@@ -247,18 +244,18 @@ class UsersModelReset extends JModelForm
 
 		// Check for an error.
 		if ($db->getErrorNum()) {
-			return new JException(JText::sprintf('COM_USERS_DATABASE_ERROR', $db->getErrorMsg()), 500);
+			return new JException(JText::sprintf('USERS_DATABASE_ERROR', $db->getErrorMsg()), 500);
 		}
 
 		// Check for a user.
 		if (empty($user)) {
-			$this->setError(JText::_('COM_USERS_USER_NOT_FOUND'));
+			$this->setError(JText::_('USERS_USER_NOT_FOUND'));
 			return false;
 		}
 
 		// Make sure the user isn't blocked.
 		if ($user->block) {
-			$this->setError(JText::_('COM_USERS_USER_BLOCKED'));
+			$this->setError(JText::_('USERS_USER_BLOCKED'));
 			return false;
 		}
 
@@ -305,7 +302,7 @@ class UsersModelReset extends JModelForm
 
 		// Check the token and user id.
 		if (empty($token) || empty($userId)) {
-			return new JException(JText::_('COM_USERS_PASSWORD_RESET_COMPLETE_TOKENS_MISSING'), 403);
+			return new JException(JText::_('USERS_RESET_COMPLETE_TOKENS_MISSING'), 403);
 		}
 
 		// Get the user object.
@@ -313,13 +310,13 @@ class UsersModelReset extends JModelForm
 
 		// Check for a user and that the tokens match.
 		if (empty($user) || $user->activation !== $token) {
-			$this->setError(JText::_('COM_USERS_USER_NOT_FOUND'));
+			$this->setError(JText::_('USERS_USER_NOT_FOUND'));
 			return false;
 		}
 
 		// Make sure the user isn't blocked.
 		if ($user->block) {
-			$this->setError(JText::_('COM_USERS_USER_BLOCKED'));
+			$this->setError(JText::_('USERS_USER_BLOCKED'));
 			return false;
 		}
 
@@ -336,7 +333,7 @@ class UsersModelReset extends JModelForm
 
 		// Save the user to the database.
 		if (!$user->save(true)) {
-			return new JException(JText::sprintf('COM_USERS_USER_SAVE_FAILED', $user->getError()), 500);
+			return new JException(JText::sprintf('USERS_USER_SAVE_FAILED', $user->getError()), 500);
 		}
 
 		// Flush the user data from the session.

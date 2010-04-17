@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+require_once(JPATH_COMPONENT.'/controller.php');
+
 /**
  * Registration controller class for Users.
  *
@@ -141,7 +143,7 @@ class UsersControllerUser extends UsersController
 			$app->setUserState('users.registration.form.data', $data);
 
 			// Redirect back to the registration form.
-			$message = JText::sprintf('COM_USERS_USER_REGISTRATION_FAILED', $model->getError());
+			$message = JText::sprintf('USERS REGISTRATION FAILED', $model->getError());
 			$this->setRedirect('index.php?option=com_users&view=registration', $message, 'error');
 			return false;
 		}
@@ -153,7 +155,7 @@ class UsersControllerUser extends UsersController
 	}
 
 	/**
-	 * Method to remind a user's username.
+	 * Method to login a user.
 	 *
 	 * @access	public
 	 * @since	1.0
@@ -164,7 +166,7 @@ class UsersControllerUser extends UsersController
 		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
 
 		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Remind', 'UsersModel');
+		$model	= &$this->getModel('User', 'UsersModel');
 		$data	= JRequest::getVar('jform', array(), 'post', 'array');
 
 		// Submit the username remind request.
@@ -177,7 +179,7 @@ class UsersControllerUser extends UsersController
 			if ($app->getCfg('error_reporting')) {
 				$message = $return->getMessage();
 			} else {
-				$message = JText::_('COM_USERS_USERNAME_REMIND_REQUEST_ERROR');
+				$message = JText::_('USERS_REMIND_REQUEST_ERROR');
 			}
 
 			// Get the route to the next page.
@@ -198,7 +200,7 @@ class UsersControllerUser extends UsersController
 			$route	= 'index.php?option=com_users&view=remind'.$itemid;
 
 			// Go back to the complete form.
-			$message = JText::sprintf('COM_USERS_USERNAME_REMIND_REQUEST_FAILED', $model->getError());
+			$message = JText::sprintf('USERS_REMIND_REQUEST_FAILED', $model->getError());
 			$this->setRedirect(JRoute::_($route, false), $message, 'notice');
 			return false;
 		}
@@ -211,73 +213,21 @@ class UsersControllerUser extends UsersController
 			$route	= 'index.php?option=com_users&view=login'.$itemid;
 
 			// Proceed to the login form.
-			$message = JText::_('COM_USERS_USERNAME_REMIND_REQUEST_SUCCESS');
+			$message = JText::_('USERS_REMIND_REQUEST_SUCCESS');
 			$this->setRedirect(JRoute::_($route, false), $message);
 			return true;
 		}
 	}
 
 	/**
-	 * Method to resend the user's activation link.
+	 * Method to login a user.
 	 *
 	 * @access	public
-	 * @since	1.6
+	 * @since	1.0
 	 */
 	function resend()
 	{
 		// Check for request forgeries
 		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Resend', 'UsersModel');
-		$data	= JRequest::getVar('jform', array(), 'post', 'array');
-
-		// Submit the username remind request.
-		$return	= $model->processResendRequest($data);
-
-		// Check for a hard error.
-		if (JError::isError($return))
-		{
-			// Get the error message to display.
-			if ($app->getCfg('error_reporting')) {
-				$message = $return->getMessage();
-			} else {
-				$message = JText::_('COM_USERS_ACTIVATION_LINK_RESEND_REQUEST_ERROR');
-			}
-
-			// Get the route to the next page.
-			$itemid = UsersHelperRoute::getResendRoute();
-			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
-			$route	= 'index.php?option=com_users&view=profile'.$itemid;
-
-			// Go back to the profile form.
-			$this->setRedirect(JRoute::_($route, false), $message, 'error');
-			return false;
-		}
-		// Complete failed.
-		elseif ($return === false)
-		{
-			// Get the route to the next page.
-			$itemid = UsersHelperRoute::getResendRoute();
-			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
-			$route	= 'index.php?option=com_users&view=profile'.$itemid;
-
-			// Go back to the profile form.
-			$message = JText::sprintf('COM_USERS_ACTIVATION_LINK_RESEND_REQUEST_FAILED', $model->getError());
-			$this->setRedirect(JRoute::_($route, false), $message, 'notice');
-			return false;
-		}
-		// Complete succeeded.
-		else
-		{
-			// Get the route to the next page.
-			$itemid = UsersHelperRoute::getLoginRoute();
-			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
-			$route	= 'index.php?option=com_users&view=profile'.$itemid;
-
-			// Proceed to the profile form.
-			$message = JText::_('COM_USERS_ACTIVATION_LINK_RESEND_REQUEST_SUCCESS');
-			$this->setRedirect(JRoute::_($route, false), $message);
-			return true;
-		}
 	}
 }
