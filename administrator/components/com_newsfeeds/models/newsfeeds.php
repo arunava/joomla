@@ -29,7 +29,7 @@ class NewsfeedsModelNewsfeeds extends JModelList
 	/**
 	 * Method to auto-populate the model state.
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
@@ -52,7 +52,7 @@ class NewsfeedsModelNewsfeeds extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.name', 'asc');
+		parent::populateState('a.name', 'asc');
 	}
 
 	/**
@@ -66,7 +66,7 @@ class NewsfeedsModelNewsfeeds extends JModelList
 	 *
 	 * @return	string	A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.search');
@@ -74,7 +74,7 @@ class NewsfeedsModelNewsfeeds extends JModelList
 		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.category_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
@@ -82,7 +82,7 @@ class NewsfeedsModelNewsfeeds extends JModelList
 	 *
 	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
 		$db		= $this->getDbo();
@@ -145,8 +145,13 @@ class NewsfeedsModelNewsfeeds extends JModelList
 			}
 		}
 
-		// Add the list ordering clause.
-		$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		if($this->getState('list.ordering', 'a.ordering') == 'a.ordering')
+		{
+			$query->order('category_title, '.$db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		} else {
+			// Add the list ordering clause.
+			$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).', a.ordering '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		}
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;

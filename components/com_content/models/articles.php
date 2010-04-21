@@ -31,7 +31,7 @@ class ContentModelArticles extends JModelList
 	 *
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app =& JFactory::getApplication();
 
@@ -53,10 +53,11 @@ class ContentModelArticles extends JModelList
 		$this->setState('list.direction', $orderDirn);
 
 		$params = $app->getParams();
-		$menuParams = new JParameter();
+		$menuParams = new JRegistry();
 		if (JSite::getMenu()->getActive())
 		{
-			$menuParams = new JParameter(JSite::getMenu()->getActive()->params);
+			$menuParams = new JRegistry();
+			$menuParams->loadJSON(JSite::getMenu()->getActive()->params);
 		}
 		$mergedParams = clone $menuParams;
 		$mergedParams->merge($params);
@@ -86,7 +87,7 @@ class ContentModelArticles extends JModelList
 	 *
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.published');
@@ -106,7 +107,7 @@ class ContentModelArticles extends JModelList
 		$id .= ':' . $this->getState('filter.end_date_range');
 		$id .= ':' . $this->getState('filter.relative_date');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
@@ -114,7 +115,7 @@ class ContentModelArticles extends JModelList
 	 *
 	 * @return	string
 	 */
-	function _getListQuery()
+	function getListQuery()
 	{
 		// Create a new query object.
 		$db = $this->getDbo();
@@ -374,10 +375,7 @@ class ContentModelArticles extends JModelList
 		// Convert the parameter fields into objects.
 		foreach ($items as & $item)
 		{
-			$articleParams = new JParameter;
-			/*
-			 *  TODO: investigate if it is better to sync the namespace usage in JRegistry and JParameter, if we let it unsync the we need to know what namespace are the Objects are using before we merge
-			 */
+			$articleParams = new JRegistry;
 			$articleParams->loadJSON($item->attribs);
 			
 			// Unpack readmore and layout params
@@ -389,7 +387,7 @@ class ContentModelArticles extends JModelList
 			// For blogs, article params override menu item params only if menu param = 'use_article'
 			// Otherwise, menu item params control the layout
 			// If menu item is 'use_article' and there is no article param, use global
-			if (JRequest::getString('layout') == 'blog' || JRequest::getString('view') == 'frontpage')
+			if (JRequest::getString('layout') == 'blog' || JRequest::getString('view') == 'featured')
 			{
 				// create an array of just the params set to 'use_article'
 				$menuParamsArray = $this->getState('params')->toArray();
@@ -412,9 +410,9 @@ class ContentModelArticles extends JModelList
 					}
 				}
 				// merge the selected article params
-				if (count($articleArray > 0))
+				if (count($articleArray) > 0)
 				{
-					$articleParams = new JParameter;
+					$articleParams = new JRegistry;
 					$articleParams->loadArray($articleArray);
 					$item->params->merge($articleParams);
 				}

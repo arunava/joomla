@@ -30,7 +30,7 @@ class ContactModelContacts extends JModelList
 	 *
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = JFactory::getApplication();
 
@@ -47,7 +47,7 @@ class ContactModelContacts extends JModelList
 		$this->setState('filter.category_id', $categoryId);
 
 		// List state information.
-		parent::_populateState('a.name', 'asc');
+		parent::populateState('a.name', 'asc');
 	}
 
 	/**
@@ -61,13 +61,13 @@ class ContactModelContacts extends JModelList
 	 *
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.search');
 		$id	.= ':'.$this->getState('filter.published');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
@@ -75,7 +75,7 @@ class ContactModelContacts extends JModelList
 	 *
 	 * @return	string
 	 */
-	function _getListQuery($resolveFKs = true)
+	function getListQuery($resolveFKs = true)
 	{
 		// Create a new query object.
 		$db = $this->getDbo();
@@ -135,9 +135,14 @@ class ContactModelContacts extends JModelList
 			}
 		}
 
-		// Add the list ordering clause.
-		$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
-
+			if($this->getState('list.ordering', 'ordering') == 'a.ordering')
+		{
+			$query->order('a.catid, '.$db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		} else {
+			// Add the list ordering clause.
+			$query->order($db->getEscaped($this->getState('list.ordering', 'a.ordering')).', ordering '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		}
+		
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
 	}

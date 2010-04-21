@@ -31,7 +31,7 @@ class BannersModelTracks extends JModelList
 	/**
 	 * Method to auto-populate the model state.
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
@@ -57,14 +57,14 @@ class BannersModelTracks extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('name', 'asc');
+		parent::populateState('name', 'asc');
 	}
 	/**
 	 * Build an SQL query to load the list data.
 	 *
 	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Get the application object
 		$app = &JFactory::getApplication();
@@ -379,7 +379,7 @@ class BannersModelTracks extends JModelList
 				str_replace('"','""',JText::_('JGRID_HEADING_CATEGORY')).'","'.
 				str_replace('"','""',JText::_('COM_BANNERS_HEADING_TYPE')).'","'.
 				str_replace('"','""',JText::_('COM_BANNERS_HEADING_COUNT')).'","'.
-				str_replace('"','""',JText::_('COM_BANNERS_HEADING_DATE')).'"'."\n";
+				str_replace('"','""',JText::_('JDATE')).'"'."\n";
 
 			foreach($this->getItems() as $item) {
 				$this->_content.=

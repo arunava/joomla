@@ -22,7 +22,7 @@ class RedirectModelLink extends JModelForm
 	/**
 	 * Method to auto-populate the model state.
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Get the application object.
 		$app = & JFactory::getApplication();
@@ -166,7 +166,7 @@ class RedirectModelLink extends JModelForm
 
 		// Bind the data.
 		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			$this->setError($table->getError());
 			return false;
 		}
 
@@ -207,7 +207,8 @@ class RedirectModelLink extends JModelForm
 	{
 		// Typecast variable.
 		$pks = (array) $pks;
-
+		$user	= JFactory::getUser();
+		
 		// Get a row instance.
 		$table = &$this->getTable();
 
@@ -303,13 +304,13 @@ class RedirectModelLink extends JModelForm
 		JArrayHelper::toInteger($pks);
 
 		// Populate default comment if necessary.
-		$comment = (!empty($comment)) ? $comment : JText::sprintf('COM_REDIR_REDIRECTED_ON', JHTML::_('date',time()));
+		$comment = (!empty($comment)) ? $comment : JText::sprintf('COM_REDIRECT_REDIRECTED_ON', JHTML::_('date',time()));
 
 		// Access checks.
 		if (!$user->authorise('core.edit', 'com_redirect'))
 		{
 			$pks = array();
-			$this->setError(JText::_('JERROR_CORE_EDIT_NOT_PERMITTED'));
+			$this->setError(JText::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'));
 			return false;
 		}
 

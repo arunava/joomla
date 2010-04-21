@@ -4,8 +4,9 @@
 	<fieldset name="details"
 		addfieldpath="/administrator/components/com_banners/models/fields"
 	>
-		<field name="id" type="hidden" default="0" required="true"
-			readonly="true" />
+		<field name="id" type="text" default="0" required="true"
+			readonly="true" class="readonly"
+			label="JGLOBAL_FIELD_ID_LABEL" 	description ="JGLOBAL_FIELD_ID_DESC" />
 
 		<field name="name" type="text" class="inputbox"
 			size="40" label="COM_BANNERS_FIELD_NAME_LABEL"
@@ -17,7 +18,7 @@
 
 		<field name="catid" type="category" extension="com_banners"
 			label="COM_BANNERS_FIELD_CATEGORY_LABEL" description="COM_BANNERS_FIELD_CATEGORY_DESC"
-			class="inputbox"
+			class="inputbox" required="true"
 		>
 			<option>JOPTION_NO_CATEGORY</option>
 		</field>
@@ -26,10 +27,10 @@
 			label="COM_BANNERS_FIELD_STATE_LABEL" description="COM_BANNERS_FIELD_STATE_DESC"
 			class="inputbox" size="1" default="1"
 		>
-			<option value="1">JOPTION_PUBLISHED</option>
-			<option value="0">JOPTION_UNPUBLISHED</option>
-			<option value="-1">JOPTION_ARCHIVED</option>
-			<option value="-2">JOPTION_TRASH</option>
+			<option value="1">JPUBLISHED</option>
+			<option value="0">JUNPUBLISHED</option>
+			<option value="-1">JARCHIVED</option>
+			<option value="-2">JTRASH</option>
 		</field>
 
 		<field name="cid" type="bannerclient"

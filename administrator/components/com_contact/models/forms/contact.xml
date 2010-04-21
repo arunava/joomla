@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
 	<fieldset>
-		<field name="id" type="hidden" class="inputbox"
-			label="Contact_Id_Label" size="10" default="0" required="true"
-			readonly="true" />
+		<field name="id" type="text" 
+			label="JGLOBAL_FIELD_ID_LABEL" description ="JGLOBAL_FIELD_ID_DESC"
+			size="10" default="0" required="true"
+			readonly="true" class="readonly" />
 
 		<field name="name" type="text"
 			label="COM_CONTACT_FIELD_NAME_LABEL" description="COM_CONTACT_FIELD_NAME_DESC"
@@ -20,13 +21,13 @@
 			class="inputbox" size="1" default="1"
 		>
 			<option value="1">
-				JOPTION_PUBLISHED</option>
+				JPUBLISHED</option>
 			<option value="0">
-				JOPTION_UNPUBLISHED</option>
+				JUNPUBLISHED</option>
 			<option value="-1">
-				JOPTION_ARCHIVED</option>
+				JARCHIVED</option>
 			<option value="-2">
-				JOPTION_TRASHED</option>
+				JTRASHED</option>
 			<option value="-3">
 				JOPTION_REPORTED</option>
 		</field>
@@ -106,7 +107,9 @@
 			description="COM_CONTACT_FIELD_INFORMATION_MISC_DESC"
 			class="inputbox" filter="safehtml" buttons="pagebreak,readmore"
 			size="30" />
-
+		<field name="image" type="imagelist" directory="/images"
+			label="COM_CONTACT_FIELD_PARAMS_IMAGE_LABEL" description="COM_CONTACT_FIELD_PARAMS_IMAGE_DESC" >
+		</field>
 		<field name="checked_out" type="hidden" filter="unset" />
 
 		<field name="checked_out_time" type="hidden" filter="unset" />
@@ -321,8 +324,8 @@
 
 			<field name="show_image" type="list"
 
-				label="COM_CONTACT_FIELD_PARAMS_IMAGE_LABEL"
-				description="COM_CONTACT_FIELD_PARAMS_IMAGE_DESC"
+				label="COM_CONTACT_FIELD_PARAMS_SHOW_IMAGE_LABEL"
+				description="COM_CONTACT_FIELD_PARAMS_SHOW_IMAGE_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>

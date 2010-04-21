@@ -37,7 +37,7 @@ class LanguagesModelLanguage extends JModelForm
 	 * @return	void
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app		= &JFactory::getApplication('administrator');
 		$params		= &JComponentHelper::getParams('com_languages');
@@ -136,7 +136,7 @@ class LanguagesModelLanguage extends JModelForm
 
 		// Bind the data
 		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			$this->setError($table->getError());
 			return false;
 		}
 

@@ -4,9 +4,9 @@
 	-->
 <form>
 	<fieldset>
-		<field name="id" type="hidden" class="inputbox"
-			label="Content_Id_Label" size="10" default="0" required="true"
-			readonly="true" />
+		<field name="id"  type="text" class="readonly"
+			label="CONTENT_ID_LABEL" size="10" default="0" 
+			readonly="true"  />
 
 		<field name="asset_id" type="hidden" filter="unset" />
 
@@ -26,13 +26,13 @@
 			filter="intval" size="1" default="1"
 		>
 			<option value="1">
-				JOption_Published</option>
+				JPUBLISHED</option>
 			<option value="0">
-				JOption_UnPublished</option>
+				JUNPUBLISHED</option>
 			<option value="-1">
-				JOption_Archived</option>
+				JARCHIVED</option>
 			<option value="-2">
-				JOption_Trashed</option>
+				JTRASHED</option>
 		</field>
 
 		<field name="catid" type="category" extension="com_content"
@@ -92,7 +92,7 @@
 		<field name="access" type="accesslevel" label="JField_Access_Label"
 			description="JField_Access_Desc" class="inputbox" size="1" />
 
-		<field name="hits" type="text" label="Content_Hits_Label"
+		<field name="hits" type="text" label="JGLOBAL_HITS"
 			description="Content_Hits_Desc" class="readonly" size="6"
 			readonly="true" filter="unset" />
 
@@ -289,7 +289,7 @@
 		</field>
 
 		<field name="author" type="text"
-			label="JField_Metadata_Author_Label" description="JField_Metadata_Author_Desc"
+			label="JAUTHOR" description="JField_Metadata_Author_Desc"
 			size="20" />
 
 		<field name="rights" type="textarea" label="JFIELD_META_RIGHTS_LABEL"

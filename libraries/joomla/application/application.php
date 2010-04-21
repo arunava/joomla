@@ -145,7 +145,7 @@ class JApplication extends JObject
 			}
 			else
 			{
-				$error = JError::raiseError(500, 'Unable to load application: '.$client);
+				$error = JError::raiseError(500, JText::sprintf('JLIB_APPLICATION_ERROR_APPLICATION_LOAD', $client));
 				return $error;
 			}
 
@@ -221,7 +221,7 @@ class JApplication extends JObject
 	{
 		$document = &JFactory::getDocument();
 
-		$document->setTitle($this->getCfg('sitename'). ' - ' .JText::_('Administration'));
+		$document->setTitle($this->getCfg('sitename'). ' - ' .JText::_('JADMINISTRATION'));
 		$document->setDescription($this->getCfg('MetaDesc'));
 
 		$contents = JComponentHelper::renderComponent($component);
@@ -419,7 +419,7 @@ class JApplication extends JObject
 		{
 			$r = null;
 			if (!preg_match('/J(.*)/i', get_class($this), $r)) {
-				JError::raiseError(500, "JApplication::getName() : Can\'t get or parse class name.");
+				JError::raiseError(500, JText::_('JLIB_APPLICATION_ERROR_APPLICATION_GET_NAME'));
 			}
 			$name = strtolower($r[1]);
 		}
@@ -590,7 +590,7 @@ class JApplication extends JObject
 		}
 
 		// Return the error.
-		return JError::raiseWarning('SOME_ERROR_CODE', JText::_('E_LOGIN_AUTHENTICATE'));
+		return JError::raiseWarning('SOME_ERROR_CODE', JText::_('JLIB_LOGIN_AUTHENTICATE'));
 	}
 
 	/**
@@ -615,13 +615,13 @@ class JApplication extends JObject
 		$parameters['id']		= $user->get('id');
 
 		// Set clientid in the options array if it hasn't been set already.
-		if (empty($options['clientid'])) {
-			$options['clientid'][] = $this->getClientId();
+		if (!isset($options['clientid'])) {
+			$options['clientid']= $this->getClientId();
 		}
 
 		// Import the user plugin group.
 		JPluginHelper::importPlugin('user');
-
+		
 		// OK, the credentials are built. Lets fire the onLogout event.
 		$results = $this->triggerEvent('onLogoutUser', array($parameters, $options));
 
@@ -665,7 +665,8 @@ class JApplication extends JObject
 	static public function getRouter($name = null, array $options = array())
 	{
 		if (!isset($name)) {
-			$name = $this->_name;
+			$app = JFactory::getApplication();
+			$name = $app->getName();
 		}
 
 		jimport('joomla.application.router');
