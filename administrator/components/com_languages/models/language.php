@@ -8,7 +8,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.modelform');
+jimport('joomla.application.component.modeladmin');
 
 /**
  * Languages Component Language Model
@@ -17,7 +17,7 @@ jimport('joomla.application.component.modelform');
  * @subpackage	com_languages
  * @since		1.5
  */
-class LanguagesModelLanguage extends JModelForm
+class LanguagesModelLanguage extends JModelAdmin
 {
 	/**
 	 * Override to get the table
@@ -93,14 +93,11 @@ class LanguagesModelLanguage extends JModelForm
 	public function getForm()
 	{
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
 
 		// Get the form.
 		$form = parent::getForm('com_languages.language', 'language', array('control' => 'jform'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		if (empty($form)) {
 			return false;
 		}
 
@@ -197,5 +194,11 @@ class LanguagesModelLanguage extends JModelForm
 		}
 
 		return true;
+	}
+
+	function _orderConditions($table = null)
+	{
+		$condition = array();
+		return $condition;
 	}
 }
