@@ -5,11 +5,12 @@
  * @subpackage	com_users
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.5
  */
 
 defined('_JEXEC') or die;
 
-require_once JPATH_COMPONENT.'/controller.php';
+jimport('joomla.application.component.controller');
 require_once JPATH_COMPONENT.'/helpers/route.php';
 
 // Launch the controller.

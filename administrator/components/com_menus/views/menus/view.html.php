@@ -18,15 +18,20 @@ jimport('joomla.application.component.view');
  */
 class MenusViewMenus extends JView
 {
+	protected $items;
+	protected $modules;
+	protected $pagination;
+	protected $state;
+
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$modules	= $this->get('Modules');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->modules		= $this->get('Modules');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -34,29 +39,24 @@ class MenusViewMenus extends JView
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('modules',		$modules);
-		$this->assignRef('pagination',	$pagination);
-
 		parent::display($tpl);
-		$this->_setToolbar();
+		$this->addToolbar();
 	}
 
 	/**
-	 * Build the default toolbar.
+	 * Add the page title and toolbar.
 	 *
-	 * @return	void
+	 * @since	1.6
 	 */
-	protected function _setToolBar()
+	protected function addToolbar()
 	{
-		JToolBarHelper::title(JText::_('Menus_View_Menus_Title'), 'menumgr.png');
+		JToolBarHelper::title(JText::_('COM_MENUS_VIEW_MENUS_TITLE'), 'menumgr.png');
 
 		JToolBarHelper::custom('menu.add', 'new.png', 'new_f2.png', 'JTOOLBAR_NEW', false);
 		JToolBarHelper::custom('menu.edit', 'edit.png', 'edit_f2.png', 'JTOOLBAR_EDIT', true);
 		JToolBarHelper::deleteList('', 'menus.delete','JTOOLBAR_EMPTY_TRASH');
 		JToolBarHelper::divider();
-		JToolBarHelper::custom('menus.rebuild', 'refresh.png', 'refresh_f2.png', 'JToolbar_Rebuild', false);
+		JToolBarHelper::custom('menus.rebuild', 'refresh.png', 'refresh_f2.png', 'JTOOLBAR_REBUILD', false);
 		JToolBarHelper::preferences('com_menus');
 		JToolBarHelper::divider();
 		JToolBarHelper::help('screen.menus.menus');

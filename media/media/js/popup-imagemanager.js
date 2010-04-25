@@ -1,5 +1,5 @@
 /**
- * @version		$Id: popup-imagemanager.js 12986 2009-10-01 14:07:56Z pentacle $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -11,8 +11,9 @@
  * @subpackage	Media
  * @since		1.5
  */
+
 (function($) {
-var ImageManager = this.MediaManager = {
+var ImageManager = this.ImageManager = {
 	initialize: function()
 	{
 		o = this._getUriObject(window.self.location.href);
@@ -85,11 +86,11 @@ var ImageManager = this.MediaManager = {
 	{
 		extra = '';
 		// Get the image tag field information
-		var url		= this.fields.url.getValue();
-		var alt		= this.fields.alt.getValue();
-		var align	= this.fields.align.getValue();
-		var title	= this.fields.title.getValue();
-		var caption	= this.fields.caption.getValue();
+		var url		= this.fields.url.get('value');
+		var alt		= this.fields.alt.get('value');
+		var align	= this.fields.align.get('value');
+		var title	= this.fields.title.get('value');
+		var caption	= this.fields.caption.get('value');
 
 		if (url != '') {
 			// Set alt attribute
@@ -133,12 +134,13 @@ var ImageManager = this.MediaManager = {
 	},
 
 	getFolder: function() {
-		return this.folderlist.getValue();
+		return this.folderlist.get('value');
 	},
 
 	upFolder: function()
 	{
 		var currentFolder = this.getFolder();
+
 		if(currentFolder.length < 2) {
 			return false;
 		}

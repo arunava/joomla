@@ -45,7 +45,7 @@ abstract class JHtmlBehavior
 		if ($debug === null)
 		{
 			$config = &JFactory::getConfig();
-			$debug = $config->getValue('config.debug');
+			$debug = $config->get('debug');
 		}
 
 		// TODO NOTE: Here we are checking for Konqueror - If they fix thier issue with compressed, we will need to update this
@@ -56,7 +56,7 @@ abstract class JHtmlBehavior
 			self::framework(false);
 		}
 
-		JHtml::script('system/mootools-'.$type.$uncompressed.'.js', false, true);
+		JHTML::_('script','system/mootools-'.$type.$uncompressed.'.js', false, true);
 		$loaded[$type] = true;
 		return;
 	}
@@ -76,18 +76,18 @@ abstract class JHtmlBehavior
 
 	public static function caption()
 	{
-		JHtml::script('system/caption.js', false, true);
+		JHTML::_('script','system/caption.js', false, true);
 	}
 
 	public static function formvalidation()
 	{
-		JHtml::script('system/validate.js', false, true);
+		JHTML::_('script','system/validate.js', false, true);
 	}
 
 	public static function switcher()
 	{
 		JHtml::_('behavior.framework');
-		JHtml::script('system/switcher.js', false, true);
+		JHTML::_('script','system/switcher.js', false, true);
 
 		$script = "
 			document.switcher = null;
@@ -104,7 +104,7 @@ abstract class JHtmlBehavior
 
 	public static function combobox()
 	{
-		JHtml::script('system/combobox.js', false, true);
+		JHTML::_('script','system/combobox.js', false, true);
 	}
 
 	public static function tooltip($selector='.hasTip', $params = array())
@@ -167,8 +167,8 @@ abstract class JHtmlBehavior
 		if (!isset($included)) {
 			// Load the javascript and css
 			JHtml::_('behavior.framework');
-			JHtml::script('system/modal.js', false, true);
-			JHtml::stylesheet('system/modal.css', array(), true);
+			JHTML::_('script','system/modal.js', false, true);
+			JHTML::_('stylesheet','system/modal.css', array(), true);
 
 			$included = true;
 		}
@@ -213,14 +213,58 @@ abstract class JHtmlBehavior
 
 	public static function uploader($id='file-upload', $params = array(), $upload_queue='upload-queue')
 	{
-		JHtml::script('system/swf.js', false, true);
-		JHtml::script('system/progressbar.js', false, true);
-		JHtml::script('system/uploader.js', false, true);
+		JHTML::_('script','system/swf.js', false, true);
+		JHTML::_('script','system/progressbar.js', false, true);
+		JHTML::_('script','system/uploader.js', false, true);
+
+		$document = &JFactory::getDocument();
 
 		static $uploaders;
 
 		if (!isset($uploaders)) {
 			$uploaders = array();
+
+			// load language
+			$lang =& JFactory::getLanguage();
+			$lang->load('com_media', JPATH_ADMINISTRATOR);
+
+			$js = "
+				(function() {
+					var phrases = {
+						'uploadCompleted': '".JText::_('COM_MEDIA_UPLOADER_UPLOAD_COMPLETED', true)."',
+						'progressOverall': '".JText::_('COM_MEDIA_UPLOADER_OVERALL_PROGRESS_TOTAL', true)."',
+						'currentTitle': '".JText::_('COM_MEDIA_UPLOADER_FILE_PROGRESS', true)."',
+						'currentFile': '".JText::_('COM_MEDIA_UPLOADER_UPLOADING', true)."',
+						'currentProgress': '".JText::_('COM_MEDIA_UPLOADER_CURRENT_PROGRESS', true)."',
+						'fileName': '".JText::_('COM_MEDIA_UPLOADER_FILENAME', true)."',
+						'remove': '".JText::_('COM_MEDIA_UPLOADER_REMOVE', true)."',
+						'removeTitle': '".JText::_('COM_MEDIA_UPLOADER_REMOVE_TITLE', true)."',
+						'fileError': '".JText::_('COM_MEDIA_UPLOADER_FILE_ERROR', true)."',
+						'validationErrors': {
+							'duplicate': '".JText::_('COM_MEDIA_UPLOADER_ERROR_DUPLICATE', true)."',
+							'sizeLimitMin': '".JText::_('COM_MEDIA_UPLOADER_ERROR_SIZE_LIMIT_MIN', true)."',
+							'sizeLimitMax': '".JText::_('COM_MEDIA_UPLOADER_ERROR_SIZE_LIMIT_MAX', true)."',
+							'fileListMax': '".JText::_('COM_MEDIA_UPLOADER_ERROR_FILELIST_MAX', true)."',
+							'fileListSizeMax': '".JText::_('COM_MEDIA_UPLOADER_ERROR_FILELIST_SIZE_MAX', true)."'
+						},
+						'errors': {
+							'httpStatus': '".JText::_('COM_MEDIA_UPLOADER_ERROR_HTTP_STATUS', true)."',
+							'securityError': '".JText::_('COM_MEDIA_UPLOADER_ERROR_SECURITY', true)."',
+							'ioError': '".JText::_('COM_MEDIA_UPLOADER_ERROR_IO', true)."'
+						}
+					};
+					if (MooTools.lang) {
+						MooTools.lang.set('".$lang->getTag()."', 'FancyUpload', phrases);
+						MooTools.lang.setLanguage('".$lang->getTag()."');
+					} else {
+						MooTools.lang = {
+							get: function(from, key) {
+								return phrases[key];
+							}
+						};
+					}
+				})();";
+			$document->addScriptDeclaration($js);
 		}
 
 		if (isset($uploaders[$id]) && ($uploaders[$id])) {
@@ -248,15 +292,17 @@ abstract class JHtmlBehavior
 		$opt['fileListMax']			= (isset($params['fileListMax']) && ($params['fileListMax'])) ? (int)$params['fileListMax'] : $opt['fileListMax'];
 		$opt['fileListSizeMax']		= (isset($params['fileListSizeMax']) && ($params['fileListSizeMax'])) ? (int)$params['fileListSizeMax'] : null;
 		// types is the old parameter name.  Remove in 1.7
-		$opt['typeFilter']			= (isset($params['types'])) ?'\\'.$params['types'] : '\\{\'All Files (*.*)\': \'*.*\'}';
-		$opt['typeFilter']			= (isset($params['typeFilter'])) ?'\\'.$params['typeFilter'] : $opt['typeFilter'];
+		$opt['typeFilter']			= (isset($params['types'])) ? '\\'.$params['types'] : '\\{\'All Files (*.*)\': \'*.*\'}';
+		$opt['typeFilter']			= (isset($params['typeFilter'])) ? '\\'.$params['typeFilter'] : $opt['typeFilter'];
 
 
 		// Optional functions
-		$opt['createReplacement'] = (isset($params['createReplacement'])) ? '\\'.$params['createReplacement'] : null;
-		$opt['onFileComplete'] = (isset($params['onFileComplete'])) ? '\\'.$params['onFileComplete'] : null;
-		$opt['onComplete'] = (isset($params['onComplete'])) ? '\\'.$params['onComplete'] : null;
-		$opt['onFileSuccess'] = (isset($params['onFileSuccess'])) ? '\\'.$params['onFileSuccess'] : null;
+		$opt['createReplacement'] 	= (isset($params['createReplacement'])) ? '\\'.$params['createReplacement'] : null;
+		$opt['onFileComplete'] 		= (isset($params['onFileComplete'])) ? '\\'.$params['onFileComplete'] : null;
+		$opt['onBeforeStart'] 		= (isset($params['onBeforeStart'])) ? '\\'.$params['onBeforeStart'] : null;
+		$opt['onStart'] 			= (isset($params['onStart'])) ? '\\'.$params['onStart'] : null;
+		$opt['onComplete'] 			= (isset($params['onComplete'])) ? '\\'.$params['onComplete'] : null;
+		$opt['onFileSuccess'] 		= (isset($params['onFileSuccess'])) ? '\\'.$params['onFileSuccess'] : null;
 
 		if(!isset($params['startButton'])) $params['startButton'] = 'upload-start';
 		if(!isset($params['clearButton'])) $params['clearButton'] = 'upload-clear';
@@ -299,7 +345,6 @@ abstract class JHtmlBehavior
 		$options = JHtmlBehavior::_getJSObject($opt);
 
 		// Attach tooltips to document
-		$document = &JFactory::getDocument();
 		$uploaderInit =
 				'window.addEvent(\'domready\', function(){
 				var Uploader = new FancyUpload2($(\''.$id.'\'), $(\''.$upload_queue.'\'), '.$options.' );
@@ -321,8 +366,8 @@ abstract class JHtmlBehavior
 
 		// Include mootools framework
 		JHtml::_('behavior.framework');
-		JHtml::script('system/mootree.js', false, true);
-		JHtml::stylesheet('system/mootree.css', array(), true);
+		JHTML::_('script','system/mootree.js', false, true);
+		JHTML::_('stylesheet','system/mootree.css', array(), true);
 
 		if (isset($trees[$id]) && ($trees[$id])) {
 			return;
@@ -332,7 +377,7 @@ abstract class JHtmlBehavior
 		$opt['div']		= (array_key_exists('div', $params)) ? $params['div'] : $id.'_tree';
 		$opt['mode']	= (array_key_exists('mode', $params)) ? $params['mode'] : 'folders';
 		$opt['grid']	= (array_key_exists('grid', $params)) ? '\\'.$params['grid'] : '\\true';
-		$opt['theme']	= (array_key_exists('theme', $params)) ? $params['theme'] : JHtml::image('system/mootree.gif', '', array(), true, true);
+		$opt['theme']	= (array_key_exists('theme', $params)) ? $params['theme'] : JHTML::_('image','system/mootree.gif', '', array(), true, true);
 
 		// Event handlers
 		$opt['onExpand']	= (array_key_exists('onExpand', $params)) ? '\\'.$params['onExpand'] : null;
@@ -368,9 +413,9 @@ abstract class JHtmlBehavior
 	public static function calendar()
 	{
 		$document = &JFactory::getDocument();
-		JHtml::stylesheet('system/calendar-jos.css', array(' title' => JText::_('green') ,' media' => 'all'), true);
-		JHtml::script('system/calendar.js', false, true);
-		JHtml::script('system/calendar-setup.js', false, true);
+		JHTML::_('stylesheet','system/calendar-jos.css', array(' title' => JText::_('JLIB_HTML_BEHAVIOR_GREEN') ,' media' => 'all'), true);
+		JHTML::_('script','system/calendar.js', false, true);
+		JHTML::_('script','system/calendar-setup.js', false, true);
 
 		$translation = JHtmlBehavior::_calendartranslation();
 		if ($translation) {
@@ -387,7 +432,7 @@ abstract class JHtmlBehavior
 		JHtmlBehavior::mootools();
 
 		$config	= &JFactory::getConfig();
-		$lifetime	= ($config->getValue('lifetime') * 60000);
+		$lifetime	= ($config->get('lifetime') * 60000);
 		$refreshTime =  ($lifetime <= 60000) ? 30000 : $lifetime - 60000;
 		//refresh time is 1 minute less than the liftime assined in the configuration.php file
 
@@ -453,24 +498,24 @@ abstract class JHtmlBehavior
 
 		if ($jsscript == 0)
 		{
-			$return = 'Calendar._DN = new Array ("'.JText::_('Sunday').'", "'.JText::_('Monday').'", "'.JText::_('Tuesday').'", "'.JText::_('Wednesday').'", "'.JText::_('Thursday').'", "'.JText::_('Friday').'", "'.JText::_('Saturday').'", "'.JText::_('Sunday').'");Calendar._SDN = new Array ("'.JText::_('Sun').'", "'.JText::_('Mon').'", "'.JText::_('Tue').'", "'.JText::_('Wed').'", "'.JText::_('Thu').'", "'.JText::_('Fri').'", "'.JText::_('Sat').'", "'.JText::_('Sun').'"); Calendar._FD = 0;	Calendar._MN = new Array ("'.JText::_('January').'", "'.JText::_('February').'", "'.JText::_('March').'", "'.JText::_('April').'", "'.JText::_('May').'", "'.JText::_('June').'", "'.JText::_('July').'", "'.JText::_('August').'", "'.JText::_('September').'", "'.JText::_('October').'", "'.JText::_('November').'", "'.JText::_('December').'");	Calendar._SMN = new Array ("'.JText::_('January_short').'", "'.JText::_('February_short').'", "'.JText::_('March_short').'", "'.JText::_('April_short').'", "'.JText::_('May_short').'", "'.JText::_('June_short').'", "'.JText::_('July_short').'", "'.JText::_('August_short').'", "'.JText::_('September_short').'", "'.JText::_('October_short').'", "'.JText::_('November_short').'", "'.JText::_('December_short').'");Calendar._TT = {};Calendar._TT["INFO"] = "'.JText::_('ABOUT_THE_CALENDAR').'";
+			$return = 'Calendar._DN = new Array ("'.JText::_('SUNDAY').'", "'.JText::_('MONDAY').'", "'.JText::_('TUESDAY').'", "'.JText::_('WEDNESDAY').'", "'.JText::_('THURSDAY').'", "'.JText::_('FRIDAY').'", "'.JText::_('SATURDAY').'", "'.JText::_('SUNDAY').'");Calendar._SDN = new Array ("'.JText::_('SUN').'", "'.JText::_('MON').'", "'.JText::_('TUE').'", "'.JText::_('WED').'", "'.JText::_('THU').'", "'.JText::_('FRI').'", "'.JText::_('SAT').'", "'.JText::_('SUN').'"); Calendar._FD = 0;	Calendar._MN = new Array ("'.JText::_('JANUARY').'", "'.JText::_('FEBRUARY').'", "'.JText::_('MARCH').'", "'.JText::_('APRIL').'", "'.JText::_('MAY').'", "'.JText::_('JUNE').'", "'.JText::_('JULY').'", "'.JText::_('AUGUST').'", "'.JText::_('SEPTEMBER').'", "'.JText::_('OCTOBER').'", "'.JText::_('NOVEMBER').'", "'.JText::_('DECEMBER').'");	Calendar._SMN = new Array ("'.JText::_('JANUARY_SHORT').'", "'.JText::_('FEBRUARY_SHORT').'", "'.JText::_('MARCH_SHORT').'", "'.JText::_('APRIL_SHORT').'", "'.JText::_('MAY_SHORT').'", "'.JText::_('JUNE_SHORT').'", "'.JText::_('JULY_SHORT').'", "'.JText::_('AUGUST_SHORT').'", "'.JText::_('SEPTEMBER_SHORT').'", "'.JText::_('OCTOBER_SHORT').'", "'.JText::_('NOVEMBER_SHORT').'", "'.JText::_('DECEMBER_SHORT').'");Calendar._TT = {};Calendar._TT["INFO"] = "'.JText::_('JLIB_HTML_BEHAVIOR_ABOUT_THE_CALENDAR').'";
 		Calendar._TT["ABOUT"] =
  "DHTML Date/Time Selector\n" +
  "(c) dynarch.com 2002-2005 / Author: Mihai Bazon\n" +
 "For latest version visit: http://www.dynarch.com/projects/calendar/\n" +
 "Distributed under GNU LGPL.  See http://gnu.org/licenses/lgpl.html for details." +
 "\n\n" +
-"Date selection:\n" +
-"- Use the \xab, \xbb buttons to select year\n" +
-"- Use the " + String.fromCharCode(0x2039) + ", " + String.fromCharCode(0x203a) + " buttons to select month\n" +
-"- Hold mouse button on any of the above buttons for faster selection.";
+"'.JText::_('JLIB_HTML_BEHAVIOR_DATE_SELECTION').'" +
+"'.JText::_('JLIB_HTML_BEHAVIOR_YEAR_SELECT').'" +
+"'.JText::_('JLIB_HTML_BEHAVIOR_MONTH_SELECT').'" +
+"'.JText::_('JLIB_HTML_BEHAVIOR_HOLD_MOUSE').'";
 Calendar._TT["ABOUT_TIME"] = "\n\n" +
 "Time selection:\n" +
 "- Click on any of the time parts to increase it\n" +
 "- or Shift-click to decrease it\n" +
 "- or click and drag for faster selection.";
 
-		Calendar._TT["PREV_YEAR"] = "'.JText::_('PREV__YEAR__HOLD_FOR_MENU_').'";Calendar._TT["PREV_MONTH"] = "'.JText::_('PREV__MONTH__HOLD_FOR_MENU').'";	Calendar._TT["GO_TODAY"] = "'.JText::_('GO_TODAY').'";Calendar._TT["NEXT_MONTH"] = "'.JText::_('NEXT_MONTH__HOLD_FOR_MENU').'";Calendar._TT["NEXT_YEAR"] = "'.JText::_('NEXT_YEAR__HOLD_FOR_MENU').'";Calendar._TT["SEL_DATE"] = "'.JText::_('SELECT_DATE').'";Calendar._TT["DRAG_TO_MOVE"] = "'.JText::_('DRAG_TO_MOVE').'";Calendar._TT["PART_TODAY"] = "'.JText::_('TODAY').'";Calendar._TT["DAY_FIRST"] = "'.JText::_('DISPLAY__S_FIRST').'";Calendar._TT["WEEKEND"] = "0,6";Calendar._TT["CLOSE"] = "'.JText::_('Close').'";Calendar._TT["TODAY"] = "'.JText::_('Today').'";Calendar._TT["TIME_PART"] = "'.JText::_('SHIFT__CLICK_OR_DRAG_TO_CHANGE_VALUE').'";Calendar._TT["DEF_DATE_FORMAT"] = "'.JText::_('%Y-%m-%d').'"; Calendar._TT["TT_DATE_FORMAT"] = "'.JText::_('%a, %b %e').'";Calendar._TT["WK"] = "'.JText::_('wk').'";Calendar._TT["TIME"] = "'.JText::_('TIME').':";';
+		Calendar._TT["PREV_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_YEAR_HOLD_FOR_MENU').'";Calendar._TT["PREV_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_PREV_MONTH_HOLD_FOR_MENU').'";	Calendar._TT["GO_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_GO_TODAY').'";Calendar._TT["NEXT_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_MONTH_HOLD_FOR_MENU').'";Calendar._TT["NEXT_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_YEAR_HOLD_FOR_MENU').'";Calendar._TT["SEL_DATE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SELECT_DATE').'";Calendar._TT["DRAG_TO_MOVE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DRAG_TO_MOVE').'";Calendar._TT["PART_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY').'";Calendar._TT["DAY_FIRST"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DISPLAY_S_FIRST').'";Calendar._TT["WEEKEND"] = "0,6";Calendar._TT["CLOSE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_CLOSE').'";Calendar._TT["TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY').'";Calendar._TT["TIME_PART"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SHIFT_CLICK_OR_DRAG_TO_CHANGE_VALUE').'";Calendar._TT["DEF_DATE_FORMAT"] = "'.JText::_('%Y-%m-%d').'"; Calendar._TT["TT_DATE_FORMAT"] = "'.JText::_('%a, %b %e').'";Calendar._TT["WK"] = "'.JText::_('JLIB_HTML_BEHAVIOR_WK').'";Calendar._TT["TIME"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TIME').'";';
 			$jsscript = 1;
 			return $return;
 		}

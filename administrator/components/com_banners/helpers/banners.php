@@ -19,28 +19,29 @@ class BannersHelper
 	public static function addSubmenu($vName)
 	{
 		JSubMenuHelper::addEntry(
-			JText::_('Banners_Submenu_Banners'),
+			JText::_('COM_BANNERS_SUBMENU_BANNERS'),
 			'index.php?option=com_banners&view=banners',
 			$vName == 'banners'
 		);
 		JSubMenuHelper::addEntry(
-			JText::_('Banners_Submenu_Clients'),
+			JText::_('COM_BANNERS_SUBMENU_CLIENTS'),
 			'index.php?option=com_banners&view=clients',
 			$vName == 'clients'
 		);
+
 		JSubMenuHelper::addEntry(
-			JText::_('Banners_Submenu_Tracks'),
-			'index.php?option=com_banners&view=tracks',
-			$vName == 'tracks'
-		);
-		JSubMenuHelper::addEntry(
-			JText::_('Banners_Submenu_Categories'),
+			JText::_('COM_BANNERS_SUBMENU_CATEGORIES'),
 			'index.php?option=com_categories&extension=com_banners',
 			$vName == 'categories'
 		);
 		if ($vName=='categories') {
-			JToolBarHelper::title(JText::_('Banners_Manager_Categories'), 'categories');
+			JToolBarHelper::title(JText::_('COM_BANNERS_MANAGER_CATEGORIES'), 'categories');
 		}
+		JSubMenuHelper::addEntry(
+			JText::_('COM_BANNERS_SUBMENU_TRACKS'),
+			'index.php?option=com_banners&view=tracks',
+			$vName == 'tracks'
+		);
 	}
 
 	/**

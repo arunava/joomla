@@ -101,7 +101,7 @@ abstract class JHtmlMenu
 
 			foreach ($menus as &$menu) {
 				self::$items[] = JHtml::_('select.optgroup',	$menu->text);
-				self::$items[] = JHtml::_('select.option', $menu->value.'.0', JText::_('Menus_Add_to_this_menu'));
+				self::$items[] = JHtml::_('select.option', $menu->value.'.0', JText::_('JLIB_HTML_ADD_TO_THIS_MENU'));
 
 				if (isset($lookup[$menu->value])) {
 					foreach ($lookup[$menu->value] as &$item) {
@@ -169,7 +169,7 @@ abstract class JHtmlMenu
 		}
 		else
 		{
-			$ordering = '<input type="hidden" name="ordering" value="'. $row->ordering .'" />'. JText::_('JCOMMON_NEWITEMSLAST_DESC');
+			$ordering = '<input type="hidden" name="ordering" value="'. $row->ordering .'" />'. JText::_('JGLOBAL_NEWITEMSLAST_DESC');
 		}
 		return $ordering;
 	}
@@ -221,13 +221,13 @@ abstract class JHtmlMenu
 
 		$mitems = array();
 		if ($all | $unassigned) {
-			$mitems[] = JHtml::_('select.option',  '<OPTGROUP>', JText::_('Menus'));
+			$mitems[] = JHtml::_('select.option',  '<OPTGROUP>', JText::_('JOPTION_MENUS'));
 
 			if ($all) {
-				$mitems[] = JHtml::_('select.option',  0, JText::_('All'));
+				$mitems[] = JHtml::_('select.option',  0, JText::_('JALL'));
 			}
 			if ($unassigned) {
-				$mitems[] = JHtml::_('select.option',  -1, JText::_('Unassigned'));
+				$mitems[] = JHtml::_('select.option',  -1, JText::_('JOPTION_UNASSIGNED'));
 			}
 
 			$mitems[] = JHtml::_('select.option',  '</OPTGROUP>');

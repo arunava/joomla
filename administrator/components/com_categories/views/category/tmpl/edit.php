@@ -60,6 +60,9 @@ JHtml::_('behavior.formvalidation');
 			<?php echo $this->form->getLabel('language'); ?>
 			<?php echo $this->form->getInput('language'); ?>
 
+			<?php echo $this->form->getLabel('id'); ?>
+			<?php echo $this->form->getInput('id'); ?>
+
 			<div class="clr"></div>
 			<?php echo $this->form->getLabel('description'); ?>
 			<div class="clr"></div>
@@ -68,42 +71,25 @@ JHtml::_('behavior.formvalidation');
 	</div>
 
 	<div class="width-40 fltrt">
-	<?php
-		if(in_array('params', $this->form->getGroups()))
-		{
-			echo JHTML::_('sliders.start');
-			$groups = $this->form->getGroups('params');
-			$fieldsets = $this->form->getFieldsets();
-			array_unshift($groups, 'params');
-			foreach($groups as $group) {
-				echo JHTML::_('sliders.panel', JText::_($fieldsets[$group]['label']), $group);
-				echo '<fieldset class="panelform">';
-				foreach($this->form->getFields($group) as $field)
-				{
-					if ($field->hidden)
-					{
-						echo $field->input;
-					} else {
-						echo $field->label;
-						echo $field->input;
-					}
-				}
-				echo '</fieldset>';
-			}
-			echo JHTML::_('sliders.end');
-		} ?>
-		<fieldset class="adminform">
-			<legend><?php echo JText::_('CATEGORIES_FIELDSET_METADATA'); ?></legend>
-			<?php echo $this->loadTemplate('metadata'); ?>
-		</fieldset>
-		<fieldset>
-			<legend><?php echo JText::_('CATEGORIES_FIELDSET_RULES');?></legend>
+
+		<?php echo JHtml::_('sliders.start','plugin-sliders-'.$this->item->id); ?>
+			<?php echo $this->loadTemplate('options'); ?>
+			<div class="clr"></div>
+
+			<?php echo JHtml::_('sliders.panel',JText::_('CATEGORIES_FIELDSET_RULES'), 'meta-rules'); ?>
+			<fieldset>
 				<?php echo $this->form->getLabel('rules'); ?>
 				<?php echo $this->form->getInput('rules'); ?>
-		</fieldset>
+			</fieldset>
+
+			<?php echo JHtml::_('sliders.panel',JText::_('CATEGORIES_FIELDSET_METADATA'), 'meta-options'); ?>
+			<fieldset class="panelform">
+				<?php echo $this->loadTemplate('metadata'); ?>
+			</fieldset>
+
+		<?php echo JHtml::_('sliders.end'); ?>
 	</div>
 
 	<input type="hidden" name="task" value="" />
 	<?php echo JHtml::_('form.token'); ?>
 </form>
-<div class="clr"></div>

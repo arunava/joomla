@@ -19,19 +19,18 @@ jimport('joomla.application.component.view');
  */
 class PluginsViewPlugin extends JView
 {
-	protected $state;
 	protected $item;
 	protected $form;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$item		= $this->get('Item');
-		$itemForm	= $this->get('Form');
-		$paramsForm	= $this->get('ParamsForm');
+		$this->state	= $this->get('State');
+		$this->item		= $this->get('Item');
+		$this->form		= $this->get('Form');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -40,37 +39,32 @@ class PluginsViewPlugin extends JView
 		}
 
 		// Bind the record to the form.
-		$itemForm->bind($item);
-		$paramsForm->bind($item->params);
+		$this->form->bind($this->item);
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('item',		$item);
-		$this->assignRef('form',		$itemForm);
-		$this->assignRef('paramsform',	$paramsForm);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		JRequest::setVar('hidemainmenu', true);
 
 		$user		= JFactory::getUser();
 		$canDo		= PluginsHelper::getActions();
 
-		JToolBarHelper::title(JText::_('COM_PLUGINS_MANAGER_PLUGIN'), 'plugin');
+		JToolBarHelper::title(JText::_('COM_PLUGINS_MANAGER_PLUGIN').' '.JText::_($this->item->name));
 
 		// If not checked out, can save the item.
-		if ($canDo->get('core.edit'))
-		{
-			JToolBarHelper::apply('plugin.apply', 'JToolbar_Apply');
-			JToolBarHelper::save('plugin.save', 'JToolbar_Save');
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::apply('plugin.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('plugin.save', 'JTOOLBAR_SAVE');
 		}
-		JToolBarHelper::cancel('plugin.cancel', 'JToolbar_Close');
+		JToolBarHelper::cancel('plugin.cancel', 'JTOOLBAR_CLOSE');
 		JToolBarHelper::divider();
 		JToolBarHelper::help('screen.plugins.edit','JTOOLBAR_HELP');
 	}

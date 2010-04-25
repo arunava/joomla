@@ -26,7 +26,7 @@ JHtml::_('behavior.formvalidation');
 			submitform(task);
 		}
 		else {
-			alert('<?php echo $this->escape(JText::_('JValidation_Form_failed'));?>');
+			alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
 		}
 	}
 // -->
@@ -96,19 +96,26 @@ JHtml::_('behavior.formvalidation');
 			<?php echo $this->form->getLabel('hits'); ?>
 			<?php echo $this->form->getInput('hits'); ?>
 
+			<?php echo $this->form->getLabel('id'); ?>
+			<?php echo $this->form->getInput('id'); ?>
+
 		</fieldset>
 
-		<?php echo JHtml::_('sliders.panel',JText::_('Content_Fieldset_Options'), 'basic-options'); ?>
-		<fieldset class="panelform">
-		<?php foreach($this->form->getFields('attribs') as $field): ?>
-			<?php if ($field->hidden): ?>
-				<?php echo $field->input; ?>
-			<?php else: ?>
-				<?php echo $field->label; ?>
-				<?php echo $field->input; ?>
-			<?php endif; ?>
+		<?php
+		$fieldSets = $this->form->getFieldsets('attribs');
+		foreach ($fieldSets as $name => $fieldSet) :
+			echo JHtml::_('sliders.panel',JText::_($fieldSet->label), $name.'-options');
+				if (isset($fieldSet->description) && trim($fieldSet->description)) :
+					echo '<p class="tip">'.$this->escape(JText::_($fieldSet->description)).'</p>';
+				endif;
+				?>
+			<fieldset class="panelform">
+				<?php foreach ($this->form->getFieldset($name) as $field) : ?>
+					<?php echo $field->label; ?>
+					<?php echo $field->input; ?>
+				<?php endforeach; ?>
+			</fieldset>
 		<?php endforeach; ?>
-		</fieldset>
 
 		<?php echo JHtml::_('sliders.panel',JText::_('Content_Fieldset_Access'), 'access-rules'); ?>
 		<fieldset class="panelform">
@@ -125,9 +132,21 @@ JHtml::_('behavior.formvalidation');
 			<?php echo $this->form->getLabel('metakey'); ?>
 			<?php echo $this->form->getInput('metakey'); ?>
 
-			<?php foreach($this->form->getFields('metadata') as $field): ?>
-				<?php echo $field->label; ?>
-				<?php echo $field->input; ?>
+			<?php
+			$fieldSets = $this->form->getFieldsets('metadata');
+
+			foreach ($fieldSets as $name => $fieldSet) :
+				echo JHtml::_('sliders.panel',JText::_($label), $name.'-options');
+					if (isset($fieldSet->description) && trim($fieldSet->description)) :
+						echo '<p class="tip">'.$this->escape(JText::_($fieldSet->description)).'</p>';
+					endif;
+					?>
+				<fieldset class="panelform">
+					<?php foreach ($this->form->getFieldset($name) as $field) : ?>
+						<?php echo $field->label; ?>
+						<?php echo $field->input; ?>
+					<?php endforeach; ?>
+				</fieldset>
 			<?php endforeach; ?>
 
 			<?php echo $this->form->getLabel('xreference'); ?>

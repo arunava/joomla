@@ -19,37 +19,36 @@ jimport('joomla.application.component.modellist');
 class BannersModelTracks extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_banners.tracks';
-	/**
 	 *
 	 */
-	protected $_basename;
+	protected $basename;
+
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$type = $app->getUserStateFromRequest($this->_context.'.filter.type', 'filter_type');
+		$type = $app->getUserStateFromRequest($this->context.'.filter.type', 'filter_type');
 		$this->setState('filter.type', $type);
 
-		$begin = $app->getUserStateFromRequest($this->_context.'.filter.begin', 'filter_begin', '', 'string');
+		$begin = $app->getUserStateFromRequest($this->context.'.filter.begin', 'filter_begin', '', 'string');
 		$this->setState('filter.begin', $begin);
 
-		$end = $app->getUserStateFromRequest($this->_context.'.filter.end', 'filter_end', '', 'string');
+		$end = $app->getUserStateFromRequest($this->context.'.filter.end', 'filter_end', '', 'string');
 		$this->setState('filter.end', $end);
 
-		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id', '');
+		$categoryId = $app->getUserStateFromRequest($this->context.'.filter.category_id', 'filter_category_id', '');
 		$this->setState('filter.category_id', $categoryId);
 
-		$clientId = $app->getUserStateFromRequest($this->_context.'.filter.client_id', 'filter_client_id', '');
+		$clientId = $app->getUserStateFromRequest($this->context.'.filter.client_id', 'filter_client_id', '');
 		$this->setState('filter.client_id', $clientId);
 
 		// Load the parameters.
@@ -57,14 +56,14 @@ class BannersModelTracks extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('name', 'asc');
+		parent::populateState('name', 'asc');
 	}
 	/**
 	 * Build an SQL query to load the list data.
 	 *
-	 * @return	JQuery
+	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Get the application object
 		$app = &JFactory::getApplication();
@@ -204,7 +203,7 @@ class BannersModelTracks extends JModelList
 		}
 		else
 		{
-			JError::raiseWarning(403, JText::_('JError_Core_Delete_not_permitted'));
+			JError::raiseWarning(403, JText::_('JERROR_CORE_DELETE_NOT_PERMITTED'));
 		}
 
 		return true;
@@ -216,7 +215,7 @@ class BannersModelTracks extends JModelList
 	 */
 	public function getBaseName()
 	{
-		if(!isset($this->_basename))
+		if(!isset($this->basename))
 		{
 			$app = &JFactory::getApplication();
 			$basename = $this->getState('basename');
@@ -263,7 +262,7 @@ class BannersModelTracks extends JModelList
 			if ($type > 0)
 			{
 				$basename = str_replace('__TYPE__',$type,$basename);
-				$typeName = JText::_('Banners_Type'.$type);
+				$typeName = JText::_('COM_BANNERS_TYPE'.$type);
 				$basename = str_replace('__TYPENAME__',$typeName,$basename);
 			}
 			else
@@ -289,9 +288,9 @@ class BannersModelTracks extends JModelList
 			{
 				$basename = str_replace('__END__','',$basename);
 			}
-			$this->_basename = $basename;
+			$this->basename = $basename;
 		}
-		return $this->_basename;
+		return $this->basename;
 	}
 	/**
 	 * Get the category name
@@ -317,7 +316,7 @@ class BannersModelTracks extends JModelList
 		}
 		else
 		{
-			$name = JText::_('Banners_NoCategoryName');
+			$name = JText::_('COM_BANNERS_NOCATEGORYNAME');
 		}
 		return $name;
 	}
@@ -342,7 +341,7 @@ class BannersModelTracks extends JModelList
 				return false;
 			}
 		} else {
-			$name = JText::_('Banners_NoClientName');
+			$name = JText::_('COM_BANNERS_NOCLIENTNAME');
 		}
 		return $name;
 	}
@@ -371,22 +370,22 @@ class BannersModelTracks extends JModelList
 	 */
 	public function getContent()
 	{
-		if (!isset($this->_content)) {
-			$this->_content = '';
-			$this->_content.=
-			'"'.str_replace('"','""',JText::_('Banners_Heading_Name')).'","'.
-				str_replace('"','""',JText::_('Banners_Heading_Client')).'","'.
-				str_replace('"','""',JText::_('JGrid_Heading_Category')).'","'.
-				str_replace('"','""',JText::_('Banners_Heading_Type')).'","'.
-				str_replace('"','""',JText::_('Banners_Heading_Count')).'","'.
-				str_replace('"','""',JText::_('Banners_Heading_Date')).'"'."\n";
+		if (!isset($this->content)) {
+			$this->content = '';
+			$this->content.=
+			'"'.str_replace('"','""',JText::_('COM_BANNERS_HEADING_NAME')).'","'.
+				str_replace('"','""',JText::_('COM_BANNERS_HEADING_CLIENT')).'","'.
+				str_replace('"','""',JText::_('JGRID_HEADING_CATEGORY')).'","'.
+				str_replace('"','""',JText::_('COM_BANNERS_HEADING_TYPE')).'","'.
+				str_replace('"','""',JText::_('COM_BANNERS_HEADING_COUNT')).'","'.
+				str_replace('"','""',JText::_('JDATE')).'"'."\n";
 
 			foreach($this->getItems() as $item) {
-				$this->_content.=
+				$this->content.=
 				'"'.str_replace('"','""',$item->name).'","'.
 					str_replace('"','""',$item->client_name).'","'.
 					str_replace('"','""',$item->category_title).'","'.
-					str_replace('"','""',($item->track_type==1 ? JText::_('Banners_Impression'): JText::_('Banners_Click'))).'","'.
+					str_replace('"','""',($item->track_type==1 ? JText::_('COM_BANNERS_IMPRESSION'): JText::_('COM_BANNERS_CLICK'))).'","'.
 					str_replace('"','""',$item->count).'","'.
 					str_replace('"','""',$item->track_date).'"'."\n";
 			}
@@ -395,7 +394,7 @@ class BannersModelTracks extends JModelList
 				$files = array();
 				$files['track']=array();
 				$files['track']['name'] = $this->getBasename() . '.csv';
-				$files['track']['data'] = $this->_content;
+				$files['track']['data'] = $this->content;
 				$files['track']['time'] = time();
 				$ziproot = JPATH_ROOT . '/tmp/' . uniqid('banners_tracks_') . '.zip';
 				// run the packager
@@ -406,21 +405,20 @@ class BannersModelTracks extends JModelList
 				if (!empty($delete)) {
 					if (!JFile::delete($delete)) {
 						// JFile::delete throws an error
-						$this->setError(JText::_('BANNERS_ZIP_DELETE_FAILURE'));
+						$this->setError(JText::_('COM_BANNERS_ERR_ZIP_DELETE_FAILURE'));
 						return false;
 					}
 				}
 				if (!$packager = & JArchive::getAdapter('zip')) {
-					$this->setError(JText::_('BANNERS_ZIP_ADAPTER_FAILURE'));
+					$this->setError(JText::_('COM_BANNERS_ERR_ZIP_ADAPTER_FAILURE'));
 					return false;
 				} else if (!$packager->create($ziproot, $files)) {
-					$this->setError(JText::_('BANNERS_ZIP_CREATE_FAILURE'));
+					$this->setError(JText::_('COM_BANNERS_ERR_ZIP_CREATE_FAILURE'));
 					return false;
 				}
-				$this->_content = file_get_contents($ziproot);
+				$this->content = file_get_contents($ziproot);
 			}
 		}
-		return $this->_content;
+		return $this->content;
 	}
 }
-

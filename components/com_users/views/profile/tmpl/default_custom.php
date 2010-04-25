@@ -5,23 +5,23 @@
  * @subpackage	com_users
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.6
  */
-
 defined('_JEXEC') or die;
 ?>
 
 <fieldset id="users-profile-custom">
 	<legend>
-		<?php echo JText::_('Users_Profile_Custom_Legend'); ?>
+		<?php echo JText::_('COM_USERS_Profile_Custom_Legend'); ?>
 	</legend>
 	<dl>
 	<?php
-	foreach($this->form->getFields('profile') as $field):
+	foreach($this->form->getFieldset('profile') as $field):
 		if (!$field->hidden) :
 	?>
 		<dt><?php echo $field->label; ?></dt>
 		<dd>
-			<?php echo isset($this->profile[$field->name]) ? $this->profile[$field->name] : JText::_('Users_Profile_Value_Not_Found'); ?>
+			<?php echo !empty($this->profile[$field->fieldname]) ? $this->profile[$field->fieldname] : JText::_('COM_USERS_Profile_Value_Not_Found'); ?>
 		</dd>
 	<?php
 		endif;

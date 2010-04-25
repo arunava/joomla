@@ -262,7 +262,7 @@ class JDocumentHTML extends JDocument
 	{
 		$result = '';
 
-		$operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<\=|\>\=|and|or|xor) ';
+		$operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<=|\>=|and|or|xor) ';
 		$words = preg_split('# '.$operators.' #', $condition, null, PREG_SPLIT_DELIM_CAPTURE);
 		for ($i = 0, $n = count($words); $i < $n; $i+=2)
 		{
@@ -375,7 +375,7 @@ class JDocumentHTML extends JDocument
 		// Assign the variables
 		$this->template = $template;
 		$this->baseurl  = JURI::base(true);
-		$this->params	= isset($params['params']) ? $params['params'] : new JParameter;
+		$this->params	= isset($params['params']) ? $params['params'] : new JRegistry;
 
 		// load
 		$this->_template = $this->_loadTemplate($directory.DS.$template, $file);

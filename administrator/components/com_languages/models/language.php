@@ -8,7 +8,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.modelform');
+jimport('joomla.application.component.modeladmin');
 
 /**
  * Languages Component Language Model
@@ -17,7 +17,7 @@ jimport('joomla.application.component.modelform');
  * @subpackage	com_languages
  * @since		1.5
  */
-class LanguagesModelLanguage extends JModelForm
+class LanguagesModelLanguage extends JModelAdmin
 {
 	/**
 	 * Override to get the table
@@ -30,14 +30,11 @@ class LanguagesModelLanguage extends JModelForm
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
+	 * Note. Calling getState in this method will result in recursion.
 	 *
-	 * @return	void
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app		= &JFactory::getApplication('administrator');
 		$params		= &JComponentHelper::getParams('com_languages');
@@ -96,14 +93,11 @@ class LanguagesModelLanguage extends JModelForm
 	public function getForm()
 	{
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
 
 		// Get the form.
-		$form = parent::getForm('language', 'com_languages.language', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_languages.language', 'language', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
@@ -136,7 +130,7 @@ class LanguagesModelLanguage extends JModelForm
 
 		// Bind the data
 		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JERROR_TABLE_BIND_FAILED', $table->getError()));
+			$this->setError($table->getError());
 			return false;
 		}
 
@@ -200,5 +194,11 @@ class LanguagesModelLanguage extends JModelForm
 		}
 
 		return true;
+	}
+
+	function _orderConditions($table = null)
+	{
+		$condition = array();
+		return $condition;
 	}
 }

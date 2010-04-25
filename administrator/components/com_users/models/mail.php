@@ -8,7 +8,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.modelform');
+jimport('joomla.application.component.modeladmin');
 
 /**
  * Users mail model.
@@ -17,7 +17,7 @@ jimport('joomla.application.component.modelform');
  * @subpackage	com_users
  * @since	1.6
  */
-class UsersModelMail extends JModelForm
+class UsersModelMail extends JModelAdmin
 {
 	/**
 	 * Method to get the row form.
@@ -27,14 +27,11 @@ class UsersModelMail extends JModelForm
 	public function getForm()
 	{
 		// Initialise variables.
-		$app	= JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Get the form.
-		$form = parent::getForm('mail', 'com_users.mail', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_users.mail', 'mail', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 

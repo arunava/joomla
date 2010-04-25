@@ -20,7 +20,7 @@ defined('_JEXEC') or die;
 				<strong><?php echo JText::_('MOD_POPULAR_CREATED'); ?></strong>
 			</th>
 			<th>
-				<strong><?php echo JText::_('MOD_POPULAR_HITS');?>
+				<strong><?php echo JText::_('JGLOBAL_HITS');?>
 				</strong>
 			</th>
 		</tr>
@@ -42,7 +42,7 @@ defined('_JEXEC') or die;
 				endif; ?>
 			</td>
 			<td class="center">
-				<?php echo JHtml::date($item->created, '%Y-%m-%d %H:%M:%S'); ?>
+				<?php echo JHTML::_('date',$item->created, '%Y-%m-%d %H:%M:%S'); ?>
 			</td>
 			<td class="center">
 				<?php echo $item->hits;?>

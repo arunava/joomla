@@ -23,12 +23,12 @@ jimport('joomla.application.module.helper');
  */
 class CpanelViewCpanel extends JView
 {
-	public $modules = null;
+	protected $modules = null;
 
 	public function display($tpl = null)
 	{
 		// Set toolbar items for the page
-		JToolBarHelper::title(JText::_('Control Panel'), 'cpanel.png');
+		JToolBarHelper::title(JText::_('COM_CPANEL'), 'cpanel.png');
 		JToolBarHelper::help('screen.cpanel');
 
 		/*
@@ -38,9 +38,7 @@ class CpanelViewCpanel extends JView
 		JRequest::setVar('tmpl', 'cpanel');
 
 		// Display the cpanel modules
-		$modules	= &JModuleHelper::getModules('cpanel');
-
-		$this->assignRef('modules',			$modules);
+		$this->modules = JModuleHelper::getModules('cpanel');
 
 		parent::display($tpl);
 	}

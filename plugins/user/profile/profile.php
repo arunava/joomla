@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: profile.php 11839 2009-05-27 22:17:45Z eddieajau $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -27,7 +27,7 @@ class plgUserProfile extends JPlugin
 	{
 		// Add the profile fields to the form.
 		JForm::addFormPath(dirname(__FILE__).DS.'profiles');
-		$form->load('profile', true, false);
+		$form->loadFile('profile', false);
 
 		// Toggle whether the address1 field is required.
 		if ($this->params->get('profile-require_address1', 1) > 0) {
@@ -83,6 +83,20 @@ class plgUserProfile extends JPlugin
 			$form->setFieldAttribute('website', 'required', $this->params->get('profile-require_website') == 2, 'profile');
 		} else {
 			$form->removeField('website', 'profile');
+		}
+
+		// Toggle whether the favoritebook field is required.
+		if ($this->params->get('profile-require_favoritebook', 1) > 0) {
+			$form->setFieldAttribute('favoritebook', 'required', $this->params->get('profile-require_favoritebook') == 2, 'profile');
+		} else {
+			$form->removeField('favoritebook', 'profile');
+		}
+
+		// Toggle whether the aboutme field is required.
+		if ($this->params->get('profile-require_aboutme', 1) > 0) {
+			$form->setFieldAttribute('aboutme', 'required', $this->params->get('profile-require_aboutme') == 2, 'profile');
+		} else {
+			$form->removeField('aboutme', 'profile');
 		}
 
 		return true;

@@ -28,12 +28,11 @@ JHtml::_('behavior.formvalidation');
 <form action="<?php JRoute::_('index.php?option=com_templates'); ?>" method="post" name="adminForm" id="style-form" class="form-validate">
 	<div class="width-60 fltlft">
 		<fieldset class="adminform">
-			<?php if ($this->item->extension_id) : ?>
-			<legend><?php echo JText::sprintf('JRecord_Number', $this->item->extension_id); ?></legend>
-			<?php endif; ?>
+			<legend><?php echo JText::_('JDETAILS') ?></legend>
 
 			<?php echo $this->form->getLabel('name'); ?>
 			<?php echo $this->form->getInput('name'); ?>
+			<input type="text" value="<?php echo JText::_($this->item->name);?>" class="readonly" readonly="readonly" size="35" />
 
 			<?php echo $this->form->getLabel('enabled'); ?>
 			<?php echo $this->form->getInput('enabled'); ?>
@@ -50,13 +49,18 @@ JHtml::_('behavior.formvalidation');
 			<?php echo $this->form->getLabel('element'); ?>
 			<?php echo $this->form->getInput('element'); ?>
 
+			<?php if ($this->item->extension_id) : ?>
+				<?php echo $this->form->getLabel('extension_id'); ?>
+				<?php echo $this->form->getInput('extension_id'); ?>
+			<?php endif; ?>
+
 			<br class="clr" />
 
 			<!-- Plugin metadata -->
 			<?php if ($this->item->xml) : ?>
-				<?php if ($text = (string) $this->item->xml->description) : ?>
+				<?php if ($text = trim($this->item->xml->description)) : ?>
 					<label>
-						<?php echo JText::_('COM_PLUGINS_XML_DESCRIPTION'); ?>
+						<?php echo JText::_('COM_PLUGINS_DESCRIPTION'); ?>
 					</label>
 					<?php echo JText::_($text); ?>
 				<?php endif; ?>

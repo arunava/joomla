@@ -37,13 +37,13 @@ class modStatsHelper
 			$rows[$i]->data	= $db->getVersion();
 			$i++;
 			$rows[$i]->title	= JTEXT::_('MOD_STATS_TIME');
-			$rows[$i]->data	= JHtml::date('now', '%H:%M');
+			$rows[$i]->data	= JHTML::_('date','now', '%H:%M');
 			$i++;
 			$rows[$i]->title	= JText::_('MOD_STATS_CACHING');
-			$rows[$i]->data	= $app->getCfg('caching') ? JText::_('MOD_STATS_ENABLED'):JText::_('MOD_STATS_DISABLED');
+			$rows[$i]->data	= $app->getCfg('caching') ? JText::_('JENABLED'):JText::_('JDISABLED');
 			$i++;
 			$rows[$i]->title	= JText::_('MOD_STATS_GZIP');
-			$rows[$i]->data	= $app->getCfg('gzip') ? JText::_('MOD_STATS_ENABLED'):JText::_('MOD_STATS_DISABLED');
+			$rows[$i]->data	= $app->getCfg('gzip') ? JText::_('JENABLED'):JText::_('JDISABLED');
 			$i++;
 		}
 

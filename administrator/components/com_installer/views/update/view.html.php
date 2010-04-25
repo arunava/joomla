@@ -21,40 +21,35 @@ class InstallerViewUpdate extends InstallerViewDefault
 {
 	function display($tpl=null)
 	{
-		/*
-		 * Set toolbar items for the page
-		 */
-		JToolBarHelper::custom('update.update', 'config', 'config', 'INSTALLER_TOOLBAR_UPDATE', true, false);
-		JToolBarHelper::custom('update.find', 'refresh', 'refresh','INSTALLER_TOOLBAR_FIND_UPDATES',false,false);
-		JToolBarHelper::custom('update.purge', 'purge', 'purge', 'JTOOLBAR_PURGE_CACHE', false,false);
-		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.installer','JTOOLBAR_HELP');
-
 		// Get data from the model
-		$state		= &$this->get('State');
-		$items		= &$this->get('Items');
-		$pagination	= &$this->get('Pagination');
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$pagination	= $this->get('Pagination');
 
 		$paths = new stdClass();
 		$paths->first = '';
 
 		$this->assignRef('paths', $paths);
 		$this->assignRef('state', $this->get('state'));
-
-
 		$this->assignRef('items',		$items);
 		$this->assignRef('pagination',	$pagination);
 
-		JHTML::_('behavior.tooltip');
 		parent::display($tpl);
 	}
 
-	function loadItem($index=0)
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
+	 */
+	protected function addToolbar()
 	{
-		$item =& $this->items[$index];
-		$item->index	= $index;
-		$item->author_info = @$item->authorEmail .'<br />'. @$item->authorUrl;
+		$canDo	= InstallerHelper::getActions();
 
-		$this->assignRef('item', $item);
+		JToolBarHelper::custom('update.update', 'config', 'config', 'COM_INSTALLER_TOOLBAR_UPDATE', true, false);
+		JToolBarHelper::custom('update.find', 'refresh', 'refresh','COM_INSTALLER_TOOLBAR_FIND_UPDATES',false,false);
+		JToolBarHelper::custom('update.purge', 'purge', 'purge', 'JTOOLBAR_PURGE_CACHE', false,false);
+		JToolBarHelper::divider();
+		parent::addToolbar();
 	}
 }

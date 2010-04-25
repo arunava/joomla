@@ -13,9 +13,10 @@ class Group0001Test extends SeleniumJoomlaTestCase
 	function testCreatDeleteGroup()
 	{
   	$this->setUp();
+	$this->gotoAdmin();
   	$this->doAdminLogin();
     $this->click("link=Groups");
-    $this->waitForPageToLoad("30000");  	
+    $this->waitForPageToLoad("30000");
 	echo "Create new group Article Administrator\n";
     $this->click("link=New");
     $this->waitForPageToLoad("30000");
@@ -25,23 +26,24 @@ class Group0001Test extends SeleniumJoomlaTestCase
     $this->click("link=Save & Close");
     $this->waitForPageToLoad("30000");
     try {
-        $this->assertTrue($this->isTextPresent("Item successfully saved."));
+        $this->assertTrue($this->isTextPresent("Item successfully saved."), 'Save message not shown');
     } catch (PHPUnit_Framework_AssertionFailedError $e) {
-        array_push($this->verificationErrors, $e->toString());
-    }  	
-    echo "Delete Article Administrator group.\n";	
+        array_push($this->verificationErrors, $this->getTraceFiles($e));
+    }
+    echo "Delete Article Administrator group.\n";
     $this->type("filter_search", "Test Group".$saltGroup);
     $this->click("//button[@type='submit']");
     $this->waitForPageToLoad("30000");
     $this->click("toggle");
-    $this->click("link=Delete");
+    $this->click("//li[@id='toolbar-delete']/a/span");
     $this->waitForPageToLoad("30000");
     try {
-    	$this->assertTrue($this->isTextPresent("1 item(s) successfully deleted."));
+    	$this->assertTrue($this->isTextPresent("COM_USERS_N_GROUPS_DELETED"), 'Deleted message not shown');
     } catch (PHPUnit_Framework_AssertionFailedError $e) {
-    	array_push($this->verificationErrors, $e->toString());
+    	array_push($this->verificationErrors, $this->getTraceFiles($e));
     }
-	$this->doAdminLogout();	        	 
+	$this->doAdminLogout();
+	$this->countErrors();
   }
 }
 ?>

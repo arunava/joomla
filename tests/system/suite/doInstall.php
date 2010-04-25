@@ -43,18 +43,35 @@ class DoInstall extends SeleniumJoomlaTestCase
     $this->type("jform_admin_email", $cfg->admin_email);
     $this->type("jform_admin_password", $cfg->password);
     $this->type("jform_admin_password2", $cfg->password);
-    echo "Install sample data and pause\n";
+    echo "Install sample data and wait for success message\n";
     $this->click("instDefault");
-    sleep(5);
+    // wait up to 15 seconds for success message on sample data
+    for ($second = 0; ; $second++) {
+        if ($second >= 15) $this->fail("timeout");
+        try {
+            if ("Sample Data Loaded Successfully" == $this->getValue("instDefault")) break;
+        } catch (Exception $e) {}
+        sleep(1);
+    }
+
     echo "Finish installation\n";
     $this->click("link=Next");
     $this->waitForPageToLoad("30000");
 	$this->assertTrue(true);
 	echo "Login to back end\n";
+	$this->gotoAdmin();
 	$this->doAdminLogin();
 	echo "Check for site menu\n";
 	$this->assertEquals("Site", $this->getText("link=Site"));
-	
+	echo "Change error level to maximum\n";
+	$this->click("link=Global Configuration");
+    $this->waitForPageToLoad("30000");
+    $this->click("server");
+    $this->select("jform_error_reporting", "label=Maximum");
+    $this->click("//li[@id='toolbar-save']/a/span");
+    $this->waitForPageToLoad("30000");
+	$this->doAdminLogout();
+
   }
 }
 ?>

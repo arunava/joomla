@@ -22,22 +22,19 @@ jimport('joomla.application.component.modellist');
 class ModulesModelSelect extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var	string
-	 */
-	protected $_context = 'com_modules.modules';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$clientId = $app->getUserState($this->_context.'.filter.client_id', 0);
+		$clientId = $app->getUserState($this->context.'.filter.client_id', 0);
 		$this->setState('filter.client_id', (int) $clientId);
 
 		// Load the parameters.
@@ -62,20 +59,20 @@ class ModulesModelSelect extends JModelList
 	 *
 	 * @return	string	A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.client_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
 	 * Build an SQL query to load the list data.
 	 *
-	 * @return	JQuery
+	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
 		$db		= $this->getDbo();
@@ -128,12 +125,12 @@ class ModulesModelSelect extends JModelList
 				$item->xml = null;
 			}
 
-			// 1.5 Format; Core files or language packs then
+					// 1.5 Format; Core files or language packs then
 			// 1.6 3PD Extension Support
-				$lang->load($item->module, $client->path, null, false, false)
-			||	$lang->load($item->module, $client->path.'/modules/'.$item->module, null, false, false)
-			||	$lang->load($item->module, $client->path, $lang->getDefault(), false, false)
-			||	$lang->load($item->module, $client->path.'/modules/'.$item->module, $lang->getDefault(), false, false);
+				$lang->load($item->module.'.sys', $client->path, null, false, false)
+			||	$lang->load($item->module.'.sys', $client->path.'/modules/'.$item->module, null, false, false)
+			||	$lang->load($item->module.'.sys', $client->path, $lang->getDefault(), false, false)
+			||	$lang->load($item->module.'.sys', $client->path.'/modules/'.$item->module, $lang->getDefault(), false, false);
 		}
 
 		// TODO: Use the cached XML from the extensions table?

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		
+ * @version
  * @package		Joomla.Site
  * @subpackage	com_users
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -17,40 +17,26 @@ jimport('joomla.event.dispatcher');
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @version		1.5
  */
-
 class UsersModelRemind extends JModelForm
 {
-	protected function _populateState()
-	{
-		// Get the application object.
-		$app	= &JFactory::getApplication();
-		$params	= &$app->getParams('com_users');
-
-		// Load the parameters.
-		$this->setState('params', $params);
-	}
-		/**
+	/**
 	 * Method to get the username remind request form.
 	 *
-	 * @access	public
 	 * @return	object	JForm object on success, JException on failure.
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function &getForm()
+	public function getForm()
 	{
 		// Get the form.
-		$form = parent::getForm('remind', 'com_users.remind', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_users.remind', 'remind', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
 		// Get the dispatcher and load the users plugins.
-		$dispatcher	= &JDispatcher::getInstance();
+		$dispatcher	= JDispatcher::getInstance();
 		JPluginHelper::importPlugin('users');
 
 		// Trigger the form preparation event.
@@ -63,12 +49,32 @@ class UsersModelRemind extends JModelForm
 		}
 
 		return $form;
-
 	}
-	function processRemindRequest($data)
+
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
+	 */
+	protected function populateState()
+	{
+		// Get the application object.
+		$app	= JFactory::getApplication();
+		$params	= $app->getParams('com_users');
+
+		// Load the parameters.
+		$this->setState('params', $params);
+	}
+
+	/**
+	 * @since	1.6
+	 */
+	public function processRemindRequest($data)
 	{
 		// Get the form.
-		$form = &$this->getRemindForm();
+		$form = $this->getForm();
 
 		// Check for an error.
 		if (JError::isError($form)) {
@@ -96,63 +102,56 @@ class UsersModelRemind extends JModelForm
 
 		// Check for an error.
 		if ($db->getErrorNum()) {
-			return new JException(JText::sprintf('USERS_DATABASE_ERROR', $db->getErrorMsg()), 500);
+			return new JException(JText::sprintf('COM_USERS_DATABASE_ERROR', $db->getErrorMsg()), 500);
 		}
 
 		// Check for a user.
 		if (empty($user)) {
-			$this->setError(JText::_('USERS_USER_NOT_FOUND'));
+			$this->setError(JText::_('COM_USERS_USER_NOT_FOUND'));
 			return false;
 		}
 
 		// Make sure the user isn't blocked.
 		if ($user->block) {
-			$this->setError(JText::_('USERS_USER_BLOCKED'));
+			$this->setError(JText::_('COM_USERS_USER_BLOCKED'));
 			return false;
 		}
 
-		$config	= &JFactory::getConfig();
+		$config	= JFactory::getConfig();
 
 		// Assemble the login link.
 		$itemid = UsersHelperRoute::getLoginRoute();
 		$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
 		$link	= 'index.php?option=com_users&view=login'.$itemid;
-		$mode	= $config->getValue('force_ssl', 0) == 2 ? 1 : -1;
+		$mode	= $config->get('force_ssl', 0) == 2 ? 1 : -1;
 
 		// Put together the e-mail template data.
 		$data = JArrayHelper::fromObject($user);
-		$data['fromname']	= $config->getValue('fromname');
-		$data['mailfrom']	= $config->getValue('mailfrom');
-		$data['sitename']	= $config->getValue('sitename');
+		$data['fromname']	= $config->get('fromname');
+		$data['mailfrom']	= $config->get('mailfrom');
+		$data['sitename']	= $config->get('sitename');
 		$data['link_text']	= JRoute::_($link, false, $mode);
 		$data['link_html']	= JRoute::_($link, true, $mode);
 
-		// Load the mail template.
-		jimport('joomla.utilities.simpletemplate');
-		$template = new JSimpleTemplate();
-
-		if (!$template->load('users.username.remind.request')) {
-			return new JException(JText::_('USERS_REMIND_MAIL_TEMPLATE_NOT_FOUND'), 500);
-		}
-
-		// Push in the email template variables.
-		$template->bind($data);
-
-		// Get the email information.
-		$toEmail	= $user->email;
-		$subject	= $template->getTitle();
-		$message	= $template->getHtml();
+		$subject = JText::sprintf(
+			'COM_USERS_EMAIL_USERNAME_REMINDER_SUBJECT',
+			$data['sitename']
+		);
+		$body = JText::sprintf(
+			'COM_USERS_EMAIL_USERNAME_REMINDER_BODY',
+			$data['sitename'],
+			$data['username'],
+			$data['link_text']
+		);
 
 		// Send the password reset request e-mail.
-		$return = JUtility::sendMail($data['mailfrom'], $data['fromname'], $toEmail, $subject, $message);
+		$return = JUtility::sendMail($data['mailfrom'], $data['fromname'], $user->email, $subject, $body);
 
 		// Check for an error.
 		if ($return !== true) {
-			return new JException(JText::_('USERS_MAIL_FAILED'), 500);
+			return new JException(JText::_('COM_USERS_MAIL_FAILED'), 500);
 		}
 
 		return true;
 	}
-	
-	
 }

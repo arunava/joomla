@@ -74,13 +74,13 @@ class NewsfeedsModelNewsfeed extends JModel
 
 			// Make sure the category is published
 			if (!$this->_data->published) {
-				JError::raiseError(404, JText::_("Resource Not Found"));
+				JError::raiseError(404, JText::_("JGLOBAL_RESOURCE_NOT_FOUND"));
 				return false;
 			}
 
 			// Check to see if the category is published
 			if (!$this->_data->cat_pub) {
-				JError::raiseError(404, JText::_("Resource Not Found"));
+				JError::raiseError(404, JText::_("JGLOBAL_RESOURCE_NOT_FOUND"));
 				return;
 			}
 
@@ -113,6 +113,15 @@ class NewsfeedsModelNewsfeed extends JModel
 					' FROM #__newsfeeds AS f' .
 					' LEFT JOIN #__categories AS cc ON cc.id = f.catid' .
 					' WHERE f.id = '.$this->_id;
+
+
+			// Filter by start and end dates.
+			$nullDate = $db->Quote($db->getNullDate());
+			$nowDate = $db->Quote(JFactory::getDate()->toMySQL());
+			
+			$query->where('(a.publish_up = ' . $nullDate . ' OR a.publish_up <= ' . $nowDate . ')');
+			$query->where('(a.publish_down = ' . $nullDate . ' OR a.publish_down >= ' . $nowDate .')');
+			
 			$this->_db->setQuery($query);
 			$this->_data = $this->_db->loadObject();
 			return (boolean) $this->_data;

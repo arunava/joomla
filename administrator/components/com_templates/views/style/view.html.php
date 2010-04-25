@@ -19,19 +19,18 @@ jimport('joomla.application.component.view');
  */
 class TemplatesViewStyle extends JView
 {
-	protected $state;
 	protected $item;
 	protected $form;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$item		= $this->get('Item');
-		$itemForm	= $this->get('Form');
-		$paramsForm	= $this->get('ParamsForm');
+		$this->item		= $this->get('Item');
+		$this->state	= $this->get('State');
+		$this->form		= $this->get('Form');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -40,24 +39,18 @@ class TemplatesViewStyle extends JView
 		}
 
 		// Bind the record to the form.
-		$itemForm->bind($item);
-		$paramsForm->bind($item->params);
+		$this->form->bind($this->item);
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('item',		$item);
-		$this->assignRef('form',		$itemForm);
-		$this->assignRef('paramsform',	$paramsForm);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Add the page title and toolbar.
 	 *
 	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		JRequest::setVar('hidemainmenu', true);
 
@@ -66,28 +59,26 @@ class TemplatesViewStyle extends JView
 		$canDo		= TemplatesHelper::getActions();
 
 		JToolBarHelper::title(
-			$isNew ? JText::_('Templates_Manager_Add_Style')
-			: JText::_('Templates_Manager_Edit_Style')
+			$isNew ? JText::_('COM_TEMPLATES_MANAGER_ADD_STYLE')
+			: JText::_('COM_TEMPLATES_MANAGER_EDIT_STYLE')
 		);
 
 		// If not checked out, can save the item.
-		if ($canDo->get('core.edit'))
-		{
+		if ($canDo->get('core.edit')) {
 			JToolBarHelper::apply('style.apply','JTOOLBAR_APPLY');
 			JToolBarHelper::save('style.save','JTOOLBAR_SAVE');
-			JToolBarHelper::addNew('style.save2new', 'JToolbar_Save_and_new');
+			JToolBarHelper::addNew('style.save2new', 'JTOOLBAR_SAVE_AND_NEW');
 		}
 
 		// If an existing item, can save to a copy.
 		if (!$isNew && $canDo->get('core.create')) {
-			JToolBarHelper::custom('style.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JToolbar_Save_as_Copy', false);
+			JToolBarHelper::custom('style.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY', false);
 		}
 
 		if (empty($this->item->id))  {
 			JToolBarHelper::cancel('style.cancel','JTOOLBAR_CANCEL');
-		}
-		else {
-			JToolBarHelper::cancel('style.cancel', 'JToolbar_Close');
+		} else {
+			JToolBarHelper::cancel('style.cancel', 'JTOOLBAR_CLOSE');
 		}
 		JToolBarHelper::divider();
 		JToolBarHelper::help('screen.style.edit','JTOOLBAR_HELP');

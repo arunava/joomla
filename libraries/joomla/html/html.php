@@ -88,13 +88,13 @@ abstract class JHtml
 
 				if (!class_exists($className))
 				{
-					JError::raiseError(500, $className.'::' .$func. ' not found in file.');
+					JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTFOUNDINFILE', $className, $func));
 					return false;
 				}
 			}
 			else
 			{
-				JError::raiseError(500, $prefix.$file . ' not supported. File not found.');
+				JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTSUPPORTED_NOFILE', $prefix, $file));
 				return false;
 			}
 		}
@@ -110,7 +110,7 @@ abstract class JHtml
 		}
 		else
 		{
-			JError::raiseError(500, $className.'::'.$func.' not supported.');
+			JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTSUPPORTED', $className, $func));
 			return false;
 		}
 	}
@@ -174,7 +174,7 @@ abstract class JHtml
 			return call_user_func_array($function, $temp);
 		}
 		else {
-			JError::raiseError(500, 'Function not supported.');
+			JError::raiseError(500, JText::_('JLIB_HTML_ERROR_FUNCTION_NOT_SUPPORTED'));
 			return false;
 		}
 	}
@@ -240,7 +240,18 @@ abstract class JHtml
 				$url = JURI::base(true).'/templates/'. $cur_template .'/images/'. $url;
 			} else {
 				list($extension, $url) = explode('/', $url, 2);
-				$url = JURI::root(true).'/media/'.$extension.'/images/'.$url;
+				if (strpos($url, '/')) {
+					// Try to deal with plugins group
+					list($element, $url) = explode('/', $url, 2);
+					if (file_exists(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/images/'.$url)) {
+						$url = JURI::root(true).'/media/'.$extension.'/'.$element.'/images/'.$url;
+					} else {
+						$url = JURI::root(true).'/media/'.$extension.'/images/'.$element.'/'.$url;
+					}
+				}
+				else {
+					$url = JURI::root(true).'/media/'.$extension.'/images/'.$url;
+				}
 			}
 			if($path_only)
 			{
@@ -276,7 +287,18 @@ abstract class JHtml
 				$file = JURI::base(true).'/templates/'. $cur_template .'/css/'. $file;
 			} else {
 				list($extension, $file) = explode('/', $file, 2);
-				$file = JURI::root(true).'/media/'.$extension.'/css/'.$file;
+				if (strpos($file, '/')) {
+					// Try to deal with plugins group
+					list($element, $file) = explode('/', $file, 2);
+					if (file_exists(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/css/'.$file)) {
+						$file = JURI::root(true).'/media/'.$extension.'/'.$element.'/css/'.$file;
+					} else {
+						$file = JURI::root(true).'/media/'.$extension.'/css/'.$element.'/'.$file;
+					}
+				}
+				else {
+					$file = JURI::root(true).'/media/'.$extension.'/css/'.$file;
+				}
 			}
 			if($path_only)
 			{
@@ -316,7 +338,18 @@ abstract class JHtml
 				$file = JURI::base(true).'/templates/'. $cur_template .'/js/'. $file;
 			} else {
 				list($extension, $file) = explode('/', $file, 2);
-				$file = JURI::root(true).'/media/'.$extension.'/js/'.$file;
+				if (strpos($file, '/')) {
+					// Try to deal with plugins group
+					list($element, $file) = explode('/', $file, 2);
+					if (file_exists(JPATH_ROOT .'/media/'. $extension.'/'.$element.'/js/'.$file)) {
+						$file = JURI::root(true).'/media/'.$extension.'/'.$element.'/js/'.$file;
+					} else {
+						$file = JURI::root(true).'/media/'.$extension.'/js/'.$element.'/'.$file;
+					}
+				}
+				else {
+					$file = JURI::root(true).'/media/'.$extension.'/js/'.$file;
+				}
 			}
 			if($path_only)
 			{
@@ -335,7 +368,7 @@ abstract class JHtml
 	{
 		// If no debugging value is set, use the configuration setting
 		if ($debug === null) {
-			$debug = JFactory::getConfig()->getValue('config.debug');
+			$debug = JFactory::getConfig()->get('debug');
 		}
 
 		// TODO NOTE: Here we are checking for Konqueror - If they fix their issue with compressed, we will need to update this
@@ -389,7 +422,7 @@ abstract class JHtml
 			$date = JFactory::getDate($input, 'UTC');
 
 			// Set the correct time zone based on the user configuration.
-			$date->setOffset($user->getParam('timezone', $config->getValue('config.offset')));
+			$date->setOffset($user->getParam('timezone', $config->get('offset')));
 		}
 		// UTC date converted to server time zone.
 		elseif ($tz === false)
@@ -398,7 +431,7 @@ abstract class JHtml
 			$date = JFactory::getDate($input, 'UTC');
 
 			// Set the correct time zone based on the server configuration.
-			$date->setOffset($config->getValue('config.offset'));
+			$date->setOffset($config->get('offset'));
 		}
 		// No date conversion.
 		elseif ($tz === null)
@@ -509,7 +542,7 @@ abstract class JHtml
 		}
 
 		return '<input type="text" name="'.$name.'" id="'.$id.'" value="'.htmlspecialchars($value, ENT_COMPAT, 'UTF-8').'" '.$attribs.' />'.
-				JHtml::image('system/calendar.png', JText::_('calendar'), array( 'class' => 'calendar', 'id' => $id.'_img'), true);
+				JHTML::_('image','system/calendar.png', JText::_('JLIB_HTML_CALENDAR'), array( 'class' => 'calendar', 'id' => $id.'_img'), true);
 	}
 
 	/**
