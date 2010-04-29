@@ -20,10 +20,15 @@ jimport('joomla.application.component.modelform');
 class BannersModelDownload extends JModelForm
 {
 	protected $_context = 'com_banners.tracks';
+
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		jimport('joomla.utilities.utility');
 		$basename = JRequest::getString(JUtility::getHash($this->_context.'.basename'),'__SITE__','cookie');
@@ -41,16 +46,14 @@ class BannersModelDownload extends JModelForm
 	public function getForm()
 	{
 		// Get the form.
-		$form = parent::getForm('download', 'com_banners.download', array('array' => 'jform'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_banners.download', 'download', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
 		$form->setValue('basename',$this->getState('basename'));
 		$form->setValue('compressed',$this->getState('compressed'));
+
 		return $form;
 	}
 }

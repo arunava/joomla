@@ -23,14 +23,14 @@ $baseurl = JURI::base();
 		<?php $link = JRoute::_('index.php?option=com_banners&task=click&id='. $item->id);?>
 		<?php if($item->type==1) :?>
 			<?php // Text based banners ?>
-			<?php echo str_replace(array('{CLICKURL}', '{NAME}'), array($link, $item->name), $item->params->custom->bannercode);?>
+			<?php echo str_replace(array('{CLICKURL}', '{NAME}'), array($link, $item->name), $item->params->custombannercode);?>
 		<?php else:?>
 			<?php $imageurl = $item->params->image->url;?>
 			<?php if (BannerHelper::isImage($imageurl)) :?>
 				<?php // Image based banner ?>
 				<?php $alt = $item->params->alt->alt;?>
 				<?php $alt = $alt ? $alt : $item->name ;?>
-				<?php $alt = $alt ? $alt : JText::_('mod_banners_Banner') ;?>
+				<?php $alt = $alt ? $alt : JText::_('MOD_BANNERS_BANNER') ;?>
 				<?php if ($item->clickurl) :?>
 					<?php // Wrap the banner in a link?>
 					<?php $target = $params->get('target', 1);?>
@@ -40,34 +40,34 @@ $baseurl = JURI::base();
 							href="<?php echo $link; ?>" target="_blank"
 							title="<?php echo htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');?>">
 							<img
-								src="<?php echo $baseurl;?>images/banners/<?php echo $imageurl;?>"
+								src="<?php echo $baseurl . $imageurl;?>"
 								alt="<?php echo $alt;?>" />
 						</a>
 					<?php elseif ($target == 2):?>
 						<?php // open in a popup window?>
 						<a
 							href="javascript:void window.open('<?php echo $link;?>', '',
-							      'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=550');
-							      return false"
+								'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=550');
+								return false"
 							title="<?php echo htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');?>">
 							<img
-								src="<?php echo $baseurl;?>images/banners/<?php echo $imageurl;?>"
+								src="<?php echo $baseurl . $imageurl;?>"
 								alt="<?php echo $alt;?>" />
 						</a>
 					<?php else :?>
 						<?php // open in parent window?>
 						<a
 							href="<?php echo $link;?>"
-					 		title="<?php echo htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');?>">
+							title="<?php echo htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');?>">
 							<img
-								src="<?php echo $baseurl;?>images/banners/<?php echo $imageurl;?>"
+								src="<?php echo $baseurl . $imageurl;?>"
 								alt="<?php echo $alt;?>" />
 						</a>
 					<?php endif;?>
 				<?php else :?>
 					<?php // Just display the image if no link specified?>
 					<img
-						src="<?php echo $baseurl;?>images/banners/<?php echo $imageurl;?>"
+						src="<?php echo $baseurl . $imageurl;?>"
 						alt="<?php echo $alt;?>" />
 				<?php endif;?>
 			<?php elseif (BannerHelper::isFlash($imageurl)) :?>
@@ -75,8 +75,8 @@ $baseurl = JURI::base();
 					classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
 					codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0"
 					border="0"
-					width="<?php echo $parameters->flash->width;?>"
-					height="<?php echo $parameters->flash->height;?>"
+					width="<?php echo htmlspecialchars($item->params->get('width'));?>"
+					height="<?php echo htmlspecialchars($item->params->get('height'));?>"
 				>
 					<param name="movie" value="<?php echo $imageurl;?>" />
 					<embed
@@ -84,8 +84,8 @@ $baseurl = JURI::base();
 						loop="false"
 						pluginspage="http://www.macromedia.com/go/get/flashplayer"
 						type="application/x-shockwave-flash"
-						width="<?php echo $parameters->flash->width;?>"
-						height="<?php echo $parameters->flash->height;?>"
+						width="<?php echo htmlspecialchars($item->params->get('width'));?>"
+						height="<?php echo htmlspecialchars($item->params->get('height'));?>"
 					></embed>
 				</object>
 			<?php endif;?>
@@ -96,7 +96,7 @@ $baseurl = JURI::base();
 
 <?php if ($footerText) : ?>
 	<div class="bannerfooter">
-		 <?php echo $footerText; ?>
+		<?php echo $footerText; ?>
 	</div>
 <?php endif; ?>
 </div>

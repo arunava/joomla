@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a filelist element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		Parameter
  * @since		1.5
  */
@@ -44,12 +44,12 @@ class JElementFilelist extends JElement
 
 		if (!$node->attributes('hide_none'))
 		{
-			$options[] = JHtml::_('select.option', '-1', '- '.JText::_('DO_NOT_USE').' -');
+			$options[] = JHtml::_('select.option', '-1', JText::_('JOPTION_DO_NOT_USE'));
 		}
 
 		if (!$node->attributes('hide_default'))
 		{
-			$options[] = JHtml::_('select.option', '', '- '.JText::_('USE_DEFAULT').' -');
+			$options[] = JHtml::_('select.option', '', JText::_('JOPTION_USE_DEFAULT'));
 		}
 
 		if (is_array($files))

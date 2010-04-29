@@ -11,7 +11,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modelform');
-jimport('joomla.database.query');
 
 /**
  * Content Component Article Model
@@ -27,14 +26,16 @@ class ContentModelForm extends JModelForm
 	 *
 	 * @var		string
 	 */
-	 protected $_context = 'com_content.edit.article';
+	protected $_context = 'com_content.edit.article';
 
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = &JFactory::getApplication();
 
@@ -52,9 +53,9 @@ class ContentModelForm extends JModelForm
 	/**
 	 * Returns a Table object, always creating it
 	 *
-	 * @param	type 	$type 	 The table type to instantiate
-	 * @param	string 	$prefix	 A prefix for the table class name. Optional.
-	 * @param	array	$options Configuration array for model. Optional.
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
 	 * @return	JTable	A database object
 	*/
 	public function getTable($type = 'Content', $prefix = 'JTable', $config = array())
@@ -73,9 +74,12 @@ class ContentModelForm extends JModelForm
 	 */
 	public function &getForm($xml = 'article', $name = 'com_content.article', $options = array(), $clear = false)
 	{
-		$options += array('array' => 'jform', 'event' => 'onPrepareForm');
+		$options += array('control' => 'jform');
 
-		$form = parent::getForm($xml, $name, $options);
+		$form = parent::getForm($name, $xml, $options);
+		if (empty($form)) {
+			return false;
+		}
 
 		return $form;
 	}
@@ -174,7 +178,7 @@ class ContentModelForm extends JModelForm
 
 		// Bind the data.
 		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JTable_Error_Bind_failed', $table->getError()));
+			$this->setError($table->getError());
 			return false;
 		}
 

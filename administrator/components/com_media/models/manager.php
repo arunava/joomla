@@ -28,6 +28,9 @@ class MediaModelManager extends JModel
 			$folder = JRequest::getVar('folder', '', '', 'path');
 			$this->setState('folder', $folder);
 
+			$fieldid = JRequest::getVar('fieldid', '');
+			$this->setState('field.id', $fieldid);
+
 			$parent = str_replace("\\", "/", dirname($folder));
 			$parent = ($parent == '.') ? null : $parent;
 			$this->setState('parent', $parent);
@@ -59,15 +62,15 @@ class MediaModelManager extends JModel
 		$lang->load(JRequest::getCmd('option'), JPATH_ADMINISTRATOR);
 
 		$document = &JFactory::getDocument();
-		$document->setTitle(JText::_('INSERT_IMAGE'));
+		$document->setTitle(JText::_('COM_MEDIA_INSERT_IMAGE'));
 
 		// Build the array of select options for the folder list
 		$options[] = JHtml::_('select.option', "","/");
 		foreach ($folders as $folder) {
-			$folder 	= str_replace(COM_MEDIA_BASE, "", $folder);
+			$folder		= str_replace(COM_MEDIA_BASE, "", $folder);
 			$value		= substr($folder, 1);
-			$text	 	= str_replace(DS, "/", $folder);
-			$options[] 	= JHtml::_('select.option', $value, $text);
+			$text		= str_replace(DS, "/", $folder);
+			$options[]	= JHtml::_('select.option', $value, $text);
 		}
 
 		// Sort the folder list array
@@ -118,7 +121,7 @@ class MediaModelManager extends JModel
 				}
 			}
 		}
-		$tree['data'] = (object) array('name' => JText::_('Media'), 'relative' => '', 'absolute' => $base);
+		$tree['data'] = (object) array('name' => JText::_('COM_MEDIA_MEDIA'), 'relative' => '', 'absolute' => $base);
 		return $tree;
 	}
 }

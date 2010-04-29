@@ -21,16 +21,17 @@ class WeblinksHelper
 	 * Configure the Linkbar.
 	 *
 	 * @param	string	The name of the active view.
+	 * @since	1.6
 	 */
-	public static function addSubmenu($vName)
+	public static function addSubmenu($vName = 'weblinks')
 	{
 		JSubMenuHelper::addEntry(
-			JText::_('Weblinks_Submenu_Weblinks'),
+			JText::_('COM_WEBLINKS_SUBMENU_WEBLINKS'),
 			'index.php?option=com_weblinks&view=weblinks',
 			$vName == 'weblinks'
 		);
 		JSubMenuHelper::addEntry(
-			JText::_('Weblinks_Submenu_Categories'),
+			JText::_('COM_WEBLINKS_SUBMENU_CATEGORIES'),
 			'index.php?option=com_categories&extension=com_weblinks',
 			$vName == 'categories'
 		);
@@ -40,8 +41,8 @@ class WeblinksHelper
 	 * Gets a list of the actions that can be performed.
 	 *
 	 * @param	int		The category ID.
-	 *
 	 * @return	JObject
+	 * @since	1.6
 	 */
 	public static function getActions($categoryId = 0)
 	{
@@ -50,8 +51,7 @@ class WeblinksHelper
 
 		if (empty($categoryId)) {
 			$assetName = 'com_weblinks';
-		}
-		else {
+		} else {
 			$assetName = 'com_weblinks.category.'.(int) $categoryId;
 		}
 

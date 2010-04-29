@@ -63,7 +63,7 @@ class SearchModelSearch extends JModel
 		$config = JFactory::getConfig();
 
 		// Get the pagination request variables
-		$this->setState('limit', $app->getUserStateFromRequest('com_search.limit', 'limit', $config->getValue('config.list_limit'), 'int'));
+		$this->setState('limit', $app->getUserStateFromRequest('com_search.limit', 'limit', $config->get('list_limit'), 'int'));
 		$this->setState('limitstart', JRequest::getVar('limitstart', 0, '', 'int'));
 
 		// Set the search parameters
@@ -82,8 +82,8 @@ class SearchModelSearch extends JModel
 	 *
 	 * @access	public
 	 * @param string search string
- 	 * @param string mathcing option, exact|any|all
- 	 * @param string ordering option, newest|oldest|popular|alpha|category
+	 * @param string mathcing option, exact|any|all
+	 * @param string ordering option, newest|oldest|popular|alpha|category
 	 */
 	function setSearch($keyword, $match = 'all', $ordering = 'newest')
 	{
@@ -141,7 +141,7 @@ class SearchModelSearch extends JModel
 
 			$this->_total	= count($rows);
 			if ($this->getState('limit') > 0) {
-				$this->_data    = array_splice($rows, $this->getState('limitstart'), $this->getState('limit'));
+				$this->_data	= array_splice($rows, $this->getState('limitstart'), $this->getState('limit'));
 			} else {
 				$this->_data = $rows;
 			}

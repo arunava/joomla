@@ -33,7 +33,7 @@ JHtml::_('behavior.formvalidation');
 	<div class="m">
 		<?php echo JHtml::_('installation.stepbar', 6); ?>
 		<div class="box"></div>
-  	</div>
+	</div>
 	<div class="b">
 		<div class="b">
 			<div class="b"></div>
@@ -124,18 +124,18 @@ JHtml::_('behavior.formvalidation');
 							<table class="content2">
 								<tr>
 									<td class="item">
-										<?php echo $this->form->getLabel('admin_user'); ?>
-									</td>
-									<td align="center">
-										<?php echo $this->form->getInput('admin_user'); ?>
-									</td>
-								</tr>
-								<tr>
-									<td class="item">
 										<?php echo $this->form->getLabel('admin_email'); ?>
 									</td>
 									<td align="center">
 										<?php echo $this->form->getInput('admin_email'); ?>
+									</td>
+								</tr>
+								<tr>
+									<td class="item">
+										<?php echo $this->form->getLabel('admin_user'); ?>
+									</td>
+									<td align="center">
+										<?php echo $this->form->getInput('admin_user'); ?>
 									</td>
 								</tr>
 								<tr>
@@ -210,7 +210,7 @@ JHtml::_('behavior.formvalidation');
 				</div>
 			</div>
 			<?php echo JHtml::_('form.token'); ?>
-  		</form>
+		</form>
 
 		<div class="clr"></div>
 		</div>

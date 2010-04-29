@@ -27,7 +27,7 @@ class WeblinksViewCategory extends JView
 		$app	= &JFactory::getApplication();
 		$document = &JFactory::getDocument();
 
-		$document->link = JRoute::_('index.php?option=com_weblinks&view=category&id='.JRequest::getVar('id',null, '', 'int'));
+		$document->link = JRoute::_(WeblinksHelperRoute::getCategoryRoute(JRequest::getVar('id',null, '', 'int')));
 
 		JRequest::setVar('limit', $app->getCfg('feed_limit'));
 		$siteEmail = $app->getCfg('mailfrom');
@@ -36,8 +36,8 @@ class WeblinksViewCategory extends JView
 		$document->editorEmail = $siteEmail;
 
 		// Get some data from the model
-		$items		= &$this->get('data');
-		$category	= &$this->get('category');
+		$items		= &$this->get('Items');
+		$category	= &$this->get('Category');
 
 		foreach ($items as $item)
 		{
@@ -46,7 +46,7 @@ class WeblinksViewCategory extends JView
 			$title = html_entity_decode($title, ENT_COMPAT, 'UTF-8');
 
 			// url link to article
-			$link = JRoute::_('index.php?option=com_weblinks&view=weblink&id='. $item->id);
+			$link = JRoute::_(WeblinksHelperRoute::getWeblinkRoute($item->slug, $item->catid));
 
 			// strip html from feed item description text
 			$description = $item->description;
@@ -54,11 +54,11 @@ class WeblinksViewCategory extends JView
 
 			// load individual item creator class
 			$feeditem = new JFeedItem();
-			$feeditem->title 		= $title;
-			$feeditem->link 		= $link;
-			$feeditem->description 	= $description;
+			$feeditem->title		= $title;
+			$feeditem->link			= $link;
+			$feeditem->description	= $description;
 			$feeditem->date			= $date;
-			$feeditem->category   	= 'Weblinks';
+			$feeditem->category		= 'Weblinks';
 
 			// loads item info into rss array
 			$document->addItem($feeditem);

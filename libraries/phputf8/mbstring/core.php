@@ -1,6 +1,6 @@
 <?php
 /**
-* @version $Id: core.php,v 1.5 2006/02/28 22:12:25 harryf Exp $
+* @version $Id$
 * @package utf8
 * @subpackage strings
 */
@@ -72,13 +72,13 @@ function utf8_strrpos($str, $search, $offset = FALSE){
             trigger_error('utf8_strrpos expects parameter 3 to be long',E_USER_WARNING);
             return FALSE;
         }
-        
+
         $str = mb_substr($str, $offset);
-        
+
         if ( FALSE !== ( $pos = mb_strrpos($str, $search) ) ) {
             return $pos + $offset;
         }
-        
+
         return FALSE;
     }
 }

@@ -21,8 +21,12 @@ class MessagesModelConfig extends JModelForm
 {
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app	= JFactory::getApplication('administrator');
 		$user	= JFactory::getUser();
@@ -46,15 +50,16 @@ class MessagesModelConfig extends JModelForm
 		// Initialise variables.
 		$item = new JObject;
 
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 		$query->select('cfg_name, cfg_value');
 		$query->from('#__messages_cfg');
 		$query->where('user_id = '.(int) $this->getState('user.id'));
 
-		$this->_db->setQuery($query);
-		$rows = $this->_db->loadObjectList();
+		$db->setQuery($query);
+		$rows = $db->loadObjectList();
 
-		if ($error = $this->_db->getErrorMsg()) {
+		if ($error = $db->getErrorMsg()) {
 			$this->setError($error);
 			return false;
 		}
@@ -74,14 +79,11 @@ class MessagesModelConfig extends JModelForm
 	public function getForm()
 	{
 		// Initialise variables.
-		$app	= JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Get the form.
-		$form = parent::getForm('config', 'com_messages.config', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_messages.config', 'config', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
@@ -96,38 +98,39 @@ class MessagesModelConfig extends JModelForm
 	 */
 	public function save($data)
 	{
-		if ($userId = (int) $this->getState('user.id'))
-		{
-			$this->_db->setQuery(
+		$db = $this->getDbo();
+
+		if ($userId = (int) $this->getState('user.id')) {
+			$db->setQuery(
 				'DELETE FROM #__messages_cfg'.
 				' WHERE user_id = '. $userId
 			);
-			$this->_db->query();
-			if ($error = $this->_db->getErrorMsg()) {
+			$db->query();
+			if ($error = $db->getErrorMsg()) {
 				$this->setError($error);
 				return false;
 			}
 
 			$tuples = array();
 			foreach ($data as $k => $v) {
-				$tuples[] =  '('.$userId.', '.$this->_db->Quote($k).', '.$this->_db->Quote($v).')';
+				$tuples[] =  '('.$userId.', '.$db->Quote($k).', '.$db->Quote($v).')';
 			}
 
 			if ($tuples) {
-				$this->_db->setQuery(
+				$db->setQuery(
 					'INSERT INTO #__messages_cfg'.
 					' (user_id, cfg_name, cfg_value)'.
 					' VALUES '.implode(',', $tuples)
 				);
-				$this->_db->query();
-				if ($error = $this->_db->getErrorMsg()) {
+				$db->query();
+				if ($error = $db->getErrorMsg()) {
 					$this->setError($error);
 					return false;
 				}
 			}
 			return true;
 		} else {
-			$this->setError('Messages_Invalid_user');
+			$this->setError('COM_MESSAGES_ERR_INVALID_USER');
 			return false;
 		}
 	}

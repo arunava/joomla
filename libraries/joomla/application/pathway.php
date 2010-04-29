@@ -17,7 +17,7 @@ defined('JPATH_BASE') or die;
  * the user's navigated path within the Joomla application.
  *
  * @abstract
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Application
  * @since		1.5
  */
@@ -48,9 +48,9 @@ class JPathway extends JObject
 	 * Returns a JPathway object
 	 *
 	 * @access	public
-	 * @param   string  $client  The name of the client
-	 * @param array     $options An associative array of options
-	 * @return JPathway 	A pathway object.
+	 * @param	string		$client  The name of the client
+	 * @param	array		$options An associative array of options
+	 * @return	JPathway	A pathway object.
 	 * @since	1.5
 	 */
 	static function getInstance($client, $options = array())
@@ -77,7 +77,7 @@ class JPathway extends JObject
 			}
 			else
 			{
-				$error = JError::raiseError(500, 'Unable to load pathway: '.$client);
+				$error = JError::raiseError(500, JText::sprintf('JLIB_APPLICATION_ERROR_PATHWAY_LOAD', $client));
 				return $error;
 			}
 

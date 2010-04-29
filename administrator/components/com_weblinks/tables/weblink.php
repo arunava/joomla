@@ -18,98 +18,6 @@ defined('_JEXEC') or die;
 class WeblinksTableWeblink extends JTable
 {
 	/**
-	 * Primary Key
-	 *
-	 * @var int
-	 */
-	public $id = null;
-
-	/**
-	 * @var int
-	 */
-	public $catid = null;
-
-	/**
-	 * @var int
-	 */
-	public $sid = null;
-
-	/**
-	 * @var string
-	 */
-	public $title = null;
-
-	/**
-	 * @var string
-	 */
-	public $alias = null;
-
-	/**
-	 * @var string
-	 */
-	public $url = null;
-
-	/**
-	 * @var string
-	 */
-	public $description = null;
-
-	/**
-	 * @var datetime
-	 */
-	public $date = null;
-
-	/**
-	 * @var int
-	 */
-	public $hits = null;
-
-	/**
-	 * @var int
-	 */
-	public $state = null;
-
-	/**
-	 * @var boolean
-	 */
-	public $checked_out = 0;
-
-	/**
-	 * @var time
-	 */
-	public $checked_out_time = 0;
-
-	/**
-	 * @var int
-	 */
-	public $ordering = null;
-
-	/**
-	 * @var int
-	 */
-	public $archived = null;
-
-	/**
-	 * @var int
-	 */
-	public $approved = null;
-
-	/**
-	 * @var int
-	 */
-	public $access = null;
-
-	/**
-	 * @var string
-	 */
-	public $params = null;
-
-	/**
-	 * @var string
-	 */
-	public $language = null;
-
-	/**
 	 * Constructor
 	 *
 	 * @param JDatabase A database connector object
@@ -120,22 +28,71 @@ class WeblinksTableWeblink extends JTable
 	}
 
 	/**
+	 * Overloaded bind function to pre-process the params.
+	 *
+	 * @param	array		Named array
+	 * @return	null|string	null is operation was satisfactory, otherwise returns an error
+	 * @see		JTable:bind
+	 * @since	1.5
+	 */
+	public function bind($array, $ignore = '')
+	{
+		if (isset($array['params']) && is_array($array['params'])) {
+			$registry = new JRegistry();
+			$registry->loadArray($array['params']);
+			$array['params'] = (string)$registry;
+		}
+
+		if (isset($array['metadata']) && is_array($array['metadata'])) {
+			$registry = new JRegistry();
+			$registry->loadArray($array['metadata']);
+			$array['metadata'] = (string)$registry;
+		}
+		return parent::bind($array, $ignore);
+	}
+
+
+	/**
 	 * Overload the store method for the Weblinks table.
 	 *
-	 * @param	boolean		$updateNulls	Toggle whether null values should be updated.
-	 * @return	boolean		True on success, false on failure.
+	 * @param	boolean	Toggle whether null values should be updated.
+	 * @return	boolean	True on success, false on failure.
 	 * @since	1.6
 	 */
 	public function store($updateNulls = false)
 	{
-		// Transform the params field
-		if (is_array($this->params))
-		{
-			$registry = new JRegistry();
-			$registry->loadArray($this->params);
-			$this->params = (string)$registry;
+		$date	= JFactory::getDate();
+		$user	= JFactory::getUser();
+		if ($this->id) {
+			// Existing item
+			$this->modified		= $date->toMySQL();
+			$this->modified_by	= $user->get('id');
+			} else {
+			// New article. An article created and created_by field can be set by the user,
+			// so we don't touch either of these if they are set.
+			if (!intval($this->created)) {
+				$this->created = $date->toMySQL();
+			}
+			if (empty($this->created_by)) {
+				$this->created_by = $user->get('id');
+			}
 		}
-
+			$date	= JFactory::getDate();
+			$user	= JFactory::getUser();
+			if ($this->id) {
+				// Existing item
+				$this->modified		= $date->toMySQL();
+				$this->modified_by	= $user->get('id');
+				} else {
+				// New weblink. A weblink created and created_by field can be set by the user,
+				// so we don't touch either of these if they are set.
+				if (!intval($this->created)) {
+					$this->created = $date->toMySQL();
+				}
+				if (empty($this->created_by)) {
+					$this->created_by = $user->get('id');
+				}
+				}	
 		// Attempt to store the user data.
 		return parent::store($updateNulls);
 	}
@@ -148,13 +105,13 @@ class WeblinksTableWeblink extends JTable
 	public function check()
 	{
 		if (JFilterInput::checkAttribute(array ('href', $this->url))) {
-			$this->setError(JText::_('Please provide a valid URL'));
+			$this->setError(JText::_('COM_WEBLINKS_ERR_TABLES_PROVIDE_URL'));
 			return false;
 		}
 
-		/** check for valid name */
+		// check for valid name
 		if (trim($this->title) == '') {
-			$this->setError(JText::_('Your Weblink must contain a title.'));
+			$this->setError(JText::_('COM_WEBLINKS_ERR_TABLES_TITLE'));
 			return false;
 		}
 
@@ -166,13 +123,13 @@ class WeblinksTableWeblink extends JTable
 			$this->url = 'http://'.$this->url;
 		}
 
-		/** check for existing name */
+		// check for existing name
 		$query = 'SELECT id FROM #__weblinks WHERE title = '.$this->_db->Quote($this->title).' AND catid = '.(int) $this->catid;
 		$this->_db->setQuery($query);
 
 		$xid = intval($this->_db->loadResult());
 		if ($xid && $xid != intval($this->id)) {
-			$this->setError(JText::sprintf('WARNNAMETRYAGAIN', JText::_('Web Link')));
+			$this->setError(JText::sprintf('WARNNAMETRYAGAIN', JText::_('COM_WEBLINKS_ERR_TABLES_NAME')));
 			return false;
 		}
 
@@ -184,6 +141,30 @@ class WeblinksTableWeblink extends JTable
 			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
 		}
 
+		// Check the publish down date is not earlier than publish up.
+		if (intval($this->publish_down) > 0 && $this->publish_down < $this->publish_up) {
+			// Swap the dates.
+			$temp = $this->publish_up;
+			$this->publish_up = $this->publish_down;
+			$this->publish_down = $temp;
+		}
+
+		// clean up keywords -- eliminate extra spaces between phrases
+		// and cr (\r) and lf (\n) characters from string
+		if (!empty($this->metakey)) {
+			// only process if not empty
+			$bad_characters = array("\n", "\r", "\"", "<", ">"); // array of characters to remove
+			$after_clean = JString::str_ireplace($bad_characters, "", $this->metakey); // remove bad characters
+			$keys = explode(',', $after_clean); // create array using commas as delimiter
+			$clean_keys = array();
+			foreach($keys as $key) {
+				if (trim($key)) {  // ignore blank keywords
+					$clean_keys[] = trim($key);
+				}
+			}
+			$this->metakey = implode(", ", $clean_keys); // put array back together delimited by ", "
+		}
+
 		return true;
 	}
 
@@ -193,7 +174,7 @@ class WeblinksTableWeblink extends JTable
 	 * to checkin rows that it can after adjustments are made.
 	 *
 	 * @param	mixed	An optional array of primary key values to update.  If not
-	 * 					set the instance property value is used.
+	 *					set the instance property value is used.
 	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published]
 	 * @param	integer The user id of the user performing the operation.
 	 * @return	boolean	True on success.
@@ -217,7 +198,7 @@ class WeblinksTableWeblink extends JTable
 			}
 			// Nothing to set publishing state on, return false.
 			else {
-				$this->setError(JText::_('No_Rows_Selected'));
+				$this->setError(JText::_('JLIB_DATABASE_ERROR_NO_ROWS_SELECTED'));
 				return false;
 			}
 		}

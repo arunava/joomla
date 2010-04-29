@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * PHP class format handler for JRegistry
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Registry
  * @since		1.5
  */
@@ -21,13 +21,13 @@ class JRegistryFormatPHP extends JRegistryFormat {
 
 	/**
 	 * Converts an object into a php class string.
-	 * 	- NOTE: Only one depth level is supported.
+	 *	- NOTE: Only one depth level is supported.
 	 *
 	 * @param	object	Data Source Object
 	 * @param	array	Parameters used by the formatter
 	 * @return	string	Config class formatted string
 	 */
-	public function objectToString($object, $params)
+	public function objectToString($object, $params = array())
 	{
 		// Build the object variables string
 		$vars = '';

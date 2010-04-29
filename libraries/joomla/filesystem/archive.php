@@ -14,7 +14,7 @@ defined('JPATH_BASE') or die();
  * An Archive handling class
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -51,15 +51,15 @@ class JArchive
 					$result = $adapter->extract($archivename, $extractdir);
 				}
 				break;
-			case 'tgz'  :
+			case 'tgz':
 				$untar = true;	// This format is a tarball gzip'd
-			case 'gz'   :	// This may just be an individual file (e.g. sql script)
-			case 'gzip' :
+			case 'gz':	// This may just be an individual file (e.g. sql script)
+			case 'gzip':
 				$adapter = &JArchive::getAdapter('gzip');
 				if ($adapter)
 				{
 					$config = &JFactory::getConfig();
-					$tmpfname = $config->getValue('config.tmp_path').DS.uniqid('gzip');
+					$tmpfname = $config->get('tmp_path').DS.uniqid('gzip');
 					$gzresult = $adapter->extract($archivename, $tmpfname);
 					if (JError::isError($gzresult))
 					{
@@ -91,7 +91,7 @@ class JArchive
 				if ($adapter)
 				{
 					$config = &JFactory::getConfig();
-					$tmpfname = $config->getValue('config.tmp_path').DS.uniqid('bzip2');
+					$tmpfname = $config->get('tmp_path').DS.uniqid('bzip2');
 					$bzresult = $adapter->extract($archivename, $tmpfname);
 					if (JError::isError($bzresult))
 					{
@@ -116,7 +116,7 @@ class JArchive
 				}
 				break;
 			default:
-				JError::raiseWarning(10, JText::_('UNKNOWNARCHIVETYPE'));
+				JError::raiseWarning(10, JText::_('JLIB_FILESYSTEM_UNKNOWNARCHIVETYPE'));
 				return false;
 				break;
 		}
@@ -146,7 +146,7 @@ class JArchive
 				if (file_exists($path)) {
 					require_once $path;
 				} else {
-					JError::raiseError(500,JText::_('Unable to load archive'));
+					JError::raiseError(500,JText::_('JLIB_FILESYSTEM_UNABLE_TO_LOAD_ARCHIVE'));
 				}
 			}
 

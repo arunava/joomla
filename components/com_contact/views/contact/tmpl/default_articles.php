@@ -1,7 +1,6 @@
 <?php
-
 /**
- * @version
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	Contact
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -13,7 +12,7 @@ defined('_JEXEC') or die;
 <?php if ($this->params->get('show_articles')) : ?>
 <div class="jcontact-articles">
 	<h4>
-		<?php echo JText::_('Com_Contact_Contact_Articles_Heading'); ?>
+		<?php echo JText::_('COM_CONTACT_ARTICLES_HEADING'); ?>
 	</h4>
 	<ol>
 		<?php foreach ($this->contact->articles as $article) :	?>

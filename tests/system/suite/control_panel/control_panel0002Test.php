@@ -18,8 +18,8 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 	function testMenuCheck()
 	{
 		$this->setUp();
-		$this->doAdminLogin();
 		$this->gotoAdmin();
+		$this->doAdminLogin();
 		echo "Navigate to Control Panel.\n";
 		$this->click("link=Control Panel");
 		$this->waitForPageToLoad("30000");
@@ -94,7 +94,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Mass Mail.\n";
 		$this->click("link=Mass Mail Users");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("E-mail Groups"));
+		$this->assertTrue($this->isTextPresent("Mass Mail"));
 		$this->click("//li[@id='toolbar-cancel']/a/span");
 		$this->waitForPageToLoad("30000");
 		echo "Navigate to Read Private Messages.\n";
@@ -108,7 +108,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->waitForPageToLoad("30000");
 		$this->click("//li[@id='toolbar-popup-Popup']/a/span");
 		sleep(2);
-		$this->click("//button[@type='button' and @onclick='window.parent.SqueezeBox.close();']");	
+		$this->click("//button[@type='button' and @onclick='window.parent.SqueezeBox.close();']");
 		sleep(2);
 		echo "Navigate to Menu Manager.\n";
 		$this->click("link=Menu Manager");
@@ -161,24 +161,24 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		$this->click("//li[@id='toolbar-cancel']/a/span");
 		$this->waitForPageToLoad("30000");
-//		echo "Navigate to Add New Category.\n";
-//		$this->click("link=Add New Category");
-//		$this->waitForPageToLoad("30000");
-//		$this->assertTrue($this->isTextPresent("Category Manager: Add New Category"));
-//		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-save']/a/span"));
-//		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-apply']/a/span"));
-//		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
-//		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-cancel']/a/span"));
-//		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
-//		$this->click("//li[@id='toolbar-cancel']/a/span");
-//		$this->waitForPageToLoad("30000");
+		echo "Navigate to Add New Category.\n";
+		$this->click("link=Add New Category");
+		$this->waitForPageToLoad("30000");
+		$this->assertTrue($this->isTextPresent("Category Manager: Add New Category"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-save']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-apply']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-cancel']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
+		$this->click("//li[@id='toolbar-cancel']/a/span");
+		$this->waitForPageToLoad("30000");
 
 		echo "Navigate to Control Panel.\n";
 		$this->gotoAdmin();
 		echo "Navigate to Banner Manager.\n";
 		$this->click("link=Banners");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Banners manager: Banners"));
+		$this->assertTrue($this->isTextPresent("Banner Manager: Banners"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -190,7 +190,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Banner Clients.\n";
 		$this->click("link=Clients");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Banners manager: Clients"));
+		$this->assertTrue($this->isTextPresent("Banner Manager: Clients"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -203,15 +203,15 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Banner Tracks.\n";
 		$this->click("link=Tracks");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Banners manager: Tracks"));
+		$this->assertTrue($this->isTextPresent("Banner Manager: Tracks"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-Banners_Delete_Msg']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-COM_BANNERS_DELETE_MSG']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
-				
+
 		echo "Navigate to Banner Categories.\n";
 		$this->click("link=Categories");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Category Manager"));
+		$this->assertTrue($this->isTextPresent("Banner Manager: Categories"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -257,7 +257,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to News Feed Categories.\n";
-		$this->click("//ul[@id='menu-news-feeds']/li[2]/a");
+		$this->click("//ul[@id='menu-newsfeeds']/li[2]/a");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Category Manager"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
@@ -270,7 +270,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-refresh']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Redirect.\n";
-		$this->click("link=Redirect");
+		$this->click("link=Redirect Manager");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Redirect Manager: Links"));
 

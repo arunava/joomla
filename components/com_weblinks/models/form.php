@@ -11,7 +11,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modelform');
-jimport('joomla.database.query');
 
 /**
  * Weblink Component Weblink Model
@@ -23,41 +22,14 @@ jimport('joomla.database.query');
 class WeblinksModelForm extends JModelForm
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	 protected $_context = 'com_weblinks.edit.weblink';
-
-	/**
-	 * Method to auto-populate the model state.
-	 *
-	 * @return	void
-	 */
-	protected function _populateState()
-	{
-		$app = &JFactory::getApplication();
-
-		// Load state from the request.
-		if (!($pk = (int) $app->getUserState($this->_context.'.id'))) {
-			$pk = (int) JRequest::getInt('id');
-		}
-		$this->setState('weblink.id', $pk);
-
-		// Load the parameters.
-		$params	= $app->getParams();
-		$this->setState('params', $params);
-	}
-
-	/**
 	 * Returns a reference to the a Table object, always creating it
 	 *
-	 * @param	type 	$type 	 The table type to instantiate
-	 * @param	string 	$prefix	 A prefix for the table class name. Optional.
-	 * @param	array	$options Configuration array for model. Optional.
+	 * @param	type	The table type to instantiate
+	 * @param	string	A prefix for the table class name. Optional.
+	 * @param	array	Configuration array for model. Optional.
 	 * @return	JTable	A database object
 	*/
-	public function &getTable($type = 'Weblink', $prefix = 'WeblinksTable', $config = array())
+	public function getTable($type = 'Weblink', $prefix = 'WeblinksTable', $config = array())
 	{
 		return JTable::getInstance($type, $prefix, $config);
 	}
@@ -73,40 +45,14 @@ class WeblinksModelForm extends JModelForm
 	 */
 	public function &getForm($xml = 'weblink', $name = 'com_weblinks.weblink', $options = array(), $clear = false)
 	{
-		$options += array('array' => 'jform', 'event' => 'onPrepareForm');
+		$options += array('control' => 'jform');
 
-		$form = parent::getForm($xml, $name, $options);
-
-		return $form;
-	}
-
-	/**
-	 * Method to get article data.
-	 *
-	 * @param	integer	The id of the article.
-	 *
-	 * @return	mixed	Content item data object on success, false on failure.
-	 */
-	public function getItem($itemId = null)
-	{
-		// Initialise variables.
-		$itemId = (int) (!empty($itemId)) ? $itemId : $this->getState('weblink.id');
-
-		// Get a row instance.
-		$table = &$this->getTable();
-
-		// Attempt to load the row.
-		$return = $table->load($itemId);
-
-		// Check for a table object error.
-		if ($return === false && $table->getError()) {
-			$this->setError($table->getError());
+		$form = parent::getForm($name, $xml, $options);
+		if (empty($form)) {
 			return false;
 		}
 
-		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
-
-		return $value;
+		return $form;
 	}
 
 	/**
@@ -134,69 +80,12 @@ class WeblinksModelForm extends JModelForm
 	}
 
 	/**
-	 * Method to save the form data.
+	 * Prepare and sanitise the table data prior to saving.
 	 *
-	 * @param	array	The form data.
-	 * @return	boolean	True on success.
+	 * @param	JTable	A JTable object.
 	 * @since	1.6
 	 */
-	public function save($data)
-	{
-		// Initialise variables
-		$dispatcher = &JDispatcher::getInstance();
-		$table		= &$this->getTable();
-		$form		= &$this->getForm();
-		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('weblink.id');
-		$isNew		= true;
-
-		if (!$form) {
-			JError::raiseError(500, $model->getError());
-			return false;
-		}
-
-		// Validate the posted data.
-		$data	= $this->validate($form, $data);
-		if ($data === false) {
-			return false;
-		}
-
-		// Load the row if saving an existing item.
-		if ($pk > 0) {
-			$table->load($pk);
-			$isNew = false;
-		}
-
-		// Bind the data.
-		if (!$table->bind($data)) {
-			$this->setError(JText::sprintf('JTable_Error_Bind_failed', $table->getError()));
-			return false;
-		}
-
-		// Prepare the row for saving
-		$this->_prepareTable($table);
-
-		// Check the data.
-		if (!$table->check()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Store the data.
-		if (!$table->store()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Clean the cache.
-		$cache = &JFactory::getCache('com_weblinks');
-		$cache->clean();
-
-		$this->setState('weblink.id', $table->id);
-
-		return true;
-	}
-
-	protected function _prepareTable(&$table)
+	protected function prepareTable(&$table)
 	{
 		jimport('joomla.filter.output');
 		$date = JFactory::getDate();

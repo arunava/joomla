@@ -22,9 +22,9 @@ jimport('joomla.event.event');
 abstract class JPlugin extends JEvent
 {
 	/**
-	 * A JParameter object holding the parameters for the plugin
+	 * A JRegistry object holding the parameters for the plugin
 	 *
-	 * @var		A JParameter object
+	 * @var		A JRegistry object
 	 * @access	public
 	 * @since	1.5
 	 */
@@ -60,10 +60,11 @@ abstract class JPlugin extends JEvent
 		// Get the parameters.
 		if (isset($config['params']))
 		{
-			if ($config['params'] instanceof JParameter) {
+			if ($config['params'] instanceof JRegistry) {
 				$this->params = $config['params'];
 			} else {
-				$this->params = new JParameter($config['params']);
+				$this->params = new JRegistry;
+				$this->params->loadJSON($config['params']);
 			}
 		}
 
@@ -76,7 +77,7 @@ abstract class JPlugin extends JEvent
 		if (isset($config['type'])) {
 			$this->_type = $config['type'];
 		}
-		$events = get_class_methods($this);
+		$events = array_diff(get_class_methods($this), get_class_methods('JPlugin'));
 		foreach($events as $event)
 		{
 			$method = array('event' => $event, 'handler' => array($this, 'onFireEvent'));
@@ -89,13 +90,13 @@ abstract class JPlugin extends JEvent
 	{
 		$this->loadLanguage(null, JPATH_ADMINISTRATOR);
 	}
-	
+
 	/**
 	 * Loads the plugin language file
 	 *
 	 * @access	public
-	 * @param	string 	$extension 	The extension for which a language file should be loaded
-	 * @param	string 	$basePath  	The basepath to use
+	 * @param	string	$extension	The extension for which a language file should be loaded
+	 * @param	string	$basePath	The basepath to use
 	 * @return	boolean	True, if the file has successfully loaded.
 	 * @since	1.5
 	 */
@@ -106,6 +107,10 @@ abstract class JPlugin extends JEvent
 		}
 
 		$lang = &JFactory::getLanguage();
-		return $lang->load (strtolower($extension), JPATH_ROOT .DS.'plugins'.DS.$this->_type.DS.$this->_name) || $lang->load(strtolower($extension), $basePath);
+		return
+			$lang->load(strtolower($extension), $basePath, null, false, false)
+		||	$lang->load(strtolower($extension), JPATH_PLUGINS .DS.$this->_type.DS.$this->_name, null, false, false)
+		||	$lang->load(strtolower($extension), $basePath, $lang->getDefault(), false, false)
+		||	$lang->load(strtolower($extension), JPATH_PLUGINS .DS.$this->_type.DS.$this->_name, $lang->getDefault(), false, false);
 	}
 }

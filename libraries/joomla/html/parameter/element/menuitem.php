@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a menu item element
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Parameter
  * @since		1.5
  */
@@ -71,8 +71,8 @@ class JElementMenuItem extends JElement
 			// first pass - collect children
 			foreach ($menuItems as $v)
 			{
-				$pt 	= $v->parent_id;
-				$list 	= @$children[$pt] ? $children[$pt] : array();
+				$pt	= $v->parent_id;
+				$list	= @$children[$pt] ? $children[$pt] : array();
 				array_push($list, $v);
 				$children[$pt] = $list;
 			}
@@ -89,15 +89,15 @@ class JElementMenuItem extends JElement
 		}
 
 		// assemble menu items to the array
-		$options 	= array();
-		$options[]	= JHtml::_('select.option', '', '- '.JText::_('SELECT_ITEM').' -');
+		$options	= array();
+		$options[]	= JHtml::_('select.option', '', JText::_('JOPTION_SELECT_MENU_ITEM'));
 
 		foreach ($menuTypes as $type)
 		{
 			if ($menuType == '')
 			{
 				$options[]	= JHtml::_('select.option',  '0', '&nbsp;', 'value', 'text', true);
-				$options[]	= JHtml::_('select.option',  $type->menutype, $type->title . ' - ' . JText::_('Top'), 'value', 'text', true);
+				$options[]	= JHtml::_('select.option',  $type->menutype, $type->title . ' - ' . JText::_('JGLOBAL_TOP'), 'value', 'text', true);
 			}
 			if (isset($groupedList[$type->menutype]))
 			{

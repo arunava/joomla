@@ -13,7 +13,11 @@ jimport('joomla.plugin.plugin');
 
 class plgContentLoadmodule extends JPlugin
 {
+	static $test = 0;
 	/**
+	* Plugin that loads module positions within content
+	*/
+/**
 	* Plugin that loads module positions within content
 	*/
 	public function onPrepareContent(&$article, &$params, $page = 0)
@@ -23,12 +27,14 @@ class plgContentLoadmodule extends JPlugin
 			return true;
 		}
 
-	 	// expression to search for
-	 	$regex 		= '/{loadposition\s+(.*?)}/i';
-		$matches 	= array();
-		$style 		= $this->params->def('style', 'none');
+		if (self::$test == 1) return;
 
-	 	// find all instances of plugin and put in $matches
+		// expression to search for
+		$regex		= '/{loadposition\s+(.*?)}/i';
+		$matches	= array();
+		$style		= $this->params->def('style', 'none');
+
+		// find all instances of plugin and put in $matches
 		preg_match_all($regex, $article->text, $matches, PREG_SET_ORDER);
 
 		foreach ($matches as $match) {
@@ -36,20 +42,27 @@ class plgContentLoadmodule extends JPlugin
 			$output = $this->_load($match[1], $style);
 			$article->text = str_replace($match[0], $output, $article->text);
 		}
+
+		self::$test = 1;
 	}
 
 	protected function _load($position, $style = 'none')
+
 	{
+
+		//if (isset(self::$test[$position]) && self::$test[$position] == 1) return;
 		$document	= &JFactory::getDocument();
 		$renderer	= $document->loadRenderer('module');
-		$modules 	= JModuleHelper::getModules($position);
+		$modules	= JModuleHelper::getModules($position);
 		$params		= array('style' => $style);
-
+		$best = self::$test;
 		ob_start();
 		foreach ($modules as $module) {
 			echo $renderer->render($module, $params);
 		}
 		$output = ob_get_clean();
+		//self::$test[$position] = 1;
+
 		return $output;
 	}
 }

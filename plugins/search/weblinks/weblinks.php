@@ -11,12 +11,14 @@ defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
 
+require_once JPATH_SITE.'/components/com_weblinks/helpers/route.php';
+
 /**
  * Weblinks Search plugin
  *
  * @package		Joomla
  * @subpackage	Search
- * @since 		1.6
+ * @since		1.6
  */
 class plgSearchWeblinks extends JPlugin
 {
@@ -48,53 +50,47 @@ class plgSearchWeblinks extends JPlugin
 
 		$searchText = $text;
 
-		require_once JPATH_SITE.'/components/com_weblinks/router.php';
-
 		if (is_array($areas)) {
-			if (!array_intersect($areas, array_keys(plgSearchWeblinksAreas()))) {
+			if (!array_intersect($areas, array_keys($this->onSearchAreas()))) {
 				return array();
 			}
 		}
 
-		// load plugin params info
-		$plugin = &JPluginHelper::getPlugin('search', 'weblinks');
-		$pluginParams = new JParameter($plugin->params);
-
-		$limit = $pluginParams->def('search_limit', 50);
+		$limit = $this->params->def('search_limit', 50);
 
 		$text = trim($text);
 		if ($text == '') {
 			return array();
 		}
-		$section 	= JText::_('WEB_LINKS');
+		$section	= JText::_('PLG_SEARCH_WEBLINKS');
 
-		$wheres 	= array();
+		$wheres	= array();
 		switch ($phrase)
 		{
 			case 'exact':
 				$text		= $db->Quote('%'.$db->getEscaped($text, true).'%', false);
-				$wheres2 	= array();
-				$wheres2[] 	= 'a.url LIKE '.$text;
-				$wheres2[] 	= 'a.description LIKE '.$text;
-				$wheres2[] 	= 'a.title LIKE '.$text;
-				$where 		= '(' . implode(') OR (', $wheres2) . ')';
+				$wheres2	= array();
+				$wheres2[]	= 'a.url LIKE '.$text;
+				$wheres2[]	= 'a.description LIKE '.$text;
+				$wheres2[]	= 'a.title LIKE '.$text;
+				$where		= '(' . implode(') OR (', $wheres2) . ')';
 				break;
 
 			case 'all':
 			case 'any':
 			default:
-				$words 	= explode(' ', $text);
+				$words	= explode(' ', $text);
 				$wheres = array();
 				foreach ($words as $word)
 				{
 					$word		= $db->Quote('%'.$db->getEscaped($word, true).'%', false);
-					$wheres2 	= array();
-					$wheres2[] 	= 'a.url LIKE '.$word;
-					$wheres2[] 	= 'a.description LIKE '.$word;
-					$wheres2[] 	= 'a.title LIKE '.$word;
-					$wheres[] 	= implode(' OR ', $wheres2);
+					$wheres2	= array();
+					$wheres2[]	= 'a.url LIKE '.$word;
+					$wheres2[]	= 'a.description LIKE '.$word;
+					$wheres2[]	= 'a.title LIKE '.$word;
+					$wheres[]	= implode(' OR ', $wheres2);
 				}
-				$where 	= '(' . implode(($phrase == 'all' ? ') AND (' : ') OR ('), $wheres) . ')';
+				$where	= '(' . implode(($phrase == 'all' ? ') AND (' : ') OR ('), $wheres) . ')';
 				break;
 		}
 
@@ -121,24 +117,21 @@ class plgSearchWeblinks extends JPlugin
 				$order = 'a.date DESC';
 		}
 
-		$query = 'SELECT a.title AS title, a.description AS text, a.date AS created, a.url, '
-		. ' CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(\':\', a.id, a.alias) ELSE a.id END as slug, '
-		. ' CASE WHEN CHAR_LENGTH(b.alias) THEN CONCAT_WS(\':\', b.id, b.alias) ELSE b.id END as catslug, '
-		. ' CONCAT_WS(" / ", '.$db->Quote($section).', b.title) AS section,'
-		. ' "1" AS browsernav'
-		. ' FROM #__weblinks AS a'
-		. ' INNER JOIN #__categories AS b ON b.id = a.catid'
-		. ' WHERE ('. $where .')'
-		. ' AND a.state = 1'
-		. ' AND b.published = 1'
-		. ' AND b.access IN ('.$groups.')'
-		. ' ORDER BY '. $order
-		;
+		$query	= $db->getQuery(true);
+		$query->select('a.title AS title, a.description AS text, a.date AS created, a.url, '
+					.'CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(\':\', a.id, a.alias) ELSE a.id END as slug, '
+					.'CASE WHEN CHAR_LENGTH(b.alias) THEN CONCAT_WS(\':\', b.id, b.alias) ELSE b.id END as catslug, '
+					.'CONCAT_WS(" / ", '.$db->Quote($section).', b.title) AS section, "1" AS browsernav');
+		$query->from('#__weblinks AS a');
+		$query->innerJoin('#__categories AS b ON b.id = a.catid');
+		$query->where('('.$where.')' . ' AND a.state=1 AND  b.published=1 AND  b.access IN ('.$groups.')');
+		$query->order($order);
+
 		$db->setQuery($query, 0, $limit);
 		$rows = $db->loadObjectList();
 
 		foreach($rows as $key => $row) {
-			$rows[$key]->href = WeblinksRoute::weblink($row->slug, $row->catslug);
+			$rows[$key]->href = WeblinksHelperRoute::getWeblinkRoute($row->slug, $row->catslug);
 		}
 
 		$return = array();

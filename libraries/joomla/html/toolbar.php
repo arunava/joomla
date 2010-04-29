@@ -16,7 +16,7 @@ JLoader::register('JButton', dirname(__FILE__).DS.'toolbar'.DS.'button.php');
 /**
  * ToolBar handler
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
  */
@@ -182,7 +182,7 @@ class JToolBar extends JObject
 
 		// Check for error.
 		if ($button === false) {
-			return JText::_('Button not defined for type').' = '.$type;
+			return JText::sprintf('JLIB_HTML_BUTTON_NOT_DEFINED', $type);
 		}
 		return $button->render($node);
 	}
@@ -203,7 +203,7 @@ class JToolBar extends JObject
 
 		if (!class_exists('JButton'))
 		{
-			JError::raiseWarning('SOME_ERROR_CODE', 'Could not load button base class.');
+			JError::raiseWarning('SOME_ERROR_CODE', JText::_('JLIB_HTML_BUTTON_BASE_CLASS'));
 			return false;
 		}
 
@@ -222,7 +222,7 @@ class JToolBar extends JObject
 			if ($buttonFile = JPath::find($dirs, $file)) {
 				include_once $buttonFile;
 			} else {
-				JError::raiseWarning('SOME_ERROR_CODE', "Could not load module $buttonClass ($buttonFile).");
+				JError::raiseWarning('SOME_ERROR_CODE', JText::sprintf('JLIB_HTML_BUTTON_NO_LOAD', $buttonClass, $buttonFile));
 				return false;
 			}
 		}

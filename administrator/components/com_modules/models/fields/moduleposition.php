@@ -5,11 +5,11 @@
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// No direct access.
-defined('_JEXEC') or die;
+defined('JPATH_BASE') or die;
 
-jimport('joomla.database.query');
-require_once JPATH_LIBRARIES.'/joomla/form/fields/list.php';
+jimport('joomla.html.html');
+jimport('joomla.form.formfield');
+JLoader::register('JFormFieldList', JPATH_LIBRARIES.'/joomla/form/fields/list.php');
 
 /**
  * Form field to list the available positions for a module.
@@ -23,81 +23,89 @@ require_once JPATH_LIBRARIES.'/joomla/form/fields/list.php';
 class JFormFieldModulePosition extends JFormFieldList
 {
 	/**
-	 * The field type.
+	 * The form field type.
 	 *
 	 * @var		string
+	 * @since	1.6
 	 */
-	public $type = 'ModulePosition';
+	protected $type = 'ModulePosition';
 
 	/**
-	 * Method to get a list of options for a list input.
+	 * Method to get the field options.
 	 *
-	 * @return	array		An array of JHtml options.
+	 * @return	array	The field option objects.
+	 * @since	1.6
 	 */
-	protected function _getOptions()
+	protected function getOptions()
 	{
+		// Initialize variables.
+		$options = array();
+
 		$db			= JFactory::getDbo();
-		$query		= new JQuery;
-		$clientId	= (int) $this->_form->getValue('client_id');
+		$query		= $db->getQuery(true);
+		$clientId	= (int) $this->form->getValue('client_id');
 		$client		= JApplicationHelper::getClientInfo($clientId);
 
 		jimport('joomla.filesystem.folder');
 
 		// template assignment filter
-		$query = new JQuery;
 		$query->select('DISTINCT(template)');
 		$query->from('#__template_styles');
 		$query->where('client_id = '.(int) $clientId);
 
 		$db->setQuery($query);
 		$templates = $db->loadResultArray();
-		if ($error = $db->getErrorMsg())
-		{
+		if ($error = $db->getErrorMsg()) {
 			JError::raiseWarning(500, $error);
 			return false;
 		}
 
-		$query = new JQuery;
+		$query->clear();
 		$query->select('DISTINCT(position)');
 		$query->from('#__modules');
 		$query->where('`client_id` = '.(int) $clientId);
 
 		$db->setQuery($query);
 		$positions = $db->loadResultArray();
-		if ($error = $db->getErrorMsg())
-		{
+		if ($error = $db->getErrorMsg()) {
 			JError::raiseWarning(500, $error);
 			return false;
 		}
 
 		// Load the positions from the installed templates.
-		foreach ($templates as $template)
-		{
+		foreach ($templates as $template) {
 			$path = JPath::clean($client->path.'/templates/'.$template.'/templateDetails.xml');
 
-			if (file_exists($path))
-			{
-    			$xml = simplexml_load_file($path);
-    			if (isset($xml->positions[0]))
-    			{
-					foreach ($xml->positions[0] as $position)
-					{
+			if (file_exists($path)) {
+				$xml = simplexml_load_file($path);
+				if (isset($xml->positions[0])) {
+					foreach ($xml->positions[0] as $position) {
 						$positions[] = (string) $position;
 					}
-    			}
+				}
 			}
 		}
 		$positions = array_unique($positions);
 		sort($positions);
 
-		$options = array();
-		foreach ($positions as $position)
-		{
+		$options[] = JHtml::_('select.option', '', JText::_('COM_MODULES_OPTION_SELECT_POSITION'));
+
+		foreach ($positions as $position) {
 			$options[]	= JHtml::_('select.option', $position, $position);
 		}
 
 		// Merge any additional options in the XML definition.
-		$options = array_merge(parent::_getOptions(), $options);
+		$options = array_merge(parent::getOptions(), $options);
+
+		// Add javascript for custom position selection
+		JFactory::getDocument()->addScriptDeclaration('
+			function setModulePosition(el) {
+				if ($("jform_custom_position")) {
+					$("jform_custom_position").style.display = (!el.value.length) ? "block" : "none";
+				}
+			}
+			window.addEvent("domready", function() {setModulePosition($("jform_position"))});
+		');
 
 		return $options;
 	}

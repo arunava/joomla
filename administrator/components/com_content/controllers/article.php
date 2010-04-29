@@ -21,9 +21,9 @@ class ContentControllerArticle extends JControllerForm
 	 *
 	 * @param	array	An array of input data.
 	 *
-	 * @return 	boolean
+	 * @return	boolean
 	 */
-	protected function _allowAdd($data = array())
+	protected function allowAdd($data = array())
 	{
 		// Initialise variables.
 		$user		= JFactory::getUser();
@@ -38,7 +38,7 @@ class ContentControllerArticle extends JControllerForm
 		if ($allow === null)
 		{
 			// In the absense of better information, revert to the component permissions.
-			return parent::_allowAdd();
+			return parent::allowAdd();
 		}
 		else {
 			return $allow;
@@ -51,9 +51,9 @@ class ContentControllerArticle extends JControllerForm
 	 * @param	array	An array of input data.
 	 * @param	string	The name of the key for the primary key.
 	 *
-	 * @return 	boolean
+	 * @return	boolean
 	 */
-	protected function _allowEdit($data = array(), $key = 'id')
+	protected function allowEdit($data = array(), $key = 'id')
 	{
 		// Initialise variables.
 		$recordId	= (int) isset($data[$key]) ? $data[$key] : 0;

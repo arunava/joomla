@@ -11,7 +11,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
  * Methods supporting a list of search terms.
@@ -23,25 +22,22 @@ jimport('joomla.database.query');
 class SearchModelSearches extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_searches.searches';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$showResults = $app->getUserStateFromRequest($this->_context.'.filter.results', 'filter_results', null, 'int');
+		$showResults = $app->getUserStateFromRequest($this->context.'.filter.results', 'filter_results', null, 'int');
 		$this->setState('filter.results', $showResults);
 
 		// Load the parameters.
@@ -49,7 +45,7 @@ class SearchModelSearches extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.hits', 'asc');
+		parent::populateState('a.hits', 'asc');
 	}
 
 	/**
@@ -63,24 +59,25 @@ class SearchModelSearches extends JModelList
 	 *
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.search');
 		$id	.= ':'.$this->getState('filter.results');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
 	 * Build an SQL query to load the list data.
 	 *
-	 * @return	JQuery
+	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
 
 		// Select the required fields from the table.
 		$query->select(
@@ -100,12 +97,12 @@ class SearchModelSearches extends JModelList
 		$search = $this->getState('filter.search');
 		if (!empty($search))
 		{
-			$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%');
+			$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
 			$query->where('a.search_term LIKE '.$search);
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.hits')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.hits')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;
@@ -122,19 +119,16 @@ class SearchModelSearches extends JModelList
 
 		// Determine if number of results for search item should be calculated
 		// by default it is `off` as it is highly query intensive
-		if ($this->getState('filter.results'))
-		{
+		if ($this->getState('filter.results')) {
 			JPluginHelper::importPlugin('search');
 			$app = JFactory::getApplication();
 
-			if (!class_exists('JSite'))
-			{
+			if (!class_exists('JSite')) {
 				// This fools the routers in the search plugins into thinking it's in the frontend
 				require_once JPATH_COMPONENT.'/helpers/site.php';
 			}
 
-			foreach ($items as &$item)
-			{
+			foreach ($items as &$item) {
 				$results = $app->triggerEvent('onSearch', array($item->search_term));
 				$item->returns = 0;
 				foreach ($results as $result) {
@@ -157,8 +151,7 @@ class SearchModelSearches extends JModelList
 		$db->setQuery(
 			'DELETE FROM #__core_log_searches'
 		);
-		if (!$db->query())
-		{
+		if (!$db->query()) {
 			$this->setError($db->getErrorMsg());
 			return false;
 		}

@@ -49,7 +49,7 @@ class JInstaller extends JAdapter
 
 	/**
 	 * Stack of installation steps
-	 * 	- Used for installation rollback
+	 *	- Used for installation rollback
 	 * @var array
 	 */
 	protected $_stepStack = array();
@@ -318,13 +318,13 @@ class JInstaller extends JAdapter
 		}
 		else
 		{
-			$this->abort(JText::_('Install path does not exist'));
+			$this->abort(JText::_('JLIB_INSTALLER_ABORT_NOINSTALLPATH'));
 			return false;
 		}
 
 		if (!$this->setupInstall())
 		{
-			$this->abort(JText::_('Unable to detect manifest file'));
+			$this->abort(JText::_('JLIB_INSTALLER_ABORT_DETECTMANIFEST'));
 			return false;
 		}
 
@@ -333,8 +333,10 @@ class JInstaller extends JAdapter
 		if (is_object($this->_adapters[$type]))
 		{
 			// Add the languages from the package itself
-			$lang =& JFactory::getLanguage();
-			$lang->load('joomla',$path);
+			if (method_exists($this->_adapters[$type], 'loadLanguage'))
+			{
+				$this->_adapters[$type]->loadLanguage($path);
+			}
 
 			// Fire the onBeforeExtensionInstall event.
 			JPluginHelper::importPlugin('installer');
@@ -371,12 +373,12 @@ class JInstaller extends JAdapter
 			$this->extension =& JTable::getInstance('extension');
 			if (!$this->extension->load($eid))
 			{
-				$this->abort(JText::_('Failed to load extension details'));
+				$this->abort(JText::_('JLIB_INSTALLER_ABORT_LOAD_DETAILS'));
 				return false;
 			}
 			if ($this->extension->state != -1)
 			{
-				$this->abort(JText::_('Extension is already installed'));
+				$this->abort(JText::_('JLIB_INSTALLER_ABORT_ALREADYINSTALLED'));
 				return false;
 			}
 
@@ -392,6 +394,12 @@ class JInstaller extends JAdapter
 			{
 				if (method_exists($this->_adapters[$this->extension->type], 'discover_install'))
 				{
+					// Add the languages from the package itself
+					if (method_exists($this->_adapters[$this->extension->type], 'loadLanguage'))
+					{
+						$this->_adapters[$this->extension->type]->loadLanguage();
+					}
+
 					// Fire the onBeforeExtensionInstall event.
 					JPluginHelper::importPlugin('installer');
 					$dispatcher =& JDispatcher::getInstance();
@@ -405,7 +413,7 @@ class JInstaller extends JAdapter
 				}
 				else
 				{
-					$this->abort(JText::_('Method not supported for this extension type'));
+					$this->abort(JText::_('JLIB_INSTALLER_ABORT_METHODNOTSUPPORTED'));
 					return false;
 				}
 			}
@@ -413,7 +421,7 @@ class JInstaller extends JAdapter
 		}
 		else
 		{
-			$this->abort(JText::_('Extension is not a valid'));
+			$this->abort(JText::_('JLIB_INSTALLER_ABORT_EXTENSIONNOTVALID'));
 			return false;
 		}
 	}
@@ -460,11 +468,11 @@ class JInstaller extends JAdapter
 			$this->setPath('source', $path);
 		}
 		else {
-			$this->abort(JText::_('Update path does not exist'));
+			$this->abort(JText::_('JLIB_INSTALLER_ABORT_NOUPDATEPATH'));
 		}
 
 		if (!$this->setupInstall()) {
-			return $this->abort(JText::_('Unable to detect manifest file'));
+			return $this->abort(JText::_('JLIB_INSTALLER_ABORT_DETECTMANIFEST'));
 		}
 
 		$type = (string)$this->manifest->attributes()->type;
@@ -472,8 +480,10 @@ class JInstaller extends JAdapter
 		if (is_object($this->_adapters[$type]))
 		{
 			// Add the languages from the package itself
-			$lang =& JFactory::getLanguage();
-			$lang->load('joomla',$path);
+			if (method_exists($this->_adapters[$type], 'loadLanguage'))
+			{
+				$this->_adapters[$type]->loadLanguage($path);
+			}
 			// Fire the onBeforeExtensionUpdate event.
 			JPluginHelper::importPlugin('installer');
 			$dispatcher =& JDispatcher::getInstance();
@@ -533,12 +543,12 @@ class JInstaller extends JAdapter
 			$this->extension =& JTable::getInstance('extension');
 			if (!$this->extension->load($eid))
 			{
-				$this->abort(JText::_('Failed to load extension details'));
+				$this->abort(JText::_('JLIB_INSTALLER_ABORT_LOAD_DETAILS'));
 				return false;
 			}
 			if ($this->extension->state == -1)
 			{
-				$this->abort(JText::_('Refresh Manifest Cache failed').': '.JText::_('Extension is not currently installed'));
+				$this->abort(JText::_('JLIB_INSTALLER_ABORT_REFRESH_MANIFEST_CACHE'));
 				return false;
 			}
 
@@ -559,7 +569,7 @@ class JInstaller extends JAdapter
 				}
 				else
 				{
-					$this->abort(JText::_('Method not supported for this extension type').': '. $this->extension->type);
+					$this->abort(JText::sprintf('JLIB_INSTALLER_ABORT_METHODNOTSUPPORTED_TYPE', $this->extension->type));
 					return false;
 				}
 			}
@@ -567,7 +577,7 @@ class JInstaller extends JAdapter
 		}
 		else
 		{
-			$this->abort(JText::_('Refresh Manifest Cache failed').': '.JText::_('Extension not valid'));
+			$this->abort(JText::_('JLIB_INSTALLER_ABORT_REFRESH_MANIFEST_CACHE_VALID'));
 			return false;
 		}
 	}
@@ -610,7 +620,7 @@ class JInstaller extends JAdapter
 	 * installation manifest file and take appropriate action.
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @return	mixed	Number of queries processed or False on error
 	 * @since	1.5
 	 */
@@ -639,7 +649,7 @@ class JInstaller extends JAdapter
 			$db->setQuery($query->data());
 			if (!$db->query())
 			{
-				JError::raiseWarning(1, 'JInstaller::install: '.JText::_('SQL_ERROR')." ".$db->stderr(true));
+				JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_SQL_ERROR', $db->stderr(true)));
 				return false;
 			}
 		}
@@ -650,7 +660,7 @@ class JInstaller extends JAdapter
 	 * Method to extract the name of a discreet installation sql file from the installation manifest file.
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @param	string	$version	The database connector to use
 	 * @return	mixed	Number of queries processed or False on error
 	 * @since	1.5
@@ -687,7 +697,7 @@ class JInstaller extends JAdapter
 				// Check that sql files exists before reading. Otherwise raise error for rollback
 				if (!file_exists($sqlfile))
 				{
-					JError::raiseWarning(1,'JInstaller::installer: '. JText::_('SQL File not found').' '. $sqlfile);
+					JError::raiseWarning(1,JText::sprintf('JLIB_INSTALLER_ERROR_SQL_FILENOTFOUND', $sqlfile));
 					return false;
 				}
 				$buffer = file_get_contents($sqlfile);
@@ -695,7 +705,7 @@ class JInstaller extends JAdapter
 				// Graceful exit and rollback if read not successful
 				if ($buffer === false)
 				{
-					JError::raiseWarning(1, 'JInstaller::installer: '. JText::_('SQL File Buffer Read Error'));
+					JError::raiseWarning(1, JText::_('JLIB_INSTALLER_ERROR_SQL_READBUFFER'));
 					return false;
 				}
 
@@ -717,7 +727,7 @@ class JInstaller extends JAdapter
 						$db->setQuery($query);
 						if (!$db->query())
 						{
-							JError::raiseWarning(1, 'JInstaller::install: '.JText::_('SQL Error')." ".$db->stderr(true));
+							JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_SQL_ERROR', $db->stderr(true)));
 							return false;
 						}
 					}
@@ -733,9 +743,9 @@ class JInstaller extends JAdapter
 	 * action.
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @param	int		$cid		Application ID of application to install to
-	 * @param 	Array	List of old files (JXMLElement's)
+	 * @param	Array	List of old files (JXMLElement's)
 	 * @param	Array	List of old MD5 sums (indexed by filename with value as MD5)
 	 * @return	boolean	True on success
 	 * @since	1.5
@@ -833,7 +843,7 @@ class JInstaller extends JAdapter
 
 				if (!JFolder::create($newdir))
 				{
-					JError::raiseWarning(1, 'JInstaller::install: '.JText::_('FAILED_TO_CREATE_DIRECTORY').' "'.$newdir.'"');
+					JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_CREATE_DIRECTORY', $newdir));
 					return false;
 				}
 			}
@@ -850,7 +860,7 @@ class JInstaller extends JAdapter
 	 * action.
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @param	int		$cid		Application ID of application to install to
 	 * @return	boolean	True on success
 	 * @since	1.5
@@ -899,7 +909,7 @@ class JInstaller extends JAdapter
 			/*
 			 * Language files go in a subfolder based on the language code, ie.
 			 *
-			 * 		<language tag="en-US">en-US.mycomponent.ini</language>
+			 *		<language tag="en-US">en-US.mycomponent.ini</language>
 			 *
 			 * would go in the en-US subdirectory of the language folder.
 			 *
@@ -943,7 +953,7 @@ class JInstaller extends JAdapter
 
 				if (!JFolder::create($newdir))
 				{
-					JError::raiseWarning(1, 'JInstaller::install: '.JText::_('FAILED_TO_CREATE_DIRECTORY').' "'.$newdir.'"');
+					JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_CREATE_DIRECTORY', $newdir));
 					return false;
 				}
 			}
@@ -960,7 +970,7 @@ class JInstaller extends JAdapter
 	 * action.
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @param	int		$cid		Application ID of application to install to
 	 * @return	boolean	True on success
 	 * @since	1.5
@@ -982,7 +992,7 @@ class JInstaller extends JAdapter
 
 		/*
 		 * Here we set the folder we are going to copy the files to.
-		 * 	Default 'media' Files are copied to the JPATH_BASE/media folder
+		 *	Default 'media' Files are copied to the JPATH_BASE/media folder
 		 */
 		$folder = ((string)$element->attributes()->destination) ? DS.$element->attributes()->destination : null;
 		$destination = JPath::clean(JPATH_ROOT.DS.'media'.$folder);
@@ -1024,7 +1034,7 @@ class JInstaller extends JAdapter
 
 				if (!JFolder::create($newdir))
 				{
-					JError::raiseWarning(1, 'JInstaller::install: '.JText::_('FAILED_TO_CREATE_DIRECTORY').' "'.$newdir.'"');
+					JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_CREATE_DIRECTORY', $newdir));
 					return false;
 				}
 			}
@@ -1047,30 +1057,41 @@ class JInstaller extends JAdapter
 	public function getParams()
 	{
 		// Get the manifest document root element
-		$root = & $this->manifest->document;
+		// OMAR: This appears to be unused, commenting out:
+		//$root = & $this->manifest->document;
 
-		// Get the element of the tag names
-		$params = $this->manifest->params;
-		if( ! count($params->children())) {
-			// Either the tag does not exist or has no children therefore we return zero files processed.
-			return null;
-		}
+		// Getting the fieldset tags:
+		$fieldsets = $this->manifest->config->fields->fieldset;
 
-		// Process each parameter in the $params array.
-		$ini = null;
-		foreach ($params as $param)
-		{
-			if (!$name = $param->attributes()->name) {
-				continue;
+		// Creating the data collection variable:
+		$ini = array();
+
+		// Iterating through the fieldsets:
+		foreach($fieldsets as $fieldset) {
+			if( ! count($fieldset->children())) {
+				// Either the tag does not exist or has no children therefore we return zero files processed.
+				return null;
 			}
 
-			if (!$value = $param->attributes()->default) {
-				continue;
-			}
+			// Iterating through the fields and collecting the name/default values:
+			foreach ($fieldset as $field)
+			{
+				// Modified the below if statements to check against the
+				// null value since default values like "0" were casuing
+				// entire parameters to be skipped.
+				if (($name = $field->attributes()->name) === null) {
+					continue;
+				}
 
-			$ini .= $name."=".$value."\n";
+				if (($value = $field->attributes()->default) === null) {
+					continue;
+				}
+
+				$ini[(string) $name] = (string) $value;
+			}
 		}
-		return $ini;
+
+		return json_encode($ini);
 	}
 
 	/**
@@ -1112,7 +1133,7 @@ class JInstaller extends JAdapter
 					 * The source file does not exist.  Nothing to copy so set an error
 					 * and return false.
 					 */
-					JError::raiseWarning(1, 'JInstaller::install: '.JText::sprintf('File does not exist', $filesource));
+					JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_NO_FILE', $filesource));
 					return false;
 				}
 				elseif (file_exists($filedest) && !$overwrite)
@@ -1128,7 +1149,7 @@ class JInstaller extends JAdapter
 					 * The destination file already exists and the overwrite flag is false.
 					 * Set an error and return false.
 					 */
-					JError::raiseWarning(1, 'JInstaller::install: '.JText::sprintf('WARNSAME', $filedest));
+					JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_FILE_EXISTS', $filedest));
 					return false;
 				}
 				else
@@ -1136,9 +1157,9 @@ class JInstaller extends JAdapter
 					// Copy the folder or file to the new location.
 					if ($filetype == 'folder')
 					{
-						if (!(JFolder::copy($filesource, $filedest, null, $overwrite,1)))
+						if (!(JFolder::copy($filesource, $filedest, null, $overwrite)))
 						{
-							JError::raiseWarning(1, 'JInstaller::install: '.JText::sprintf('Failed to copy folder to', $filesource, $filedest));
+							JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_FAIL_COPY_FOLDER', $filesource, $filedest));
 							return false;
 						}
 
@@ -1146,9 +1167,9 @@ class JInstaller extends JAdapter
 					}
 					else
 					{
-						if (!(JFile::copy($filesource, $filedest,null,1)))
+						if (!(JFile::copy($filesource, $filedest,null)))
 						{
-							JError::raiseWarning(1, 'JInstaller::install: '.JText::sprintf('Failed to copy file to', $filesource, $filedest));
+							JError::raiseWarning(1, JText::sprintf('JLIB_INSTALLER_ERROR_FAIL_COPY_FILE', $filesource, $filedest));
 							return false;
 						}
 
@@ -1178,7 +1199,7 @@ class JInstaller extends JAdapter
 	 * the files that were installed
 	 *
 	 * @access	public
-	 * @param	object	$element 	The xml node to process
+	 * @param	object	$element	The xml node to process
 	 * @param	int		$cid		Application ID of application to remove from
 	 * @return	boolean	True on success
 	 * @since	1.5
@@ -1259,7 +1280,7 @@ class JInstaller extends JAdapter
 			 * If the file is a language, we must handle it differently.  Language files
 			 * go in a subdirectory based on the language code, ie.
 			 *
-			 * 		<language tag="en_US">en_US.mycomponent.ini</language>
+			 *		<language tag="en_US">en_US.mycomponent.ini</language>
 			 *
 			 * would go in the en_US subdirectory of the languages directory.
 			 */
@@ -1380,13 +1401,13 @@ class JInstaller extends JAdapter
 			}
 
 			// None of the xml files found were valid install files
-			JError::raiseWarning(1, 'JInstaller::install: '.JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
+			JError::raiseWarning(1, JText::_('JLIB_INSTALLER_ERROR_NOTFINDJOOMLAXMLSETUPFILE'));
 			return false;
 		}
 		else
 		{
 			// No xml files were found in the install folder
-			JError::raiseWarning(1, 'JInstaller::install: '.JText::_('ERRORXMLSETUP'));
+			JError::raiseWarning(1, JText::_('JLIB_INSTALLER_ERROR_NOTFINDXMLSETUPFILE'));
 			return false;
 		}
 	}

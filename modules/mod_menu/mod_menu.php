@@ -14,4 +14,12 @@ defined('_JEXEC') or die;
 require_once dirname(__FILE__).DS.'helper.php';
 
 $list = modMenuHelper::getList($params);
-require JModuleHelper::getLayoutPath('mod_menu', $params->get('layout', 'default'));
+$menu	= &JSite::getMenu();
+$active	= $menu->getActive();
+$active_id = isset($active) ? $active->id : $menu->getDefault()->id;
+$path	= isset($active) ? $active->tree : array();
+$showAll	= $params->get('showAllChildren');
+if(count($list))
+{
+	require JModuleHelper::getLayoutPath('mod_menu', $params->get('layout', 'default'));
+}

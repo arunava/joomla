@@ -13,7 +13,7 @@ jimport('joomla.database.tablenested');
 /**
  * Menu table
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Table
  * @since		1.0
  */
@@ -29,7 +29,7 @@ class JTableMenu extends JTableNested
 		parent::__construct('#__menu', 'id', $db);
 
 		// Set the default access level.
-		$this->access = (int) JFactory::getConfig()->getValue('access');
+		$this->access = (int) JFactory::getConfig()->get('access');
 	}
 
 	/**

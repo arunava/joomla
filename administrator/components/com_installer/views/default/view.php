@@ -1,6 +1,8 @@
 <?php
 /**
  * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_installer
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -19,30 +21,26 @@ jimport('joomla.application.component.view');
  */
 class InstallerViewDefault extends JView
 {
+	/**
+	 * @since	1.5
+	 */
 	function __construct($config = null)
 	{
 		parent::__construct($config);
 		$this->_addPath('template', $this->_basePath.DS.'views'.DS.'default'.DS.'tmpl');
 	}
 
+	/**
+	 * @since	1.5
+	 */
 	function display($tpl=null)
 	{
-		/*
-		 * Set toolbar items for the page
-		 */
-		JToolBarHelper::title(JText::_('EXTENSION_MANAGER'), 'install.png');
-
-		// Document
-		$document = & JFactory::getDocument();
-		$document->setTitle(JText::_('EXTENSION_MANAGER').' : '.JText::_($this->getName()));
-
 		// Get data from the model
-		$state		= &$this->get('State');
+		$state	= $this->get('State');
 
 		// Are there messages to display ?
 		$showMessage	= false;
-		if (is_object($state))
-		{
+		if (is_object($state)) {
 			$message1		= $state->get('message');
 			$message2		= $state->get('extension_message');
 			$showMessage	= ($message1 || $message2);
@@ -52,15 +50,27 @@ class InstallerViewDefault extends JView
 		$this->assignRef('state',		$state);
 
 		JHtml::_('behavior.tooltip');
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Should be overloaded by extending view
+	 * Add the page title and toolbar.
 	 *
-	 * @param	int $index
+	 * @since	1.6
 	 */
-	function loadItem($index=0)
+	protected function addToolbar()
 	{
+		$canDo	= InstallerHelper::getActions();
+		JToolBarHelper::title(JText::_('COM_INSTALLER_HEADER_' . $this->getName()), 'install.png');
+
+		if ($canDo->get('core.admin')) {
+			JToolBarHelper::preferences('com_installer');
+			JToolBarHelper::divider();
+		}
+		JToolBarHelper::help('screen.installer','JTOOLBAR_HELP');
+		// Document
+		$document = JFactory::getDocument();
+		$document->setTitle(JText::_('COM_INSTALLER_TITLE_' . $this->getName()));
 	}
 }

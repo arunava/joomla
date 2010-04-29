@@ -9,7 +9,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
  * Menu List Model for Menus.
@@ -21,21 +20,15 @@ jimport('joomla.database.query');
 class MenusModelMenus extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_menus.menus';
-
-	/**
 	 * Method to build an SQL query to load the list data.
 	 *
 	 * @return	string	An SQL query
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		// Select all fields from the table.
 		$query->select($this->getState('list.select', 'a.*'));
@@ -56,7 +49,7 @@ class MenusModelMenus extends JModelList
 		$query->group('a.id');
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.id')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.id')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',(string)$query)).'<hr/>';
 		return $query;
@@ -65,15 +58,17 @@ class MenusModelMenus extends JModelList
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// List state information.
-		parent::_populateState('a.id', 'asc');
+		parent::populateState('a.id', 'asc');
 	}
 
 	/**

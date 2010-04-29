@@ -14,14 +14,14 @@ defined('JPATH_BASE') or die;
  * ZIP format adapter for the JArchive class
  *
  * The ZIP compression code is partially based on code from:
- *   Eric Mueller <eric@themepark.com>
- *   http://www.zend.com/codex.php?id=535&single=1
+ *	Eric Mueller <eric@themepark.com>
+ *	http://www.zend.com/codex.php?id=535&single=1
  *
- *   Deins125 <webmaster@atlant.ru>
- *   http://www.zend.com/codex.php?id=470&single=1
+ *	Deins125 <webmaster@atlant.ru>
+ *	http://www.zend.com/codex.php?id=470&single=1
  *
  * The ZIP compression date code is partially based on code from
- *   Peter Listiak <mlady@users.sourceforge.net>
+ *	Peter Listiak <mlady@users.sourceforge.net>
  *
  * This class is inspired from and draws heavily in code and concept from the Compress package of
  * The Horde Project <http://www.horde.org>
@@ -30,7 +30,7 @@ defined('JPATH_BASE') or die;
  * @contributor  Michael Slusarz <slusarz@horde.org>
  * @contributor  Michael Cochrane <mike@graftonhall.co.nz>
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -176,32 +176,32 @@ class JArchiveZip extends JObject
 		$this->_metadata = null;
 
 		if (!extension_loaded('zlib')) {
-			$this->set('error.message', 'Zlib Not Supported');
+			$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_NOT_SUPPORTED'));
 			return false;
 		}
 
 		if (!$this->_data = JFile::read($archive)) {
-			$this->set('error.message', 'Unable to read archive');
+			$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_UNABLE_TO_READ'));
 			return false;
 		}
 
 		if (!$this->_getZipInfo($this->_data)) {
-			$this->set('error.message', 'Get ZIP Information failed');
+			$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_INFO_FAILED'));
 			return false;
 		}
 
 		for ($i=0,$n=count($this->_metadata);$i<$n;$i++) {
-            $lastPathCharacter = substr($this->_metadata[$i]['name'], -1, 1);
+			$lastPathCharacter = substr($this->_metadata[$i]['name'], -1, 1);
 			if ($lastPathCharacter !== '/' && $lastPathCharacter !== '\\') {
 				$buffer = $this->_getFileData($i);
 				$path = JPath::clean($destination.DS.$this->_metadata[$i]['name']);
 				// Make sure the destination folder exists
 				if (!JFolder::create(dirname($path))) {
-					$this->set('error.message', 'Unable to create destination');
+					$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_UNABLE_TO_CREATE_DESTINATION'));
 					return false;
 				}
 				if (JFile::write($path, $buffer, true) === false) {
-					$this->set('error.message', 'Unable to write entry');
+					$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_UNABLE_TO_WRITE_ENTRY'));
 					return false;
 				}
 			}
@@ -241,14 +241,14 @@ class JArchiveZip extends JObject
 							zip_entry_close($file);
 						}
 					} else {
-						$this->set('error.message', 'Unable to read entry');
+						$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_UNABLE_TO_READ_ENTRY'));
 						return false;
 					}
 				}
 				@zip_close($zip);
 			}
 		} else {
-			$this->set('error.message', 'Unable to open archive');
+			$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_UNABLE_TO_OPEN_ARCHIVE'));
 			return false;
 		}
 		return true;
@@ -258,18 +258,18 @@ class JArchiveZip extends JObject
 	 * Get the list of files/data from a ZIP archive buffer.
 	 *
 	 * @access	private
-	 * @param 	string	$data	The ZIP archive buffer.
+	 * @param	string	$data	The ZIP archive buffer.
 	 * @return	array	Archive metadata array
 	 * <pre>
 	 * KEY: Position in zipfile
-	 * VALUES: 'attr'    --  File attributes
-	 *         'crc'     --  CRC checksum
-	 *         'csize'   --  Compressed file size
-	 *         'date'    --  File modification time
-	 *         'name'    --  Filename
-	 *         'method'  --  Compression method
-	 *         'size'    --  Original file size
-	 *         'type'    --  File type
+	 * VALUES: 'attr'	--  File attributes
+	 *		'crc'	--  CRC checksum
+	 *		'csize'	--  Compressed file size
+	 *		'date'	--  File modification time
+	 *		'name'	--  Filename
+	 *		'method'  --  Compression method
+	 *		'size'	--  Original file size
+	 *		'type'	--  File type
 	 * </pre>
 	 * @since	1.5
 	 */
@@ -294,10 +294,10 @@ class JArchiveZip extends JObject
 
 		// Get details from Central directory structure.
 		$fhStart = strpos($data, $this->_ctrlDirHeader, $offset);
-        $dataLength = strlen($data);
+		$dataLength = strlen($data);
 		do {
 			if ($dataLength < $fhStart +31) {
-				$this->set('error.message', 'Invalid ZIP data');
+				$this->set('error.message', JText::_('JLIB_FILESYSTEM_ZIP_INVALID_ZIP_DATA'));
 				return false;
 			}
 			$info = unpack('vMethod/VTime/VCRC32/VCompressed/VUncompressed/vLength', substr($data, $fhStart +10, 20));
@@ -314,10 +314,10 @@ class JArchiveZip extends JObject
 
 			$entries[$name]['type'] = ($info['Internal'] & 0x01) ? 'text' : 'binary';
 			$entries[$name]['attr'] = (($info['External'] & 0x10) ? 'D' : '-') .
-									  (($info['External'] & 0x20) ? 'A' : '-') .
-									  (($info['External'] & 0x03) ? 'S' : '-') .
-									  (($info['External'] & 0x02) ? 'H' : '-') .
-									  (($info['External'] & 0x01) ? 'R' : '-');
+									(($info['External'] & 0x20) ? 'A' : '-') .
+									(($info['External'] & 0x03) ? 'S' : '-') .
+									(($info['External'] & 0x02) ? 'H' : '-') .
+									(($info['External'] & 0x01) ? 'R' : '-');
 			$entries[$name]['offset'] = $info['Offset'];
 
 			// Get details from local file header since we have the offset
@@ -345,7 +345,7 @@ class JArchiveZip extends JObject
 	 */
 	function _getFileData($key) {
 		if ($this->_metadata[$key]['_method'] == 0x8) {
-		    return gzinflate(substr($this->_data, $this->_metadata[$key]['_dataStart'], $this->_metadata[$key]['csize']));
+			return gzinflate(substr($this->_data, $this->_metadata[$key]['_dataStart'], $this->_metadata[$key]['csize']));
 		}
 		elseif ($this->_metadata[$key]['_method'] == 0x0) {
 			/* Files that aren't compressed. */
@@ -463,9 +463,9 @@ class JArchiveZip extends JObject
 		$cdrec .= pack('v', 0); /* Disk number start. */
 		$cdrec .= pack('v', 0); /* Internal file attributes. */
 		$cdrec .= pack('V', 32); /* External file attributes -
-		                                   'archive' bit set. */
+											'archive' bit set. */
 		$cdrec .= pack('V', $old_offset); /* Relative offset of local
-		                                            header. */
+													header. */
 		$cdrec .= $name; /* File name. */
 		/* Optional extra field, file comment goes here. */
 

@@ -85,7 +85,7 @@ class JInstallation extends JApplication
 		ob_end_clean();
 
 		$params = array(
-			'template' 	=> 'template',
+			'template'	=> 'template',
 			'file'		=> 'index.php',
 			'directory' => JPATH_THEMES,
 			'params'	=> '{}'
@@ -147,15 +147,15 @@ class JInstallation extends JApplication
 
 		// Set the language in the class
 		$conf = &JFactory::getConfig();
-		$conf->setValue('config.language', $options['language']);
-		$conf->setValue('config.debug_lang', $forced['debug']);
+		$conf->set('language', $options['language']);
+		$conf->set('debug_lang', $forced['debug']);
 	}
 
 	/**
 	 * Set configuration values
 	 *
-	 * @param	array 	Array of configuration values
-	 * @param 	string 	The namespace
+	 * @param	array	Array of configuration values
+	 * @param	string	The namespace
 	 */
 	public function setCfg(array $vars = array(), $namespace = 'config')
 	{
@@ -184,7 +184,7 @@ class JInstallation extends JApplication
 		{
 			$template = new stdClass();
 			$template->template = 'template';
-			$template->params = new JParameter();
+			$template->params = new JRegistry;
 			return $template;
 		}
 		return 'template';
@@ -219,9 +219,9 @@ class JInstallation extends JApplication
 	 */
 	public function getLocalise()
 	{
-        $xml = JFactory::getXML(JPATH_SITE.DS.'installation'.DS.'localise.xml');
+		$xml = JFactory::getXML(JPATH_SITE.DS.'installation'.DS.'localise.xml');
 
-        if( ! $xml)
+		if( ! $xml)
 		{
 			return false;
 		}
@@ -234,9 +234,9 @@ class JInstallation extends JApplication
 
 		$ret = array();
 
-        $ret['language'] = (string)$xml->forceLang;
-        $ret['helpurl'] = (string)$xml->helpurl;
-        $ret['debug'] = (string)$xml->debug;
+		$ret['language'] = (string)$xml->forceLang;
+		$ret['helpurl'] = (string)$xml->helpurl;
+		$ret['debug'] = (string)$xml->debug;
 
 		return $ret;
 
@@ -246,7 +246,7 @@ class JInstallation extends JApplication
 	 * Returns the installed admin language files in the administrative and
 	 * front-end area.
 	 *
-	 * @return	array 	Array with installed language packs in admin area
+	 * @return	array	Array with installed language packs in admin area
 	 */
 	public function getLocaliseAdmin()
 	{

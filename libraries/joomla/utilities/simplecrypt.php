@@ -14,7 +14,7 @@ defined('JPATH_BASE') or die;
  * JSimpleCrypt is a very simple encryption algorithm for encyrpting/decrypting strings
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Utilities
  * @since		1.5
  */
@@ -42,7 +42,7 @@ class JSimpleCrypt extends JObject
 			$this->_key = (string) $key;
 		} else {
 			$conf = &JFactory::getConfig();
-			$this->_key = md5($conf->getValue('config.secret'));
+			$this->_key = md5($conf->get('secret'));
 		}
 	}
 

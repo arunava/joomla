@@ -57,9 +57,9 @@ class ModulesHelper
 	{
 		// Build the filter options.
 		$options	= array();
-		$options[]	= JHtml::_('select.option',	'1',	JText::_('JOption_Enabled'));
-		$options[]	= JHtml::_('select.option',	'0',	JText::_('JOption_Disabled'));
-		$options[]	= JHtml::_('select.option',	'-2',	JText::_('JOption_Trash'));
+		$options[]	= JHtml::_('select.option',	'1',	JText::_('JENABLED'));
+		$options[]	= JHtml::_('select.option',	'0',	JText::_('JDISABLED'));
+		$options[]	= JHtml::_('select.option',	'-2',	JText::_('JTRASH'));
 		return $options;
 	}
 
@@ -72,18 +72,17 @@ class ModulesHelper
 	{
 		// Build the filter options.
 		$options	= array();
-		$options[]	= JHtml::_('select.option', '0', JText::_('Modules_Option_Site'));
-		$options[]	= JHtml::_('select.option', '1', JText::_('Modules_Option_Administrator'));
+		$options[]	= JHtml::_('select.option', '0', JText::_('JSITE'));
+		$options[]	= JHtml::_('select.option', '1', JText::_('JADMINISTRATOR'));
 		return $options;
 	}
 
 	static function getPositions($clientId)
 	{
 		jimport('joomla.filesystem.folder');
-		jimport('joomla.database.query');
 
-		$db = JFactory::getDbo();
-		$query = new JQuery;
+		$db		= JFactory::getDbo();
+		$query	= $db->getQuery(true);
 
 		$query->select('DISTINCT(position)');
 		$query->from('#__modules');
@@ -94,8 +93,7 @@ class ModulesHelper
 		$positions = $db->loadResultArray();
 		$positions = (is_array($positions)) ? $positions : array();
 
-		if ($error = $db->getErrorMsg())
-		{
+		if ($error = $db->getErrorMsg()) {
 			JError::raiseWarning(500, $error);
 			return;
 		}
@@ -117,19 +115,29 @@ class ModulesHelper
 	 */
 	public static function getModules($clientId)
 	{
-		jimport('joomla.database.query');
-
 		$db		= JFactory::getDbo();
-		$query	= new JQuery;
+		$query	= $db->getQuery(true);
 
-		$query->select('DISTINCT(module) AS value, module AS text');
-		$query->from('#__modules');
-		$query->where('`client_id` = '.(int)$clientId);
-		$query->order('module');
+		$query->select('DISTINCT(m.module) AS value, e.name AS text');
+		$query->from('#__modules AS m');
+		$query->join('LEFT', '#__extensions AS e ON e.element=m.module');
+		$query->where('m.`client_id` = '.(int)$clientId);
 
 		$db->setQuery($query);
-
-		return $db->loadObjectList();
+		$modules = $db->loadObjectList();
+		foreach ($modules as $i=>$module) {
+			$extension = $module->value;
+			$path = $clientId ? JPATH_ADMINISTRATOR : JPATH_SITE;
+			$source = $path . "/modules/$extension";
+			$lang = JFactory::getLanguage();
+				$lang->load("$extension.sys", $path, null, false, false)
+			||	$lang->load("$extension.sys", $source, null, false, false)
+			||	$lang->load("$extension.sys", $path, $lang->getDefault(), false, false)
+			||	$lang->load("$extension.sys", $source, $lang->getDefault(), false, false);
+			$modules[$i]->text = JText::_($module->text);
+		}
+		JArrayHelper::sortObjects($modules,'text');
+		return $modules;
 	}
 
 	/**
@@ -142,13 +150,12 @@ class ModulesHelper
 	public static function getAssignmentOptions($clientId)
 	{
 		$options = array();
-		$options[] = JHtml::_('select.option', '0', 'Modules_Option_Menu_All');
-		$options[] = JHtml::_('select.option', '-', 'Modules_Option_Menu_None');
+		$options[] = JHtml::_('select.option', '0', 'COM_MODULES_OPTION_MENU_ALL');
+		$options[] = JHtml::_('select.option', '-', 'COM_MODULES_OPTION_MENU_NONE');
 
-		if ($clientId == 0)
-		{
-			$options[] = JHtml::_('select.option', '1', 'Modules_Option_Menu_Include');
-			$options[] = JHtml::_('select.option', '-1', 'Modules_Option_Menu_Exclude');
+		if ($clientId == 0) {
+			$options[] = JHtml::_('select.option', '1', 'COM_MODULES_OPTION_MENU_INCLUDE');
+			$options[] = JHtml::_('select.option', '-1', 'COM_MODULES_OPTION_MENU_EXCLUDE');
 		}
 
 		return $options;

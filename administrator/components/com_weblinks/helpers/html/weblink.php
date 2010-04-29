@@ -9,9 +9,9 @@
  * Utility class for creating HTML Grids
  *
  * @static
- * @package 	Joomla.Administrator
+ * @package		Joomla.Administrator
  * @subpackage	com_weblinks
- * @since		1.5
+ * @since		1.6
  */
 class JHtmlWeblink
 {

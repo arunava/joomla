@@ -27,47 +27,34 @@ class ContactController extends JController
 	 */
 	function display()
 	{
-		$document = &JFactory::getDocument();
+
+		$cachable = true;
 
 		// Set the default view name and format from the Request.
 		$vName		= JRequest::getWord('view', 'categories');
-		$vFormat	= $document->getType();
-		$lName		= JRequest::getWord('layout', 'default');
 
-		// interceptors to support legacy urls
-		switch ($this->getTask())
-		{
-			//index.php?option=com_contact&task=category&id=0&Itemid=4
-			case 'category':
-				$viewName	= 'category';
-				$layout		= 'default';
-				break;
-			case 'view':
-				$viewName	= 'contact';
-				$layout		= 'default';
-				break;
-		}
-
-			// Get and render the view.
-		if ($view = &$this->getView($vName, $vFormat))
-		{
-			// Get the model for the view.
-			$model	= &$this->getModel($vName);
-
-			// Push the model into the view (as default).
-			$view->setModel($model, true);
-			$view->setLayout($lName);
-
-			// Push document object into the view.
-			$view->assignRef('document', $document);
 		// Workaround for the item view
 		if ($vName == 'contact')
 		{
-			$modelCat	= &$this->getModel('category');
+			$document = &JFactory::getDocument();
+			$vFormat	= $document->getType();
+			$view 		= $this->getView($vName, $vFormat);
+			$modelCat	= $this->getModel('category');
 			$view->setModel($modelCat);
 		}
-			$view->display();
+
+		$user = &JFactory::getUser();
+
+		if ($user->get('id') || ($_SERVER['REQUEST_METHOD'] == 'POST' &&
+			($vName = 'category' || ($vName = 'contact' && JRequest::getVar('task') == 'submit' )))) {
+			$cachable = false;
 		}
+
+		$safeurlparams = array('id'=>'INT','catid'=>'INT','limit'=>'INT','limitstart'=>'INT',
+			'filter_order'=>'CMD','filter_order_Dir'=>'CMD');
+
+			parent::display($cachable,$safeurlparams);
+
 	}
 
 	/**
@@ -92,9 +79,9 @@ class ContactController extends JController
 		$email		= JRequest::getVar('email',			'',			'post');
 		$subject	= JRequest::getVar('subject',		$default,	'post');
 		$body		= JRequest::getVar('text',			'',			'post');
-		$emailCopy	= JRequest::getInt('email_copy', 	0,			'post');
+		$emailCopy	= JRequest::getInt('email_copy',	0,			'post');
 
-		 // load the contact details
+		// load the contact details
 		$model		= &$this->getModel('contact');
 
 		// query options
@@ -146,12 +133,12 @@ class ContactController extends JController
 		$pparams = &$app->getParams('com_contact');
 		if (!$pparams->get('custom_reply'))
 		{
-			$MailFrom 	= $app->getCfg('mailfrom');
-			$FromName 	= $app->getCfg('fromname');
+			$MailFrom	= $app->getCfg('mailfrom');
+			$FromName	= $app->getCfg('fromname');
 
 			// Prepare email body
 			$prefix = JText::sprintf('ENQUIRY_TEXT', JURI::base());
-			$body 	= $prefix."\n".$name.' <'.$email.'>'."\r\n\r\n".stripslashes($body);
+			$body	= $prefix."\n".$name.' <'.$email.'>'."\r\n\r\n".stripslashes($body);
 
 			$mail = JFactory::getMailer();
 
@@ -166,15 +153,16 @@ class ContactController extends JController
 			 * If we are supposed to copy the admin, do so.
 			 */
 			// parameter check
-			$params = new JParameter($contact->params);
+			$params = new JRegistry;
+			$params->loadJSON($contact->params);
 			$emailcopyCheck = $params->get('show_email_copy', 0);
 
 			// check whether email copy function activated
 			if ($emailCopy && $emailcopyCheck)
 			{
-				$copyText 		= JText::sprintf('Copy of:', $contact->name, $SiteName);
-				$copyText 		.= "\r\n\r\n".$body;
-				$copySubject 	= JText::_('Copy of:')." ".$subject;
+				$copyText		= JText::sprintf('COPY_OF', $contact->name, $SiteName);
+				$copyText		.= "\r\n\r\n".$body;
+				$copySubject	= JText::_('COPY_OF')." ".$subject;
 
 				$mail = JFactory::getMailer();
 
@@ -224,16 +212,17 @@ class ContactController extends JController
 		$user = &JFactory::getUser();
 
 		// Get the contact detail parameters
-		$params = new JParameter($contact->params);
+		$params = new JRegistry;
+		$params->loadJSON($contact->params);
 
 		// Show the Vcard if contact parameter indicates (prevents direct access)
 		$groups = $user->authorisedLevels();
 		if (($params->get('allow_vcard', 0)) && (in_array($contact->access, $groups)))
 		{
 			// Parse the contact name field and build the nam information for the vcard.
-			$firstname 	= null;
+			$firstname	= null;
 			$middlename = null;
-			$surname 	= null;
+			$surname	= null;
 
 			// How many parts do we have?
 			$parts = explode(' ', $contact->name);
@@ -293,7 +282,7 @@ class ContactController extends JController
 
 			print $output;
 		} else {
-			JError::raiseWarning('SOME_ERROR_CODE', 'ContactController::vCard: '.JText::_('ALERTNOTAUTH'));
+			JError::raiseWarning('SOME_ERROR_CODE', 'ContactController::vCard: '.JText::_('JERROR_ALERTNOAUTHOR'));
 			return false;
 		}
 	}
@@ -315,15 +304,16 @@ class ContactController extends JController
 		$session = &JFactory::getSession();
 
 		// Get params and component configurations
-		$params		= new JParameter($contact->params);
+		$params = new JRegistry;
+		$params->loadJSON($contact->params);
 		$pparams	= &$app->getParams('com_contact');
 
 		// check for session cookie
-		$sessionCheck 	= $pparams->get('validate_session', 1);
+		$sessionCheck	= $pparams->get('validate_session', 1);
 		$sessionName	= $session->getName();
 		if  ($sessionCheck) {
 			if (!isset($_COOKIE[$sessionName])) {
-				$this->setError(JText::_('ALERTNOTAUTH'));
+				$this->setError(JText::_('JERROR_ALERTNOAUTHOR'));
 				return false;
 			}
 		}
@@ -331,7 +321,7 @@ class ContactController extends JController
 		// Determine banned e-mails
 		$configEmail	= $pparams->get('banned_email', '');
 		$paramsEmail	= $params->get('banned_mail', '');
-		$bannedEmail 	= $configEmail . ($paramsEmail ? ';'.$paramsEmail : '');
+		$bannedEmail	= $configEmail . ($paramsEmail ? ';'.$paramsEmail : '');
 
 		// Prevent form submission if one of the banned text is discovered in the email field
 		if (false === $this->_checkText($email, $bannedEmail)) {
@@ -342,7 +332,7 @@ class ContactController extends JController
 		// Determine banned subjects
 		$configSubject	= $pparams->get('banned_subject', '');
 		$paramsSubject	= $params->get('banned_subject', '');
-		$bannedSubject 	= $configSubject . ($paramsSubject ? ';'.$paramsSubject : '');
+		$bannedSubject	= $configSubject . ($paramsSubject ? ';'.$paramsSubject : '');
 
 		// Prevent form submission if one of the banned text is discovered in the subject field
 		if (false === $this->_checkText($subject, $bannedSubject)) {
@@ -353,7 +343,7 @@ class ContactController extends JController
 		// Determine banned Text
 		$configText		= $pparams->get('banned_text', '');
 		$paramsText		= $params->get('banned_text', '');
-		$bannedText 	= $configText . ($paramsText ? ';'.$paramsText : '');
+		$bannedText	= $configText . ($paramsText ? ';'.$paramsText : '');
 
 		// Prevent form submission if one of the banned text is discovered in the text field
 		if (false === $this->_checkText($body, $bannedText)) {
@@ -364,7 +354,7 @@ class ContactController extends JController
 		// test to ensure that only one email address is entered
 		$check = explode('@', $email);
 		if (strpos($email, ';') || strpos($email, ',') || strpos($email, ' ') || count($check) > 2) {
-			$this->setError(JText::_('You cannot enter more than one email address', true));
+			$this->setError(JText::_('YOU_CANNOT_ENTER_MORE_THAN_ONE_EMAIL_ADDRESS', true));
 			return false;
 		}
 

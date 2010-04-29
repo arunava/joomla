@@ -8,8 +8,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.modelform');
-jimport('joomla.database.query');
+jimport('joomla.application.component.modeladmin');
 
 /**
  * Users mail model.
@@ -18,7 +17,7 @@ jimport('joomla.database.query');
  * @subpackage	com_users
  * @since	1.6
  */
-class UsersModelMail extends JModelForm
+class UsersModelMail extends JModelAdmin
 {
 	/**
 	 * Method to get the row form.
@@ -28,14 +27,11 @@ class UsersModelMail extends JModelForm
 	public function getForm()
 	{
 		// Initialise variables.
-		$app 	= JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Get the form.
-		$form = parent::getForm('mail', 'com_users.mail', array('array' => 'jform', 'event' => 'onPrepareForm'));
-
-		// Check for an error.
-		if (JError::isError($form)) {
-			$this->setError($form->getMessage());
+		$form = parent::getForm('com_users.mail', 'mail', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
@@ -52,19 +48,18 @@ class UsersModelMail extends JModelForm
 
 	public function send()
 	{
-		$app = JFactory::getApplication();
+		// Initialise variables.
+		$data	= JRequest::getVar('jform', array(), 'post', 'array');
+		$app	= JFactory::getApplication();
+		$user	= JFactory::getUser();
+		$acl	= JFactory::getACL();
+		$db		= $this->getDbo();
 
-		$db		= JFactory::getDbo();
-		$user 	= JFactory::getUser();
-		$acl 	= JFactory::getACL();
-
-		$data = JRequest::getVar('jform', array(), 'post', 'array');
-
-		$mode = array_key_exists('mode',$data) ? intval($data['mode']) : 0;
-		$subject = array_key_exists('subject',$data) ? $data['subject'] : '';
-		$grp = array_key_exists('group',$data) ? intval($data['group']) : 0;
-		$recurse = array_key_exists('recurse',$data) ? intval($data['recurse']) : 0;
-		$bcc = array_key_exists('bcc',$data) ? intval($data['bcc']) : 0;
+		$mode		= array_key_exists('mode',$data) ? intval($data['mode']) : 0;
+		$subject	= array_key_exists('subject',$data) ? $data['subject'] : '';
+		$grp		= array_key_exists('group',$data) ? intval($data['group']) : 0;
+		$recurse	= array_key_exists('recurse',$data) ? intval($data['recurse']) : 0;
+		$bcc		= array_key_exists('bcc',$data) ? intval($data['bcc']) : 0;
 		$message_body = array_key_exists('message',$data) ? $data['message'] : '';
 
 		// automatically removes html formatting
@@ -74,7 +69,7 @@ class UsersModelMail extends JModelForm
 
 		// Check for a message body and subject
 		if (!$message_body || !$subject) {
-			$this->setError(JText::_('Users_Mail_Please_fill_in_the_form_correctly'));
+			$this->setError(JText::_('COM_USERS_MAIL_PLEASE_FILL_IN_THE_FORM_CORRECTLY'));
 			return false;
 		}
 
@@ -82,7 +77,7 @@ class UsersModelMail extends JModelForm
 		$to = $acl->getUsersByGroup($grp, $recurse);
 
 		// Get all users email and group except for senders
-		$query = new JQuery;
+		$query	= $db->getQuery(true);
 		$query->select('email');
 		$query->from('#__users');
 		$query->where('id != '.(int) $user->get('id'));
@@ -99,7 +94,7 @@ class UsersModelMail extends JModelForm
 
 		// Check to see if there are any users in this group before we continue
 		if (!count($rows)) {
-			$this->setError(JText::_('Users_Mail_No_users_could_be_found_in_this_group'));
+			$this->setError(JText::_('COM_USERS_MAIL_NO_USERS_COULD_BE_FOUND_IN_THIS_GROUP'));
 			return false;
 		}
 
@@ -129,7 +124,7 @@ class UsersModelMail extends JModelForm
 			$this->setError($rs->getError());
 			return false;
 		} elseif (empty($rs)) {
-			$this->setError(JText::_('Users_Mail_The_mail_could_not_be_sent'));
+			$this->setError(JText::_('COM_USERS_MAIL_THE_MAIL_COULD_NOT_BE_SENT'));
 			return false;
 		} else {
 			// Fill the data (specially for the 'mode', 'group' and 'bcc': they could not exist in the array
@@ -141,7 +136,7 @@ class UsersModelMail extends JModelForm
 			$data['recurse']=$recurse;
 			$data['bcc']=$bcc;
 			$data['message']=$message_body;
-			$app->enqueueMessage(JText::sprintf('Users_Mail_Email_Sent_To', count($rows)),'message');
+			$app->enqueueMessage(JText::sprintf('COM_USERS_MAIL_EMAIL_SENT_TO', count($rows)),'message');
 			$app->setUserState('com_users.display.mail.data', $data);
 			return true;
 		}

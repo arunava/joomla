@@ -23,7 +23,7 @@ function iFrameHeight() {
 }
 </script>
 <div class="contentpane<?php echo $this->params->get('pageclass_sfx'); ?>">
-<?php if ($this->params->get('show_page_title', 1)) : ?>
+<?php if ($this->params->get('show_page_heading', 1)) : ?>
 	<h2>
 		<?php if ($this->escape($this->params->get('page_heading'))) :?>
 			<?php echo $this->escape($this->params->get('page_heading')); ?>
@@ -42,6 +42,6 @@ function iFrameHeight() {
 	align="top"
 	frameborder="0"
 	class="wrapper<?php echo $this->params->get('pageclass_sfx'); ?>">
-	<?php echo JText::_('NO_IFRAMES'); ?>
+	<?php echo JText::_('COM_WRAPPER_NO_IFRAMES'); ?>
 </iframe>
 </div>

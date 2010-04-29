@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: weblinks.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_weblinks
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 
 // Access check.
 if (!JFactory::getUser()->authorise('core.manage', 'com_contact')) {
-	return JError::raiseWarning(404, JText::_('ALERTNOTAUTH'));
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include dependancies

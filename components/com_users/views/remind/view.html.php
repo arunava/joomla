@@ -12,36 +12,26 @@ defined('_JEXEC') or die;
 jimport('joomla.application.component.view');
 
 /**
- * Remind view class for Users.
+ * Registration view class for Users.
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.5
  */
 class UsersViewRemind extends JView
 {
 	/**
 	 * Method to display the view.
 	 *
-	 * @access	public
 	 * @param	string	$tpl	The template file to include
-	 * @since	1.0
+	 * @since	1.5
 	 */
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
-		$app	= &JFactory::getApplication();
-		$user	= &JFactory::getUser();
-
-		// If the user is logged in, send them to their profile.
-		if (!$user->get('guest')) {
-			$itemid = UsersHelperRoute::getProfileRoute();
-			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
-			$app->redirect(JRoute::_('index.php?option=com_users&view=profile'.$itemid, false));
-			return false;
-		}
-
 		// Get the view data.
-		$form = &$this->get('RemindForm');
+		$form	= $this->get('Form');
+		$data	= $this->get('Data');
+		$state	= $this->get('State');
 
 		// Check for errors.
 		if (count($errors = &$this->get('Errors'))) {
@@ -49,9 +39,47 @@ class UsersViewRemind extends JView
 			return false;
 		}
 
+		// Bind the data to the form.
+		if ($form) {
+			$form->bind($data);
+		}
+
+		$params = &$state->params;
+
 		// Push the data into the view.
-		$this->assignRef('form', $form);
+		$this->assignRef('form',	$form);
+		$this->assignRef('data',	$data);
+		$this->assignRef('params',	$params);
+
+		$this->prepareDocument();
 
 		parent::display($tpl);
+	}
+
+	/**
+	 * Prepares the document.
+	 *
+	 * @since	1.6
+	 */
+	protected function prepareDocument()
+	{
+		$app		= JFactory::getApplication();
+		$menus		= JSite::getMenu();
+		$title 		= null;
+
+		// Because the application sets a default page title,
+		// we need to get it from the menu item itself
+		$menu = $menus->getActive();
+		if ($menu) {
+			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
+		} else {
+			$this->params->def('page_heading', JText::_('COM_USERS_Remind'));
+		}
+
+		$title = $this->params->get('page_title', $this->params->get('page_heading'));
+		if (empty($title)) {
+			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		$this->document->setTitle($title);
 	}
 }

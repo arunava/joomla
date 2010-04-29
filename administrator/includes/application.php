@@ -60,14 +60,14 @@ class JAdministrator extends JApplication
 			{
 				$params = JComponentHelper::getParams('com_languages');
 				$client	= &JApplicationHelper::getClientInfo($this->getClientId());
-				$options['language'] = $params->get($client->name, $config->getValue('config.language','en-GB'));
+				$options['language'] = $params->get($client->name, $config->get('language','en-GB'));
 			}
 		}
 
 		// One last check to make sure we have something
 		if (! JLanguage::exists($options['language']))
 		{
-			$lang = $config->getValue('config.language','en-GB');
+			$lang = $config->get('language','en-GB');
 			if (JLanguage::exists($lang)) {
 				$options['language'] = $lang;
 			}
@@ -153,14 +153,14 @@ class JAdministrator extends JApplication
 	{
 		$component	= JRequest::getCmd('option', 'com_login');
 		$template	= $this->getTemplate(true);
-		$file 		= JRequest::getCmd('tmpl', 'index');
+		$file		= JRequest::getCmd('tmpl', 'index');
 
 		if ($component == 'com_login') {
 			$file = 'login';
 		}
 
 		$params = array(
-			'template' 	=> $template->template,
+			'template'	=> $template->template,
 			'file'		=> $file.'.php',
 			'directory'	=> JPATH_THEMES,
 			'params'	=> $template->params
@@ -177,8 +177,8 @@ class JAdministrator extends JApplication
 	/**
 	 * Login authentication function
 	 *
-	 * @param	array 	Array('username' => string, 'password' => string)
-	 * @param	array 	Array('remember' => boolean)
+	 * @param	array	Array('username' => string, 'password' => string)
+	 * @param	array	Array('remember' => boolean)
 	 * @see		JApplication::login
 	 */
 	public function login($credentials, $options = array())
@@ -186,7 +186,7 @@ class JAdministrator extends JApplication
 		//The minimum group
 		$options['group'] = 'Public Backend';
 
-		 //Make sure users are not autoregistered
+		//Make sure users are not autoregistered
 		$options['autoregister'] = false;
 
 		//Set the application login entry point
@@ -224,23 +224,22 @@ class JAdministrator extends JApplication
 		if (!isset($template))
 		{
 			// Load the template name from the database
-			$db = &JFactory::getDbo();
-			$query = 'SELECT template, params'
-				. ' FROM #__template_styles'
-				. ' WHERE client_id = 1'
-				. ' AND home = 1'
-				;
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query->select('template, params');
+			$query->from('#__template_styles');
+			$query->where('client_id = 1');
+			$query->where('home = 1');
 			$db->setQuery($query);
 			$template = $db->loadObject();
 
 			$template->template = JFilterInput::getInstance()->clean($template->template, 'cmd');
+			$template->params = new JRegistry($template->params);
 
 			if (!file_exists(JPATH_THEMES.DS.$template->template.DS.'index.php'))
 			{
+				$template->params = new JRegistry();
 				$template->template = 'bluestork';
-				$template->params = new JParameter();
-			} else {
-				$template->params = new JParameter($template->params);
 			}
 		}
 		if ($params) {
@@ -273,12 +272,12 @@ class JAdministrator extends JApplication
 		// check if auto_purge value set
 		if (is_object($config) and $config->cfg_name == 'auto_purge')
 		{
-			$purge 	= $config->cfg_value;
+			$purge	= $config->cfg_value;
 		}
 		else
 		{
 			// if no value set, default is 7 days
-			$purge 	= 7;
+			$purge	= 7;
 		}
 		// calculation of past date
 

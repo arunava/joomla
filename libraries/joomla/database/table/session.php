@@ -11,7 +11,7 @@ defined('JPATH_BASE') or die;
 /**
  * Session table
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Table
  * @since		1.0
  */
@@ -25,7 +25,7 @@ class JTableSession extends JTable
 	{
 		parent::__construct('#__session', 'session_id', $db);
 
-		$this->guest 	= 1;
+		$this->guest	= 1;
 		$this->username = '';
 	}
 
@@ -38,7 +38,7 @@ class JTableSession extends JTable
 		$ret = $this->_db->insertObject($this->_tbl, $this, 'session_id');
 
 		if (!$ret) {
-			$this->setError(strtolower(get_class($this))."::". JText::_('STORE_FAILED') ."<br />" . $this->_db->stderr());
+			$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_STORED_FAILED', strtolower(get_class($this)), $this->_db->stderr()));
 			return false;
 		} else {
 			return true;
@@ -51,7 +51,7 @@ class JTableSession extends JTable
 		$ret = $this->_db->updateObject($this->_tbl, $this, 'session_id', $updateNulls);
 
 		if (!$ret) {
-			$this->setError(strtolower(get_class($this))."::". JText::_('STORE_FAILED') ." <br />" . $this->_db->stderr());
+			$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_STORED_FAILED', strtolower(get_class($this)), $this->_db->stderr()));
 			return false;
 		} else {
 			return true;
@@ -82,7 +82,7 @@ class JTableSession extends JTable
 	/**
 	* Purge old sessions
 	*
-	* @param int 	Session age in seconds
+	* @param int	Session age in seconds
 	* @return mixed Resource on success, null on fail
 	*/
 	function purge($maxLifetime = 1440)

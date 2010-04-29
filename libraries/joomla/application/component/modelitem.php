@@ -8,7 +8,6 @@
 defined('JPATH_BASE') or die;
 
 jimport('joomla.application.component.model');
-jimport('joomla.database.query');
 
 /**
  * Prototype item model.
@@ -31,7 +30,7 @@ abstract class JModelItem extends JModel
 	 *
 	 * @var		string
 	 */
-	 protected $_context = 'group.type';
+	protected $_context = 'group.type';
 
 	/**
 	 * Method to get a store id based on model configuration state.
@@ -43,7 +42,7 @@ abstract class JModelItem extends JModel
 	 * @param	string		$context	A prefix for the store id.
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 

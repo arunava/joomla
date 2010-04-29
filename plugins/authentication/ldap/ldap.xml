@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<install
-	version="1.6"
-	type="plugin"
-	group="auth">
-	<name>Authentication - LDAP</name>
+<install version="1.6" type="plugin" group="auth">
+	<name>plg_authentication_ldap</name>
 	<author>Joomla! Project</author>
 	<creationDate>November 2005</creationDate>
 	<copyright>Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.</copyright>
@@ -11,150 +8,124 @@
 	<authorEmail>admin@joomla.org</authorEmail>
 	<authorUrl>www.joomla.org</authorUrl>
 	<version>1.5</version>
-	<description>Handles user authentication against an LDAP server</description>
+	<description>PLG_LDAP_XML_DESCRIPTION</description>
 	<files>
-		<filename
-			plugin="ldap">ldap.php</filename>
+		<filename plugin="ldap">ldap.php</filename>
 	</files>
-	<fields>
-		<field
-			name="host"
-			type="text"
-			size="20"
-			default=""
-			label="Host"
-			description="fieldLDAPHOST" />
 
-		<field
-			name="port"
-			type="text"
-			size="20"
-			default="389"
-			label="Port"
-			description="fieldLDAPPORT" />
+	<config>
+		<fields name="params">
 
-		<field
-			name="use_ldapV3"
-			type="radio"
-			default="0"
-			label="LDAP V3"
-			description="fieldLDAPV3">
-			<option
-				value="0">JNo</option>
-			<option
-				value="1">JYes</option>
-		</field>
+			<fieldset name="basic">
+				<field name="host" type="text"
+					description="PLG_LDAP_FIELD_HOST_DESC"
+					label="PLG_LDAP_FIELD_HOST_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="negotiate_tls"
-			type="radio"
-			default="0"
-			label="Negotiate TLS"
-			description="fieldNEGOCIATETLS">
-			<option
-				value="0">JNo</option>
-			<option
-				value="1">JYes</option>
-		</field>
+				<field name="port" type="text"
+					default="389"
+					description="PLG_LDAP_FIELD_PORT_DESC"
+					label="PLG_LDAP_FIELD_PORT_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="no_referrals"
-			type="radio"
-			default="0"
-			label="Follow referrals"
-			description="fieldFOLLOW">
-			<option
-				value="0">JNo</option>
-			<option
-				value="1">JYes</option>
-		</field>
+				<field name="use_ldapV3" type="radio"
+					default="0"
+					description="PLG_LDAP_FIELD_V3_DESC"
+					label="PLG_LDAP_FIELD_V3_LABEL"
+				>
+					<option value="0">JNo</option>
+					<option value="1">JYes</option>
+				</field>
 
-		<field
-			name="auth_method"
-			default="bind"
-			type="list"
-			label="Authorization Method"
-			description="fieldAUTHMETHOD">
-			<option
-				value="search">Bind and Search</option>
-			<option
-				value="bind">Bind Directly As User</option>
-		</field>
+				<field name="negotiate_tls" type="radio"
+					default="0"
+					description="PLG_LDAP_FIELD_NEGOCIATE_DESC"
+					label="PLG_LDAP_FIELD_NEGOCIATE_LABEL"
+				>
+					<option value="0">JNo</option>
+					<option value="1">JYes</option>
+				</field>
 
-		<field
-			name="base_dn"
-			type="text"
-			size="20"
-			default=""
-			label="Base DN"
-			description="fieldBASEDN" />
+				<field name="no_referrals" type="radio"
+					default="0"
+					description="PLG_LDAP_FIELD_REFERRALS_DESC"
+					label="PLG_LDAP_FIELD_REFERRALS_LABEL"
+				>
+					<option value="0">JNo</option>
+					<option value="1">JYes</option>
+				</field>
 
-		<field
-			name="search_string"
-			type="text"
-			size="20"
-			default=""
-			label="Search string"
-			description="fieldSEARCHSTRING" />
+				<field name="auth_method" type="list"
+					default="bind"
+					description="PLG_LDAP_FIELD_AUTHMETHOD_DESC"
+					label="PLG_LDAP_FIELD_AUTHMETHOD_LABEL"
+				>
+					<option value="search">PLG_LDAP_FIELD_VALUE_BINDSEARCH</option>
+					<option value="bind">PLG_LDAP_FIELD_VALUE_BINDUSER</option>
+				</field>
 
-		<field
-			name="users_dn"
-			type="text"
-			size="20"
-			default=""
-			label="Users DN"
-			description="fieldUSERSDN" />
+				<field name="base_dn" type="text"
+					description="PLG_LDAP_FIELD_BASEDN_DESC"
+					label="PLG_LDAP_FIELD_BASEDN_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="spacer1"
-			type="spacer"
-			hr="true" 
-			/>
+				<field name="search_string" type="text"
+					description="PLG_LDAP_FIELD_SEARCHSTRING_DESC"
+					label="PLG_LDAP_FIELD_SEARCHSTRING_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="username"
-			type="text"
-			size="20"
-			default=""
-			label="Connect username"
-			description="fieldCONNECTSTRING" />
+				<field name="users_dn" type="text"
+					description="PLG_LDAP_FIELD_USERSDN_DESC"
+					label="PLG_LDAP_FIELD_USERSDN_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="password"
-			type="password"
-			size="20"
-			default=""
-			label="Connect password"
-			description="fieldCONNECTPASSWORD" />
+				<field name="spacer1" type="spacer"
+					hr="true"
+				/>
 
-		<field
-			name="spacer2"
-			type="spacer"
-			hr="true" 
-			/>
+				<field name="username" type="text"
+					description="PLG_LDAP_FIELD_USERNAME_DESC"
+					label="PLG_LDAP_FIELD_USERNAME_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="ldap_fullname"
-			type="text"
-			size="20"
-			default="fullName"
-			label="Map FullName"
-			description="fieldMAPFN" />
+				<field name="password" type="password"
+					description="PLG_LDAP_FIELD_PASSWORD_DESC"
+					label="PLG_LDAP_FIELD_PASSWORD_LABEL"
+					size="20"
+				/>
 
-		<field
-			name="ldap_email"
-			type="text"
-			size="20"
-			default="mail"
-			label="Map Email"
-			description="fieldMAPEMAIL" />
+				<field name="spacer2" type="spacer"
+					hr="true"
+				/>
 
-		<field
-			name="ldap_uid"
-			type="text"
-			size="20"
-			default="uid"
-			label="Map User ID"
-			description="fieldMAPUID" />
-	</fields>
+				<field name="ldap_fullname" type="text"
+					default="fullName"
+					description="PLG_LDAP_FIELD_FULLNAME_DESC"
+					label="PLG_LDAP_FIELD_FULLNAME_LABEL"
+					size="20"
+				/>
+
+				<field name="ldap_email" type="text"
+					default="mail"
+					description="PLG_LDAP_FIELD_EMAIL_DESC"
+					label="PLG_LDAP_FIELD_EMAIL_LABEL"
+					size="20"
+				/>
+
+				<field name="ldap_uid" type="text"
+					default="uid"
+					description="PLG_LDAP_FIELD_UID_DESC"
+					label="PLG_LDAP_FIELD_UID_LABEL"
+					size="20"
+				/>
+			</fieldset>
+
+		</fields>
+	</config>
 </install>

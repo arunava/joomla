@@ -19,16 +19,15 @@ jimport( 'joomla.application.component.view');
  */
 class MessagesViewMessage extends JView
 {
-	protected $state;
-	protected $item;
 	protected $form;
+	protected $item;
+	protected $state;
 
 	public function display($tpl = null)
 	{
-		$app	= JFactory::getApplication();
-		$state	= $this->get('State');
-		$item	= $this->get('Item');
-		$form 	= $this->get('Form');
+		$this->form		= $this->get('Form');
+		$this->item		= $this->get('Item');
+		$this->state	= $this->get('State');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -36,30 +35,25 @@ class MessagesViewMessage extends JView
 			return false;
 		}
 
-		// Bind the record to the form.
-		$form->bind($item);
-
-		$this->assignRef('state',	$state);
-		$this->assignRef('item',	$item);
-		$this->assignRef('form',	$form);
-
 		parent::display($tpl);
-		$this->_setToolbar();
+		$this->addToolbar();
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		if ($this->getLayout() == 'edit') {
-			JToolBarHelper::title(JText::_('Messages_Write_Private_Message'), 'inbox.png');
-			JToolBarHelper::save('message.save', 'Messages_Toolbar_Send');
+			JToolBarHelper::title(JText::_('COM_MESSAGES_WRITE_PRIVATE_MESSAGE'), 'inbox.png');
+			JToolBarHelper::save('message.save', 'COM_MESSAGES_TOOLBAR_SEND');
 			JToolBarHelper::cancel('message.cancel','JTOOLBAR_CANCEL');
 			JToolBarHelper::help('screen.messages.edit','JTOOLBAR_HELP');
 		} else {
-			JToolBarHelper::title(JText::_('Messages_View_Private_Message'), 'inbox.png');
-			JToolBarHelper::custom('message.reply', 'restore.png', 'restore_f2.png', 'Messages_Toolbar_Reply', false);
+			JToolBarHelper::title(JText::_('COM_MESSAGES_VIEW_PRIVATE_MESSAGE'), 'inbox.png');
+			JToolBarHelper::custom('message.reply', 'restore.png', 'restore_f2.png', 'COM_MESSAGES_TOOLBAR_REPLY', false);
 			JToolBarHelper::cancel('message.cancel');
 			JToolBarHelper::help('screen.messages.read');
 		}

@@ -59,7 +59,7 @@ class JMenu extends JObject
 	/**
 	 * Returns a JMenu object
 	 *
-	 * @param   string	The name of the client
+	 * @param	string	The name of the client
 	 * @param	array	An associative array of options
 	 * @return	JMenu	A menu object.
 	 * @since	1.5
@@ -175,9 +175,9 @@ class JMenu extends JObject
 	/**
 	 * Gets menu items by attribute
 	 *
-	 * @param	string 		The field name
-	 * @param	string 		The value of the field
-	 * @param	boolean 	If true, only returns the first item found
+	 * @param	string	The field name
+	 * @param	string	The value of the field
+	 * @param	boolean	If true, only returns the first item found
 	 *
 	 * @return	array
 	 */
@@ -195,7 +195,7 @@ class JMenu extends JObject
 					return $item;
 				}
 
-				$items[] = &$item;
+				$items[] = $item;
 			}
 		}
 
@@ -206,16 +206,16 @@ class JMenu extends JObject
 	 * Gets the parameter object for a certain menu item
 	 *
 	 * @param	int		The item id
-	 * @return	object	A JParameter object
+	 * @return	object	A JRegistry object
 	 */
 	public function getParams($id)
 	{
-		$ini = '';
+		$result = new JRegistry;
 		if ($menu = &$this->getItem($id)) {
-			$ini = $menu->params;
+			$result->loadJSON($menu->params);
 		}
 
-		return new JParameter($ini);
+		return $result;
 	}
 
 	/**

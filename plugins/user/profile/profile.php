@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: profile.php 11839 2009-05-27 22:17:45Z eddieajau $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -27,7 +27,7 @@ class plgUserProfile extends JPlugin
 	{
 		// Add the profile fields to the form.
 		JForm::addFormPath(dirname(__FILE__).DS.'profiles');
-		$form->load('profile', true, false);
+		$form->loadFile('profile', false);
 
 		// Toggle whether the address1 field is required.
 		if ($this->params->get('profile-require_address1', 1) > 0) {
@@ -45,44 +45,58 @@ class plgUserProfile extends JPlugin
 
 		// Toggle whether the city field is required.
 		if ($this->params->get('profile-require_city', 1) > 0) {
-			$form->setFieldAttribute('city', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('city', 'required', $this->params->get('profile-require_city') == 2, 'profile');
 		} else {
 			$form->removeField('city', 'profile');
 		}
 
 		// Toggle whether the region field is required.
 		if ($this->params->get('profile-require_region', 1) > 0) {
-			$form->setFieldAttribute('region', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('region', 'required', $this->params->get('profile-require_region') == 2, 'profile');
 		} else {
 			$form->removeField('region', 'profile');
 		}
 
 		// Toggle whether the country field is required.
 		if ($this->params->get('profile-require_country', 1) > 0) {
-			$form->setFieldAttribute('country', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('country', 'required', $this->params->get('profile-require_country') == 2, 'profile');
 		} else {
 			$form->removeField('country', 'profile');
 		}
 
 		// Toggle whether the postal code field is required.
 		if ($this->params->get('profile-require_postal_code', 1) > 0) {
-			$form->setFieldAttribute('postal_code', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('postal_code', 'required', $this->params->get('profile-require_postal_code') == 2, 'profile');
 		} else {
 			$form->removeField('postal_code', 'profile');
 		}
 
 		// Toggle whether the phone field is required.
 		if ($this->params->get('profile-require_phone', 1) > 0) {
-			$form->setFieldAttribute('phone', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('phone', 'required', $this->params->get('profile-require_phone') == 2, 'profile');
 		} else {
 			$form->removeField('phone', 'profile');
 		}
 
 		// Toggle whether the website field is required.
 		if ($this->params->get('profile-require_website', 1) > 0) {
-			$form->setFieldAttribute('website', 'required', $this->params->get('profile-require_address1') == 2, 'profile');
+			$form->setFieldAttribute('website', 'required', $this->params->get('profile-require_website') == 2, 'profile');
 		} else {
 			$form->removeField('website', 'profile');
+		}
+
+		// Toggle whether the favoritebook field is required.
+		if ($this->params->get('profile-require_favoritebook', 1) > 0) {
+			$form->setFieldAttribute('favoritebook', 'required', $this->params->get('profile-require_favoritebook') == 2, 'profile');
+		} else {
+			$form->removeField('favoritebook', 'profile');
+		}
+
+		// Toggle whether the aboutme field is required.
+		if ($this->params->get('profile-require_aboutme', 1) > 0) {
+			$form->setFieldAttribute('aboutme', 'required', $this->params->get('profile-require_aboutme') == 2, 'profile');
+		} else {
+			$form->removeField('aboutme', 'profile');
 		}
 
 		return true;

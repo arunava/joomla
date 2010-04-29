@@ -8,7 +8,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
  * Menu Item List Model for Menus.
@@ -20,37 +19,32 @@ jimport('joomla.database.query');
 class MenusModelItems extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_menus.items';
-
-	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = JFactory::getApplication('administrator');
 
-		$search = $app->getUserStateFromRequest($this->_context.'.search', 'search');
+		$search = $app->getUserStateFromRequest($this->context.'.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$published = $app->getUserStateFromRequest($this->context.'.published', 'filter_published', '');
 		$this->setState('filter.published', $published);
 
-		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
+		$access = $app->getUserStateFromRequest($this->context.'.filter.access', 'filter_access', 0, 'int');
 		$this->setState('filter.access', $access);
 
-		$parentId = $app->getUserStateFromRequest($this->_context.'.filter.parent_id', 'filter_parent_id', 0, 'int');
+		$parentId = $app->getUserStateFromRequest($this->context.'.filter.parent_id', 'filter_parent_id', 0, 'int');
 		$this->setState('filter.parent_id',	$parentId);
 
-		$level = $app->getUserStateFromRequest($this->_context.'.filter.level', 'filter_level', 0, 'int');
+		$level = $app->getUserStateFromRequest($this->context.'.filter.level', 'filter_level', 0, 'int');
 		$this->setState('filter.level', $level);
 
-		$menuType = $app->getUserStateFromRequest($this->_context.'.filter.menutype', 'menutype', 'mainmenu');
+		$menuType = $app->getUserStateFromRequest($this->context.'.filter.menutype', 'menutype', 'mainmenu');
 		$this->setState('filter.menutype', $menuType);
 
 		// Component parameters.
@@ -58,7 +52,7 @@ class MenusModelItems extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.lft', 'asc');
+		parent::populateState('a.lft', 'asc');
 	}
 
 	/**
@@ -71,7 +65,7 @@ class MenusModelItems extends JModelList
 	 * @param	string		$id	A prefix for the store id.
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.access');
@@ -80,18 +74,19 @@ class MenusModelItems extends JModelList
 		$id	.= ':'.$this->getState('filter.parent_id');
 		$id	.= ':'.$this->getState('filter.menu_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
 	 * Builds an SQL query to load the list data.
 	 *
-	 * @return	JQuery	A query object.
+	 * @return	JDatabaseQuery	A query object.
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 
 		// Select all fields from the table.
 		$query->select($this->getState('list.select', 'a.*'));
@@ -126,12 +121,12 @@ class MenusModelItems extends JModelList
 				$query->where('a.id = '.(int) substr($search, 3));
 			} else if (stripos($search, 'link:') === 0) {
 				if ($search = substr($search, 5)) {
-					$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%');
+					$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
 					$query->where('a.link LIKE '.$search);
 				}
 			} else {
-				$search = $this->_db->Quote('%'.$this->_db->getEscaped($search, true).'%');
-				$query->where('a.title LIKE '.$search.' OR a.alias LIKE '.$search);
+				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
+				$query->where('('.'a.title LIKE '.$search.' OR a.alias LIKE '.$search.' OR a.note LIKE '.$search.')');
 			}
 		}
 
@@ -150,7 +145,7 @@ class MenusModelItems extends JModelList
 		// Filter the items over the menu id if set.
 		$menuType = $this->getState('filter.menutype');
 		if (!empty($menuType)) {
-			$query->where('a.menutype = '.$this->_db->quote($menuType));
+			$query->where('a.menutype = '.$db->quote($menuType));
 		}
 
 		// Filter on the access level.
@@ -164,7 +159,7 @@ class MenusModelItems extends JModelList
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.lft')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.lft')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',(string)$query)).'<hr/>';
 		return $query;

@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a help popup window button
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -29,14 +29,14 @@ class JButtonHelp extends JButton
 
 	public function fetchButton($type='Help', $ref = '', $com = false)
 	{
-		$text	= JText::_('Help');
+		$text	= JText::_('JTOOLBAR_HELP');
 		$class	= $this->fetchIconClass('help');
 		$doTask	= $this->_getCommand($ref, $com);
 
 		$html	= "<a href=\"#\" onclick=\"$doTask\" class=\"toolbar\">\n";
 		$html .= "<span class=\"$class\">\n";
 		$html .= "</span>\n";
- 		$html	.= "$text\n";
+		$html	.= "$text\n";
 		$html	.= "</a>\n";
 
 		return $html;
@@ -71,7 +71,7 @@ class JButtonHelp extends JButton
 		jimport('joomla.language.help');
 		$url = JHelp::createURL($ref, $com);
 
-		$cmd = "popupWindow('$url', '".JText::_('Help', true)."', 640, 480, 1)";
+		$cmd = "popupWindow('$url', '".JText::_('JHELP', true)."', 640, 480, 1)";
 
 		return $cmd;
 	}

@@ -1,7 +1,7 @@
 <?php
 require_once 'PHPUnit/Framework.php';
 
-require_once JPATH_BASE. DS . 'libraries' . DS . 'joomla' . DS . 'html' . DS . 'parameter' . DS . 'element' . DS . 'componentlayouts.php';
+require_once JPATH_BASE.'/libraries/joomla/html/parameter/element/componentlayouts.php';
 
 /**
  * Test class for JElementComponentLayouts.
@@ -9,27 +9,27 @@ require_once JPATH_BASE. DS . 'libraries' . DS . 'joomla' . DS . 'html' . DS . '
  */
 class JElementComponentLayoutsTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var JElementComponentLayouts
-     */
-    protected $object;
+	/**
+	 * @var JElementComponentLayouts
+	 */
+	protected $object;
 
-    /**
-     * Sets up the fixture, for example, opens a network connection.
-     * This method is called before a test is executed.
-     */
-    protected function setUp()
-    {
-        $this->object = new JElementComponentLayouts;
-    }
+	/**
+	 * Sets up the fixture, for example, opens a network connection.
+	 * This method is called before a test is executed.
+	 */
+	protected function setUp()
+	{
+		$this->object = new JElementComponentLayouts;
+	}
 
-    /**
-     * Tears down the fixture, for example, closes a network connection.
-     * This method is called after a test is executed.
-     */
-    protected function tearDown()
-    {
-    }
+	/**
+	 * Tears down the fixture, for example, closes a network connection.
+	 * This method is called after a test is executed.
+	 */
+	protected function tearDown()
+	{
+	}
 
 	/**
 	 * @todo Decide how to Implement.
@@ -39,4 +39,3 @@ class JElementComponentLayoutsTest extends PHPUnit_Framework_TestCase
 		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 }
-?>

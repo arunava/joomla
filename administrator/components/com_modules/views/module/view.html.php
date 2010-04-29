@@ -22,19 +22,18 @@ jimport('joomla.application.component.view');
  */
 class ModulesViewModule extends JView
 {
-	protected $state;
-	protected $item;
 	protected $form;
+	protected $item;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$item		= $this->get('Item');
-		$itemForm	= $this->get('Form');
-		$paramsForm	= $this->get('ParamsForm');
+		$this->form		= $this->get('Form');
+		$this->item		= $this->get('Item');
+		$this->state	= $this->get('State');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -42,29 +41,16 @@ class ModulesViewModule extends JView
 			return false;
 		}
 
-		// Bind the record to the form.
-		$itemForm->bind($item);
-		$paramsForm->bind($item->params);
-
-		// Add the module and client_id to the params form.
-		$paramsForm->set('module', $item->module);
-		$paramsForm->set('client_id', $item->client_id);
-
-		$this->assignRef('state',		$state);
-		$this->assignRef('item',		$item);
-		$this->assignRef('form',		$itemForm);
-		$this->assignRef('paramsform',	$paramsForm);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Add the page title and toolbar.
 	 *
 	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		JRequest::setVar('hidemainmenu', true);
 
@@ -75,30 +61,22 @@ class ModulesViewModule extends JView
 		$item		= $this->get('Item');
 		$client		= $item->client_id;
 
-		JToolBarHelper::title(JText::_('Modules_Manager_Module'));
-
-		if ($this->item->module == 'mod_custom') {
-			JToolBarHelper::Preview('index.php?option=com_modules&tmpl=component&client='.$client.'&pollid='.$this->item->id);
-		}
-
-
+		JToolBarHelper::title( JText::_('COM_MODULES_MANAGER_MODULE').' '.JText::_($this->item->module));
 
 		// If not checked out, can save the item.
-		if (!$checkedOut && $canDo->get('core.edit'))
-		{
-			JToolBarHelper::apply('module.apply', 'JToolbar_Apply');
-			JToolBarHelper::save('module.save', 'JToolbar_Save');
-			JToolBarHelper::addNew('module.save2new', 'JToolbar_Save_and_new');
+		if (!$checkedOut && $canDo->get('core.edit')) {
+			JToolBarHelper::apply('module.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('module.save', 'JTOOLBAR_SAVE');
+			JToolBarHelper::addNew('module.save2new', 'JTOOLBAR_SAVE_AND_NEW');
 		}
 			// If an existing item, can save to a copy.
 		if (!$isNew && $canDo->get('core.create')) {
-			JToolBarHelper::custom('module.save2copy', 'copy.png', 'copy_f2.png', 'JToolbar_Save_as_Copy', false);
+			JToolBarHelper::custom('module.save2copy', 'copy.png', 'copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY', false);
 		}
 		if (empty($this->item->id))  {
-			JToolBarHelper::cancel('module.cancel', 'JToolbar_Cancel');
-		}
-		else {
-			JToolBarHelper::cancel('module.cancel', 'JToolbar_Close');
+			JToolBarHelper::cancel('module.cancel', 'JTOOLBAR_CANCEL');
+		} else {
+			JToolBarHelper::cancel('module.cancel', 'JTOOLBAR_CLOSE');
 		}
 
 		JToolBarHelper::help('screen.module.edit','JTOOLBAR_HELP');

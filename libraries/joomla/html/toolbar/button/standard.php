@@ -13,7 +13,7 @@ defined('JPATH_BASE') or die;
 /**
  * Renders a standard button
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage		HTML
  * @since		1.5
  */
@@ -66,8 +66,7 @@ class JButtonStandard extends JButton
 	 */
 	protected function _getCommand($name, $task, $list)
 	{
-		$todo		= JString::strtolower(JText::_($name));
-		$message	= JText::sprintf('PLEASE_MAKE_A_SELECTION_FROM_THE_LIST_TO', $todo);
+		$message	= JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
 		$message	= addslashes($message);
 
 		if ($list) {

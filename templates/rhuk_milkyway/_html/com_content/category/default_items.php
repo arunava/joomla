@@ -6,7 +6,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 	{
 		var form = document.adminForm;
 
-		form.filter_order.value 	= order;
+		form.filter_order.value = order;
 		form.filter_order_Dir.value	= dir;
 		document.adminForm.submit( task );
 	}
@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 		<?php if ($this->params->get('show_pagination_limit')) : ?>
 			<td align="right" width="40%" nowrap="nowrap">
 			<?php
-				echo '&nbsp;&nbsp;&nbsp;'.JText::_('DISPLAY_NUM').'&nbsp;';
+				echo '&nbsp;&nbsp;&nbsp;'.JText::_('JLIB_HTML_DISPLAY_NUM').'&nbsp;';
 				echo $this->pagination->getLimitBox();
 			?>
 			</td>
@@ -43,7 +43,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 		<?php echo JText::_('Num'); ?>
 	</td>
 	<?php if ($this->params->get('show_title')) : ?>
- 	<td class="sectiontableheader<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>" width="45%">
+	<td class="sectiontableheader<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>" width="45%">
 		<?php echo JHTML::_('grid.sort',  'ITEM_TITLE', 'a.title', $this->lists['order_Dir'], $this->lists['order'] ); ?>
 	</td>
 	<?php endif; ?>
@@ -59,7 +59,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 	<?php endif; ?>
 	<?php if ($this->params->get('show_hits')) : ?>
 	<td align="center" class="sectiontableheader<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>" width="5%" nowrap="nowrap">
-		<?php echo JHTML::_('grid.sort',  'Hits', 'a.hits', $this->lists['order_Dir'], $this->lists['order'] ); ?>
+		<?php echo JHTML::_('grid.sort',  'JGLOBAL_HITS', 'a.hits', $this->lists['order_Dir'], $this->lists['order'] ); ?>
 	</td>
 	<?php endif; ?>
 </tr>

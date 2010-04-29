@@ -49,9 +49,8 @@ class JInstallerHelper
 		// Open the remote server socket for reading
 		$inputHandle = @ fopen($url, "r");
 		$error = strstr($php_errormsg,'failed to open stream:');
-		if (!$inputHandle)
-		{
-			JError::raiseWarning(42, JText::_('SERVER_CONNECT_FAILED').', '.$error);
+		if (!$inputHandle) {
+			JError::raiseWarning(42, JText::sprintf('JLIB_INSTALLER_ERROR_DOWNLOAD_SERVER_CONNECT', $error));
 			return false;
 		}
 
@@ -67,10 +66,10 @@ class JInstallerHelper
 
 		// Set the target path if not given
 		if (!$target) {
-			$target = $config->getValue('config.tmp_path').DS.JInstallerHelper::getFilenameFromURL($url);
+			$target = $config->get('tmp_path').DS.JInstallerHelper::getFilenameFromURL($url);
 		}
 		else {
-			$target = $config->getValue('config.tmp_path').DS.basename($target);
+			$target = $config->get('tmp_path').DS.basename($target);
 		}
 
 		// Initialise contents buffer
@@ -81,7 +80,7 @@ class JInstallerHelper
 			$contents .= fread($inputHandle, 4096);
 			if ($contents == false)
 			{
-				JError::raiseWarning(44, 'Failed reading network resource: '.$php_errormsg);
+				JError::raiseWarning(44, JText::sprintf('JLIB_INSTALLER_ERROR_FAILED_READING_NETWORK_RESOURCES', $php_errormsg));
 				return false;
 			}
 		}
@@ -185,7 +184,7 @@ class JInstallerHelper
 
 		if ( ! count($files))
 		{
-			JError::raiseWarning(1, JText::_('ERRORNOTFINDXMLSETUPFILE'));
+			JError::raiseWarning(1, JText::_('JLIB_INSTALLER_ERROR_NOTFINDXMLSETUPFILE'));
 			return false;
 		}
 
@@ -208,7 +207,7 @@ class JInstallerHelper
 			return $type;
 		}
 
-		JError::raiseWarning(1, JText::_('ERRORNOTFINDJOOMLAXMLSETUPFILE'));
+		JError::raiseWarning(1, JText::_('JLIB_INSTALLER_ERROR_NOTFINDJOOMLAXMLSETUPFILE'));
 		// Free up memory.
 		unset ($xml);
 		return false;
@@ -254,10 +253,10 @@ class JInstallerHelper
 		if (is_file($package)) {
 			JFile::delete($package);
 		}
-		elseif (is_file(JPath::clean($config->getValue('config.tmp_path').DS.$package)))
+		elseif (is_file(JPath::clean($config->get('tmp_path').DS.$package)))
 		{
 			// It might also be just a base filename
-			JFile::delete(JPath::clean($config->getValue('config.tmp_path').DS.$package));
+			JFile::delete(JPath::clean($config->get('tmp_path').DS.$package));
 		}
 	}
 

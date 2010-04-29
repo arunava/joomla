@@ -1,16 +1,23 @@
 <?php
 /**
  * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_installer
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
 
-// No direct access
+// No direct access.
 defined('_JEXEC') or die;
 
-class InstallerControllerInstall extends JController {
+/**
+ * @package		Joomla.Administrator
+ * @subpackage	com_installer
+ */
+class InstallerControllerInstall extends JController
+{
 	/**
-	 * Install an extension
+	 * Install an extension.
 	 *
 	 * @return	void
 	 * @since	1.5
@@ -18,16 +25,14 @@ class InstallerControllerInstall extends JController {
 	public function install()
 	{
 		// Check for request forgeries
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$model	= &$this->getModel('install');
-		if ($model->install())
-		{
+		$model = $this->getModel('install');
+		if ($model->install()) {
 			$cache = &JFactory::getCache('mod_menu');
 			$cache->clean();
 			// TODO: Reset the users acl here as well to kill off any missing bits
 		}
-		$model->saveState(); // Save the state because this is where our messages are stored
-		$this->setRedirect('index.php?option=com_installer&view=install');
+		$this->setRedirect(JRoute::_('index.php?option=com_installer&view=install',false));
 	}
 }

@@ -8,7 +8,6 @@
 defined('_JEXEC') or die;
 
 jimport('joomla.application.component.modellist');
-jimport('joomla.database.query');
 
 /**
  * Methods supporting a list of user records.
@@ -20,31 +19,28 @@ jimport('joomla.database.query');
 class UsersModelUsers extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_users.users';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$active = $app->getUserStateFromRequest($this->_context.'.filter.active', 'filter_active');
+		$active = $app->getUserStateFromRequest($this->context.'.filter.active', 'filter_active');
 		$this->setState('filter.active', $active);
 
-		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state');
+		$state = $app->getUserStateFromRequest($this->context.'.filter.state', 'filter_state');
 		$this->setState('filter.state', $state);
 
-		$groupId = $app->getUserStateFromRequest($this->_context.'.filter.group', 'filter_group_id', null, 'int');
+		$groupId = $app->getUserStateFromRequest($this->context.'.filter.group', 'filter_group_id', null, 'int');
 		$this->setState('filter.group_id', $groupId);
 
 		// Load the parameters.
@@ -52,7 +48,7 @@ class UsersModelUsers extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.name', 'asc');
+		parent::populateState('a.name', 'asc');
 	}
 
 	/**
@@ -66,7 +62,7 @@ class UsersModelUsers extends JModelList
 	 *
 	 * @return	string		A store id.
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.search');
@@ -74,18 +70,19 @@ class UsersModelUsers extends JModelList
 		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.group_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
 	 * Build an SQL query to load the list data.
 	 *
-	 * @return	JQuery
+	 * @return	JDatabaseQuery
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
-		$query = new JQuery;
+		$db		= $this->getDbo();
+		$query	= $db->getQuery(true);
 
 		// Select the required fields from the table.
 		$query->select(
@@ -102,7 +99,7 @@ class UsersModelUsers extends JModelList
 		$query->group('a.id');
 
 		// Join over the user groups table.
-		$query->select('GROUP_CONCAT(g2.title SEPARATOR '.$this->_db->Quote("\n").') AS group_names');
+		$query->select('GROUP_CONCAT(g2.title SEPARATOR '.$db->Quote("\n").') AS group_names');
 		$query->join('LEFT', '#__usergroups AS g2 ON g2.id = map.group_id');
 
 		// If the model is set to check item state, add to the query.
@@ -113,28 +110,24 @@ class UsersModelUsers extends JModelList
 
 		// If the model is set to check the activated state, add to the query.
 		$active = $this->getState('filter.active');
-		if (is_numeric($active))
-		{
+		if (is_numeric($active)) {
 			if ($active == '0') {
 				$query->where('a.activation = ""');
-			}
-			else if ($active == '1') {
+			} else if ($active == '1') {
 				$query->where('LENGTH(a.activation) = 32');
 			}
 		}
 
 		// Filter the items over the group id if set.
-		if ($groupId = $this->getState('filter.group_id'))
-		{
+		if ($groupId = $this->getState('filter.group_id')) {
 			$query->join('LEFT', '#__user_usergroup_map AS map2 ON map2.user_id = a.id');
 			$query->where('map2.group_id = '.(int) $groupId);
 		}
 
 		// Filter the items over the search string if set.
-		if ($this->getState('filter.search') !== '')
-		{
+		if ($this->getState('filter.search') !== '') {
 			// Escape the search token.
-			$token	= $this->_db->Quote('%'.$this->_db->getEscaped($this->getState('filter.search')).'%');
+			$token	= $db->Quote('%'.$db->getEscaped($this->getState('filter.search')).'%');
 
 			// Compile the different search clauses.
 			$searches	= array();
@@ -147,7 +140,7 @@ class UsersModelUsers extends JModelList
 		}
 
 		// Add the list ordering clause.
-		$query->order($this->_db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$this->_db->getEscaped($this->getState('list.direction', 'ASC')));
+		$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;

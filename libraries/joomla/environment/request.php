@@ -18,9 +18,9 @@ $GLOBALS['_JREQUEST'] = array();
 /**
  * Set the available masks for cleaning variables
  */
-define('JREQUEST_NOTRIM'   , 1);
-define('JREQUEST_ALLOWRAW' , 2);
-define('JREQUEST_ALLOWHTML', 4);
+define('JREQUEST_NOTRIM',	1);
+define('JREQUEST_ALLOWRAW',	2);
+define('JREQUEST_ALLOWHTML',4);
 
 /**
  * JRequest Class
@@ -68,14 +68,14 @@ class JRequest
 	 *
 	 * You can force the source by setting the $hash parameter:
 	 *
-	 *   post		$_POST
-	 *   get		$_GET
-	 *   files		$_FILES
-	 *   cookie		$_COOKIE
-	 *   env		$_ENV
-	 *   server		$_SERVER
-	 *   method		via current $_SERVER['REQUEST_METHOD']
-	 *   default	$_REQUEST
+	 *	post	$_POST
+	 *	get		$_GET
+	 *	files	$_FILES
+	 *	cookie	$_COOKIE
+	 *	env		$_ENV
+	 *	server	$_SERVER
+	 *	method	via current $_SERVER['REQUEST_METHOD']
+	 *	default	$_REQUEST
 	 *
 	 * @param	string	$name		Variable name.
 	 * @param	string	$default	Default value if the variable does not exist.
@@ -98,22 +98,22 @@ class JRequest
 		// Get the input hash
 		switch ($hash)
 		{
-			case 'GET' :
+			case 'GET':
 				$input = &$_GET;
 				break;
-			case 'POST' :
+			case 'POST':
 				$input = &$_POST;
 				break;
-			case 'FILES' :
+			case 'FILES':
 				$input = &$_FILES;
 				break;
-			case 'COOKIE' :
+			case 'COOKIE':
 				$input = &$_COOKIE;
 				break;
-			case 'ENV'    :
+			case 'ENV':
 				$input = &$_ENV;
 				break;
-			case 'SERVER'    :
+			case 'SERVER':
 				$input = &$_SERVER;
 				break;
 			default:
@@ -254,7 +254,7 @@ class JRequest
 	 * @param	string	$name		Variable name
 	 * @param	string	$default	Default value if the variable does not exist
 	 * @param	string	$hash		Where the var should come from (POST, GET, FILES, COOKIE, METHOD)
- 	 * @param	int		$mask		Filter mask for the variable
+	 * @param	int		$mask		Filter mask for the variable
 	 * @return	string	Requested variable
 	 * @since	1.5
 	 */
@@ -309,10 +309,10 @@ class JRequest
 			case 'FILES' :
 				$_FILES[$name] = $value;
 				break;
-			case 'ENV'    :
+			case 'ENV':
 				$_ENV['name'] = $value;
 				break;
-			case 'SERVER'    :
+			case 'SERVER':
 				$_SERVER['name'] = $value;
 				break;
 		}
@@ -333,14 +333,14 @@ class JRequest
 	 *
 	 * You can force the source by setting the $hash parameter:
 	 *
-	 *   post		$_POST
-	 *   get		$_GET
-	 *   files		$_FILES
-	 *   cookie		$_COOKIE
-	 *   env		$_ENV
-	 *   server		$_SERVER
-	 *   method		via current $_SERVER['REQUEST_METHOD']
-	 *   default	$_REQUEST
+	 *	post	$_POST
+	 *	get		$_GET
+	 *	files	$_FILES
+	 *	cookie	$_COOKIE
+	 *	env		$_ENV
+	 *	server	$_SERVER
+	 *	method	via current $_SERVER['REQUEST_METHOD']
+	 *	default	$_REQUEST
 	 *
 	 * @param	string	$hash	to get (POST, GET, FILES, METHOD).
 	 * @param	int		$mask	Filter mask for the variable.
@@ -373,11 +373,11 @@ class JRequest
 				$input = $_COOKIE;
 				break;
 
-			case 'ENV'    :
+			case 'ENV':
 				$input = &$_ENV;
 				break;
 
-			case 'SERVER'    :
+			case 'SERVER':
 				$input = &$_SERVER;
 				break;
 
@@ -428,7 +428,7 @@ class JRequest
 				// Redirect to login screen.
 				$app = &JFactory::getApplication();
 				$return = JRoute::_('index.php');
-				$app->redirect($return, JText::_('SESSION_EXPIRED'));
+				$app->redirect($return, JText::_('JLIB_ENVIRONMENT_SESSION_EXPIRED'));
 				$app->close();
 			} else {
 				return false;
@@ -480,8 +480,8 @@ class JRequest
 		$_POST		= $POST;
 		$_COOKIE	= $COOKIE;
 		$_FILES		= $FILES;
-		$_ENV 		= $ENV;
-		$_SERVER 	= $SERVER;
+		$_ENV		= $ENV;
+		$_SERVER	= $SERVER;
 
 		if (isset ($SESSION)) {
 			$_SESSION = $SESSION;
@@ -498,7 +498,7 @@ class JRequest
 	 * @param	boolean	True if the array is to be added to the GLOBALS.
 	 * @since	1.5
 	 */
-	protected static function _cleanArray(&$array, $globalise=false)
+	static function _cleanArray(&$array, $globalise=false)
 	{
 		static $banned = array('_files', '_env', '_get', '_post', '_cookie', '_server', '_session', 'globals');
 
@@ -530,7 +530,7 @@ class JRequest
 	 * other than the 1 bit is set, a strict filter is applied.
 	 * @param string The variable type {@see JFilterInput::clean()}.
 	 */
-	protected static function _cleanVar($var, $mask = 0, $type=null)
+	static function _cleanVar($var, $mask = 0, $type=null)
 	{
 		// Static input filters for specific settings
 		static $noHtmlFilter	= null;

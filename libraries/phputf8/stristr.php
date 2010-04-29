@@ -1,6 +1,6 @@
 <?php
 /**
-* @version $Id: stristr.php,v 1.1 2006/02/25 13:50:17 harryf Exp $
+* @version $Id$
 * @package utf8
 * @subpackage strings
 */
@@ -19,18 +19,18 @@
 * @subpackage strings
 */
 function utf8_stristr($str, $search) {
-    
+
     if ( strlen($search) == 0 ) {
         return $str;
     }
-    
+
     $lstr = utf8_strtolower($str);
     $lsearch = utf8_strtolower($search);
     preg_match('/^(.*)'.preg_quote($lsearch).'/Us',$lstr, $matches);
-    
+
     if ( count($matches) == 2 ) {
         return substr($str, strlen($matches[1]));
     }
-    
+
     return FALSE;
 }

@@ -41,9 +41,9 @@ class TemplatesControllerSource extends JController
 	 * @param	array	An array of input data.
 	 * @param	string	The name of the key for the primary key.
 	 *
-	 * @return 	boolean
+	 * @return	boolean
 	 */
-	protected function _allowEdit()
+	protected function allowEdit()
 	{
 		return JFactory::getUser()->authorise('core.edit', 'com_templates');
 	}
@@ -56,11 +56,11 @@ class TemplatesControllerSource extends JController
 	 * @param	array	An array of input data.
 	 * @param	string	The name of the key for the primary key.
 	 *
-	 * @return 	boolean
+	 * @return	boolean
 	 */
-	protected function _allowSave()
+	protected function allowSave()
 	{
-		return $this->_allowEdit();
+		return $this->allowEdit();
 	}
 
 	/**
@@ -102,8 +102,8 @@ class TemplatesControllerSource extends JController
 		$context	= 'com_templates.edit.source';
 
 		// Access check.
-		if (!$this->_allowEdit()) {
-			return JError::raiseWarning(403, 'JError_Core_Edit_not_permitted.');
+		if (!$this->allowEdit()) {
+			return JError::raiseWarning(403, 'JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED');
 		}
 
 		// Check-out succeeded, push the new record id into the session.
@@ -121,7 +121,7 @@ class TemplatesControllerSource extends JController
 	public function cancel()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
 		$app		= JFactory::getApplication();
@@ -141,7 +141,7 @@ class TemplatesControllerSource extends JController
 	public function save()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
 		$app		= JFactory::getApplication();
@@ -151,19 +151,19 @@ class TemplatesControllerSource extends JController
 		$model		= $this->getModel();
 
 		// Access check.
-		if (!$this->_allowSave()) {
-			return JError::raiseWarning(403, 'JError_Save_not_permitted.');
+		if (!$this->allowSave()) {
+			return JError::raiseWarning(403, 'JERROR_SAVE_NOT_PERMITTED');
 		}
 
 		// Match the stored id's with the submitted.
 		if (empty($data['extension_id']) || empty($data['filename'])) {
-			return JError::raiseError(500, 'Template_Error_Source_id_filename_mismatch.');
+			return JError::raiseError(500, 'COM_TEMPLATES_ERROR_SOURCE_ID_FILENAME_MISMATCH');
 		}
 		else if ($data['extension_id'] != $model->getState('extension.id')) {
-			return JError::raiseError(500, 'Template_Error_Source_id_filename_mismatch.');
+			return JError::raiseError(500, 'COM_TEMPLATES_ERROR_SOURCE_ID_FILENAME_MISMATCH');
 		}
 		else if ($data['filename'] != $model->getState('filename')) {
-			return JError::raiseError(500, 'Template_Error_Source_id_filename_mismatch.');
+			return JError::raiseError(500, 'COM_TEMPLATES_ERROR_SOURCE_ID_FILENAME_MISMATCH');
 		}
 
 		// Validate the posted data.
@@ -207,12 +207,12 @@ class TemplatesControllerSource extends JController
 			$app->setUserState($context.'.data', $data);
 
 			// Redirect back to the edit screen.
-			$this->setMessage(JText::sprintf('JError_Save_failed', $model->getError()), 'notice');
+			$this->setMessage(JText::sprintf('JERROR_SAVE_FAILED', $model->getError()), 'notice');
 			$this->setRedirect(JRoute::_('index.php?option=com_templates&view=source&layout=edit', false));
 			return false;
 		}
 
-		$this->setMessage(JText::_('JController_Save_success'));
+		$this->setMessage(JText::_('COM_TEMPLATES_FILE_SAVE_SUCCESS'));
 
 		// Redirect the user and adjust session state based on the chosen task.
 		switch ($task)

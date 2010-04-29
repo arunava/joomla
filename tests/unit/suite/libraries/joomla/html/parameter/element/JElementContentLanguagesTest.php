@@ -1,7 +1,7 @@
 <?php
 require_once 'PHPUnit/Framework.php';
 
-require_once JPATH_BASE. DS . 'libraries' . DS . 'joomla' . DS . 'html' . DS . 'parameter' . DS . 'element' . DS . 'contentlanguages.php';
+require_once JPATH_BASE.'/libraries/joomla/html/parameter/element/contentlanguages.php';
 
 /**
  * Test class for JElementContentLanguages.
@@ -9,27 +9,27 @@ require_once JPATH_BASE. DS . 'libraries' . DS . 'joomla' . DS . 'html' . DS . '
  */
 class JElementContentLanguagesTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var JElementContentLanguages
-     */
-    protected $object;
+	/**
+	 * @var JElementContentLanguages
+	 */
+	protected $object;
 
-    /**
-     * Sets up the fixture, for example, opens a network connection.
-     * This method is called before a test is executed.
-     */
-    protected function setUp()
-    {
-        $this->object = new JElementContentLanguages;
-    }
+	/**
+	 * Sets up the fixture, for example, opens a network connection.
+	 * This method is called before a test is executed.
+	 */
+	protected function setUp()
+	{
+		$this->object = new JElementContentLanguages;
+	}
 
-    /**
-     * Tears down the fixture, for example, closes a network connection.
-     * This method is called after a test is executed.
-     */
-    protected function tearDown()
-    {
-    }
+	/**
+	 * Tears down the fixture, for example, closes a network connection.
+	 * This method is called after a test is executed.
+	 */
+	protected function tearDown()
+	{
+	}
 
 	/**
 	 * @todo Decide how to Implement.
@@ -39,4 +39,3 @@ class JElementContentLanguagesTest extends PHPUnit_Framework_TestCase
 		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 }
-?>

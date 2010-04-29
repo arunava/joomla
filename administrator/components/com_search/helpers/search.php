@@ -55,14 +55,16 @@ class SearchHelper
 
 		$lang = &JFactory::getLanguage();
 
-		$search_ignore	= array();
 		$tag			= $lang->getTag();
+		$search_ignore	= $lang->getIgnoreSearchWords();
+
+		// Deprecated in 1.6 use $lang->getIgnoreSearchWords instead
 		$ignoreFile		= $lang->getLanguagePath().DS.$tag.DS.$tag.'.ignore.php';
 		if (file_exists($ignoreFile)) {
 			include $ignoreFile;
 		}
 
-	 	// check for words to ignore
+		// check for words to ignore
 		$aterms = explode(' ', JString::strtolower($searchword));
 
 		// first case is single ignored word
@@ -92,14 +94,14 @@ class SearchHelper
 
 		// limit searchword to 20 characters
 		if (JString::strlen($searchword) > 20) {
-			$searchword 	= JString::substr($searchword, 0, 19);
-			$restriction 	= true;
+			$searchword		= JString::substr($searchword, 0, 19);
+			$restriction	= true;
 		}
 
 		// searchword must contain a minimum of 3 characters
 		if ($searchword && JString::strlen($searchword) < 3) {
-			$searchword 	= '';
-			$restriction 	= true;
+			$searchword		= '';
+			$restriction	= true;
 		}
 
 		return $restriction;

@@ -19,7 +19,7 @@ defined('JPATH_BASE') or die;
  * @contributor  Michael Slusarz <slusarz@horde.org>
  * @contributor  Michael Cochrane <mike@graftonhall.co.nz>
  *
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	FileSystem
  * @since		1.5
  */
@@ -84,7 +84,7 @@ class JArchiveTar extends JObject
 		$stream =& JFactory::getStream();
 		if(!$stream->open($archive, 'rb'))
 		{
-			$this->set('error.message', 'Unable to read archive');
+			$this->set('error.message', JText::_('JLIB_FILESYSTEM_TAR_UNABLE_TO_READ'));
 			return JError::raiseWarning(100, $this->get('error.message'));
 		}
 
@@ -97,7 +97,7 @@ class JArchiveTar extends JObject
 			//$entry =& $this->_data[$i];
 			$info = @ unpack("a100filename/a8mode/a8uid/a8gid/a12size/a12mtime/a8checksum/Ctypeflag/a100link/a6magic/a2version/a32uname/a32gname/a8devmajor/a8devminor", $entry);
 			if (!$info) {
-				$this->set('error.message', 'Unable to decompress data');
+				$this->set('error.message', JText::_('JLIB_FILESYSTEM_TAR_UNABLE_TO_DECOMPRESS'));
 				return JError::raiseWarning(100, $this->get('error.message'));
 			}
 
@@ -124,15 +124,15 @@ class JArchiveTar extends JObject
 
 					$mode = hexdec(substr($info['mode'], 4, 3));
 					$file['attr'] = (($info['typeflag'] == 0x35) ? 'd' : '-') .
-					 (($mode & 0x400) ? 'r' : '-') .
-					 (($mode & 0x200) ? 'w' : '-') .
-					 (($mode & 0x100) ? 'x' : '-') .
-					 (($mode & 0x040) ? 'r' : '-') .
-					 (($mode & 0x020) ? 'w' : '-') .
-					 (($mode & 0x010) ? 'x' : '-') .
-					 (($mode & 0x004) ? 'r' : '-') .
-					 (($mode & 0x002) ? 'w' : '-') .
-					 (($mode & 0x001) ? 'x' : '-');
+					(($mode & 0x400) ? 'r' : '-') .
+					(($mode & 0x200) ? 'w' : '-') .
+					(($mode & 0x100) ? 'x' : '-') .
+					(($mode & 0x040) ? 'r' : '-') .
+					(($mode & 0x020) ? 'w' : '-') .
+					(($mode & 0x010) ? 'x' : '-') .
+					(($mode & 0x004) ? 'r' : '-') .
+					(($mode & 0x002) ? 'w' : '-') .
+					(($mode & 0x001) ? 'x' : '-');
 				} else {
 					/* Some other type. */
 				}
@@ -144,12 +144,12 @@ class JArchiveTar extends JObject
 					// Make sure the destination folder exists
 					if (!JFolder::create(dirname($path)))
 					{
-						$this->set('error.message', 'Unable to create destination');
+						$this->set('error.message', JText::_('JLIB_FILESYSTEM_TAR_UNABLE_TO_CREATE_DESTINATION'));
 						return JError::raiseWarning(100, $this->get('error.message'));
 			}
 					if (JFile::write($path, $contents, true) === false)
 					{
-						$this->set('error.message', 'Unable to write entry');
+						$this->set('error.message', JText::_('JLIB_FILESYSTEM_TAR_UNABLE_TO_WRITE_ENTRY'));
 						return JError::raiseWarning(100, $this->get('error.message'));
 		}
 					$contents = ''; // reclaim some memory

@@ -14,7 +14,7 @@ defined('JPATH_BASE') or die();
  * JFilterOutput
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	Filter
  * @since		1.5
  */
@@ -30,7 +30,7 @@ class JFilterOutput
 	* @param object An object to be parsed
 	* @param int The optional quote style for the htmlspecialchars function
 	* @param string|array An optional single field name or array of field names not
-	*					 to be parsed (eg, for a textarea)
+	*					to be parsed (eg, for a textarea)
 	* @since 1.5
 	*/
 	function objectHTMLSafe(&$mixed, $quote_style=ENT_QUOTES, $exclude_keys='')
@@ -85,6 +85,9 @@ class JFilterOutput
 		$lang = &JFactory::getLanguage();
 		$str = $lang->transliterate($str);
 
+		// convert certain symbols to letter representation
+		$str = str_replace(array('&', '"', '<', '>'), array('a', 'q', 'l', 'g'), $str);
+
 		// remove any duplicate whitespace, and ensure all characters are alphanumeric
 		$str = preg_replace(array('/\s+/','/[^A-Za-z0-9\-]/'), array('-',''), $str);
 
@@ -93,7 +96,7 @@ class JFilterOutput
 		return $str;
 	}
 
- 	/**
+	/**
 	 * This method implements unicode slugs instead of transliteration.
 	 *
 	 * @static
@@ -156,8 +159,8 @@ class JFilterOutput
 	 */
 	function _ampReplaceCallback($m)
 	{
-		 $rx = '&(?!amp;)';
-		 return preg_replace('#'.$rx.'#', '&amp;', $m[0]);
+		$rx = '&(?!amp;)';
+		return preg_replace('#'.$rx.'#', '&amp;', $m[0]);
 	}
 
 	/**
@@ -175,5 +178,13 @@ class JFilterOutput
 		$text = strip_tags($text);
 		$text = htmlspecialchars($text, ENT_COMPAT, 'UTF-8');
 		return $text;
+	}
+
+	/**
+	 * Strip img-tags from string
+	 */
+	function stripImages($string)
+	{
+		return  preg_replace('#(<[/]?img.*>)#U', '', $string);
 	}
 }

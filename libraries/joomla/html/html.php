@@ -13,7 +13,7 @@ JHtml::addIncludePath(JPATH_LIBRARIES.DS.'joomla'.DS.'html'.DS.'html');
  * Utility class for all HTML drawing classes
  *
  * @static
- * @package 	Joomla.Framework
+ * @package		Joomla.Framework
  * @subpackage	HTML
  * @since		1.5
  */
@@ -22,18 +22,18 @@ abstract class JHtml
 	/**
 	 * Option values related to the generation of HTML output. Recognized
 	 * options are:
-     * <ul><li>fmtDepth, integer. The current indent depth.
-     * </li><li>fmtEol, string. The end of line string, default is linefeed.
-     * </li><li>fmtIndent, string. The string to use for indentation, default is
-     * tab.
-     * </ul>
+	 * <ul><li>fmtDepth, integer. The current indent depth.
+	 * </li><li>fmtEol, string. The end of line string, default is linefeed.
+	 * </li><li>fmtIndent, string. The string to use for indentation, default is
+	 * tab.
+	 * </ul>
 	 *
 	 * @var array
 	 */
 	static $formatOptions = array(
-        'format.depth' => 0,
-        'format.eol' => "\n",
-        'format.indent' => "\t"
+		'format.depth' => 0,
+		'format.eol' => "\n",
+		'format.indent' => "\t"
  );
 
 	private static $includePaths = array();
@@ -63,8 +63,8 @@ abstract class JHtml
 		$parts = explode('.', $type);
 
 		$prefix = (count($parts) == 3 ? array_shift($parts) : 'JHtml');
-		$file 	= (count($parts) == 2 ? array_shift($parts) : '');
-		$func 	= array_shift($parts);
+		$file	= (count($parts) == 2 ? array_shift($parts) : '');
+		$func	= array_shift($parts);
 
 		$key = strtolower($prefix.'.'.$file.'.'.$func);
 
@@ -88,13 +88,13 @@ abstract class JHtml
 
 				if (!class_exists($className))
 				{
-					JError::raiseError(500, $className.'::' .$func. ' not found in file.');
+					JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTFOUNDINFILE', $className, $func));
 					return false;
 				}
 			}
 			else
 			{
-				JError::raiseError(500, $prefix.$file . ' not supported. File not found.');
+				JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTSUPPORTED_NOFILE', $prefix, $file));
 				return false;
 			}
 		}
@@ -110,7 +110,7 @@ abstract class JHtml
 		}
 		else
 		{
-			JError::raiseError(500, $className.'::'.$func.' not supported.');
+			JError::raiseError(500, JText::sprintf('JLIB_HTML_ERROR_NOTSUPPORTED', $className, $func));
 			return false;
 		}
 	}
@@ -126,8 +126,8 @@ abstract class JHtml
 		$parts = explode('.', $key);
 
 		$prefix = (count($parts) == 3 ? array_shift($parts) : 'JHtml');
-		$file 	= (count($parts) == 2 ? array_shift($parts) : '');
-		$func 	= array_shift($parts);
+		$file	= (count($parts) == 2 ? array_shift($parts) : '');
+		$func	= array_shift($parts);
 
 		$key = strtolower($prefix.'.'.$file.'.'.$func);
 
@@ -159,7 +159,7 @@ abstract class JHtml
 	/**
 	 * Function caller method
 	 *
-	 * @param	string 	Function or method to call
+	 * @param	string	Function or method to call
 	 * @param	array	Arguments to be passed to function
 	 */
 	private static function call($function, $args)
@@ -174,31 +174,16 @@ abstract class JHtml
 			return call_user_func_array($function, $temp);
 		}
 		else {
-			JError::raiseError(500, 'Function not supported.');
+			JError::raiseError(500, JText::_('JLIB_HTML_ERROR_FUNCTION_NOT_SUPPORTED'));
 			return false;
 		}
-	}
-
-	public static function core($debug = null)
-	{
-		// If no debugging value is set, use the configuration setting
-		if ($debug === null) {
-			$debug = JFactory::getConfig()->getValue('config.debug');
-		}
-
-		// TODO NOTE: Here we are checking for Konqueror - If they fix their issue with compressed, we will need to update this
-		$konkcheck		= strpos(strtolower($_SERVER['HTTP_USER_AGENT']), "konqueror");
-		$uncompressed	= ($debug || $konkcheck) ? '-uncompressed' : '';
-
-		$document = &JFactory::getDocument();
-		$document->addScript(JURI::root(true).'/media/system/js/core'.$uncompressed.'.js');
 	}
 
 	/**
 	 * Write a <a></a> element
 	 *
 	 * @access	public
-	 * @param	string 	The relative URL to use for the href attribute
+	 * @param	string	The relative URL to use for the href attribute
 	 * @param	string	The target attribute to use
 	 * @param	array	An associative array of attributes to add
 	 * @since	1.5
@@ -213,10 +198,29 @@ abstract class JHtml
 	}
 
 	/**
+	 * Write a <iframe></iframe> element
+	 *
+	 * @access	public
+	 * @param	string	The relative URL to use for the src attribute
+	 * @param	string	The target attribute to use
+	 * @param	array	An associative array of attributes to add
+	 * @param	string	The message to display if the iframe tag is not supported
+	 * @since	1.5
+	 */
+	public static function iframe($url, $name, $attribs = null, $noFrames = '')
+	{
+		if (is_array($attribs)) {
+			$attribs = JArrayHelper::toString($attribs);
+		}
+
+		return '<iframe src="'.$url.'" '.$attribs.' name="'.$name.'">'.$noFrames.'</iframe>';
+	}
+
+	/**
 	 * Write a <img></img> element
 	 *
 	 * @access	public
-	 * @param	string 	The relative or absolute URL to use for the src attribute
+	 * @param	string	The relative or absolute URL to use for the src attribute
 	 * @param	string	The target attribute to use
 	 * @param	array	An associative array of attributes to add
 	 * @param	boolean	If set to true, it tries to find an override for the file in the template
@@ -235,7 +239,19 @@ abstract class JHtml
 			if (file_exists(JPATH_THEMES .'/'. $cur_template .'/images/'. $url)) {
 				$url = JURI::base(true).'/templates/'. $cur_template .'/images/'. $url;
 			} else {
-				$url = JURI::root(true).'/media/images/'.$url;
+				list($extension, $url) = explode('/', $url, 2);
+				if (strpos($url, '/')) {
+					// Try to deal with plugins group
+					list($element, $url) = explode('/', $url, 2);
+					if (file_exists(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/images/'.$url)) {
+						$url = JURI::root(true).'/media/'.$extension.'/'.$element.'/images/'.$url;
+					} else {
+						$url = JURI::root(true).'/media/'.$extension.'/images/'.$element.'/'.$url;
+					}
+				}
+				else {
+					$url = JURI::root(true).'/media/'.$extension.'/images/'.$url;
+				}
 			}
 			if($path_only)
 			{
@@ -249,34 +265,63 @@ abstract class JHtml
 	}
 
 	/**
-	 * Write a <iframe></iframe> element
+	 * Write a <link rel="stylesheet" style="text/css" /> element
 	 *
-	 * @access	public
-	 * @param	string 	The relative URL to use for the src attribute
-	 * @param	string	The target attribute to use
-	 * @param	array	An associative array of attributes to add
-	 * @param	string	The message to display if the iframe tag is not supported
-	 * @since	1.5
+	 * @param	string		path to file
+	 * @param	array		attributes to be added to the stylesheet
+	 * @param	boolean		path to file is relative to /media folder
+	 * @param	boolean	return the path to the file only
+	 * @since	1.6
 	 */
-	public static function iframe($url, $name, $attribs = null, $noFrames = '')
+	public static function stylesheet($file, $attribs = array(), $relative = false, $path_only = false)
 	{
 		if (is_array($attribs)) {
 			$attribs = JArrayHelper::toString($attribs);
 		}
 
-		return '<iframe src="'.$url.'" '.$attribs.' name="'.$name.'">'.$noFrames.'</iframe>';
+		if($relative)
+		{
+			$app = JFactory::getApplication();
+			$cur_template = $app->getTemplate();
+			if (file_exists(JPATH_THEMES .'/'. $cur_template .'/css/'. $file)) {
+				$file = JURI::base(true).'/templates/'. $cur_template .'/css/'. $file;
+			} else {
+				list($extension, $file) = explode('/', $file, 2);
+				if (strpos($file, '/')) {
+					// Try to deal with plugins group
+					list($element, $file) = explode('/', $file, 2);
+					if (file_exists(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/css/'.$file)) {
+						$file = JURI::root(true).'/media/'.$extension.'/'.$element.'/css/'.$file;
+					} else {
+						$file = JURI::root(true).'/media/'.$extension.'/css/'.$element.'/'.$file;
+					}
+				}
+				else {
+					$file = JURI::root(true).'/media/'.$extension.'/css/'.$file;
+				}
+			}
+			if($path_only)
+			{
+				return $file;
+			}
+		} elseif (strpos($file, 'http') !== 0) {
+			$file = JURI::root(true).'/'.$file;
+		}
+
+		$document = &JFactory::getDocument();
+		$document->addStylesheet($file, 'text/css', null, $attribs);
+		return;
 	}
 
 	/**
 	 * Write a <script></script> element
-	 *
-	 * @access	public
-	 * @param	string 	The name of the script file
-	 * * @param	string 	The relative or absolute path of the script file
-	 * @param	boolean If true, the mootools library will be loaded
-	 * @since	1.5
+	 * @param	string		path to file
+	 * @param	boolean		load the JS framework
+	 * @param	boolean		path to file is relative to /media folder
+	 * @param	boolean	return the path to the file only
+	 * @since	1.6
 	 */
-	public static function script($filename, $path = 'media/system/js/', $framework = false)
+	public static function script($file, $framework = false, $relative = false, $path_only = false)
 	{
 		JHtml::core();
 
@@ -285,49 +330,73 @@ abstract class JHtml
 			JHtml::_('behavior.framework');
 		}
 
-		if (strpos($path, 'http') !== 0) {
-			$path =  JURI::root(true).'/'.$path;
-		};
+		if($relative)
+		{
+			$app = JFactory::getApplication();
+			$cur_template = $app->getTemplate();
+			if (file_exists(JPATH_THEMES .'/'. $cur_template .'/js/'. $file)) {
+				$file = JURI::base(true).'/templates/'. $cur_template .'/js/'. $file;
+			} else {
+				list($extension, $file) = explode('/', $file, 2);
+				if (strpos($file, '/')) {
+					// Try to deal with plugins group
+					list($element, $file) = explode('/', $file, 2);
+					if (file_exists(JPATH_ROOT .'/media/'. $extension.'/'.$element.'/js/'.$file)) {
+						$file = JURI::root(true).'/media/'.$extension.'/'.$element.'/js/'.$file;
+					} else {
+						$file = JURI::root(true).'/media/'.$extension.'/js/'.$element.'/'.$file;
+					}
+				}
+				else {
+					$file = JURI::root(true).'/media/'.$extension.'/js/'.$file;
+				}
+			}
+			if($path_only)
+			{
+				return $file;
+			}
+		} elseif (strpos($file, 'http') !== 0) {
+			$file = JURI::root(true).'/'.$file;
+		}
 
 		$document = &JFactory::getDocument();
-		$document->addScript($path.$filename);
+		$document->addScript($file);
 		return;
 	}
 
-    /**
-     * Set format related options.
-     *
-     * Updates the formatOptions array with all valid values in the passed
-     * array. See {@see JHtml::$formatOptions} for details.
-     *
-     * @param array Option key/value pairs.
-     */
-    public static function setFormatOptions($options)
+	public static function core($debug = null)
 	{
-        foreach ($options as $key => $val) {
-            if (isset(self::$formatOptions[$key])) {
-                self::$formatOptions[$key] = $val;
-            }
-        }
-    }
+		// If no debugging value is set, use the configuration setting
+		if ($debug === null) {
+			$debug = JFactory::getConfig()->get('debug');
+		}
+
+		// TODO NOTE: Here we are checking for Konqueror - If they fix their issue with compressed, we will need to update this
+		$konkcheck		= strpos(strtolower($_SERVER['HTTP_USER_AGENT']), "konqueror");
+		$uncompressed	= ($debug || $konkcheck) ? '-uncompressed' : '';
+
+		$document = &JFactory::getDocument();
+		$document->addScript(JURI::root(true).'/media/system/js/core'.$uncompressed.'.js');
+	}
 
 	/**
-	 * Write a <link rel="stylesheet" style="text/css" /> element
+	 * Set format related options.
 	 *
-	 * @access	public
-	 * @param	string 	The relative URL to use for the href attribute
-	 * @since	1.5
+	 * Updates the formatOptions array with all valid values in the passed
+	 * array. See {@see JHtml::$formatOptions} for details.
+	 *
+	 * @param array Option key/value pairs.
 	 */
-	public static function stylesheet($filename, $path = 'media/system/css/', $attribs = array())
+	public static function setFormatOptions($options)
 	{
-		if (strpos($path, 'http') !== 0) {
-			$path = JURI::root(true).'/'.$path;
-		};
-
-		$document = &JFactory::getDocument();
-		$document->addStylesheet($path.$filename, 'text/css', null, $attribs);
-		return;
+		foreach ($options as $key => $val) {
+			if (isset(self::$formatOptions[$key])) {
+				self::$formatOptions[$key] = $val;
+			}
+		}
 	}
+
+
 
 	/**
 	 * Returns formated date according to a given format and time zone.
@@ -335,7 +404,7 @@ abstract class JHtml
 	 * @param	string	String in a format accepted by strtotime(), defaults to "now".
 	 * @param	string	format optional format for strftime
 	 * @param	mixed	Time zone to be used for the date.  Special cases: boolean true for user
-	 * 					setting, boolean false for server setting.
+	 *					setting, boolean false for server setting.
 	 * @return	string	A date translated by the given format and time zone.
 	 * @see		strftime
 	 * @since	1.5
@@ -353,7 +422,7 @@ abstract class JHtml
 			$date = JFactory::getDate($input, 'UTC');
 
 			// Set the correct time zone based on the user configuration.
-			$date->setOffset($user->getParam('timezone', $config->getValue('config.offset')));
+			$date->setOffset($user->getParam('timezone', $config->get('offset')));
 		}
 		// UTC date converted to server time zone.
 		elseif ($tz === false)
@@ -362,7 +431,7 @@ abstract class JHtml
 			$date = JFactory::getDate($input, 'UTC');
 
 			// Set the correct time zone based on the server configuration.
-			$date->setOffset($config->getValue('config.offset'));
+			$date->setOffset($config->get('offset'));
 		}
 		// No date conversion.
 		elseif ($tz === null)
@@ -408,10 +477,10 @@ abstract class JHtml
 		$title		= addslashes(htmlspecialchars($title, ENT_COMPAT, 'UTF-8'));
 
 		if (!$text) {
-			$image 	= JURI::root(true).'/includes/js/ThemeOffice/'. $image;
-			$text 	= '<img src="'. $image .'" border="0" alt="'. JText::_('Tooltip') .'"/>';
+			$image	= JURI::root(true).'/includes/js/ThemeOffice/'. $image;
+			$text	= '<img src="'. $image .'" border="0" alt="'. JText::_('Tooltip') .'"/>';
 		} else {
-			$text 	= JText::_($text, true);
+			$text	= JText::_($text, true);
 		}
 
 		if ($title) {
@@ -453,26 +522,27 @@ abstract class JHtml
 		// Load the calendar behavior
 		JHtml::_('behavior.calendar');
 
+		$readonly=isset($attribs['readonly']) && $attribs['readonly']=='readonly';
 		if (is_array($attribs)) {
 			$attribs = JArrayHelper::toString($attribs);
 		}
 
 		// Only display the triggers once for each control.
-		if (!in_array($id, $done))
+		if (!in_array($id, $done) && !$readonly)
 		{
 			$document = &JFactory::getDocument();
 			$document->addScriptDeclaration('window.addEvent(\'domready\', function() {Calendar.setup({
-	        inputField     :    "'.$id.'",     // id of the input field
-	        ifFormat       :    "'.$format.'",      // format of the input field
-	        button         :    "'.$id.'_img",  // trigger for the calendar (button ID)
-	        align          :    "Tl",           // alignment (defaults to "Bl")
-	        singleClick    :    true
-	    });});');
+			inputField: "'.$id.'",		// id of the input field
+			ifFormat: "'.$format.'",	// format of the input field
+			button: "'.$id.'_img",		// trigger for the calendar (button ID)
+			align: "Tl",				// alignment (defaults to "Bl")
+			singleClick: true
+		});});');
 			$done[] = $id;
 		}
 
 		return '<input type="text" name="'.$name.'" id="'.$id.'" value="'.htmlspecialchars($value, ENT_COMPAT, 'UTF-8').'" '.$attribs.' />'.
-				 JHTML::_('image', 'system/calendar.png', JText::_('calendar'), array( 'class' => 'calendar', 'id' => $id.'_img'), true);
+				JHTML::_('image','system/calendar.png', JText::_('JLIB_HTML_CALENDAR'), array( 'class' => 'calendar', 'id' => $id.'_img'), true);
 	}
 
 	/**
