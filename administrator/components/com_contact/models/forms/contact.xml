@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
 	<fieldset>
-		<field name="id" type="text" 
-			label="JGLOBAL_FIELD_ID_LABEL" description ="JGLOBAL_FIELD_ID_DESC"
-			size="10" default="0" required="true"
-			readonly="true" class="readonly" />
+		<field name="id" type="text" label="JGLOBAL_FIELD_ID_LABEL"
+			description="JGLOBAL_FIELD_ID_DESC" size="10" default="0"
+			required="true" readonly="true" class="readonly" />
 
 		<field name="name" type="text"
 			label="COM_CONTACT_FIELD_NAME_LABEL" description="COM_CONTACT_FIELD_NAME_DESC"
@@ -24,7 +23,7 @@
 				JPUBLISHED</option>
 			<option value="0">
 				JUNPUBLISHED</option>
-			<option value="-1">
+			<option value="2">
 				JARCHIVED</option>
 			<option value="-2">
 				JTRASHED</option>
@@ -98,6 +97,11 @@
 			description="COM_CONTACT_FIELD_INFORMATION_MOBILE_DESC"
 			class="inputbox" size="30" />
 
+		<field name="fax" type="text"
+			label="COM_CONTACT_FIELD_INFORMATION_FAX_LABEL"
+			description="COM_CONTACT_FIELD_INFORMATION_FAX_DESC"
+			class="inputbox" size="30" />
+
 		<field name="webpage" type="text"
 			label="COM_CONTACT_FIELD_INFORMATION_WEBPAGE_LABEL"
 			description="COM_CONTACT_FIELD_INFORMATION_WEBPAGE_DESC"
@@ -105,10 +109,13 @@
 		<field name="misc" type="editor"
 			label="COM_CONTACT_FIELD_INFORMATION_MISC_LABEL"
 			description="COM_CONTACT_FIELD_INFORMATION_MISC_DESC"
-			class="inputbox" filter="safehtml" buttons="pagebreak,readmore"
+			class="inputbox" filter="safehtml"
+			buttons="true"
+			hide="readmore,pagebreak"
 			size="30" />
-		<field name="image" type="imagelist" directory="/images"
-			label="COM_CONTACT_FIELD_PARAMS_IMAGE_LABEL" description="COM_CONTACT_FIELD_PARAMS_IMAGE_DESC" >
+		<field name="image" type="media" directory="" hide_none="1"
+			label="COM_CONTACT_FIELD_PARAMS_IMAGE_LABEL" description="COM_CONTACT_FIELD_PARAMS_IMAGE_DESC"
+		>
 		</field>
 		<field name="checked_out" type="hidden" filter="unset" />
 
@@ -131,7 +138,14 @@
 		>
 			<option value="">JOPTION_DEFAULT_LANGUAGE</option>
 		</field>
-
+		<field name="featured" type="radio"
+			label="COM_CONTACT_FIELD_FEATURED_LABEL"
+			description="COM_CONTACT_FIELD_FEATURED_DESC"
+			default="0"
+		>
+			<option value="0">JOFF</option>
+			<option value="1">JON</option>
+		</field>
 
 		<field name="contact_icons" type="list" default="0"
 			label="COM_CONTACT_FIELD_ICONS_SETTINGS" description="COM_CONTACT_FIELD_ICONS_SETTINGS_DESC"
@@ -144,32 +158,32 @@
 			</option>
 		</field>
 
-		<field name="icon_address" type="imagelist"
-			directory="/images" hide_none="1"
+		<field name="icon_address" type="media"
+			directory="" hide_none="1"
 
 			label="COM_CONTACT_FIELD_ICONS_ADDRESS_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_ADDRESS_DESC" />
 
-		<field name="icon_email" type="imagelist" directory="/images"
+		<field name="icon_email" type="media" directory=""
 			hide_none="1" label="COM_CONTACT_FIELD_ICONS_EMAIL_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_EMAIL_DESC" />
 
-		<field name="icon_telephone" type="imagelist"
-			directory="/images" hide_none="1"
+		<field name="icon_telephone" type="media"
+			directory="" hide_none="1"
 
 			abel="COM_CONTACT_FIELD_ICONS_TELEPHONE_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_TELEPHONE_DESC" />
 
-		<field name="icon_mobile" type="imagelist"
-			directory="/images" hide_none="1"
+		<field name="icon_mobile" type="mediat"
+			directory="" hide_none="1"
 
 			label="COM_CONTACT_FIELD_ICONS_MOBILE_LABEL" description="COM_CONTACT_FIELD_ICONS_MOBILE_DESC" />
 
-		<field name="icon_fax" type="imagelist" directory="/images"
+		<field name="icon_fax" type="media" directory=""
 			hide_none="1" label="COM_CONTACT_FIELD_ICONS_FAX_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_FAX_DESC" />
 
-		<field name="icon_misc" type="imagelist" directory="/images"
+		<field name="icon_misc" type="media"
 			hide_none="1" label="COM_CONTACT_FIELD_ICONS_MISC_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_MISC_DESC" />
 
@@ -180,7 +194,7 @@
 
 
 	<fields name="params">
-		<fieldset name="basic">
+		<fieldset name="jbasic" label="JGLOBAL_FIELDSET_OPTIONS">
 			<field name="show_contact_category" type="list"
 
 				label="COM_CONTACT_FIELD_SHOW_CATEGORY_LABEL"
@@ -408,80 +422,90 @@
 				class="inputbox" size="30" />
 		</fieldset>
 
-		<fieldset name="metadata">
+		<fieldset name="email"
+			label="COM_CONTACT_FIELDSET_CONTACT_FORM" description="COM_CONTACT_EMAIL_FORM_DETAILS"
+		>
 
-			<field name="robots" type="text"
-				label="JFIELD_METADATA_ROBOTS_LABEL" description="JFIELD_METADATA_ROBOTS_DESC"
-				size="20" />
+			<field name="show_email_form" type="list"
 
+				label="COM_CONTACT_FIELD_EMAIL_SHOW_FORM_LABEL"
+				description="COM_CONTACT_FIELD_EMAIL_SHOW_FORM_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field name="show_email_copy" type="list"
+
+				label="COM_CONTACT_FIELD_EMAIL_EMAIL_COPY_LABEL"
+				description="COM_CONTACT_FIELD_EMAIL_EMAIL_COPY_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field name="banned_email" type="textarea"
+
+				label="COM_CONTACT_FIELD_EMAIL_BANNED_EMAIL_LABEL" rows="3"
+				cols="30" description="COM_CONTACT_FIELD_EMAIL_BANNED_EMAIL_DESC" />
+
+			<field name="banned_subject" type="textarea"
+
+				label="COM_CONTACT_FIELD_EMAIL_BANNED_SUBJECT_LABEL"
+				rows="3" cols="30"
+				description="COM_CONTACT_FIELD_EMAIL_BANNED_SUBJECT_DESC" />
+
+			<field name="banned_text" type="textarea"
+
+				label="COM_CONTACT_FIELD_EMAIL_BANNED_TEXT_LABEL" rows="3"
+				cols="30" description="COM_CONTACT_FIELD_EMAIL_BANNED_TEXT_DESC" />
+
+			<field name="validate_session" type="list"
+
+				label="COM_CONTACT_FIELD_CONFIG_SESSION_CHECK_LABEL"
+				description="COM_CONTACT_FIELD_CONFIG_SESSION_CHECK_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
+			</field>
+
+			<field name="custom_reply" type="list"
+
+				label="COM_CONTACT_FIELD_CONFIG_CUSTOM_REPLY_LABEL"
+				description="COM_CONTACT_FIELD_CONFIG_CUSTOM_REPLY_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
+			</field>
+
+			<field name="redirect" type="text" size="30"
+				label="COM_CONTACT_FIELD_EMAIL_REDIRECT_LABEL"
+				description="COM_CONTACT_FIELD_EMAIL_REDIRECT_DESC" />
+		</fieldset>
+	</fields>
+	<fields name="metadata">
+		<fieldset name="jmetadata" label="JGLOBAL_FIELDSET_METADATA">
+
+		<field name="robots" type="list"
+			label="JFIELD_METADATA_ROBOTS_LABEL" description="JFIELD_METADATA_ROBOTS_DESC"
+		>
+			<option value="">JGLOBAL_USE_GLOBAL</option>
+			<option value="0">JGLOBAL_INDEX_FOLLOW</option>
+			<option value="1">JGLOBAL_NOINDEX_FOLLOW</option>
+			<option value="2">JGLOBAL_INDEX_NOFOLLOW</option>
+			<option value="3">JGLOBAL_NOINDEX_NOFOLLOW</option>
+			<option value="4">JGLOBAL_NO_ROBOTS_TAG</option>
+		</field>
 
 			<field name="rights" type="text"
 				label="JFIELD_METADATA_RIGHTS_LABEL" description="JFIELD_METADATA_RIGHTS_DESC"
 				size="20" />
 		</fieldset>
-	</fields>
 
-	<fields name="email_form" label="Contact_Email_Form_Label">
-
-		<field name="show_email_form" type="list"
-
-			label="COM_CONTACT_FIELD_EMAIL_SHOW_FORM_LABEL"
-			description="COM_CONTACT_FIELD_EMAIL_SHOW_FORM_DESC"
-		>
-			<option value="">JGLOBAL_USE_GLOBAL</option>
-			<option value="0">JHIDE</option>
-			<option value="1">JSHOW</option>
-		</field>
-
-		<field name="show_email_copy" type="list"
-
-			label="COM_CONTACT_FIELD_EMAIL_EMAIL_COPY_LABEL"
-			description="COM_CONTACT_FIELD_EMAIL_EMAIL_COPY_DESC"
-		>
-			<option value="">JGLOBAL_USE_GLOBAL</option>
-			<option value="0">JHIDE</option>
-			<option value="1">JSHOW</option>
-		</field>
-
-		<field name="banned_email" type="textarea"
-
-			label="COM_CONTACT_FIELD_EMAIL_BANNED_EMAIL_LABEL" rows="3"
-			cols="30" description="COM_CONTACT_FIELD_EMAIL_BANNED_EMAIL_DESC" />
-
-		<field name="banned_subject" type="textarea"
-
-			label="COM_CONTACT_FIELD_EMAIL_BANNED_SUBJECT_LABEL"
-			rows="3" cols="30"
-			description="COM_CONTACT_FIELD_EMAIL_BANNED_SUBJECT_DESC" />
-
-		<field name="banned_text" type="textarea"
-
-			label="COM_CONTACT_FIELD_EMAIL_BANNED_TEXT_LABEL" rows="3"
-			cols="30" description="COM_CONTACT_FIELD_EMAIL_BANNED_TEXT_DESC" />
-
-		<field name="validate_session" type="list"
-
-			label="COM_CONTACT_FIELD_CONFIG_SESSION_CHECK_LABEL"
-			description="COM_CONTACT_FIELD_CONFIG_SESSION_CHECK_DESC"
-		>
-			<option value="">JGLOBAL_USE_GLOBAL</option>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field name="custom_reply" type="list"
-
-			label="COM_CONTACT_FIELD_CONFIG_CUSTOM_REPLY_LABEL"
-			description="COM_CONTACT_FIELD_CONFIG_CUSTOM_REPLY_DESC"
-		>
-			<option value="">JGLOBAL_USE_GLOBAL</option>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field name="redirect" type="text" size="30"
-			label="COM_CONTACT_FIELD_EMAIL_REDIRECT_LABEL"
-			description="COM_CONTACT_FIELD_EMAIL_REDIRECT_DESC" />
 
 	</fields>
 

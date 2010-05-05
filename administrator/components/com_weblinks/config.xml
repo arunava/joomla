@@ -16,7 +16,7 @@
 
 		<field name="comp_description" type="textarea"
 			cols="50"
-			description="COM_WEBLINKS_FIELD_CONFIG_INTRO_DESC" 
+			description="COM_WEBLINKS_FIELD_CONFIG_INTRO_DESC"
 			label="COM_WEBLINKS_FIELD_CONFIG_INTRO_LABEL"
 			rows="3"
 		/>
@@ -24,7 +24,7 @@
 		<field name="spacer1" type="spacer"
 			hr="true"
 		/>
-		
+
 		<field name="show_link_hits" type="radio"
 			default="1"
 			description="COM_WEBLINKS_FIELD_CONFIG_HITS_DESC"
@@ -78,7 +78,7 @@
 			<option value="0">JHIDE</option>
 			<option value="1">JSHOW</option>
 		</field>
-		
+
 		<field name="count_clicks" type="radio"
 			default="1"
 			description="COM_WEBLINKS_FIELD_CONFIG_COUNTCLICKS_DESC"
@@ -102,10 +102,10 @@
 			<option value="2">NEW_WINDOW_WITHOUT_BROWSER_NAVIGATION</option>
 		</field>
 
-		<field name="link_icons" type="imagelist"
+		<field name="link_icons" type="media"
 			default=""
-			description="COM_WEBLINKS_FIELD_CONFIG_ICON_DESC" 
-			directory="/images"
+			description="COM_WEBLINKS_FIELD_CONFIG_ICON_DESC"
+			directory=""
 			label="COM_WEBLINKS_FIELD_CONFIG_ICON_LABEL"
 		/>
 	</fieldset>

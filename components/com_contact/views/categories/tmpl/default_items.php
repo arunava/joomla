@@ -10,7 +10,7 @@
 // no direct access
 defined('_JEXEC') or die;
 $class = ' class="first"';
-if (count($this->items[$this->parent->id]) > 0 && $this->maxLevel != 0) : 
+if (count($this->items[$this->parent->id]) > 0 && $this->maxLevel != 0) :
 ?>
 <ul>
 <?php foreach($this->items[$this->parent->id] as $id => $item) : ?>
@@ -33,11 +33,11 @@ if (count($this->items[$this->parent->id]) > 0 && $this->maxLevel != 0) :
 		<?php endif; ?>
 		<?php if ($this->params->get('show_item_count') == 1) :?>
 			<dl class="contact-count"><dt>
-				<?php echo JText::_('COM_CONTACT_COUNT:'); ?></dt>
+				<?php echo JText::_('COM_CONTACT_COUNT'); ?></dt>
 				<dd><?php echo $item->numitems; ?></dd>
 			</dl>
 		<?php endif; ?>
-		
+
 		<?php if(count($item->getChildren()) > 0) :
 			$this->items[$item->id] = $item->getChildren();
 			$this->parent = $item;
@@ -46,7 +46,7 @@ if (count($this->items[$this->parent->id]) > 0 && $this->maxLevel != 0) :
 			$this->parent = $item->getParent();
 			$this->maxLevel++;
 		endif; ?>
-		
+
 	</li>
 	<?php endif; ?>
 <?php endforeach; ?>

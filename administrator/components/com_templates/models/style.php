@@ -26,6 +26,10 @@ class TemplatesModelStyle extends JModelForm
 
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -151,22 +155,30 @@ class TemplatesModelStyle extends JModelForm
 		$this->setState('item.template',	$template);
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_templates.style', 'style', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = parent::getForm('com_templates.style', 'style', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_templates.edit.style.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function getFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_templates.edit.style.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -230,11 +242,11 @@ class TemplatesModelStyle extends JModelForm
 
 	/**
 	 * @param	object	A form object.
-	 *
+	 * @param	mixed	The data expected for the form.
 	 * @throws	Exception if there is an error in the form event.
 	 * @since	1.6
 	 */
-	protected function preprocessForm($form)
+	protected function preprocessForm($form, $data)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
@@ -255,12 +267,12 @@ class TemplatesModelStyle extends JModelForm
 		if (file_exists($formFile)) {
 			// Get the template form.
 			if (!$form->loadFile($formFile, false, '//config')) {
-				throw new Exception(JText::_('JModelForm_Error_loadFile_failed'));
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
 			}
 		}
 
 		// Trigger the default form events.
-		parent::preprocessForm($form);
+		parent::preprocessForm($form, $data);
 	}
 
 	/**
@@ -277,8 +289,8 @@ class TemplatesModelStyle extends JModelForm
 		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('style.id');
 		$isNew		= true;
 
-		// Include the content plugins for the onSave events.
-		JPluginHelper::importPlugin('content');
+		// Include the extension plugins for the save events.
+		JPluginHelper::importPlugin('extension');
 
 		// Load the row if saving an existing record.
 		if ($pk > 0) {
@@ -301,6 +313,13 @@ class TemplatesModelStyle extends JModelForm
 			return false;
 		}
 
+		// Trigger the onExtensionBeforeSave event.
+		$result = $dispatcher->trigger('onExtensionBeforeSave', array('com_templates.style', &$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
 		// Store the data.
 		if (!$table->store()) {
 			$this->setError($table->getError());
@@ -310,6 +329,9 @@ class TemplatesModelStyle extends JModelForm
 		// Clean the cache.
 		$cache = JFactory::getCache('com_templates');
 		$cache->clean();
+
+		// Trigger the onExtensionAfterSave event.
+		$dispatcher->trigger('onExtensionAfterSave', array('com_templates.style', &$table, $isNew));
 
 		$this->setState('style.id', $table->id);
 

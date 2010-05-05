@@ -13,7 +13,7 @@ jimport('joomla.html.html');
 jimport('joomla.form.formfield');
 
 /**
- * Supports an HTML select list of categories
+ * Supports an HTML select list of newsfeeds
  *
  * @package		Joomla.Administrator
  * @subpackage	com_newsfeeds

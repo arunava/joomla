@@ -18,31 +18,123 @@ jimport('joomla.plugin.helper');
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.6
  */
 class UsersModelProfile extends JModelForm
 {
 	/**
-	 * Method to auto-populate the model state.
-	 *
+	 * @var		object	The user profile data.
 	 * @since	1.6
 	 */
-	protected function populateState($property = null, $default = null)
+	protected $data;
+
+	/**
+	 * Method to check in a user.
+	 *
+	 * @param	integer		The id of the row to check out.
+	 * @return	boolean		True on success, false on failure.
+	 * @since	1.6
+	 */
+	public function checkin($userId = null)
 	{
-		// Get the application object.
-		$app	= &JFactory::getApplication();
-		$user	= &JFactory::getUser();
-		$params	= &$app->getParams('com_users');
+		// Get the user id.
+		$userId = (!empty($userId)) ? $userId : (int)$this->getState('user.id');
 
-		// Get the member id.
-		$memberId = JRequest::getInt('member_id', $app->getUserState('com_users.edit.profile.id'));
-		$memberId = !empty($memberId) ? $memberId : (int)$user->get('id');
+		if ($userId) {
+			// Initialise the table with JUser.
+			$table = JUser::getTable('User', 'JTable');
 
-		// Set the member id.
-		$this->setState('member.id', $memberId);
+			// Get the current user object.
+			$user = JFactory::getUser();
 
-		// Load the parameters.
-		$this->setState('params', $params);
+			// Attempt to check the row in.
+			if (!$table->checkin($userId)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to check out a user for editing.
+	 *
+	 * @param	integer		The id of the row to check out.
+	 * @return	boolean		True on success, false on failure.
+	 * @since	1.6
+	 */
+	public function checkout($userId = null)
+	{
+		// Get the user id.
+		$userId = (!empty($userId)) ? $userId : (int)$this->getState('user.id');
+
+		if ($userId) {
+			// Initialise the table with JUser.
+			$table = JUser::getTable('User', 'JTable');
+
+			// Get the current user object.
+			$user = JFactory::getUser();
+
+			// Attempt to check the row out.
+			if (!$table->checkout($user->get('id'), $userId)) {
+				$this->setError($table->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to get the profile form data.
+	 *
+	 * The base form data is loaded and then an event is fired
+	 * for users plugins to extend the data.
+	 *
+	 * @return	mixed		Data object on success, false on failure.
+	 * @since	1.6
+	 */
+	public function getData()
+	{
+		if ($this->data === null) {
+
+			$app	= JFactory::getApplication();
+			$userId = $this->getState('user.id');
+
+			// Initialise the table with JUser.
+			$table	= JUser::getTable('User', 'JTable');
+			$this->data	= new JUser($userId);
+
+			// Set the base user data.
+			$this->data->email1 = $this->data->get('email');
+			$this->data->email2 = $this->data->get('email');
+
+			// Override the base user data with any data in the session.
+			$temp = (array)$app->getUserState('com_users.edit.profile.data', array());
+			foreach ($temp as $k => $v) {
+				$this->data->$k = $v;
+			}
+
+			// Unset the passwords.
+			unset($this->data->password1);
+			unset($this->data->password2);
+
+			// Get the dispatcher and load the users plugins.
+			$dispatcher	= JDispatcher::getInstance();
+			JPluginHelper::importPlugin('user');
+
+			// Trigger the data preparation event.
+			$results = $dispatcher->trigger('onContentPrepareData', array('com_users.profile', $this->data));
+
+			// Check for errors encountered while preparing the data.
+			if (count($results) && in_array(false, $results, true)) {
+				$this->setError($dispatcher->getError());
+				$this->data = false;
+			}
+		}
+
+		return $this->data;
 	}
 
 	/**
@@ -52,28 +144,13 @@ class UsersModelProfile extends JModelForm
 	 * for users plugins to extend the form with extra fields.
 	 *
 	 * @return	mixed		JForm object on success, false on failure.
-	 * @since	1.0
+	 * @since	1.6
 	 */
 	public function getForm()
 	{
 		// Get the form.
-		try {
-			$form = parent::getForm('com_users.profile', 'profile', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
-			return false;
-		}
-
-		// Get the dispatcher and load the users plugins.
-		$dispatcher	= &JDispatcher::getInstance();
-		JPluginHelper::importPlugin('user');
-
-		// Trigger the form preparation event.
-		$results = $dispatcher->trigger('onPrepareUserProfileForm', array($this->getState('member.id'), &$form));
-
-		// Check for errors encountered while preparing the form.
-		if (count($results) && in_array(false, $results, true)) {
-			$this->setError($dispatcher->getError());
+		$form = parent::getForm('com_users.profile', 'profile', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
@@ -81,152 +158,68 @@ class UsersModelProfile extends JModelForm
 	}
 
 	/**
-	 * Method to get the profile form data.
+	 * Method to get the data that should be injected in the form.
 	 *
-	 * The base form data is loaded and then an event is fired
-	 * for users plugins to extend the data.
-	 *
-	 * @access	public
-	 * @return	mixed		Data object on success, false on failure.
-	 * @since	1.0
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
 	 */
-	function &getData()
+	protected function getFormData()
 	{
-		$app	= &JFactory::getApplication();
-		$false	= false;
-
-		// Initialise the table with JUser.
-		$table = &JUser::getTable('User', 'JTable');
-		$data = new JUser($this->getState('member.id'));
-
-		// Set the base user data.
-		$data->email1 = $data->get('email');
-		$data->email2 = $data->get('email');
-
-		// Override the base user data with any data in the session.
-		$temp = (array)$app->getUserState('com_users.edit.profile.data', array());
-		foreach ($temp as $k => $v) {
-			$data->$k = $v;
-		}
-
-		// Unset the passwords.
-		unset($data->password1);
-		unset($data->password2);
-
-		// Get the dispatcher and load the users plugins.
-		$dispatcher	= &JDispatcher::getInstance();
-		JPluginHelper::importPlugin('users');
-
-		// Trigger the data preparation event.
-		$results = $dispatcher->trigger('onPrepareUserProfileData', array($this->getState('member.id'), &$data));
-
-		// Check for errors encountered while preparing the data.
-		if (count($results) && in_array(false, $results, true)) {
-			$this->setError($dispatcher->getError());
-			return $false;
-		}
-
-		return $data;
-	}
-
-	function &getProfile()
-	{
-		$false	= false;
-		$data	= array();
-
-		// Get the dispatcher and load the users plugins.
-		$dispatcher	= &JDispatcher::getInstance();
-		JPluginHelper::importPlugin('users');
-
-		// Trigger the profile preparation event.
-		$results = $dispatcher->trigger('onPrepareUserProfile', array($this->getState('member.id'), &$data));
-
-		// Check for errors encountered while preparing the profile.
-		if (count($results) && in_array(false, $results, true)) {
-			$this->setError($dispatcher->getError());
-			return $false;
-		}
-
-		return $data;
+		return $this->getData();
 	}
 
 	/**
-	 * Method to check in a member.
+	 * Override preprocessForm to load the user plugin group instead of content.
 	 *
-	 * @access	public
-	 * @param	integer		$memberId		The id of the row to check out.
-	 * @return	boolean		True on success, false on failure.
-	 * @since	1.0
+	 * @param	object	A form object.
+	 * @param	mixed	The data expected for the form.
+	 * @throws	Exception if there is an error in the form event.
+	 * @since	1.6
 	 */
-	function checkin($memberId = null)
+	protected function preprocessForm(JForm $form, $data)
 	{
-		// Get the member id.
-		$memberId = (!empty($memberId)) ? $memberId : (int)$this->getState('member.id');
-
-		if ($memberId)
-		{
-			// Initialise the table with JUser.
-			$table = JUser::getTable('User', 'JTable');
-
-			// Get the current user object.
-			$user = &JFactory::getUser();
-
-			// Attempt to check the row in.
-			if (!$table->checkin($memberId)) {
-				$this->setError($table->getError());
-				return false;
-			}
-		}
-
-		return true;
+		parent::preprocessForm($form, $data, 'user');
 	}
 
 	/**
-	 * Method to check out a member for editing.
+	 * Method to auto-populate the model state.
 	 *
-	 * @access	public
-	 * @param	integer		$memberId		The id of the row to check out.
-	 * @return	boolean		True on success, false on failure.
-	 * @since	1.0
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	function checkout($memberId = null)
+	protected function populateState()
 	{
-		// Get the member id.
-		$memberId = (!empty($memberId)) ? $memberId : (int)$this->getState('member.id');
+		// Get the application object.
+		$app	= JFactory::getApplication();
+		$user	= JFactory::getUser();
+		$params	= $app->getParams('com_users');
 
-		if ($memberId)
-		{
-			// Initialise the table with JUser.
-			$table = JUser::getTable('User', 'JTable');
+		// Get the user id.
+		$userId = JRequest::getInt('user_id', $app->getUserState('com_users.edit.profile.id'));
+		$userId = !empty($userId) ? $userId : (int)$user->get('id');
 
-			// Get the current user object.
-			$user = &JFactory::getUser();
+		// Set the user id.
+		$this->setState('user.id', $userId);
 
-			// Attempt to check the row out.
-			if (!$table->checkout($user->get('id'), $memberId)) {
-				$this->setError($table->getError());
-				return false;
-			}
-		}
-
-		return true;
+		// Load the parameters.
+		$this->setState('params', $params);
 	}
 
 	/**
 	 * Method to save the form data.
 	 *
-	 * @access	public
-	 * @param	array		$data		The form data.
+	 * @param	array		The form data.
 	 * @return	mixed		The user id on success, false on failure.
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function save($data)
+	public function save($data)
 	{
-		$memberId = (!empty($data['id'])) ? $data['id'] : (int)$this->getState('member.id');
+		$userId = (!empty($data['id'])) ? $data['id'] : (int)$this->getState('user.id');
 
 		// Initialise the table with JUser.
 		JUser::getTable('User', 'JTable');
-		$user = new JUser($memberId);
+		$user = new JUser($userId);
 
 		// Prepare the data for the user object.
 		$data['email']		= $data['email1'];
@@ -251,5 +244,33 @@ class UsersModelProfile extends JModelForm
 		}
 
 		return $user->id;
+	}
+
+	/**
+	 * Method to change the user language
+	 *
+	 * @return	mixed	JException on error|true
+	 * @since	1.6
+	 */
+	public function language()
+	{
+		$user	= JFactory::getUser();
+		$tag	= $this->getState('language');
+		$params	= JComponentHelper::getParams('com_users');
+
+		if ($user->id && $params->get('autosave_language') == 1) {
+			$user->setParam('language', $tag);
+			// Save the user to the database.
+			if (!$user->save(true)) {
+				return new JException(JText::sprintf('USERS_USER_SAVE_FAILED', $user->getError()), 500);
+			}
+		}
+
+		$config = JFactory::getConfig();
+		$cookie_domain = $config->get('config.cookie_domain', '');
+		$cookie_path = $config->get('config.cookie_path', '/');
+		setcookie(JUtility::getHash('language'), $tag, time() + 365 * 86400, $cookie_path, $cookie_domain);
+
+		return true;
 	}
 }

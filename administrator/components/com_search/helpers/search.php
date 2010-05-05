@@ -56,9 +56,9 @@ class SearchHelper
 		$lang = &JFactory::getLanguage();
 
 		$tag			= $lang->getTag();
-		$search_ignore	= $lang->ignoreSearchWords();
+		$search_ignore	= $lang->getIgnoreSearchWords();
 
-		// Deprecated in 1.6 use $lang->ignoreSearchWords instead
+		// Deprecated in 1.6 use $lang->getIgnoreSearchWords instead
 		$ignoreFile		= $lang->getLanguagePath().DS.$tag.DS.$tag.'.ignore.php';
 		if (file_exists($ignoreFile)) {
 			include $ignoreFile;
@@ -168,7 +168,8 @@ class SearchHelper
 	 * @param array List of object variables to check against
 	 * @returns boolean True if searchTerm is in object, false otherwise
 	 */
-	function checkNoHtml($object, $searchTerm, $fields) {
+	function checkNoHtml($object, $searchTerm, $fields)
+	{
 		$searchRegex = array(
 				'#<script[^>]*>.*?</script>#si',
 				'#<style[^>]*>.*?</style>#si',

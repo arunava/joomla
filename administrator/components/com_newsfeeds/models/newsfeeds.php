@@ -20,14 +20,11 @@ jimport('joomla.application.component.modellist');
 class NewsfeedsModelNewsfeeds extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var	string
-	 */
-	protected $_context = 'com_newsfeeds.newsfeeds';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -35,17 +32,20 @@ class NewsfeedsModelNewsfeeds extends JModelList
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$accessId = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', null, 'int');
+		$accessId = $app->getUserStateFromRequest($this->context.'.filter.access', 'filter_access', null, 'int');
 		$this->setState('filter.access', $accessId);
 
-		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '', 'string');
+		$state = $app->getUserStateFromRequest($this->context.'.filter.state', 'filter_published', '', 'string');
 		$this->setState('filter.state', $state);
 
-		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'catid', null, 'int');
+		$categoryId = $app->getUserStateFromRequest($this->context.'.filter.category_id', 'filter_category_id', null);
 		$this->setState('filter.category_id', $categoryId);
+
+		$language = $app->getUserStateFromRequest($this->context.'.filter.language', 'filter_language', '');
+		$this->setState('filter.language', $language);
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_newsfeeds');
@@ -145,13 +145,13 @@ class NewsfeedsModelNewsfeeds extends JModelList
 			}
 		}
 
-		if($this->getState('list.ordering', 'a.ordering') == 'a.ordering')
-		{
-			$query->order('category_title, '.$db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
-		} else {
-			// Add the list ordering clause.
-			$query->order($db->getEscaped($this->getState('list.ordering', 'a.name')).', a.ordering '.$db->getEscaped($this->getState('list.direction', 'ASC')));
+		// Add the list ordering clause.
+		$orderCol	= $this->state->get('list.ordering');
+		$orderDirn	= $this->state->get('list.direction');
+		if ($orderCol == 'a.ordering' || $orderCol == 'category_title') {
+			$orderCol = 'category_title '.$orderDirn.', a.ordering';
 		}
+		$query->order($db->getEscaped($orderCol.' '.$orderDirn));
 
 		//echo nl2br(str_replace('#__','jos_',$query));
 		return $query;

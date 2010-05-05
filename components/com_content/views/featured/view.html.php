@@ -69,7 +69,7 @@ class ContentViewFeatured extends JView
 			if ($item->parent_alias == 'root') {
 				$item->parent_slug = null;
 			}
-			
+
 			$item->event = new stdClass();
 
 			$dispatcher =& JDispatcher::getInstance();
@@ -79,13 +79,13 @@ class ContentViewFeatured extends JView
 			{
 				$item->introtext = JHtml::_('content.prepare', $item->introtext);
 
-				$results = $dispatcher->trigger('onAfterDisplayTitle', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentAfterTitle', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->afterDisplayTitle = trim(implode("\n", $results));
 
-				$results = $dispatcher->trigger('onBeforeDisplayContent', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentBeforeDisplay', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->beforeDisplayContent = trim(implode("\n", $results));
 
-				$results = $dispatcher->trigger('onAfterDisplayContent', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentAfterDisplay', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->afterDisplayContent = trim(implode("\n", $results));
 			}
 		}
@@ -150,9 +150,9 @@ class ContentViewFeatured extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_CONTENT_DEFAULT_PAGE_TITLE')); 
+			$this->params->def('page_heading', JText::_('COM_CONTENT_DEFAULT_PAGE_TITLE'));
 		}
-		
+
 		$title = $this->params->get('page_title', '');
 		if (empty($title))
 		{

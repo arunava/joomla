@@ -19,38 +19,36 @@ jimport('joomla.application.component.modellist');
 class MenusModelItems extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_menus.items';
-
-	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
 		$app = JFactory::getApplication('administrator');
 
-		$search = $app->getUserStateFromRequest($this->_context.'.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$published = $app->getUserStateFromRequest($this->_context.'.published', 'filter_published', '');
+		$published = $app->getUserStateFromRequest($this->context.'.published', 'filter_published', '');
 		$this->setState('filter.published', $published);
 
-		$access = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', 0, 'int');
+		$access = $app->getUserStateFromRequest($this->context.'.filter.access', 'filter_access', 0, 'int');
 		$this->setState('filter.access', $access);
 
-		$parentId = $app->getUserStateFromRequest($this->_context.'.filter.parent_id', 'filter_parent_id', 0, 'int');
+		$parentId = $app->getUserStateFromRequest($this->context.'.filter.parent_id', 'filter_parent_id', 0, 'int');
 		$this->setState('filter.parent_id',	$parentId);
 
-		$level = $app->getUserStateFromRequest($this->_context.'.filter.level', 'filter_level', 0, 'int');
+		$level = $app->getUserStateFromRequest($this->context.'.filter.level', 'filter_level', 0, 'int');
 		$this->setState('filter.level', $level);
 
-		$menuType = $app->getUserStateFromRequest($this->_context.'.filter.menutype', 'menutype', 'mainmenu');
+		$menuType = $app->getUserStateFromRequest($this->context.'.filter.menutype', 'menutype', 'mainmenu');
 		$this->setState('filter.menutype', $menuType);
+
+		$language = $app->getUserStateFromRequest($this->context.'.filter.language', 'filter_language', '');
+		$this->setState('filter.language', $language);
 
 		// Component parameters.
 		$params	= JComponentHelper::getParams('com_menus');
@@ -75,9 +73,10 @@ class MenusModelItems extends JModelList
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.access');
 		$id	.= ':'.$this->getState('filter.published');
+		$id	.= ':'.$this->getState('filter.language');
 		$id	.= ':'.$this->getState('filter.search');
 		$id	.= ':'.$this->getState('filter.parent_id');
-		$id	.= ':'.$this->getState('filter.menu_id');
+		$id	.= ':'.$this->getState('filter.menutype');
 
 		return parent::getStoreId($id);
 	}
@@ -97,6 +96,10 @@ class MenusModelItems extends JModelList
 		$query->select($this->getState('list.select', 'a.*'));
 		$query->from('`#__menu` AS a');
 
+		// Join over the language
+		$query->select('l.title AS language_title');
+		$query->join('LEFT', '`#__languages` AS l ON l.lang_code = a.language');
+		
 		// Join over the users.
 		$query->select('u.name AS editor');
 		$query->join('LEFT', '`#__users` AS u ON u.id = a.checked_out');
@@ -142,12 +145,6 @@ class MenusModelItems extends JModelList
 		}
 
 		// Filter the items over the menu id if set.
-		$menuId = $this->getState('filter.menu_id');
-		if (!empty($menuId)) {
-			$query->where('a.menu_id = '.(int) $menuId);
-		}
-
-		// Filter the items over the menu id if set.
 		$menuType = $this->getState('filter.menutype');
 		if (!empty($menuType)) {
 			$query->where('a.menutype = '.$db->quote($menuType));
@@ -161,6 +158,11 @@ class MenusModelItems extends JModelList
 		// Filter on the level.
 		if ($level = $this->getState('filter.level')) {
 			$query->where('a.level <= '.(int) $level);
+		}
+
+		// Filter on the language.
+		if ($language = $this->getState('filter.language')) {
+			$query->where('a.language = '.$db->quote($language));
 		}
 
 		// Add the list ordering clause.

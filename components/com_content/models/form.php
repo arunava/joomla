@@ -31,7 +31,9 @@ class ContentModelForm extends JModelForm
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -74,10 +76,8 @@ class ContentModelForm extends JModelForm
 	{
 		$options += array('control' => 'jform');
 
-		try {
-			$form = parent::getForm($name, $xml, $options);
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = parent::getForm($name, $xml, $options);
+		if (empty($form)) {
 			return false;
 		}
 
@@ -194,7 +194,7 @@ class ContentModelForm extends JModelForm
 		// Include the content plugins for the onSave events.
 		JPluginHelper::importPlugin('content');
 
-		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		$result = $dispatcher->trigger('onContentBeforeSave', array('com_content.article', &$table, $isNew));
 		if (in_array(false, $result, true)) {
 			JError::raiseError(500, $table->getError());
 			return false;
@@ -210,7 +210,7 @@ class ContentModelForm extends JModelForm
 		$cache = &JFactory::getCache('com_content');
 		$cache->clean();
 
-		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
+		$dispatcher->trigger('onContentAfterSave', array('com_content.article', &$table, $isNew));
 
 		$this->setState('article.id', $table->id);
 
@@ -242,7 +242,7 @@ class ContentModelForm extends JModelForm
 
 			// Check if this is the user having previously checked out the row.
 			if ($table->checked_out > 0 && $table->checked_out != $user->get('id')) {
-				$this->setError(JText::_('JError_Checkin_user_mismatch'));
+				$this->setError(JText::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'));
 				return false;
 			}
 

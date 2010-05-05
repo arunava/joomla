@@ -20,14 +20,11 @@ jimport('joomla.application.component.modellist');
 class ModulesModelModules extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var	string
-	 */
-	protected $_context = 'com_modules.modules';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -35,23 +32,26 @@ class ModulesModelModules extends JModelList
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$accessId = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', null, 'int');
+		$accessId = $app->getUserStateFromRequest($this->context.'.filter.access', 'filter_access', null, 'int');
 		$this->setState('filter.access', $accessId);
 
-		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state', '', 'string');
+		$state = $app->getUserStateFromRequest($this->context.'.filter.state', 'filter_state', '', 'string');
 		$this->setState('filter.state', $state);
 
-		$position = $app->getUserStateFromRequest($this->_context.'.filter.position', 'filter_position', '', 'string');
+		$position = $app->getUserStateFromRequest($this->context.'.filter.position', 'filter_position', '', 'string');
 		$this->setState('filter.position', $position);
 
-		$module = $app->getUserStateFromRequest($this->_context.'.filter.module', 'filter_module', '', 'string');
+		$module = $app->getUserStateFromRequest($this->context.'.filter.module', 'filter_module', '', 'string');
 		$this->setState('filter.module', $module);
 
-		$clientId = $app->getUserStateFromRequest($this->_context.'.filter.client_id', 'filter_client_id', 0, 'int');
+		$clientId = $app->getUserStateFromRequest($this->context.'.filter.client_id', 'filter_client_id', 0, 'int');
 		$this->setState('filter.client_id', $clientId);
+
+		$language = $app->getUserStateFromRequest($this->context.'.filter.language', 'filter_language', '');
+		$this->setState('filter.language', $language);
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_modules');
@@ -81,6 +81,7 @@ class ModulesModelModules extends JModelList
 		$id	.= ':'.$this->getState('filter.position');
 		$id	.= ':'.$this->getState('filter.module');
 		$id	.= ':'.$this->getState('filter.client_id');
+		$id	.= ':'.$this->getState('filter.language');
 
 		return parent::getStoreId($id);
 	}
@@ -98,10 +99,10 @@ class ModulesModelModules extends JModelList
 		if ($ordering == 'name') {
 			$this->_db->setQuery($query);
 			$result = $this->_db->loadObjectList();
-			$this->_translate($result);
+			$this->translate($result);
 			JArrayHelper::sortObjects($result,'name', $this->getState('list.direction') == 'desc' ? -1 : 1);
 			$total = count($result);
-			$this->_cache[$this->getStoreId('getTotal')] = $total;
+			$this->cache[$this->getStoreId('getTotal')] = $total;
 			if ($total < $limitstart) {
 				$limitstart = 0;
 				$this->setState('list.start', 0);
@@ -117,7 +118,7 @@ class ModulesModelModules extends JModelList
 				$query->order('ordering ASC');
 			}
 			$result = parent::_getList($query, $limitstart, $limit);
-			$this->_translate($result);
+			$this->translate($result);
 			return $result;
 		}
 	}
@@ -128,11 +129,11 @@ class ModulesModelModules extends JModelList
 	 * @param	array The array of objects
 	 * @return	array The array of translated objects
 	 */
-	private function _translate(&$items)
+	protected function translate(&$items)
 	{
 		$lang = JFactory::getLanguage();
 		$client = $this->getState('filter.client_id') ? 'administrator' : 'site';
-		foreach($items as &$item) {
+		foreach($items as $item) {
 			$extension = $item->module;
 			$source = constant('JPATH_' . strtoupper($client)) . "/modules/$extension";
 				$lang->load("$extension.sys", constant('JPATH_' . strtoupper($client)), null, false, false)
@@ -158,12 +159,16 @@ class ModulesModelModules extends JModelList
 		$query->select(
 			$this->getState(
 				'list.select',
-				'a.id, a.title, a.note, a.position, a.module, ' .
-				'a.checked_out, a.checked_out_time, a.published, a.access, a.ordering, a.language'
+				'a.id, a.title, a.note, a.position, a.module, a.language,' .
+				'a.checked_out, a.checked_out_time, a.published, a.access, a.ordering'
 			)
 		);
 		$query->from('`#__modules` AS a');
 
+		// Join over the language
+		$query->select('l.title AS language_title');
+		$query->join('LEFT', '`#__languages` AS l ON l.lang_code = a.language');
+		
 		// Join over the users for the checked out user.
 		$query->select('uc.name AS editor');
 		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
@@ -226,6 +231,11 @@ class ModulesModelModules extends JModelList
 				$search = $db->Quote('%'.$db->getEscaped($search, true).'%');
 				$query->where('('.'a.title LIKE '.$search.' OR a.note LIKE '.$search.')');
 			}
+		}
+
+		// Filter on the language.
+		if ($language = $this->getState('filter.language')) {
+			$query->where('a.language = ' . $db->quote($language));
 		}
 
 		//echo nl2br(str_replace('#__','jos_',$query));

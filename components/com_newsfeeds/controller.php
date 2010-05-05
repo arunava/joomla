@@ -17,34 +17,30 @@ jimport('joomla.application.component.controller');
  *
  * @package		Joomla.Site
  * @subpackage	Newsfeeds
- * @since 1.5
+ * @since		1.5
  */
 class NewsfeedsController extends JController
 {
 	/**
 	 * Method to show a newsfeeds view
 	 *
-	 * @access	public
 	 * @since	1.5
 	 */
-	function display()
+	public function display()
 	{
 		$cachable = true;
-		
+
 		// Set the default view name and format from the Request.
 		$vName		= JRequest::getWord('view', 'categories');
-		
+
 		$user = &JFactory::getUser();
-		
+
 		if ($user->get('id') || ($_SERVER['REQUEST_METHOD'] == 'POST' && $vName = 'category' )) {
 			$cachable = false;
 		}
-		
-		$safeurlparams = array('id'=>'INT','limit'=>'INT','limitstart'=>'INT','filter_order'=>'CMD','filter_order_Dir'=>'CMD');
-			
-			parent::display($cachable,$safeurlparams);
-		
+
+		$safeurlparams = array('id'=>'INT','limit'=>'INT','limitstart'=>'INT','filter_order'=>'CMD','filter_order_Dir'=>'CMD','language'=>'CMD');
+
+		parent::display($cachable,$safeurlparams);
 	}
 }
-
-

@@ -19,44 +19,19 @@ jimport('joomla.application.component.modeladmin');
  */
 class PluginsModelPlugin extends JModelAdmin
 {
-	/**
-	 * Item cache.
-	 */
-	private $_cache = array();
-	
-	protected $_context = 'com_plugins';
+	protected $_cache;
 
 	/**
-	 * Constructor.
-	 *
-	 * @param	array An optional associative array of configuration settings.
-	 * @see		JController
+	 * @var		string	The event to trigger after saving the data.
+	 * @since	1.6
 	 */
-	public function __construct($config = array())
-	{
-		parent::__construct($config);
+	protected $event_after_save = 'onExtensionAfterSave';
 
-		$this->_item = 'plugin';
-		$this->_option = 'com_plugins';
-	}
-	
 	/**
-	 * Method to auto-populate the model state.
+	 * @var		string	The event to trigger after before the data.
+	 * @since	1.6
 	 */
-	protected function populateState()
-	{
-		$app = JFactory::getApplication('administrator');
-
-		// Load the User state.
-		if (!($pk = (int) $app->getUserState('com_plugins.edit.plugin.id'))) {
-			$pk = (int) JRequest::getInt('id');
-		}
-		$this->setState('plugin.id', $pk);
-
-		// Load the parameters.
-		$params	= JComponentHelper::getParams('com_plugins');
-		$this->setState('params', $params);
-	}
+	protected $event_before_save = 'onExtensionBeforeSave';
 
 	/**
 	 * Method to get the record form.
@@ -67,17 +42,14 @@ class PluginsModelPlugin extends JModelAdmin
 	 */
 	public function getForm($data = null)
 	{
-		// Initialise variables.
-		$app = JFactory::getApplication();
-
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
 			$item		= $this->getItem();
 			$folder		= $item->folder;
 			$element	= $item->element;
 		} else {
-			$folder		= JArrayHelper::getValue($data, 'folder');
-			$element	= JArrayHelper::getValue($data, 'element');
+			$folder		= JArrayHelper::getValue($data, 'folder', '', 'word');
+			$element	= JArrayHelper::getValue($data, 'element', '', 'word');
 		}
 
 		// These variables are used to add data from the plugin XML files.
@@ -85,22 +57,30 @@ class PluginsModelPlugin extends JModelAdmin
 		$this->setState('item.element',	$element);
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_plugins.plugin', 'plugin', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = parent::getForm('com_plugins.plugin', 'plugin', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_plugins.edit.plugin.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function getFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_plugins.edit.plugin.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -119,7 +99,7 @@ class PluginsModelPlugin extends JModelAdmin
 			$false	= false;
 
 			// Get a row instance.
-			$table = &$this->getTable();
+			$table = $this->getTable();
 
 			// Attempt to load the row.
 			$return = $table->load($pk);
@@ -166,20 +146,13 @@ class PluginsModelPlugin extends JModelAdmin
 	}
 
 	/**
-	 * Prepare and sanitise the table prior to saving.
-	 */
-	protected function prepareTable(&$table)
-	{
-	}
-
-	/**
 	 * @param	object	A form object.
-	 *
+	 * @param	mixed	The data expected for the form.
 	 * @return	mixed	True if successful.
 	 * @throws	Exception if there is an error in the form event.
 	 * @since	1.6
 	 */
-	protected function preprocessForm($form)
+	protected function preprocessForm($form, $data)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
@@ -210,67 +183,41 @@ class PluginsModelPlugin extends JModelAdmin
 		if (file_exists($formFile)) {
 			// Get the plugin form.
 			if (!$form->loadFile($formFile, false, '//config')) {
-				throw new Exception(JText::_('JModelForm_Error_loadFile_failed'));
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
 			}
 		}
 
 		// Trigger the default form events.
-		parent::preprocessForm($form);
+		parent::preprocessForm($form, $data);
 	}
 
 	/**
-	 * Method to save the form data.
+	 * A protected method to get a set of ordering conditions.
 	 *
-	 * @param	array	The form data.
-	 * @return	boolean	True on success.
+	 * @param	object	A record object.
+	 * @return	array	An array of conditions to add to add to ordering queries.
+	 * @since	1.6
 	 */
-	public function save($data)
-	{
-		// Initialise variables.
-		$table		= $this->getTable();
-		$pk			= (!empty($data['id'])) ? $data['id'] : (int) $this->getState('plugin.id');
-		$isNew		= true;
-
-		// Include the content plugins for the onSave events.
-		JPluginHelper::importPlugin('content');
-
-		// Load the row if saving an existing record.
-		if ($pk > 0) {
-			$table->load($pk);
-			$isNew = false;
-		}
-
-		// Bind the data.
-		if (!$table->bind($data)) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Prepare the row for saving
-		$this->prepareTable($table);
-
-		// Check the data.
-		if (!$table->check()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Store the data.
-		if (!$table->store()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		$this->setState('plugin.id', $table->extension_id);
-
-		return true;
-	}
-	
-	function _orderConditions($table = null)
+	protected function getReorderConditions($table = null)
 	{
 		$condition = array();
 		$condition[] = 'type = '. $this->_db->Quote($table->type);
 		$condition[] = 'folder = '. $this->_db->Quote($table->folder);
 		return $condition;
+	}
+
+	/**
+	 * Override method to save the form data.
+	 *
+	 * @param	array	The form data.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	public function save($data)
+	{
+		// Load the extension plugin group.
+		JPluginHelper::importPlugin('extension');
+
+		return parent::save($data);
 	}
 }

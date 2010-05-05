@@ -184,7 +184,7 @@ class JUser extends JObject
 		if (!is_numeric($identifier)) {
 			jimport('joomla.user.helper');
 			if (!$id = JUserHelper::getUserId($identifier)) {
-				JError::raiseWarning('SOME_ERROR_CODE', 'JUser::_load: User '.$identifier.' does not exist');
+				JError::raiseWarning('SOME_ERROR_CODE', JText::sprintf('JLIB_USER_ERROR_ID_NOT_EXISTS', $identifier));
 				$retval = false;
 				return $retval;
 			}
@@ -424,7 +424,7 @@ class JUser extends JObject
 			}
 
 			if ($array['password'] != $array['password2']) {
-					$this->setError(JText::_('PASSWORD DO NOT MATCH.'));
+					$this->setError(JText::_('JLIB_USER_ERROR_PASSWORD_NOT_MATCH'));
 					return false;
 			}
 
@@ -455,7 +455,7 @@ class JUser extends JObject
 			// Updating an existing user
 			if (!empty($array['password'])) {
 				if ($array['password'] != $array['password2']) {
-					$this->setError(JText::_('PASSWORD DO NOT MATCH.'));
+					$this->setError(JText::_('JLIB_USER_ERROR_PASSWORD_NOT_MATCH'));
 					return false;
 				}
 
@@ -486,7 +486,7 @@ class JUser extends JObject
 
 		// Bind the array
 		if (!$this->setProperties($array)) {
-			$this->setError("Unable to bind array to user object");
+			$this->setError(JText::_('JLIB_USER_ERROR_BIND_ARRAY'));
 			return false;
 		}
 
@@ -547,10 +547,10 @@ class JUser extends JObject
 		// Get the old user
 		$old = new JUser($this->id);
 
-		// Fire the onBeforeStoreUser event.
+		// Fire the onUserBeforeSave event.
 		JPluginHelper::importPlugin('user');
 		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('onBeforeStoreUser', array($old->getProperties(), $isnew, $this->getProperties()));
+		$dispatcher->trigger('onUserBeforeSave', array($old->getProperties(), $isnew, $this->getProperties()));
 
 		//Store the user data in the database
 		if (!$result = $table->store()) {
@@ -568,7 +568,7 @@ class JUser extends JObject
 			$my->setParameters($registry);
 		}
 		// Fire the onAftereStoreUser event
-		$dispatcher->trigger('onAfterStoreUser', array($this->getProperties(), $isnew, $result, $this->getError()));
+		$dispatcher->trigger('onUserAfterSave', array($this->getProperties(), $isnew, $result, $this->getError()));
 
 		return $result;
 	}
@@ -584,9 +584,9 @@ class JUser extends JObject
 	{
 		JPluginHelper::importPlugin('user');
 
-		//trigger the onBeforeDeleteUser event
+		//trigger the onUserBeforeDelete event
 		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger('onBeforeDeleteUser', array($this->getProperties()));
+		$dispatcher->trigger('onUserBeforeDelete', array($this->getProperties()));
 
 		// Create the user table object
 		$table = $this->getTable();
@@ -596,8 +596,8 @@ class JUser extends JObject
 			$this->setError($table->getError());
 		}
 
-		//trigger the onAfterDeleteUser event
-		$dispatcher->trigger('onAfterDeleteUser', array($this->getProperties(), $result, $this->getError()));
+		//trigger the onUserAfterDelete event
+		$dispatcher->trigger('onUserAfterDelete', array($this->getProperties(), $result, $this->getError()));
 		return $result;
 
 	}
@@ -617,7 +617,7 @@ class JUser extends JObject
 
 		// Load the JUserModel object based on the user id or throw a warning.
 		if (!$table->load($id)) {
-			JError::raiseWarning('SOME_ERROR_CODE', 'JUser::_load: Unable to load user with id: '.$id);
+			JError::raiseWarning('SOME_ERROR_CODE', JText::sprintf('JLIB_USER_ERROR_UNABLE_TO_LOAD_USER', $id));
 			return false;
 		}
 

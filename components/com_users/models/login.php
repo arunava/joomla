@@ -1,6 +1,6 @@
 <?php
 /**
- * @version
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_users
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -17,29 +17,19 @@ jimport('joomla.plugin.helper');
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.6
  */
 class UsersModelLogin extends JModelForm
 {
-	protected function populateState()
-	{
-		// Get the application object.
-		$app	= &JFactory::getApplication();
-		$params	= &$app->getParams('com_users');
-
-		// Load the parameters.
-		$this->setState('params', $params);
-	}
-		/**
+	/**
 	 * Method to get the login form.
 	 *
 	 * The base form is loaded from XML and then an event is fired
 	 * for users plugins to extend the form with extra fields.
 	 *
-	 * @access	public
-	 * @param	string	$type	The type of form to load (view, model);
+	 * @param	string	The type of form to load (view, model);
 	 * @return	mixed	JForm object on success, false on failure.
-	 * @since	1.0
+	 * @since	1.6
 	 */
 	function &getLoginForm()
 	{
@@ -55,18 +45,9 @@ class UsersModelLogin extends JModelForm
 		$dispatcher	= &JDispatcher::getInstance();
 		JPluginHelper::importPlugin('user');
 
-		// Trigger the form preparation event.
-		$results = $dispatcher->trigger('onPrepareUsersLoginForm', array($this->getState('member.id'), &$form));
-
-		// Check for errors encountered while preparing the form.
-		if (count($results) && in_array(false, $results, true)) {
-			$this->setError($dispatcher->getError());
-			return false;
-		}
-
 		// Check the session for previously entered login form data.
-		$app = &JFactory::getApplication();
-		$data = $app->getUserState('users.login.form.data', array());
+		$app	= JFactory::getApplication();
+		$data	= $app->getUserState('users.login.form.data', array());
 
 		// check for return URL from the request first
 		if ($return = JRequest::getVar('return', '', 'method', 'base64')) {
@@ -82,6 +63,15 @@ class UsersModelLogin extends JModelForm
 		}
 		$app->setUserState('users.login.form.data', $data);
 
+		// Trigger the form preparation event.
+		$results = $dispatcher->trigger('onContentPrepareForm', array($form, $data));
+
+		// Check for errors encountered while preparing the form.
+		if (count($results) && in_array(false, $results, true)) {
+			$this->setError($dispatcher->getError());
+			return false;
+		}
+
 		// Bind the form data if present.
 		if (!empty($data)) {
 			$form->bind($data);
@@ -89,5 +79,21 @@ class UsersModelLogin extends JModelForm
 
 		return $form;
 	}
-}
 
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
+	 */
+	protected function populateState()
+	{
+		// Get the application object.
+		$app	= JFactory::getApplication();
+		$params	= $app->getParams('com_users');
+
+		// Load the parameters.
+		$this->setState('params', $params);
+	}
+}

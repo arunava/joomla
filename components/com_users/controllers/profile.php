@@ -16,72 +16,69 @@ require_once(JPATH_COMPONENT.'/controller.php');
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.6
  */
 class UsersControllerProfile extends UsersController
 {
 	/**
-	 * Method to check out a member for editing and redirect to the edit form.
+	 * Method to check out a user for editing and redirect to the edit form.
 	 *
-	 * @access	public
-	 * @return	void
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function edit()
+	public function edit()
 	{
-		$app	= &JFactory::getApplication();
-		$user	= &JFactory::getUser();
+		$app	= JFactory::getApplication();
+		$user	= JFactory::getUser();
 		$userId	= (int) $user->get('id');
 
-		// Get the previous member id (if any) and the current member id.
+		// Get the previous user id (if any) and the current user id.
 		$previousId = (int) $app->getUserState('com_users.edit.profile.id');
-		$memberId	= (int) JRequest::getInt('member_id', null, '', 'array');
+		$userId	= (int) JRequest::getInt('user_id', null, '', 'array');
 
 		// Check if the user is trying to edit another users profile.
-		if ($userId != $memberId) {
+		if ($userId != $userId) {
 			JError::raiseError(403, JText::_('JERROR_ALERTNOAUTHOR'));
 			return false;
 		}
 
-		// Set the member id for the member to edit in the session.
-		$app->setUserState('com_users.edit.profile.id', $memberId);
+		// Set the user id for the user to edit in the session.
+		$app->setUserState('com_users.edit.profile.id', $userId);
 
 		// Get the model.
 		$model = &$this->getModel('Profile', 'UsersModel');
 
-		// Check out the member.
-		if ($memberId) {
-			$model->checkout($memberId);
+		// Check out the user.
+		if ($userId) {
+			$model->checkout($userId);
 		}
 
-		// Check in the previous member.
+		// Check in the previous user.
 		if ($previousId) {
 			$model->checkin($previousId);
 		}
 
 		// Redirect to the edit screen.
-		$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&member_id='.$memberId, false));
+		$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&user_id='.$userId, false));
 	}
 
 	/**
-	 * Method to save a member's profile data.
+	 * Method to save a user's profile data.
 	 *
-	 * @access	public
 	 * @return	void
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function save()
+	public function save()
 	{
 		// Check for request forgeries.
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Profile', 'UsersModel');
-		$user	= &JFactory::getUser();
+		$app	= JFactory::getApplication();
+		$model	= $this->getModel('Profile', 'UsersModel');
+		$user	= JFactory::getUser();
 		$userId	= (int) $user->get('id');
 
-		// Get the member data.
+		// Get the user data.
 		$data = JRequest::getVar('jform', array(), 'post', 'array');
 
 		// Force the ID to this user.
@@ -115,8 +112,8 @@ class UsersControllerProfile extends UsersController
 			$app->setUserState('com_users.edit.profile.data', $data);
 
 			// Redirect back to the edit screen.
-			$memberId = (int)$app->getUserState('com_users.edit.profile.id');
-			$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&member_id='.$memberId, false));
+			$userId = (int) $app->getUserState('com_users.edit.profile.id');
+			$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&user_id='.$userId, false));
 			return false;
 		}
 
@@ -129,14 +126,14 @@ class UsersControllerProfile extends UsersController
 			$app->setUserState('com_users.edit.profile.data', $data);
 
 			// Redirect back to the edit screen.
-			$memberId = (int)$app->getUserState('com_users.edit.profile.id');
+			$userId = (int)$app->getUserState('com_users.edit.profile.id');
 			$this->setMessage(JText::sprintf('USERS PROFILE SAVE FAILED', $model->getError()), 'notice');
-			$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&member_id='.$memberId, false));
+			$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&user_id='.$userId, false));
 			return false;
 		}
 
 		// Redirect the user and adjust session state based on the chosen task.
-		switch ($this->_task) {
+		switch ($this->getTask()) {
 			case 'apply':
 				// Check out the profile.
 				$app->setUserState('com_users.edit.profile.id', $return);
@@ -149,9 +146,9 @@ class UsersControllerProfile extends UsersController
 
 			default:
 				// Check in the profile.
-				$memberId = (int)$app->getUserState('com_users.edit.profile.id');
-				if ($memberId) {
-					$model->checkin($memberId);
+				$userId = (int)$app->getUserState('com_users.edit.profile.id');
+				if ($userId) {
+					$model->checkin($userId);
 				}
 
 				// Clear the profile id from the session.
@@ -159,11 +156,29 @@ class UsersControllerProfile extends UsersController
 
 				// Redirect to the list screen.
 				$this->setMessage(JText::_('USERS PROFILE SAVE SUCCESS'));
-				$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&member_id='.$return, false));
+				$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&user_id='.$return, false));
 				break;
 		}
 
 		// Flush the data from the session.
 		$app->setUserState('com_users.edit.profile.data', null);
+	}
+
+	/**
+	 * Method to change the user language
+	 *
+	 * @return	void
+	 * @since	1.6
+	 */
+	public function language()
+	{
+		// Initialise variables
+		$tag		= JRequest::getCmd('language','default');
+		$redirect	= JRequest::getVar('redirect');
+		$model		= $this->getModel('Profile', 'UsersModel', array('ignore_request' => true));
+
+		$model->setState('language', $tag=='default' ? '' : $tag);
+		$model->language();
+		$this->setRedirect(JRoute::_(base64_decode($redirect),false));
 	}
 }

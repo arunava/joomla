@@ -28,19 +28,23 @@ class ContentViewFeatured extends JView
 		$params		= &$app->getParams();
 		$feedEmail	= (@$app->getCfg('feed_email')) ? $app->getCfg('feed_email') : 'author';
 		$siteEmail	= $app->getCfg('mailfrom');
-		$document->link = JRoute::_('index.php?option=com_content&view=frontpage');
+		$document->link = JRoute::_('index.php?option=com_content&view=featured');
 
 		// Get some data from the model
 		JRequest::setVar('limit', $app->getCfg('feed_limit'));
-		$rows		= & $this->get('Data');
+		$rows		= & $this->get('Items');
 		foreach ($rows as $row)
 		{
 			// strip html from feed item title
 			$title = $this->escape($row->title);
 			$title = html_entity_decode($title, ENT_COMPAT, 'UTF-8');
 
+			// Compute the article slug
+			$row->slug = $row->alias ? ($row->id . ':' . $row->alias) : $row->id;
+
 			// url link to article
-			$link = JRoute::_(ContentHelperRoute::getArticleRoute($row->slug, $row->catslug, $row->sectionid));
+			$link = JRoute::_(ContentHelperRoute::getArticleRoute($row->slug, $row->catid), false);
+
 
 			// strip html from feed item description text
 			// TODO: Only pull fulltext if necessary (actually, just get the necessary fields).
@@ -53,7 +57,7 @@ class ContentViewFeatured extends JView
 			$item->link			= $link;
 			$item->description	= $description;
 			$item->date			= $row->created;
-			$item->category		= 'frontpage';
+			$item->category		= 'featured';
 			$item->author		= $author;
 			if ($feedEmail == 'site') {
 				$item->authorEmail = $siteEmail;

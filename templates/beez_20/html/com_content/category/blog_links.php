@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: blog_links.php 14164 2010-01-14 11:06:21Z a.radtke $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
  * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
@@ -23,7 +23,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
 ?>
 
 <div class="items-more">
-<h3><?php echo JText::_('MORE_ARTICLES'); ?></h3>
+<h3><?php echo JText::_('COM_CONTENT_MORE_ARTICLES'); ?></h3>
 
 <ol>
 
@@ -31,7 +31,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
 	foreach ($this->link_items as &$item) :
 ?>
 		 <li>
-            <a href="<?php echo JRoute::_(ContentRoute::article($item->slug, $item->catslug)); ?>">
+          		<a href="<?php echo JRoute::_(ContentHelperRoute::getArticleRoute($item->slug, $item->catid)); ?>">
 			<?php echo $item->title; ?></a>
         </li>
 <?php endforeach; ?>

@@ -19,14 +19,11 @@ jimport('joomla.application.component.modellist');
 class WeblinksModelWeblinks extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_weblinks.weblinks';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -34,17 +31,20 @@ class WeblinksModelWeblinks extends JModelList
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$accessId = $app->getUserStateFromRequest($this->_context.'.filter.access', 'filter_access', null, 'int');
+		$accessId = $app->getUserStateFromRequest($this->context.'.filter.access', 'filter_access', null, 'int');
 		$this->setState('filter.access', $accessId);
 
-		$published = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_published', '', 'string');
+		$published = $app->getUserStateFromRequest($this->context.'.filter.state', 'filter_published', '', 'string');
 		$this->setState('filter.state', $published);
 
-		$categoryId = $app->getUserStateFromRequest($this->_context.'.filter.category_id', 'filter_category_id', '');
+		$categoryId = $app->getUserStateFromRequest($this->context.'.filter.category_id', 'filter_category_id', '');
 		$this->setState('filter.category_id', $categoryId);
+
+		$language = $app->getUserStateFromRequest($this->context.'.filter.language', 'filter_language', '');
+		$this->setState('filter.language', $language);
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_weblinks');
@@ -62,16 +62,17 @@ class WeblinksModelWeblinks extends JModelList
 	 * ordering requirements.
 	 *
 	 * @param	string		$id	A prefix for the store id.
-	 *
 	 * @return	string		A store id.
+	 * @since	1.6
 	 */
 	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
-		$id	.= ':'.$this->getState('filter.search');
-		$id	.= ':'.$this->getState('filter.access');
-		$id	.= ':'.$this->getState('filter.state');
-		$id	.= ':'.$this->getState('filter.category_id');
+		$id.= ':' . $this->getState('filter.search');
+		$id.= ':' . $this->getState('filter.access');
+		$id.= ':' . $this->getState('filter.state');
+		$id.= ':' . $this->getState('filter.category_id');
+		$id.= ':' . $this->getState('filter.language');
 
 		return parent::getStoreId($id);
 	}
@@ -80,6 +81,7 @@ class WeblinksModelWeblinks extends JModelList
 	 * Build an SQL query to load the list data.
 	 *
 	 * @return	JDatabaseQuery
+	 * @since	1.6
 	 */
 	protected function getListQuery()
 	{
@@ -93,11 +95,16 @@ class WeblinksModelWeblinks extends JModelList
 				'list.select',
 				'a.id, a.title, a.alias, a.checked_out, a.checked_out_time, a.catid,' .
 				'a.hits,' .
-				' a.state, a.access, a.ordering, a.language'
+				'a.state, a.access, a.ordering,'.
+				'a.language'
 			)
 		);
 		$query->from('`#__weblinks` AS a');
 
+		// Join over the language
+		$query->select('l.title AS language_title');
+		$query->join('LEFT', '`#__languages` AS l ON l.lang_code = a.language');
+		
 		// Join over the users for the checked out user.
 		$query->select('uc.name AS editor');
 		$query->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
@@ -140,8 +147,12 @@ class WeblinksModelWeblinks extends JModelList
 			}
 		}
 
-		if($this->getState('list.ordering', 'a.ordering') == 'a.ordering')
-		{
+		// Filter on the language.
+		if ($language = $this->getState('filter.language')) {
+			$query->where('a.language = ' . $db->quote($language));
+		}
+
+		if($this->getState('list.ordering', 'a.ordering') == 'a.ordering') {
 			$query->order('category_title, '.$db->getEscaped($this->getState('list.ordering', 'a.ordering')).' '.$db->getEscaped($this->getState('list.direction', 'ASC')));
 		} else {
 			// Add the list ordering clause.

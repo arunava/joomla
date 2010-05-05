@@ -30,8 +30,9 @@ class MediaViewMedia extends JView
 		$document->setBuffer($this->loadTemplate('navigation'), 'modules', 'submenu');
 
 		JHtml::_('behavior.framework', true);
-		$document->addScript('../media/media/js/mediamanager.js');
-		$document->addStyleSheet('../media/media/css/mediamanager.css');
+
+		JHTML::_('script','media/mediamanager.js', true, true);
+		JHTML::_('stylesheet','media/mediamanager.css', array(), true);
 
 		JHtml::_('behavior.modal');
 		$document->addScriptDeclaration("
@@ -39,7 +40,7 @@ class MediaViewMedia extends JView
 			document.preview = SqueezeBox;
 		});");
 
-		JHTML::_('script','system/mootree.js', false, true);
+		JHTML::_('script','system/mootree.js', true, true);
 		JHTML::_('stylesheet','system/mootree.css', array(), true);
 
 		if ($config->get('enable_flash', 1)) {
@@ -66,7 +67,7 @@ class MediaViewMedia extends JView
 					'onComplete' 	=> 'function(){ MediaManager.refreshFrame(); }',
 					'targetURL' 	=> '\\$(\'uploadForm\').action',
 					'typeFilter' 	=> $typeString,
-					'fileSizeMax'	=> $config->get('upload_maxsize')
+					'fileSizeMax'	=> $config->get('upload_maxsize'),
 				)
 			);
 		}
@@ -99,13 +100,18 @@ class MediaViewMedia extends JView
 		$this->assign('folders', $this->get('folderTree'));
 
 		// Set the toolbar
-		$this->_setToolBar();
+		$this->addToolbar();
 
 		parent::display($tpl);
 		echo JHtml::_('behavior.keepalive');
 	}
 
-	function _setToolBar()
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
+	 */
+	protected function addToolbar()
 	{
 		// Get the toolbar object instance
 		$bar = &JToolBar::getInstance('toolbar');

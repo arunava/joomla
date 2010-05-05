@@ -20,6 +20,12 @@ jimport('joomla.application.component.modelform');
 class MenusModelMenu extends JModelForm
 {
 	/**
+	 * @var		string	The prefix to use with controller messages.
+	 * @since	1.6
+	 */
+	protected $text_prefix = 'COM_MENUS_MENU';
+
+	/**
 	 * Model context string.
 	 *
 	 * @var		string
@@ -42,7 +48,9 @@ class MenusModelMenu extends JModelForm
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -95,26 +103,31 @@ class MenusModelMenu extends JModelForm
 	 */
 	public function getForm()
 	{
-		// Initialise variables.
-		$app = &JFactory::getApplication();
-
 		// Get the form.
-		try {
-			$form = parent::getForm('com_menus.menu', 'menu', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = parent::getForm('com_menus.menu', 'menu', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_menus.edit.menu.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function getFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_menus.edit.menu.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -156,12 +169,12 @@ class MenusModelMenu extends JModelForm
 		}
 
 		$this->setState('menu.id', $table->id);
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
 		$cache->clean('mod_menu');
-		
+
 		return true;
 	}
 
@@ -190,7 +203,7 @@ class MenusModelMenu extends JModelForm
 				return false;
 			}
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();

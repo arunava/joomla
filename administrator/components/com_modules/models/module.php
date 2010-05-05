@@ -22,28 +22,17 @@ jimport('joomla.application.component.modeladmin');
 class ModulesModelModule extends JModelAdmin
 {
 	/**
-	 * Item cache.
+	 * @var		string	The prefix to use with controller messages.
+	 * @since	1.6
 	 */
-	private $_cache = array();
+	protected $text_prefix = 'COM_MODULES';
 
-	protected $_context = 'com_modules';
-
-	/**
-	 * Constructor.
-	 *
-	 * @param	array An optional associative array of configuration settings.
-	 * @see		JController
-	 */
-	public function __construct($config = array())
-	{
-		parent::__construct($config);
-
-		$this->_item = 'module';
-		$this->_option = 'com_modules';
-	}
-	
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
 	protected function populateState()
 	{
@@ -68,8 +57,8 @@ class ModulesModelModule extends JModelAdmin
 	 * Method to delete rows.
 	 *
 	 * @param	array	An array of item ids.
-	 *
 	 * @return	boolean	Returns true on success, false on failure.
+	 * @since	1.6
 	 */
 	public function delete(&$pks)
 	{
@@ -103,7 +92,7 @@ class ModulesModelModule extends JModelAdmin
 				throw new Exception($table->getError());
 			}
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
@@ -118,6 +107,7 @@ class ModulesModelModule extends JModelAdmin
 	 *
 	 * @return	boolean	True if successful.
 	 * @throws	Exception
+	 * @since	1.6
 	 */
 	public function duplicate(&$pks)
 	{
@@ -178,7 +168,7 @@ class ModulesModelModule extends JModelAdmin
 				return JError::raiseWarning(500, $row->getError());
 			}
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
@@ -205,9 +195,6 @@ class ModulesModelModule extends JModelAdmin
 	 */
 	public function getForm($data = null)
 	{
-		// Initialise variables.
-		$app = JFactory::getApplication();
-
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
 			$item		= $this->getItem();
@@ -223,22 +210,32 @@ class ModulesModelModule extends JModelAdmin
 		$this->setState('item.module',		$module);
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_modules.module', 'module', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = parent::getForm('com_modules.module', 'module', array('control' => 'jform'));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_modules.edit.module.data', array());
+		$form->setFieldAttribute('position', 'client', $this->getState('item.client_id') == 0 ? 'site' : 'administrator');
+		
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function getFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_modules.edit.module.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -248,7 +245,7 @@ class ModulesModelModule extends JModelAdmin
 	 *
 	 * @return	mixed	Object on success, false on failure.
 	 */
-	public function &getItem($pk = null)
+	public function getItem($pk = null)
 	{
 		// Initialise variables.
 		$pk	= (!empty($pk)) ? (int) $pk : (int) $this->getState('module.id');
@@ -383,11 +380,11 @@ class ModulesModelModule extends JModelAdmin
 
 	/**
 	 * @param	object	A form object.
-	 *
+	 * @param	mixed	The data expected for the form.
 	 * @throws	Exception if there is an error loading the form.
 	 * @since	1.6
 	 */
-	protected function preprocessForm($form)
+	protected function preprocessForm($form, $data)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
@@ -408,12 +405,12 @@ class ModulesModelModule extends JModelAdmin
 		if (file_exists($formFile)) {
 			// Get the module form.
 			if (!$form->loadFile($formFile, false, '//config')) {
-				throw new Exception(JText::_('JModelForm_Error_loadFile_failed'));
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
 			}
 		}
 
 		// Trigger the default form events.
-		parent::preprocessForm($form);
+		parent::preprocessForm($form, $data);
 	}
 
 	/**
@@ -431,7 +428,7 @@ class ModulesModelModule extends JModelAdmin
 		$isNew		= true;
 
 		// Include the content modules for the onSave events.
-		JPluginHelper::importPlugin('content');
+		JPluginHelper::importPlugin('extension');
 
 		// Load the row if saving an existing record.
 		if ($pk > 0) {
@@ -454,8 +451,8 @@ class ModulesModelModule extends JModelAdmin
 			return false;
 		}
 
-		// Trigger the onBeforeSaveContent event.
-		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		// Trigger the onExtensionBeforeSave event.
+		$result = $dispatcher->trigger('onExtensionBeforeSave', array('com_modules.module', &$table, $isNew));
 		if (in_array(false, $result, true)) {
 			$this->setError($table->getError());
 			return false;
@@ -541,15 +538,22 @@ class ModulesModelModule extends JModelAdmin
 		$cache->clean();
 		$cache->clean('mod_menu');
 
-		// Trigger the onAfterContentSave event.
-		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
+		// Trigger the onExtensionAfterSave event.
+		$dispatcher->trigger('onExtensionAfterSave', array('com_modules.module', &$table, $isNew));
 
 		$this->setState('module.id', $table->id);
 
 		return true;
 	}
-	
-	function _orderConditions($table = null)
+
+	/**
+	 * A protected method to get a set of ordering conditions.
+	 *
+	 * @param	object	A record object.
+	 * @return	array	An array of conditions to add to add to ordering queries.
+	 * @since	1.6
+	 */
+	protected function getReorderConditions($table = null)
 	{
 		$condition = array();
 		$condition[] = 'client_id = '.(int) $table->client_id;
