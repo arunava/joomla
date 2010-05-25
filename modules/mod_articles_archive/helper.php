@@ -19,7 +19,7 @@ class modArchiveHelper
 		$query	= $db->getQuery(true);
 		$query->select('MONTH(created) AS created_month, created, id, title, YEAR(created) AS created_year');
 		$query->from('#__content');
-		$query->where('state = -1 AND checked_out = 0');
+		$query->where('state = 2 AND checked_out = 0');
 		$query->group('created_year DESC, created_month DESC');
 
 		$db->setQuery($query, 0, intval($params->get('count')));
@@ -34,12 +34,12 @@ class modArchiveHelper
 		foreach ($rows as $row) {
 			$date = &JFactory::getDate($row->created);
 
-			$created_month	= $date->toFormat("%m");
-			$month_name		= $date->toFormat("%B");
-			$created_year	= $date->toFormat("%Y");
+			$created_month	= $date->format("n");
+			$month_name		= $date->format("F");
+			$created_year	= $date->format("Y");
 
 			$lists[$i]->link	= JRoute::_('index.php?option=com_content&view=archive&year='.$created_year.'&month='.$created_month.$itemid);
-			$lists[$i]->text	= $month_name.', '.$created_year;
+			$lists[$i]->text	= JText::sprintf('MOD_ARTICLES_ARCHIVE_DATE',$month_name,$created_year);
 			$i++;
 		}
 		return $lists;

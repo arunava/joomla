@@ -52,7 +52,7 @@ class ContactViewContact extends JView
 			$url  = 'index.php?option=com_users&view=login';
 			$url .= '&return='.base64_encode($return);
 
-			//$app->redirect($url, JText::_('YOU_MUST_LOGIN_FIRST'));
+			//$app->redirect($url, JText::_('JGLOBAL_YOU_MUST_LOGIN_FIRST'));
 
 		}
 
@@ -189,9 +189,11 @@ class ContactViewContact extends JView
 		}
 
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 

@@ -11,7 +11,7 @@ defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
 
-require_once(JPATH_SITE.'/components/com_content/router.php');
+require_once JPATH_SITE.'/components/com_content/router.php';
 
 /**
  * Content Search plugin
@@ -28,7 +28,7 @@ class plgSearchContent extends JPlugin
 	function onContentSearchAreas()
 	{
 		static $areas = array(
-			'content' => 'Articles'
+			'content' => 'JGLOBAL_ARTICLES'
 			);
 			return $areas;
 	}
@@ -49,8 +49,8 @@ class plgSearchContent extends JPlugin
 		$user	= &JFactory::getUser();
 		$groups	= implode(',', $user->authorisedLevels());
 
-		require_once JPATH_SITE.DS.'components'.DS.'com_content'.DS.'helpers'.DS.'route.php';
-		require_once JPATH_SITE.DS.'administrator'.DS.'components'.DS.'com_search'.DS.'helpers'.DS.'search.php';
+		require_once JPATH_SITE.'/components/com_content/helpers/route.php';
+		require_once JPATH_SITE.'/administrator/components/com_search/helpers/search.php';
 
 		$searchText = $text;
 		if (is_array($areas)) {
@@ -152,7 +152,7 @@ class plgSearchContent extends JPlugin
 			$query->order($order);
 
 			// Filter by language
-			if ($app->getLanguageFilter()) {
+			if ($app->isSite() && $app->getLanguageFilter()) {
 				$query->where('a.language in (' . $db->Quote(JFactory::getLanguage()->getTag()) . ',' . $db->Quote('*') . ')');
 			}
 
@@ -185,7 +185,7 @@ class plgSearchContent extends JPlugin
 			$query->order(($morder ? $morder : $order));
 
 			// Filter by language
-			if (JPluginHelper::isEnabled('system','languagefilter')) {
+			if ($app->isSite() && $app->getLanguageFilter()) {
 				$query->where('a.language in (' . $db->Quote(JFactory::getLanguage()->getTag()) . ',' . $db->Quote('*') . ')');
 			}
 
@@ -225,7 +225,7 @@ class plgSearchContent extends JPlugin
 
 
 			// Filter by language
-			if (JPluginHelper::isEnabled('system','languagefilter')) {
+			if ($app->isSite() && $app->getLanguageFilter()) {
 				$query->where('a.language in (' . $db->Quote(JFactory::getLanguage()->getTag()) . ',' . $db->Quote('*') . ')');
 			}
 

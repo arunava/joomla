@@ -196,7 +196,7 @@ class JTableUser extends JTable
 		}
 
 		// Set the registration timestamp
-		if ($this->registerDate == null) {
+		if ($this->registerDate == null || $this->registerDate == '0000-00-00 00:00:00' ) {
 			$this->registerDate = JFactory::getDate()->toMySQL();
 		}
 
@@ -255,7 +255,7 @@ class JTableUser extends JTable
 		// Handle error if it exists.
 		if (!$return)
 		{
-			$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_STORED_FAILED', strtolower(get_class($this)), $this->_db->getErrorMsg()));
+			$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_STORE_FAILED', strtolower(get_class($this)), $this->_db->getErrorMsg()));
 			return false;
 		}
 

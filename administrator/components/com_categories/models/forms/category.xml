@@ -59,7 +59,7 @@
 	<field
 		name="title"
 		type="text"
-		label="JFIELD_TITLE_LABEL"
+		label="JGLOBAL_TITLE"
 		description="JFIELD_TITLE_DESC"
 		class="inputbox"
 		size="40"
@@ -97,7 +97,7 @@
 		class="inputbox"
 		default="1"
 		size="1"
-		label="JFIELD_PUBLISHED_LABEL"
+		label="JGLOBAL_STATE"
 		description="JFIELD_PUBLISHED_DESC">
 		<option
 			value="1">
@@ -135,7 +135,6 @@
 		type="textarea"
 		label="JFIELD_META_DESCRIPTION_LABEL"
 		description="JFIELD_META_DESCRIPTION_DESC"
-		default=""
 		rows="3"
 		cols="40"/>
 
@@ -144,7 +143,6 @@
 		type="textarea"
 		label="JFIELD_META_KEYWORDS_LABEL"
 		description="JFIELD_META_KEYWORDS_DESC"
-		default=""
 		rows="3"
 		cols="40"/>
 
@@ -178,9 +176,8 @@
 		type="contentlanguage"
 		label="JFIELD_LANGUAGE_LABEL"
 		description="COM_CATEGORIES_FIELD_LANGUAGE_DESC"
-		class="inputbox"
-		default="">
-		<option value="*">JOPTION_ALL_LANGUAGES</option>
+		class="inputbox">
+		<option value="*">JALL</option>
 	</field>
 
 	<field
@@ -192,8 +189,7 @@
 		filter="rules"
 		class="inputbox"
 		component="com_content"
-		section="category"
-		default=""/>
+		section="category"/>
 
 	<fields name="params">
 		<fieldset
@@ -221,23 +217,20 @@
 			type="text"
 			label="JFIELD_ALT_PAGE_TITLE_LABEL"
 			description="JFIELD_ALT_PAGE_TITLE_DESC"
-			size="30"
-			default=""/>
+			size="30"/>
 
 		<field
 			name="author"
 			type="text"
 			label="JAUTHOR"
 			description="JFIELD_METADATA_AUTHOR_DESC"
-			size="30"
-			default=""/>
+			size="30"/>
 
 		<field
 			name="robots"
 			type="list"
 			label="JFIELD_METADATA_ROBOTS_LABEL"
-			description="JFIELD_METADATA_ROBOTS_DESC"
-			default="">
+			description="JFIELD_METADATA_ROBOTS_DESC">
 			<option
 				value="">JGLOBAL_USE_GLOBAL</option>
 			<option

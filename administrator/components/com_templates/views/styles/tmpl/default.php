@@ -81,7 +81,7 @@ $listDirn	= $this->state->get('list.direction');
 				$canChange	= $user->authorise('core.edit.state',	'com_templates');
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<td class="center">
+				<td width="1%" class="center">
 					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
 				</td>
 
@@ -102,15 +102,11 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo $item->client_id == 0 ? JText::_('JSITE') : JText::_('JADMINISTRATOR'); ?>
 				</td>
 				<td class="center">
-					<?php if ($item->home == 1) : ?>
-							<?php echo JHTML::_('image','menu/icon-16-default.png', JText::_('COM_TEMPLATES_HEADING_DEFAULT'), NULL, true); ?>
-					<?php else  : ?>
-							&nbsp;
-					<?php endif; ?>
+					<?php echo JHtml::_('jgrid.isdefault', $item->home, $i, 'styles.', $canChange && !$item->home);?>
 				</td>
 				<td class="center">
-					<?php if ($item->assigned == 1) : ?>
-							<?php echo JHTML::_('image','admin/tick.png', JText::_('COM_TEMPLATES_HEADING_ASSIGNED'), NULL, true); ?>
+					<?php if ($item->assigned > 0) : ?>
+							<?php echo JHTML::_('image','admin/tick.png', JText::plural('COM_TEMPLATES_ASSIGNED',$item->assigned), array('title'=>JText::plural('COM_TEMPLATES_ASSIGNED',$item->assigned)), true); ?>
 					<?php else : ?>
 							&nbsp;
 					<?php endif; ?>

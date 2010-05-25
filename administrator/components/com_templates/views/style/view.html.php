@@ -57,7 +57,7 @@ class TemplatesViewStyle extends JView
 
 		JToolBarHelper::title(
 			$isNew ? JText::_('COM_TEMPLATES_MANAGER_ADD_STYLE')
-			: JText::_('COM_TEMPLATES_MANAGER_EDIT_STYLE')
+			: JText::_('COM_TEMPLATES_MANAGER_EDIT_STYLE'), 'thememanager'
 		);
 
 		// If not checked out, can save the item.
@@ -78,6 +78,6 @@ class TemplatesViewStyle extends JView
 			JToolBarHelper::cancel('style.cancel', 'JTOOLBAR_CLOSE');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.style.edit','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_TEMPLATE_MANAGER_STYLES_EDIT');
 	}
 }

@@ -57,7 +57,7 @@ class RedirectViewLink extends JView
 		$isNew		= ($this->item->id == 0);
 		$canDo		= RedirectHelper::getActions();
 
-		JToolBarHelper::title(JText::_('COM_REDIRECT_MANAGER_LINK'));
+		JToolBarHelper::title(JText::_('COM_REDIRECT_MANAGER_LINK'), 'redirect');
 
 		// If not checked out, can save the item.
 		if ($canDo->get('core.edit')) {
@@ -76,6 +76,6 @@ class RedirectViewLink extends JView
 		} else {
 			JToolBarHelper::cancel('link.cancel', 'JTOOLBAR_CLOSE');
 		}
-		JToolBarHelper::help('screen.redirect.link','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_COMPONENTS_REDIRECT_MANAGER_EDIT');
 	}
 }

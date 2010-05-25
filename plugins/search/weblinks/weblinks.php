@@ -27,7 +27,7 @@ class plgSearchWeblinks extends JPlugin
 	 */
 	function onContentSearchAreas() {
 		static $areas = array(
-			'weblinks' => 'Weblinks'
+			'weblinks' => 'PLG_SEARCH_WEBLINKS_WEBLINKS'
 			);
 			return $areas;
 	}
@@ -129,7 +129,7 @@ class plgSearchWeblinks extends JPlugin
 		$query->order($order);
 
 		// Filter by language
-		if ($app->getLanguageFilter()) {
+		if ($app->isSite() && $app->getLanguageFilter()) {
 			$query->where('a.language in (' . $db->Quote(JFactory::getLanguage()->getTag()) . ',' . $db->Quote('*') . ')');
 		}
 

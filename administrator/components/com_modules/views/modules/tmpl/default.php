@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
 // Include the component HTML helpers.
 JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 JHtml::_('behavior.tooltip');
-JHTML::_('script','multiselect.js');
+JHTML::_('script','system/multiselect.js',false,true);
 $client = $this->state->get('filter.client_id') ? 'administrator' : 'site';
 $user = JFactory::getUser();
 $listOrder	= $this->state->get('list.ordering');
@@ -54,7 +54,7 @@ $listDirn	= $this->state->get('list.direction');
 
 			<select name="filter_language" class="inputbox" onchange="this.form.submit()">
 				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
-				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.published', true, true), 'value', 'text', $this->state->get('filter.language'));?>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
 			</select>
 		</div>
 	</fieldset>
@@ -63,11 +63,11 @@ $listDirn	= $this->state->get('list.direction');
 	<table class="adminlist" id="modules-mgr">
 		<thead>
 			<tr>
-				<th width="20">
+				<th width="1%">
 					<input type="checkbox" name="toggle" value="" onclick="checkAll(this)" />
 				</th>
 				<th class="title">
-					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_TITLE', 'title', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'title', $listDirn, $listOrder); ?>
 				</th>
 				<th width="20%">
 					<?php echo JHtml::_('grid.sort',  'COM_MODULES_HEADING_POSITION', 'position', $listDirn, $listOrder); ?>
@@ -108,7 +108,8 @@ $listDirn	= $this->state->get('list.direction');
 			$ordering	= ($listOrder == 'ordering');
 			$canCreate	= $user->authorise('core.create',		'com_modules');
 			$canEdit	= $user->authorise('core.edit',			'com_modules');
-			$canChange	= $user->authorise('core.edit.state',	'com_modules');
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id')|| $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_modules') && $canCheckin;
 		?>
 			<tr class="row<?php echo $i % 2; ?>">
 				<td class="center">
@@ -116,7 +117,7 @@ $listDirn	= $this->state->get('list.direction');
 				</td>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'modules.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canCreate || $canEdit) : ?>
 						<a href="<?php echo JRoute::_('index.php?option=com_modules&task=module.edit&id='.(int) $item->id); ?>">
@@ -135,13 +136,13 @@ $listDirn	= $this->state->get('list.direction');
 				<td class="center">
 					<?php
 						if (is_null($item->pages)) {
-							echo JText::_('COM_MODULES_ASSIGNED_NONE');
+							echo JText::_('JNONE');
 						} else if ($item->pages < 0) {
 							echo JText::_('COM_MODULES_ASSIGNED_VARIES_EXCEPT');
 						} else if ($item->pages > 0) {
 							echo JText::_('COM_MODULES_ASSIGNED_VARIES_ONLY');
 						} else {
-							echo JText::_('COM_MODULES_ASSIGNED_ALL');
+							echo JText::_('JALL');
 						}
 					?>
 				</td>

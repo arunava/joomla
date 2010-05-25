@@ -61,7 +61,7 @@ class ModulesViewModule extends JView
 		$item		= $this->get('Item');
 		$client		= $item->client_id;
 
-		JToolBarHelper::title( JText::_('COM_MODULES_MANAGER_MODULE').' '.JText::_($this->item->module));
+		JToolBarHelper::title( JText::sprintf('COM_MODULES_MANAGER_MODULE', JText::_($this->item->module)), 'module.png');
 
 		// If not checked out, can save the item.
 		if (!$checkedOut && $canDo->get('core.edit')) {
@@ -79,6 +79,6 @@ class ModulesViewModule extends JView
 			JToolBarHelper::cancel('module.cancel', 'JTOOLBAR_CLOSE');
 		}
 
-		JToolBarHelper::help('screen.module.edit','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_MODULE_MANAGER_EDIT');
 	}
 }

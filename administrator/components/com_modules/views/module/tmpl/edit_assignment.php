@@ -16,7 +16,7 @@ $menuTypes = MenusHelper::getMenuLinks();
 ?>
 		<fieldset class="adminform">
 			<legend><?php echo JText::_('COM_MODULES_MENU_ASSIGNMENT'); ?></legend>
-				<label id="jform_menus-lbl" class="hasTip" for="jform_menus"><?php echo JText::_('COM_MODULES_MODULE_ASSIGN'); ?>:</label>
+				<label id="jform_menus-lbl" class="hasTip" for="jform_menus"><?php echo JText::_('COM_MODULES_MODULE_ASSIGN'); ?></label>
 
 				<fieldset id="jform_menus" class="radio">
 					<select name="jform[assignment]">
@@ -25,14 +25,12 @@ $menuTypes = MenusHelper::getMenuLinks();
 
 				</fieldset>
 
-				<label id="jform_menuselect-lbl" class="hasTip" for="jform_menuselect"><?php echo JText::_('COM_MODULES_MENU_SELECTION'); ?>:</label>
+				<label id="jform_menuselect-lbl" class="hasTip" for="jform_menuselect"><?php echo JText::_('JGLOBAL_MENU_SELECTION'); ?></label>
 
-				<div class="clr"></div>
-
-				<button type="button" class="button2" onclick="$$('.chk-menulink').each(function(el) { el.checked = !el.checked; });">
-					<?php echo JText::_('COM_MODULES_MENU_SELECTION_INVERT'); ?>
+				<button type="button" class="jform-rightbtn" onclick="$$('.chk-menulink').each(function(el) { el.checked = !el.checked; });">
+					<?php echo JText::_('JGLOBAL_SELECTION_INVERT'); ?>
 				</button>
-
+				<div class="clr"></div>
 				<div id="menu-assignment">
 
 				<?php foreach ($menuTypes as &$type) : ?>

@@ -17,8 +17,7 @@
 		<filename
 			module="mod_footer">mod_footer.php</filename>
 		<folder>tmpl</folder>
-		<filename>index.php</filename>
-		<filename>mod_footer.xml</filename>
+		<filename>index.html</filename>		<filename>mod_footer.xml</filename>
 	</files>
 	<languages>
 		<language
@@ -35,7 +34,6 @@
 				<field
 					name="moduleclass_sfx"
 					type="text"
-					default=""
 					label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
 					description="COM_MODULES_FIELD_MODULECLASS_SFX_DESC" />
 				<field
@@ -58,7 +56,6 @@
 				<field
 					name="cachemode"
 					type="hidden"
-					label=""
 					default="static">
 					<option
 						value="static"></option>

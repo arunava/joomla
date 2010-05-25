@@ -66,13 +66,15 @@ class UsersViewReset extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_USERS_Reset'));
+			$this->params->def('page_heading', JText::_('COM_USERS_RESET'));
 		}
 
-		$title = $this->params->get('page_title', $this->params->get('page_heading'));
-		if (empty($title))
-		{
+		$title = $this->params->get('page_title', '');
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 	}

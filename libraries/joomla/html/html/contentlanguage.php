@@ -31,7 +31,7 @@ abstract class JHtmlContentLanguage
 	 * @return	string
 	 * @since	1.6
 	 */
-	public static function published($all = false, $translate=false)
+	public static function existing($all = false, $translate=false)
 	{
 		if (empty(self::$items)) {
 			// Get the database object and a new query object.
@@ -48,7 +48,7 @@ abstract class JHtmlContentLanguage
 			$db->setQuery($query);
 			self::$items = $db->loadObjectList();
 			if ($all) {
-				array_unshift(self::$items, new JObject(array('value'=>'*','text'=>$translate ? JText::_('JOPTION_ALL_LANGUAGES') : 'JOPTION_ALL_LANGUAGES')));
+				array_unshift(self::$items, new JObject(array('value'=>'*','text'=>$translate ? JText::_('JALL') : 'JALL')));
 			}
 
 			// Detect errors

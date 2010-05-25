@@ -217,7 +217,7 @@
 			 hide_none="1"
 			label="COM_CONTACT_FIELD_ICONS_MOBILE_LABEL" description="COM_CONTACT_FIELD_ICONS_MOBILE_DESC" />
 
-		<field name="icon_fax" type="media" directory=""
+		<field name="icon_fax" type="media"
 			hide_none="1" label="COM_CONTACT_FIELD_ICONS_FAX_LABEL"
 			description="COM_CONTACT_FIELD_ICONS_FAX_DESC" />
 
@@ -294,7 +294,7 @@
 		</field>
 
 		<field name="show_state_headings" type="radio"
-			default="1" label="COM_CONTACT_FIELD_CONFIG_STATE_LABEL"
+			default="1" label="JGLOBAL_STATE"
 			description="COM_CONTACT_FIELD_CONFIG_STATE_DESC"
 		>
 			<option value="0">JHIDE</option>
@@ -365,7 +365,6 @@
 
 	<fieldset name="integration"
 		label="JGLOBAL_MENUS_LAYOUT_INTEGRATION_OPTIONS_LABEL"
-		description=""
 	>
 
 		<field name="show_category_crumb" type="radio"
@@ -374,24 +373,6 @@
 		>
 			<option value="0">JHIDE</option>
 			<option value="1">JSHOW</option>
-		</field>
-
-		<field name="article_allow_ratings" type="radio"
-			label="COM_CONTACT_FIELD_ARTICLES_RATINGS_LABEL"
-			description="COM_CONTACT_FIELD_ARTICLES_RATINGS_DESC"
-			default="0"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field name="article_allow_comments" type="radio"
-			label="COM_CONTACT_FIELD_ARTICLES_COMMENTS_LABEL"
-			description="COM_CONTACT_FIELD_ARTICLES_COMMENTS_DESC"
-			default="0"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
 		</field>
 
 	</fieldset>

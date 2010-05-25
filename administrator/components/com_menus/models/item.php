@@ -28,53 +28,13 @@ class MenusModelItem extends JModelAdmin
 	protected $text_prefix = 'COM_MENUS_ITEM';
 
 	/**
-	 * Auto-populate the model state.
-	 *
-	 * Note. Calling getState in this method will result in recursion.
-	 *
-	 * @since	1.6
-	 */
-	protected function populateState()
-	{
-		$app = JFactory::getApplication('administrator');
-
-		// Load the User state.
-		if (!($pk = (int) $app->getUserState('com_menus.edit.item.id'))) {
-			$pk = (int) JRequest::getInt('item_id');
-		}
-		$this->setState('item.id', $pk);
-
-		if (!($parentId = $app->getUserState('com_menus.edit.item.parent_id'))) {
-			$parentId = JRequest::getInt('parent_id');
-		}
-		$this->setState('item.parent_id', $parentId);
-
-		if (!($menuType = $app->getUserState('com_menus.edit.item.menutype'))) {
-			$menuType = JRequest::getCmd('menutype', 'mainmenu');
-		}
-		$this->setState('item.menutype', $menuType);
-
-		if (!($type = $app->getUserState('com_menus.edit.item.type'))){
-			$type = JRequest::getCmd('type');
-		}
-		$this->setState('item.type', $type);
-
-		if ($link = $app->getUserState('com_menus.edit.item.link')) {
-			$this->setState('item.link', $link);
-		}
-
-		// Load the parameters.
-		$params	= JComponentHelper::getParams('com_menus');
-		$this->setState('params', $params);
-	}
-
-	/**
 	 * Method to perform batch operations on an item or a set of items.
 	 *
 	 * @param	array	An array of commands to perform.
 	 * @param	array	An array of category ids.
 	 *
 	 * @return	boolean	Returns true on success, false on failure.
+	 * @since	1.6
 	 */
 	function batch($commands, $pks)
 	{
@@ -127,6 +87,7 @@ class MenusModelItem extends JModelAdmin
 	 * @param	array	An array of row IDs.
 	 *
 	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
 	 */
 	protected function batchAccess($value, $pks)
 	{
@@ -152,6 +113,7 @@ class MenusModelItem extends JModelAdmin
 	 * @param	array	An array of row IDs.
 	 *
 	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
 	 */
 	protected function batchCopy($value, $pks)
 	{
@@ -291,6 +253,7 @@ class MenusModelItem extends JModelAdmin
 	 * @param	array	An array of row IDs.
 	 *
 	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
 	 */
 	protected function batchMove($value, $pks)
 	{
@@ -392,13 +355,28 @@ class MenusModelItem extends JModelAdmin
 	}
 
 	/**
+	 * Method to check if you can save a record.
+	 *
+	 * @param	array	An array of input data.
+	 * @param	string	The name of the key for the primary key.
+	 *
+	 * @return	boolean
+	 * @since	1.6
+	 */
+	protected function canSave($data = array(), $key = 'id')
+	{
+		return JFactory::getUser()->authorise('core.edit', $this->option);
+	}
+
+	/**
 	 * Method to get the row form.
 	 *
-	 * @param	array		An optional array of source data.
-	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	mixed	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm($data = null)
+	public function getForm($data = array(), $loadData = true)
 	{
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
@@ -411,7 +389,7 @@ class MenusModelItem extends JModelAdmin
 		}
 
 		// Get the form.
-		$form = parent::getForm('com_menus.item', 'item', array('control' => 'jform'), true);
+		$form = $this->loadForm('com_menus.item', 'item', array('control' => 'jform', 'load_data' => $loadData), true);
 		if (empty($form)) {
 			return false;
 		}
@@ -425,7 +403,7 @@ class MenusModelItem extends JModelAdmin
 	 * @return	mixed	The data for the form.
 	 * @since	1.6
 	 */
-	protected function getFormData()
+	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
 		$data = JFactory::getApplication()->getUserState('com_menus.edit.item.data', array());
@@ -443,6 +421,7 @@ class MenusModelItem extends JModelAdmin
 	 * @param	integer	An optional id of the object to get, otherwise the id from the model state is used.
 	 *
 	 * @return	mixed	Menu item data object on success, false on failure.
+	 * @since	1.6
 	 */
 	public function &getItem($pk = null)
 	{
@@ -464,10 +443,13 @@ class MenusModelItem extends JModelAdmin
 
 		// Prime required properties.
 
+		if ($type = $this->getState('item.type')) {
+			$table->type = $type;
+		}
+
 		if (empty($table->id)) {
 			$table->parent_id	= $this->getState('item.parent_id');
 			$table->menutype	= $this->getState('item.menutype');
-			$table->type		= $this->getState('item.type');
 			$table->params		= '{}';
 		}
 
@@ -478,6 +460,7 @@ class MenusModelItem extends JModelAdmin
 				$table->link = $link;
 			}
 		}
+
 
 		switch ($table->type) {
 			case 'alias':
@@ -569,6 +552,7 @@ class MenusModelItem extends JModelAdmin
 	 * Get the list of modules not in trash.
 	 *
 	 * @return	mixed	An array of module records (id, title, position), or false on error.
+	 * @since	1.6
 	 */
 	public function getModules()
 	{
@@ -607,7 +591,9 @@ class MenusModelItem extends JModelAdmin
 	 * @param	type	The table type to instantiate
 	 * @param	string	A prefix for the table class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
+	 *
 	 * @return	JTable	A database object
+	 * @since	1.6
 	*/
 	public function getTable($type = 'Menu', $prefix = 'JTable', $config = array())
 	{
@@ -615,8 +601,53 @@ class MenusModelItem extends JModelAdmin
 	}
 
 	/**
+	 * Auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
+	 */
+	protected function populateState()
+	{
+		$app = JFactory::getApplication('administrator');
+
+		// Load the User state.
+		if (!($pk = (int) $app->getUserState('com_menus.edit.item.id'))) {
+			$pk = (int) JRequest::getInt('item_id');
+		}
+		$this->setState('item.id', $pk);
+
+		if (!($parentId = $app->getUserState('com_menus.edit.item.parent_id'))) {
+			$parentId = JRequest::getInt('parent_id');
+		}
+		$this->setState('item.parent_id', $parentId);
+
+		if (!($menuType = $app->getUserState('com_menus.edit.item.menutype'))) {
+			$menuType = JRequest::getCmd('menutype', 'mainmenu');
+		}
+		$this->setState('item.menutype', $menuType);
+
+		if (!($type = $app->getUserState('com_menus.edit.item.type'))){
+			$type = JRequest::getCmd('type');
+			// Note a new menu item will have no field type.
+			// The field is required so the user has to change it.
+		}
+		$this->setState('item.type', $type);
+
+		if ($link = $app->getUserState('com_menus.edit.item.link')) {
+			$this->setState('item.link', $link);
+		}
+
+		// Load the parameters.
+		$params	= JComponentHelper::getParams('com_menus');
+		$this->setState('params', $params);
+	}
+
+	/**
 	 * @param	object	A form object.
 	 * @param	mixed	The data expected for the form.
+	 *
+	 * @return	void
 	 * @throws	Exception if there is an error in the form event.
 	 * @since	1.6
 	 */
@@ -692,6 +723,7 @@ class MenusModelItem extends JModelAdmin
 			}
 
 			// Now load the component params.
+			// TODO: Work out why 'fixing' this breaks JForm
 			if ($isNew = false) {
 				$path = JPath::clean(JPATH_ADMINISTRATOR.'/components/'.$option.'/config.xml');
 			} else {
@@ -719,6 +751,7 @@ class MenusModelItem extends JModelAdmin
 	 * Method rebuild the entire nested set tree.
 	 *
 	 * @return	boolean	False on failure or error, true otherwise.
+	 * @since	1.6
 	 */
 	public function rebuild()
 	{
@@ -817,26 +850,94 @@ class MenusModelItem extends JModelAdmin
 
 		$this->setState('item.id', $table->id);
 
-		// Check if this is the home item.
-/*		if ($table->home) {
-			// Reset the any current home menu link.
-			$query = $db->getQuery(true);
-			$query->update('#__menu');
-			$query->set('home = 0');
-			$query->where('home = 1');
-			$query->where('id <> '.(int) $pk);
-
-			if (!$db->setQuery($query)->query()) {
-				$this->setError($e->getMessage());
-				return false;
-			}
-		}
-*/
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
 		$cache->clean('mod_menu');
 
 		return true;
+	}
+
+	/**
+	 * Method to change the home state of one or more items.
+	 *
+	 * @param	array	A list of the primary keys to change.
+	 * @param	int		The value of the home state.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	function setHome(&$pks, $value = 1)
+	{
+		// Initialise variables.
+		$table		= $this->getTable();
+		$pks		= (array) $pks;
+		$user		= JFactory::getUser();
+
+		$languages = array();
+		$onehome=false;
+		foreach ($pks as $i => $pk) {
+			if ($table->load($pk)) {
+				if (!array_key_exists($table->language,$languages)) {
+					$languages[$table->language] = true;
+					if ($table->home==$value) {
+						unset($pks[$i]);
+						JError::raiseNotice(403, JText::_('COM_MENUS_ERROR_ALREADY_HOME'));
+					}
+					else {
+						$table->home = $value;
+						if ($table->language=='*') {
+							$table->published=1;
+						}
+						if (!$this->canSave($table)) {
+							// Prune items that you can't change.
+							unset($pks[$i]);
+							JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_SAVE_NOT_PERMITTED'));
+						}
+						if (!$table->store()) {
+							$this->setError($table->getError());
+							return false;
+						}
+					}
+				}
+				else {
+					unset($pks[$i]);
+					if (!$onehome) {
+						$onehome = true;
+						JError::raiseNotice(403, JText::sprintf('COM_MENUS_ERROR_ONE_HOME'));
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method to change the published state of one or more records.
+	 *
+	 * @param	array	A list of the primary keys to change.
+	 * @param	int		The value of the published state.
+	 * @return	boolean	True on success.
+	 * @since	1.6
+	 */
+	function publish(&$pks, $value = 1)
+	{
+		// Initialise variables.
+		$table		= $this->getTable();
+		$pks		= (array) $pks;
+
+		// Default menu item existence checks.
+		if ($value != 1) {
+			foreach ($pks as $i => $pk) {
+				if ($table->load($pk) && $table->home && $table->language=='*') {
+					// Prune items that you can't change.
+					JError::raiseWarning(403, JText::_('COM_MENUS_ERROR_UNPUBLISH_DEFAULT_HOME'));
+					unset($pks[$i]);
+					break;
+				}
+			}
+		}
+		
+		return parent::publish($pks,$value);
 	}
 }

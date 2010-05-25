@@ -26,7 +26,7 @@ $listDirn	= $this->state->get('list.direction');
 		<div class="filter-search fltlft">
 			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('COM_USERS_SEARCH_USERS'); ?>:</label>
 			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('COM_USERS_SEARCH_USERS'); ?>" />
-			<button type="submit"><?php echo JText::_('JSUBMIT'); ?></button>
+			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
 			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_RESET'); ?></button>
 		</div>
 		<div class="filter-select fltrt">
@@ -55,14 +55,14 @@ $listDirn	= $this->state->get('list.direction');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="20">
+				<th width="1%">
 					<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items);?>)" />
 				</th>
 				<th class="left">
 					<?php echo JHtml::_('grid.sort', 'COM_USERS_HEADING_NAME', 'a.name', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap" width="10%">
-					<?php echo JHtml::_('grid.sort', 'COM_USERS_HEADING_USERNAME', 'a.username', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_USERNAME', 'a.username', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap" width="5%">
 					<?php echo JHtml::_('grid.sort', 'JENABLED', 'a.block', $listDirn, $listOrder); ?>
@@ -124,10 +124,14 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo $this->escape($item->email); ?>
 				</td>
 				<td class="center">
-					<?php echo JHTML::_('date',$item->lastvisitDate, '%Y-%m-%d %H:%M:%S'); ?>
+					<?php if ($item->lastvisitDate!='0000-00-00 00:00:00'):?>
+						<?php echo JHTML::_('date',$item->lastvisitDate, 'Y-m-d H:i:s'); ?>
+					<?php else:?>
+						<?php echo JText::_('JNEVER'); ?>
+					<?php endif;?>
 				</td>
 				<td class="center">
-					<?php echo JHTML::_('date',$item->registerDate, '%Y-%m-%d %H:%M:%S'); ?>
+					<?php echo JHTML::_('date',$item->registerDate, 'Y-m-d H:i:s'); ?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->id; ?>

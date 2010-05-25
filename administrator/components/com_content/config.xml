@@ -2,7 +2,7 @@
 <config>
 	<fieldset
 		name="articles"
-		label="COM_CONTENT_CONFIG_ARTICLE_SETTINGS_LABEL"
+		label="JGLOBAL_ARTICLES"
 		description="COM_CONTENT_CONFIG_CATEGORY_SETTINGS_DESC">
 
 		<field
@@ -355,12 +355,12 @@
 		</field>
 
 		<field
-			name="show_date"
+			name="list_show_date"
 			type="list"
-			default="hide"
+			default="0"
 			label="JGLOBAL_SHOW_DATE_LABEL"
 			description="JGLOBAL_SHOW_DATE_DESC">
-				<option value="hide">JHIDE</option>
+				<option value="0">JHIDE</option>
 				<option value="created">JGLOBAL_CREATED</option>
 				<option value="modified">JGLOBAL_MODIFIED</option>
 				<option value="published">JPUBLISHED</option>
@@ -369,7 +369,6 @@
 		<field name="date_format"
 			type="text"
 			size="15"
-			default=""
 			label="JGLOBAL_DATE_FORMAT_LABEL"
 			description="JGLOBAL_DATE_FORMAT_DESC" />
 
@@ -417,7 +416,7 @@
 	<fieldset
 		name="categories"
 		label="COM_CONTENT_CONFIG_CATEGORY_SETTINGS_LABEL"
-		description="COM_CONTENT_CONFIG_INTEGRATION_SETTINGS_DESC"
+		description="COM_CONTENT_CONFIG_CATEGORY_SETTINGS_DESC"
 		>
 
 		<field name="maxLevel" type="list"
@@ -504,7 +503,7 @@
 			<option
 				value="ralpha">JGLOBAL_TITLE_REVERSE_ALPHABETICAL</option>
 			<option
-				value="order">JGLOBAL_Category_Manager_Order</option>
+				value="order">JGLOBAL_CATEGORY_MANAGER_ORDER</option>
 		</field>
 
 		<field
@@ -554,42 +553,6 @@
 		>
 
 		<field
-			name="article-allow_comments"
-			type="radio"
-			label="JGLOBAL_Allow_Comments_Label"
-			description="JGLOBAL_Allow_Comments_Desc"
-			default="0">
-			<option
-				value="0">JNo</option>
-			<option
-				value="1">JYes</option>
-		</field>
-
-		<field
-			name="article-allow_ratings"
-			type="radio"
-			label="JGLOBAL_ALLOW_RATINGS_LABEL"
-			description="JGLOBAL_ALLOW_RATINGS_DESC"
-			default="0">
-			<option
-				value="0">JNO</option>
-			<option
-				value="1">JYES</option>
-		</field>
-
-		<field
-			name="article-allow_sharing"
-			type="radio"
-			label="JGLOBAL_ALLOW_SHARING_LABEL"
-			description="JGLOBAL_ALLOW_SHARING_DESC"
-			default="0">
-			<option
-				value="0">JNO</option>
-			<option
-				value="1">JYES</option>
-		</field>
-
-		<field
 			name="show_feed_link"
 			type="radio"
 			default="1"
@@ -625,8 +588,7 @@
 			label="JGLOBAL_FILTER_GROUPS_LABEL"
 			description="JGLOBAL_FILTER_GROUPS_DESC"
 			multiple="true"
-			size="10"
-			default="" />
+			size="10" />
 
 		<field
 			name="filter_type"
@@ -634,8 +596,7 @@
 			label="JGLOBAL_FILTER_TYPE_LABEL"
 			description="JGLOBAL_FILTER_TYPE_DESC"
 			class="inputbox"
-			size="1"
-			default="">
+			size="1">
 			<option
 				value="BL">COM_CONTENT_OPTION_BLACK_LIST</option>
 			<option
@@ -648,15 +609,13 @@
 			name="filter_tags"
 			type="text"
 			label="JGLOBAL_FILTER_TAGS_LABEL"
-			description="JGLOBAL_FILTER_TAGS_DESC"
-			default="" />
+			description="JGLOBAL_FILTER_TAGS_DESC" />
 
 		<field
 			name="filter_attritbutes"
 			type="text"
 			label="JGLOBAL_FILTER_ATTRIBUTES_LABEL"
-			description="JGLOBAL_FILTER_ATTRIBUTES_DESC"
-			default="" />
+			description="JGLOBAL_FILTER_ATTRIBUTES_DESC" />
 	</fieldset>
 
 	<fieldset
