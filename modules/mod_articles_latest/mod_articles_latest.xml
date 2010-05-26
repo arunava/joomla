@@ -18,8 +18,7 @@
 			module="mod_articles_latest">mod_articles_latest.php</filename>
 		<folder>tmpl</folder>
 		<filename>helper.php</filename>
-		<filename>index.php</filename>
-		<filename>mod_articles_latest.xml</filename>
+		<filename>index.html</filename>		<filename>mod_articles_latest.xml</filename>
 	</files>
 	<languages>
 		<language
@@ -63,11 +62,7 @@
 						value="not_me">MOD_LATEST_NEWS_VALUE_NOTADDED_BY_ME</option>
 				</field>
 
-				<field
-					name="spacer1"
-					type="spacer"
-					hr="true"
-					/>
+
 
 				<field
 					name="show_front"
@@ -85,8 +80,7 @@
 					name="catid"
 					type="category"
 					extension="com_content"
-					default=""
-					label="MOD_LATEST_NEWS_FIELD_CATEGORY_LABEL"
+					label="JCATEGORY"
 					description="MOD_LATEST_NEWS_FIELD_CATEGORY_DESC" />
 			</fieldset>
 
@@ -101,7 +95,6 @@
 				<field
 					name="moduleclass_sfx"
 					type="text"
-					default=""
 					label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
 					description="COM_MODULES_FIELD_MODULECLASS_SFX_DESC" />
 
@@ -126,7 +119,6 @@
 				<field
 					name="cachemode"
 					type="hidden"
-					label=""
 					default="static">
 					<option
 						value="static"></option>

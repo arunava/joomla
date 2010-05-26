@@ -46,7 +46,6 @@
 			</field>
 
 			<field name="page_subheading" type="text"
-				default=""
 				description="JGLOBAL_SUBHEADING_DESC"
 				label="JGLOBAL_SUBHEADING_LABEL"
 				size="10"
@@ -128,7 +127,7 @@
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
-				<option value="modified">JGLOBAL_CREATED</option>
+				<option value="created">JGLOBAL_CREATED</option>
 				<option value="modified">JGLOBAL_MODIFIED</option>
 				<option value="published">JPUBLISHED</option>
 			</field>
@@ -415,24 +414,6 @@
 </fieldset>
 		<fieldset name="integration"
 		>
-
-			<field name="article-allow_ratings" type="list"
-				description="JGLOBAL_ALLOW_RATINGS_DESC"
-				label="JGLOBAL_ALLOW_RATINGS_LABEL"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNO</option>
-				<option value="1">JYES</option>
-			</field>
-
-			<field name="article-allow_comments" type="list"
-				description="JGLOBAL_ALLOW_COMMENTS_DESC"
-				label="JGLOBAL_ALLOW_COMMENTS_LABEL"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNO</option>
-				<option value="1">JYES</option>
-			</field>
 
 			<field name="show_feed_link" type="list"
 				description="JGLOBAL_SHOW_FEED_LINK_DESC"

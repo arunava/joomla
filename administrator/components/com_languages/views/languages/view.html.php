@@ -49,7 +49,7 @@ class LanguagesViewLanguages extends JView
 	 */
 	protected function addToolbar()
 	{
-		JToolBarHelper::title(JText::_('COM_LANGUAGES_VIEW_LANGUAGES_TITLE'), 'generic.png');
+		JToolBarHelper::title(JText::_('COM_LANGUAGES_VIEW_LANGUAGES_TITLE'), 'langmanager.png');
 		JToolBarHelper::addNew('language.add','JTOOLBAR_NEW');
 		JToolBarHelper::editList('language.edit','JTOOLBAR_EDIT');
 		JToolBarHelper::divider();
@@ -63,6 +63,6 @@ class LanguagesViewLanguages extends JView
 		JToolBarHelper::divider();
 		JToolBarHelper::preferences('com_languages');
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.languages','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_LANGUAGE_MANAGER_CONTENT');
 	}
 }

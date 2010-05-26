@@ -35,34 +35,34 @@ JHtml::_('behavior.formvalidation');
 	<div class="width-60 fltlft">
 		<fieldset class="adminform">
 			<legend><?php echo JText::_('COM_CATEGORIES_FIELDSET_DETAILS');?></legend>
+			<ul class="adminformlist">
+				<li><?php echo $this->form->getLabel('title'); ?>
+				<?php echo $this->form->getInput('title'); ?></li>
 
-			<?php echo $this->form->getLabel('title'); ?>
-			<?php echo $this->form->getInput('title'); ?>
+				<li><?php echo $this->form->getLabel('alias'); ?>
+				<?php echo $this->form->getInput('alias'); ?></li>
 
-			<?php echo $this->form->getLabel('alias'); ?>
-			<?php echo $this->form->getInput('alias'); ?>
+				<li><?php echo $this->form->getLabel('note'); ?>
+				<?php echo $this->form->getInput('note'); ?></li>
 
-			<?php echo $this->form->getLabel('note'); ?>
-			<?php echo $this->form->getInput('note'); ?>
+				<li><?php echo $this->form->getLabel('extension'); ?>
+				<?php echo $this->form->getInput('extension'); ?></li>
 
-			<?php echo $this->form->getLabel('extension'); ?>
-			<?php echo $this->form->getInput('extension'); ?>
+				<li><?php echo $this->form->getLabel('parent_id'); ?>
+				<?php echo $this->form->getInput('parent_id'); ?></li>
 
-			<?php echo $this->form->getLabel('parent_id'); ?>
-			<?php echo $this->form->getInput('parent_id'); ?>
+				<li><?php echo $this->form->getLabel('published'); ?>
+				<?php echo $this->form->getInput('published'); ?></li>
 
-			<?php echo $this->form->getLabel('published'); ?>
-			<?php echo $this->form->getInput('published'); ?>
+				<li><?php echo $this->form->getLabel('access'); ?>
+				<?php echo $this->form->getInput('access'); ?></li>
 
-			<?php echo $this->form->getLabel('access'); ?>
-			<?php echo $this->form->getInput('access'); ?>
+				<li><?php echo $this->form->getLabel('language'); ?>
+				<?php echo $this->form->getInput('language'); ?></li>
 
-			<?php echo $this->form->getLabel('language'); ?>
-			<?php echo $this->form->getInput('language'); ?>
-
-			<?php echo $this->form->getLabel('id'); ?>
-			<?php echo $this->form->getInput('id'); ?>
-
+				<li><?php echo $this->form->getLabel('id'); ?>
+				<?php echo $this->form->getInput('id'); ?></li>
+			</ul>
 			<div class="clr"></div>
 			<?php echo $this->form->getLabel('description'); ?>
 			<div class="clr"></div>

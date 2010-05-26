@@ -29,45 +29,45 @@ JHtml::_('behavior.formvalidation');
 	<div class="width-60 fltlft">
 		<fieldset class="adminform">
 			<legend><?php echo JText::_('JDETAILS') ?></legend>
-
-			<?php echo $this->form->getLabel('name'); ?>
+			<ul class="adminformlist">
+			<li><?php echo $this->form->getLabel('name'); ?>
 			<?php echo $this->form->getInput('name'); ?>
-			<input type="text" value="<?php echo JText::_($this->item->name);?>" class="readonly" readonly="readonly" size="35" />
+			<span class="readonly plg-name"><?php echo JText::_($this->item->name);?></span></li>
 
-			<?php echo $this->form->getLabel('enabled'); ?>
-			<?php echo $this->form->getInput('enabled'); ?>
+			<li><?php echo $this->form->getLabel('enabled'); ?>
+			<?php echo $this->form->getInput('enabled'); ?></li>
 
-			<?php echo $this->form->getLabel('access'); ?>
-			<?php echo $this->form->getInput('access'); ?>
+			<li><?php echo $this->form->getLabel('access'); ?>
+			<?php echo $this->form->getInput('access'); ?></li>
 
-			<?php echo $this->form->getLabel('ordering'); ?>
-			<?php echo $this->form->getInput('ordering'); ?>
+			<li><?php echo $this->form->getLabel('ordering'); ?>
+			<?php echo $this->form->getInput('ordering'); ?></li>
 
-			<?php echo $this->form->getLabel('folder'); ?>
-			<?php echo $this->form->getInput('folder'); ?>
+			<li><?php echo $this->form->getLabel('folder'); ?>
+			<?php echo $this->form->getInput('folder'); ?></li>
 
-			<?php echo $this->form->getLabel('element'); ?>
-			<?php echo $this->form->getInput('element'); ?>
+			<li><?php echo $this->form->getLabel('element'); ?>
+			<?php echo $this->form->getInput('element'); ?></li>
 
 			<?php if ($this->item->extension_id) : ?>
-				<?php echo $this->form->getLabel('extension_id'); ?>
-				<?php echo $this->form->getInput('extension_id'); ?>
+				<li><?php echo $this->form->getLabel('extension_id'); ?>
+				<?php echo $this->form->getInput('extension_id'); ?></li>
 			<?php endif; ?>
-
-			<br class="clr" />
-
+			</ul>
 			<!-- Plugin metadata -->
 			<?php if ($this->item->xml) : ?>
 				<?php if ($text = trim($this->item->xml->description)) : ?>
-					<label>
+					<label id="jform_extdescription-lbl">
 						<?php echo JText::_('COM_PLUGINS_DESCRIPTION'); ?>
-					</label>
-					<?php echo JText::_($text); ?>
+						</label>
+						<div class="clr"></div>
+						<span class="readonly plg-desc"><?php echo JText::_($text); ?></span>
+					
 				<?php endif; ?>
 			<?php else : ?>
 				<?php echo JText::_('COM_PLUGINS_XML_ERR'); ?>
 			<?php endif; ?>
-
+			
 		</fieldset>
 	</div>
 

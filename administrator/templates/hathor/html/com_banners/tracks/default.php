@@ -12,7 +12,7 @@
 defined('_JEXEC') or die;
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
-JHtml::_('script','multiselect.js');
+JHtml::_('script','system/multiselect.js',false,true);
 JHtml::_('behavior.modal', 'a.modal');
 $user	= JFactory::getUser();
 $userId	= $user->get('id');
@@ -25,10 +25,10 @@ $listDirn	= $this->state->get('list.direction');
 		<div class="filter-search">
 
 			<label class="filter-hide-lbl" for="filter_begin"><?php echo JText::_('COM_BANNERS_BEGIN_LABEL'); ?></label>
-			<?php echo JHtml::_('calendar',$this->state->get('filter.begin'), 'filter_begin','filter_begin','%Y-%m-%d' , array('size'=>10,'onchange'=>'this.form.submit()'));?>
+			<?php echo JHtml::_('calendar',$this->state->get('filter.begin'), 'filter_begin','filter_begin','%Y-%m-%d' , array('size'=>10));?>
 
 			<label class="filter-hide-lbl" for="filter_end"><?php echo JText::_('COM_BANNERS_END_LABEL'); ?></label>
-			<?php echo JHtml::_('calendar',$this->state->get('filter.end'), 'filter_end', 'filter_end','%Y-%m-%d' ,array('size'=>10,'onchange'=>'this.form.submit()'));?>
+			<?php echo JHtml::_('calendar',$this->state->get('filter.end'), 'filter_end', 'filter_end','%Y-%m-%d' ,array('size'=>10));?>
 
 		</div>
 		<div class="filter-select">
@@ -58,7 +58,7 @@ $listDirn	= $this->state->get('list.direction');
 			</select>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('GO'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 
 		</div>
 	</fieldset>

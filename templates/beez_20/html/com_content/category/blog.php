@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 $app = JFactory::getApplication();
 $templateparams =$app->getTemplate(true)->params;
 
-if($templateparams->get('html5')!=1)
+if ($templateparams->get('html5')!=1)
 {
 	require(JPATH_BASE.'/components/com_content/views/category/tmpl/blog.php');
 	//evtl. ersetzen durch JPATH_COMPONENT.'/views/...'
@@ -41,7 +41,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 <?php if ($this->params->get('show_description', 1) || $this->params->def('show_description_image', 1)) : ?>
 	<div class="category-desc">
 	<?php if ($this->params->get('show_description_image') && $this->category->getParams()->get('image')) : ?>
-		<img src="images/<?php echo $this->category->getParams()->get('image'); ?>"/>
+		<img src="<?php echo $this->category->getParams()->get('image'); ?>"/>
 	<?php endif; ?>
 	<?php if ($this->params->get('show_description') && $this->category->description) : ?>
 		<?php echo JHtml::_('content.prepare', $this->category->description); ?>
@@ -80,7 +80,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 		$rowcount=( ((int)$key-1) %	(int) $this->columns) +1;
 		$row = $counter / $this->columns ;
 
-		if($rowcount==1) : ?>
+		if ($rowcount==1) : ?>
 	<div class="items-row cols-<?php echo (int) $this->columns;?> <?php echo 'row-'.$row ; ?>">
 	<?php endif; ?>
 	<article class="item column-<?php echo $rowcount;?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
@@ -110,7 +110,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 	<?php if (is_array($this->children[$this->category->id]) && count($this->children[$this->category->id]) > 0 && $this->params->get('maxLevel') !=0) : ?>
 		<div class="cat-children">
 		<h3>
-<?php echo JTEXT::_('COM_CONTENT_CHILDREN'); ?>
+<?php echo JTEXT::_('JGLOBAL_SUBCATEGORIES'); ?>
 </h3>
 			<?php echo $this->loadTemplate('children'); ?>
 		</div>

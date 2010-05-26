@@ -46,8 +46,14 @@ $n = count($this->items);
 				<?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions'), 'value', 'text', $this->state->get('filter.published'), true);?>
 			</select>
 
+			<label class="selectlabel" for="filter_language"><?php echo JText::_('JOPTION_SELECT_LANGUAGE'); ?></label>
+			<select name="filter_language" id="filter_language" class="inputbox">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
+			</select>
+
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('GO'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 		</div>
 	</fieldset>
 	<div class="clr"> </div>
@@ -59,7 +65,7 @@ $n = count($this->items);
 					<input type="checkbox" name="toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?> " onclick="checkAll(this)" />
 				</th>
 				<th class="title">
-					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_TITLE', 'a.title', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap state-col">
 					<?php echo JHtml::_('grid.sort', 'JPUBLISHED', 'a.state', $listDirn, $listOrder); ?>
@@ -83,6 +89,9 @@ $n = count($this->items);
 				<th class="hits-col">
 					<?php echo JHtml::_('grid.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
 				</th>
+				<th class="language-col">
+					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_LANGUAGE', 'language', $listDirn, $listOrder); ?>
+				</th>
 				<th class="nowrap id-col">
 					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
 				</th>
@@ -96,7 +105,8 @@ $n = count($this->items);
 			$assetId	= 'com_content.article.'.$item->id;
 			$canCreate	= $user->authorise('core.create',		'com_content.category.'.$item->catid);
 			$canEdit	= $user->authorise('core.edit',			'com_content.article.'.$item->id);
-			$canChange	= $user->authorise('core.edit.state',	'com_content.article.'.$item->id);
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id') || $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_content.article.'.$item->id) && $canCheckin;
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
 				<th class="center">
@@ -104,7 +114,7 @@ $n = count($this->items);
 				</th>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'featured.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canCreate || $canEdit) : ?>
 					<a href="<?php echo JRoute::_('index.php?option=com_content&task=article.edit&id='.$item->id);?>">
@@ -138,10 +148,17 @@ $n = count($this->items);
 					<?php echo $this->escape($item->author_name); ?>
 				</td>
 				<td class="center">
-					<?php echo JHTML::_('date',$item->created, '%Y.%m.%d'); ?>
+					<?php echo JHTML::_('date',$item->created, 'Y-m-d'); ?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->hits; ?>
+				</td>
+				<td class="center">
+					<?php if ($item->language=='*'):?>
+						<?php echo JText::_('JALL'); ?>
+					<?php else:?>
+						<?php echo $item->language_title ? $this->escape($item->language_title) : JText::_('JUNDEFINED'); ?>
+					<?php endif;?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->id; ?>

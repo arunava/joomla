@@ -32,24 +32,7 @@ defined('_JEXEC') or die;
 	<?php if ($this->params->get('logindescription_show') == 1 || $this->params->get('login_image') != '') : ?>
 	</div>
 	<?php endif ; ?>
-	<ul>
-		<li>
-			<a href="<?php echo JRoute::_('index.php?option=com_users&view=reset'); ?>">
-			<?php echo JText::_('COM_USERS_LOGIN_RESET'); ?></a>
-		</li>
-		<li>
-			<a href="<?php echo JRoute::_('index.php?option=com_users&view=remind'); ?>">
-			<?php echo JText::_('COM_USERS_LOGIN_REMIND'); ?></a>
-		</li>
-		<?php
-		$usersConfig = &JComponentHelper::getParams('com_users');
-		if ($usersConfig->get('allowUserRegistration')) : ?>
-		<li>
-			<a href="<?php echo JRoute::_('index.php?option=com_users&view=registration'); ?>">
-				<?php echo JText::_('COM_USERS_LOGIN_REGISTER'); ?></a>
-		</li>
-		<?php endif; ?>
-	</ul>
+
 	<form action="<?php echo JRoute::_('index.php?option=com_users&task=user.login'); ?>" method="post">
 
 		<fieldset>
@@ -61,7 +44,7 @@ defined('_JEXEC') or die;
 			<?php endforeach; ?>
 		</fieldset>
 
-		<button type="submit" class="button">Submit</button>
+		<button type="submit" class="button"><?php echo JText::_('JLOGIN'); ?></button>
 		<?php echo JHtml::_('form.token'); ?>
 	</form>
 </div>

@@ -36,11 +36,12 @@ class PluginsModelPlugin extends JModelAdmin
 	/**
 	 * Method to get the record form.
 	 *
-	 * @param	array		An optional array of source data.
-	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm($data = null)
+	public function getForm($data = array(), $loadData = true)
 	{
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
@@ -48,8 +49,8 @@ class PluginsModelPlugin extends JModelAdmin
 			$folder		= $item->folder;
 			$element	= $item->element;
 		} else {
-			$folder		= JArrayHelper::getValue($data, 'folder', '', 'word');
-			$element	= JArrayHelper::getValue($data, 'element', '', 'word');
+			$folder		= JArrayHelper::getValue($data, 'folder', '', 'cmd');
+			$element	= JArrayHelper::getValue($data, 'element', '', 'cmd');
 		}
 
 		// These variables are used to add data from the plugin XML files.
@@ -57,7 +58,7 @@ class PluginsModelPlugin extends JModelAdmin
 		$this->setState('item.element',	$element);
 
 		// Get the form.
-		$form = parent::getForm('com_plugins.plugin', 'plugin', array('control' => 'jform'));
+		$form = $this->loadForm('com_plugins.plugin', 'plugin', array('control' => 'jform', 'load_data' => $loadData));
 		if (empty($form)) {
 			return false;
 		}
@@ -71,7 +72,7 @@ class PluginsModelPlugin extends JModelAdmin
 	 * @return	mixed	The data for the form.
 	 * @since	1.6
 	 */
-	protected function getFormData()
+	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
 		$data = JFactory::getApplication()->getUserState('com_plugins.edit.plugin.data', array());
@@ -163,6 +164,10 @@ class PluginsModelPlugin extends JModelAdmin
 		$lang		= JFactory::getLanguage();
 		$client		= JApplicationHelper::getClientInfo(0);
 
+		if (empty($folder) || empty($element)) {
+			$app = JFactory::getApplication();
+			$app->redirect(JRoute::_('index.php?option=com_plugins&view=plugins',false));
+		}
 		// Try 1.6 format: /plugins/folder/element/element.xml
 		$formFile = JPath::clean($client->path.'/plugins/'.$folder.'/'.$element.'/'.$element.'.xml');
 		if (!file_exists($formFile)) {

@@ -57,7 +57,7 @@ class JInstallationModelConfiguration extends JModel
 		/* Debug Settings */
 		$registry->set('debug', 0);
 		$registry->set('debug_lang', 0);
-		$registry->set('debug_modules', 1);
+		$registry->set('debug_modules', 0);
 
 		/* Database Settings */
 		$registry->set('dbtype', $options->db_type);
@@ -72,7 +72,7 @@ class JInstallationModelConfiguration extends JModel
 		$registry->set('secret', JUserHelper::genRandomPassword(16));
 		$registry->set('gzip', 0);
 		$registry->set('error_reporting', -1);
-		$registry->set('helpurl', 'http://help.joomla.org');
+		$registry->set('helpurl', 'http://help.joomla.org/proxy/index.php?option=com_help&amp;keyref=Help{major}{minor}:{keyref}');
 		$registry->set('xmlrpc_server', 0);
 		$registry->set('ftp_host', $options->ftp_host);
 		$registry->set('ftp_port', $options->ftp_port);
@@ -216,6 +216,7 @@ class JInstallationModelConfiguration extends JModel
 		$cryptpass = $crypt.':'.$salt;
 
 		// create the admin user
+		date_default_timezone_set('UTC');
 		$installdate	= date('Y-m-d H:i:s');
 		$nullDate		= $db->getNullDate();
 		$query	= 'INSERT INTO #__users SET'

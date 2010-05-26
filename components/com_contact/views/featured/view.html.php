@@ -1,6 +1,8 @@
 <?php
 /**
- * @version		
+ * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	com_contact
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -128,9 +130,11 @@ class ContactViewFeatured extends JView
 		}
 
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 

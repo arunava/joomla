@@ -93,7 +93,7 @@ endif; ?>
 <tr>
 	<td valign="top">
 		<span class="small">
-			<?php JText::printf( 'WRITTEN_BY', ($this->escape($this->article->created_by_alias) ? $this->escape($this->article->created_by_alias) : $this->escape($this->article->author)) ); ?>
+			<?php JText::printf( 'COM_CONTENT_WRITTEN_BY', ($this->escape($this->article->created_by_alias) ? $this->escape($this->article->created_by_alias) : $this->escape($this->article->author)) ); ?>
 		</span>
 		&nbsp;&nbsp;
 	</td>
@@ -129,7 +129,7 @@ endif; ?>
 <?php if ( intval($this->article->modified) !=0 && $this->params->get('show_modify_date')) : ?>
 <tr>
 	<td class="modifydate">
-		<?php echo JText::sprintf('LAST_UPDATED2', JHTML::_('date',$this->article->modified, JText::_('DATE_FORMAT_LC2'))); ?>
+		<?php echo JText::sprintf('COM_CONTENT_LAST_UPDATED', JHTML::_('date',$this->article->modified, JText::_('DATE_FORMAT_LC2'))); ?>
 	</td>
 </tr>
 <?php endif; ?>

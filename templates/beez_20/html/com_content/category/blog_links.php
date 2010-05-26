@@ -10,10 +10,10 @@
 // no direct access
 defined('_JEXEC') or die;
 $params =& $this->item->params;
-$$app = JFactory::getApplication();
+$app = JFactory::getApplication();
 $templateparams =$app->getTemplate(true)->params;
 
-if($templateparams->get('html5')!=1)
+if ($templateparams->get('html5')!=1)
 {
 	require(JPATH_BASE.'/components/com_content/views/category/tmpl/blog_links.php');
 	//evtl. ersetzen durch JPATH_COMPONENT.'/views/...'
@@ -25,15 +25,15 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers');
 <div class="items-more">
 <h3><?php echo JText::_('COM_CONTENT_MORE_ARTICLES'); ?></h3>
 
-<ol>
+<ol class="links">
 
 <?php
 	foreach ($this->link_items as &$item) :
 ?>
 		 <li>
-          		<a href="<?php echo JRoute::_(ContentHelperRoute::getArticleRoute($item->slug, $item->catid)); ?>">
+		  		<a href="<?php echo JRoute::_(ContentHelperRoute::getArticleRoute($item->slug, $item->catid)); ?>">
 			<?php echo $item->title; ?></a>
-        </li>
+		</li>
 <?php endforeach; ?>
 	</ol>
 </div>

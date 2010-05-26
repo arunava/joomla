@@ -29,9 +29,9 @@ $app			= JFactory::getApplication();
 $templateparams	= $app->getTemplate(true)->params;
 ?>
 <?php if(!$templateparams->get('html5', 0)): ?>
-	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <?php else: ?>
-	<!DOCTYPE html>
+	<?php echo '<!DOCTYPE html>'; ?>
 <?php endif; ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->language; ?>" lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" >
 	<head>
@@ -58,11 +58,11 @@ $templateparams	= $app->getTemplate(true)->params;
 		<script type="text/javascript">
 			var big ='<?php echo $this->params->get('wrapperLarge');?>%';
 			var small='<?php echo $this->params->get('wrapperSmall'); ?>%';
-			var altopen='<?php echo JText::_('TPL_BEEZ2_ALTOPEN'); ?>';
-			var altclose='<?php echo JText::_('TPL_BEEZ2_ALTCLOSE'); ?>';
+			var altopen='<?php echo JText::_('TPL_BEEZ2_ALTOPEN',true); ?>';
+			var altclose='<?php echo JText::_('TPL_BEEZ2_ALTCLOSE',true); ?>';
 			var bildauf='<?php echo $this->baseurl ?>/templates/beez_20/images/plus.png';
 			var bildzu='<?php echo $this->baseurl ?>/templates/beez_20/images/minus.png';
-			var rightopen='<?php echo JText::_('TPL_BEEZ2_TEXTRIGHTOPEN'); ?>';
+			var rightopen='<?php echo JText::_('TPL_BEEZ2_TEXTRIGHTOPEN',true); ?>';
 			var rightclose='<?php echo JText::_('TPL_BEEZ2_TEXTRIGHTCLOSE'); ?>';
 		</script>
 
@@ -70,46 +70,39 @@ $templateparams	= $app->getTemplate(true)->params;
 
 	<body>
 
-		<div id="all">
-
-			<div id="back">
-
-			<?php if(!$templateparams->get('html5', 0)): ?>
-				<div id="header">
+<div id="all">
+	<div id="back">
+	<?php if(!$templateparams->get('html5', 0)): ?>
+		<div id="header">
 			<?php else: ?>
-				<header id="header">
+		<header id="header">
 			<?php endif; ?>
+				<div class="logoheader">
+					<h1 id="logo">
 
-					<div class="logoheader">
-						<h1 id="logo">
-							<?php if ($logo != '-1' ): ?>
-								<img src="<?php echo $this->baseurl ?>/images/<?php echo $logo; ?>"  alt="<?php echo JText::_('Logo Beez'); ?>" />
-							<?php endif;?>
-								<?php if ($logo == '-1' ): ?>
-								Beez 2.0
-							<?php endif; ?>
-							<span class="header1"><?php echo JText::_('TPL_BEEZ2_YOUR_SITE_DESCRIPTION'); ?></span>
-						</h1>
-					</div><!-- end logoheader -->
+					<?php if ($logo != '-1' ): ?>
+					<img src="<?php echo $this->baseurl ?>/images/<?php echo $logo; ?>"  alt="<?php echo JText::_('TPL_BEEZ2_LOGO'); ?>" />
+					<?php endif;?>
+					<?php if ($logo == '-1' ): ?>
+					<?php echo $templateparams->get('sitetitle');?>
+					<?php endif; ?>
+					<span class="header1">
+					<?php echo $templateparams->get('sitedescription');?>
+					</span></h1>
+				</div><!-- end logoheader -->
 
 					<ul class="skiplinks">
 						<li><a href="#main" class="u2"><?php echo JText::_('TPL_BEEZ2_SKIP_TO_CONTENT'); ?></a></li>
 						<li><a href="#nav" class="u2"><?php echo JText::_('TPL_BEEZ2_JUMP_TO_NAV'); ?></a></li>
-					   <?php if($showRightColumn ):?>
-					   <li><a href="#additional" class="u2"><?php echo JText::_('TPL_BEEZ2_JUMP_TO_INFO'); ?></a></li>
+					    <?php if($showRightColumn ):?>
+					    <li><a href="#additional" class="u2"><?php echo JText::_('TPL_BEEZ2_JUMP_TO_INFO'); ?></a></li>
 					   <?php endif; ?>
 					</ul>
-
-
-                   			<h2 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAV_VIEW_SEARCH'); ?></h2>
+                   	<h2 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAV_VIEW_SEARCH'); ?></h2>
 					<h3 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAVIGATION'); ?></h3>
-
 					<jdoc:include type="modules" name="position-1" />
-
 					<div id="line">
-
-
-						<div id="fontsize">
+					<div id="fontsize">
 							<script type="text/javascript">
 							//<![CDATA[
 							document.write('<h3><?php echo JText::_('TPL_BEEZ2_FONTSIZE'); ?></h3><p class="fontsize">');
@@ -118,19 +111,17 @@ $templateparams	= $app->getTemplate(true)->params;
 							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_DECREASE_SIZE'); ?>" onclick="changeFontSize(-2); return false;" class="smaller"><?php echo JText::_('TPL_BEEZ2_SMALLER'); ?></a><span class="unseen">&nbsp;</span></p>');
 							//]]>
 							</script>
-						</div>
-
-						<h3 class="unseen"><?php echo JText::_('TPL_BEEZ2_SEARCH'); ?></h3>
-						<jdoc:include type="modules" name="position-0" />
-					  </div>
+					</div>
+					<h3 class="unseen"><?php echo JText::_('TPL_BEEZ2_SEARCH'); ?></h3>
+					<jdoc:include type="modules" name="position-0" />
+					</div> <!-- end line -->
 
 			<?php if (!$templateparams->get('html5', 0)): ?>
-				</div><!-- end header -->
+			</div><!-- end header -->
 			<?php else: ?>
-				</header><!-- end header -->
+			</header><!-- end header -->
 			<?php endif; ?>
-
-				<div id="<?php echo $showRightColumn ? 'contentarea2' : 'contentarea'; ?>">
+		<div id="<?php echo $showRightColumn ? 'contentarea2' : 'contentarea'; ?>">
 					<div id="breadcrumbs">
 						<p>
 							<?php echo JText::_('TPL_BEEZ2_YOU_ARE_HERE'); ?>
@@ -170,7 +161,7 @@ $templateparams	= $app->getTemplate(true)->params;
 						<?php if ($this->getBuffer('message')) : ?>
 							<div class="error">
 								<h2>
-									<?php echo JText::_('TPL_BEEZ2_SYSTEM_MESSAGE'); ?>
+									<?php echo JText::_('JNOTICE'); ?>
 								</h2>
 								<jdoc:include type="message" />
 							</div>
@@ -189,7 +180,7 @@ $templateparams	= $app->getTemplate(true)->params;
 					<div id="close">
 						<a href="#" onclick="auf('right')">
 							<span id="bild">
-								<?php echo JText::_('TPL_BEEZ2_TEXTRIGHTOPEN'); ?></span></a>
+								<?php echo JText::_('TPL_BEEZ2_TEXTRIGHTCLOSE'); ?></span></a>
 					</div>
 
 				<?php if (!$templateparams->get('html5', 0)): ?>

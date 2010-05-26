@@ -9,7 +9,7 @@
 
 defined('_JEXEC') or die;
 
-require_once(JPATH_COMPONENT.'/controller.php');
+require_once JPATH_COMPONENT.'/controller.php';
 
 /**
  * Profile controller class for Users.
@@ -70,7 +70,7 @@ class UsersControllerProfile extends UsersController
 	public function save()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
 		$app	= JFactory::getApplication();
@@ -127,7 +127,7 @@ class UsersControllerProfile extends UsersController
 
 			// Redirect back to the edit screen.
 			$userId = (int)$app->getUserState('com_users.edit.profile.id');
-			$this->setMessage(JText::sprintf('USERS PROFILE SAVE FAILED', $model->getError()), 'notice');
+			$this->setMessage(JText::sprintf('COM_USERS_PROFILE_SAVE_FAILED', $model->getError()), 'notice');
 			$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&user_id='.$userId, false));
 			return false;
 		}
@@ -140,7 +140,7 @@ class UsersControllerProfile extends UsersController
 				$model->checkout($return);
 
 				// Redirect back to the edit screen.
-				$this->setMessage(JText::_('USERS PROFILE SAVE SUCCESS'));
+				$this->setMessage(JText::_('COM_USERS_PROFILE_SAVE_SUCCESS'));
 				$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&layout=edit&hidemainmenu=1', false));
 				break;
 
@@ -155,30 +155,12 @@ class UsersControllerProfile extends UsersController
 				$app->setUserState('com_users.edit.profile.id', null);
 
 				// Redirect to the list screen.
-				$this->setMessage(JText::_('USERS PROFILE SAVE SUCCESS'));
+				$this->setMessage(JText::_('COM_USERS_PROFILE_SAVE_SUCCESS'));
 				$this->setRedirect(JRoute::_('index.php?option=com_users&view=profile&user_id='.$return, false));
 				break;
 		}
 
 		// Flush the data from the session.
 		$app->setUserState('com_users.edit.profile.data', null);
-	}
-
-	/**
-	 * Method to change the user language
-	 *
-	 * @return	void
-	 * @since	1.6
-	 */
-	public function language()
-	{
-		// Initialise variables
-		$tag		= JRequest::getCmd('language','default');
-		$redirect	= JRequest::getVar('redirect');
-		$model		= $this->getModel('Profile', 'UsersModel', array('ignore_request' => true));
-
-		$model->setState('language', $tag=='default' ? '' : $tag);
-		$model->language();
-		$this->setRedirect(JRoute::_(base64_decode($redirect),false));
 	}
 }

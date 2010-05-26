@@ -61,7 +61,7 @@ class TemplatesViewSource extends JView
 		$user		= JFactory::getUser();
 		$canDo		= TemplatesHelper::getActions();
 
-		JToolBarHelper::title(JText::_(''));
+		JToolBarHelper::title(JText::_('COM_TEMPLATES_MANAGER_EDIT_FILE'), 'thememanager');
 
 		// Can save the item.
 		if ($canDo->get('core.edit')) {
@@ -71,6 +71,6 @@ class TemplatesViewSource extends JView
 
 		JToolBarHelper::cancel('source.cancel','JTOOLBAR_CANCEL');
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.source.edit');
+		JToolBarHelper::help('JHELP_EXTENSIONS_TEMPLATE_MANAGER_TEMPLATES_EDIT_SOURCE');
 	}
 }

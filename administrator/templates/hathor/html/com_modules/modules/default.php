@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
 // Include the component HTML helpers.
 JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 JHtml::_('behavior.tooltip');
-JHtml::_('script','multiselect.js');
+JHtml::_('script','system/multiselect.js',false,true);
 $client = $this->state->get('filter.client_id') ? 'administrator' : 'site';
 $user = JFactory::getUser();
 $listOrder	= $this->state->get('list.ordering');
@@ -31,7 +31,7 @@ $listDirn	= $this->state->get('list.direction');
 		</div>
 		<div class="filter-select">
 			<label class="selectlabel" for="filter_client_id">
-				<?php echo JText::_('Filter_Client'); ?>
+				<?php echo JText::_('COM_MODULES_OPTION_SELECT_CLIENT'); ?>
 			</label>
 			<select name="filter_client_id" id="filter_client_id" class="inputbox">
 				<?php echo JHtml::_('select.options', ModulesHelper::getClientOptions(), 'value', 'text', $this->state->get('filter.client_id'));?>
@@ -69,8 +69,16 @@ $listDirn	= $this->state->get('list.direction');
 				<?php echo JHtml::_('select.options', ModulesHelper::getModules($this->state->get('filter.client_id')), 'value', 'text', $this->state->get('filter.module'));?>
 			</select>
 
+			<label class="selectlabel" for="filter_language">
+				<?php echo JText::_('JOPTION_SELECT_LANGUAGE'); ?>
+			</label>
+			<select name="filter_language" id="filter_language" class="inputbox">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
+			</select>
+
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('Go'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 
 		</div>
 	</fieldset>
@@ -83,7 +91,7 @@ $listDirn	= $this->state->get('list.direction');
 					<input type="checkbox" name="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(this)" />
 				</th>
 				<th class="title">
-					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_TITLE', 'title', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'title', $listDirn, $listOrder); ?>
 				</th>
 				<th class="width-20">
 					<?php echo JHtml::_('grid.sort',  'COM_MODULES_HEADING_POSITION', 'position', $listDirn, $listOrder); ?>
@@ -104,7 +112,7 @@ $listDirn	= $this->state->get('list.direction');
 				<th class="title access-col">
 					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_ACCESS', 'access', $listDirn, $listOrder); ?>
 				</th>
-				<th class="width-5">
+				<th class="language-col">
 					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_LANGUAGE', 'language', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap id-col">
@@ -118,7 +126,8 @@ $listDirn	= $this->state->get('list.direction');
 			$ordering	= ($listOrder == 'ordering');
 			$canCreate	= $user->authorise('core.create',		'com_modules');
 			$canEdit	= $user->authorise('core.edit',			'com_modules');
-			$canChange	= $user->authorise('core.edit.state',	'com_modules');
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id') || $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_modules') && $canCheckin;
 		?>
 			<tr class="row<?php echo $i % 2; ?>">
 				<td class="center">
@@ -126,7 +135,7 @@ $listDirn	= $this->state->get('list.direction');
 				</td>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'modules.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canCreate || $canEdit) : ?>
 						<a href="<?php echo JRoute::_('index.php?option=com_modules&task=module.edit&id='.(int) $item->id); ?>">
@@ -145,13 +154,13 @@ $listDirn	= $this->state->get('list.direction');
 				<td class="center">
 					<?php
 						if (is_null($item->pages)) {
-							echo JText::_('COM_MODULES_ASSIGNED_NONE');
+							echo JText::_('JNONE');
 						} else if ($item->pages < 0) {
 							echo JText::_('COM_MODULES_ASSIGNED_VARIES_EXCEPT');
 						} else if ($item->pages > 0) {
 							echo JText::_('COM_MODULES_ASSIGNED_VARIES_ONLY');
 						} else {
-							echo JText::_('COM_MODULES_ASSIGNED_ALL');
+							echo JText::_('JALL');
 						}
 					?>
 				</td>
@@ -175,7 +184,13 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo $this->escape($item->access_level); ?>
 				</td>
 				<td class="center">
-					<?php echo $item->language ? $this->escape($item->language) : JText::_('JDEFAULT'); ?>
+					<?php if ($item->language==''):?>
+						<?php echo JText::_('JDEFAULT'); ?>
+					<?php elseif ($item->language=='*'):?>
+						<?php echo JText::_('JALL'); ?>
+					<?php else:?>
+						<?php echo $item->language_title ? $this->escape($item->language_title) : JText::_('JUNDEFINED'); ?>
+					<?php endif;?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->id; ?>

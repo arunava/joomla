@@ -52,7 +52,7 @@ class LanguagesViewLanguage extends JView
 		JRequest::setVar('hidemainmenu', 1);
 		$isNew = empty($this->item->lang_id);
 
-		JToolBarHelper::title(JText::_($isNew ? 'COM_LANGUAGES_VIEW_LANGUAGE_EDIT_NEW_TITLE' : 'COM_LANGUAGES_VIEW_LANGUAGE_EDIT_EDIT_TITLE'));
+		JToolBarHelper::title(JText::_($isNew ? 'COM_LANGUAGES_VIEW_LANGUAGE_EDIT_NEW_TITLE' : 'COM_LANGUAGES_VIEW_LANGUAGE_EDIT_EDIT_TITLE'), 'langmanager.png');
 		JToolBarHelper::save('language.save','JTOOLBAR_SAVE');
 		JToolBarHelper::apply('language.apply','JTOOLBAR_APPLY');
 		JToolBarHelper::addNew('language.save2new', 'JToolbar_Save_and_new');
@@ -63,6 +63,6 @@ class LanguagesViewLanguage extends JView
 			JToolBarHelper::cancel('language.cancel', 'JToolbar_Close');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.language.edit','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_LANGUAGE_MANAGER_EDIT');
 	}
 }

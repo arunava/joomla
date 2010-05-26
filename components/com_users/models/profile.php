@@ -143,13 +143,15 @@ class UsersModelProfile extends JModelForm
 	 * The base form is loaded from XML and then an event is fired
 	 * for users plugins to extend the form with extra fields.
 	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @param	array	$data		An optional array of data for the form to interogate.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
 	 * @since	1.6
 	 */
-	public function getForm()
+	public function getForm($data = array(), $loadData = true)
 	{
 		// Get the form.
-		$form = parent::getForm('com_users.profile', 'profile', array('control' => 'jform'));
+		$form = $this->loadForm('com_users.profile', 'profile', array('control' => 'jform', 'load_data' => $loadData));
 		if (empty($form)) {
 			return false;
 		}
@@ -163,7 +165,7 @@ class UsersModelProfile extends JModelForm
 	 * @return	mixed	The data for the form.
 	 * @since	1.6
 	 */
-	protected function getFormData()
+	protected function loadFormData()
 	{
 		return $this->getData();
 	}
@@ -244,33 +246,5 @@ class UsersModelProfile extends JModelForm
 		}
 
 		return $user->id;
-	}
-
-	/**
-	 * Method to change the user language
-	 *
-	 * @return	mixed	JException on error|true
-	 * @since	1.6
-	 */
-	public function language()
-	{
-		$user	= JFactory::getUser();
-		$tag	= $this->getState('language');
-		$params	= JComponentHelper::getParams('com_users');
-
-		if ($user->id && $params->get('autosave_language') == 1) {
-			$user->setParam('language', $tag);
-			// Save the user to the database.
-			if (!$user->save(true)) {
-				return new JException(JText::sprintf('USERS_USER_SAVE_FAILED', $user->getError()), 500);
-			}
-		}
-
-		$config = JFactory::getConfig();
-		$cookie_domain = $config->get('config.cookie_domain', '');
-		$cookie_path = $config->get('config.cookie_path', '/');
-		setcookie(JUtility::getHash('language'), $tag, time() + 365 * 86400, $cookie_path, $cookie_domain);
-
-		return true;
 	}
 }

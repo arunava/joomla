@@ -33,18 +33,14 @@ JHtml::_('behavior.formvalidation');
 	<div class="width-100">
 		<fieldset class="adminform">
 			<legend><?php echo JText::_('COM_USERS_USERGROUP_DETAILS');?></legend>
-			<?php echo $this->form->getLabel('title'); ?>
-			<?php echo $this->form->getInput('title'); ?>
+			<ul class="adminformlist">
+				<li><?php echo $this->form->getLabel('title'); ?>
+				<?php echo $this->form->getInput('title'); ?></li>
 
-			<?php echo $this->form->getLabel('parent_id'); ?>
-			<?php echo $this->form->getInput('parent_id'); ?>
-		</fieldset>
-	</div>
-
-	<div class="width-50">
-		<fieldset id="user-groups">
-			<legend><?php echo JText::_('COM_USERS_ACTIONS_AVAILABLE');?></legend>
-			<?php //echo JHtml::_('access.actions', 'jform[actions]', $this->item->actions); ?>
+				<?php $parent_id = $this->form->getField('parent_id');?>
+				<li><?php if (!$parent_id->hidden) echo $parent_id->label; ?>
+				<?php echo $parent_id->input; ?></li>
+			</ul>
 		</fieldset>
 	</div>
 

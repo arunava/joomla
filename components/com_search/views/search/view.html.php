@@ -57,8 +57,11 @@ class SearchViewSearch extends JView
 			$params->set('page_title',	JText::_('COM_SEARCH_SEARCH'));
 		}
 
-		$document	= &JFactory::getDocument();
-		$document->setTitle($params->get('page_title'));
+		$title = $params->get('page_title');
+		if ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
+		}
+		$this->document->setTitle($title);
 
 		// built select lists
 		$orders = array();
@@ -66,7 +69,7 @@ class SearchViewSearch extends JView
 		$orders[] = JHtml::_('select.option',  'oldest', JText::_('COM_SEARCH_OLDEST_FIRST'));
 		$orders[] = JHtml::_('select.option',  'popular', JText::_('COM_SEARCH_MOST_POPULAR'));
 		$orders[] = JHtml::_('select.option',  'alpha', JText::_('COM_SEARCH_ALPHABETICAL'));
-		$orders[] = JHtml::_('select.option',  'category', JText::_('COM_SEARCH_CATEGORY'));
+		$orders[] = JHtml::_('select.option',  'category', JText::_('JCATEGORY'));
 
 		$lists = array();
 		$lists['ordering'] = JHtml::_('select.genericlist', $orders, 'ordering', 'class="inputbox"', 'value', 'text', $state->get('ordering'));
@@ -122,7 +125,7 @@ class SearchViewSearch extends JView
 					$needle = $searchwords[0];
 				}
 
-				$row = SearchHelper::prepareSearchContent($row, 200, $needle);
+				$row = SearchHelper::prepareSearchContent($row, $needle);
 				$searchwords = array_unique($searchwords);
 				$searchRegex = '#(';
 				$x = 0;
@@ -149,7 +152,7 @@ class SearchViewSearch extends JView
 			}
 		}
 
-		$this->result	= JText::sprintf('COM_SEARCH_TOTALRESULTSFOUND', $total);
+		$this->result	= $total;
 
 		$this->assignRef('pagination',  $pagination);
 		$this->assignRef('results',		$results);

@@ -44,7 +44,16 @@ class MenusModelItems extends JModelList
 		$level = $app->getUserStateFromRequest($this->context.'.filter.level', 'filter_level', 0, 'int');
 		$this->setState('filter.level', $level);
 
-		$menuType = $app->getUserStateFromRequest($this->context.'.filter.menutype', 'menutype', 'mainmenu');
+		$menuType = JRequest::getVar('menutype',null);
+		if ($menuType) {
+			if ($menuType != $app->getUserState($this->context.'.filter.menutype')) {
+				$app->setUserState($this->context.'.filter.menutype', $menuType);
+				JRequest::setVar('limitstart', 0);
+			}
+		}
+		else {
+			$menuType = $app->getUserState($this->context.'.filter.menutype','mainmenu');
+		}
 		$this->setState('filter.menutype', $menuType);
 
 		$language = $app->getUserStateFromRequest($this->context.'.filter.language', 'filter_language', '');
@@ -99,7 +108,7 @@ class MenusModelItems extends JModelList
 		// Join over the language
 		$query->select('l.title AS language_title');
 		$query->join('LEFT', '`#__languages` AS l ON l.lang_code = a.language');
-		
+
 		// Join over the users.
 		$query->select('u.name AS editor');
 		$query->join('LEFT', '`#__users` AS u ON u.id = a.checked_out');

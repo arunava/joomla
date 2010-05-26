@@ -32,6 +32,7 @@ class ModulesModelModule extends JModelAdmin
 	 *
 	 * Note. Calling getState in this method will result in recursion.
 	 *
+	 * @return	void
 	 * @since	1.6
 	 */
 	protected function populateState()
@@ -57,6 +58,7 @@ class ModulesModelModule extends JModelAdmin
 	 * Method to delete rows.
 	 *
 	 * @param	array	An array of item ids.
+	 *
 	 * @return	boolean	Returns true on success, false on failure.
 	 * @since	1.6
 	 */
@@ -189,11 +191,13 @@ class ModulesModelModule extends JModelAdmin
 	/**
 	 * Method to get the record form.
 	 *
-	 * @param	array		An optional array of source data.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
 	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm($data = null)
+	public function getForm($data = array(), $loadData = true)
 	{
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
@@ -210,13 +214,13 @@ class ModulesModelModule extends JModelAdmin
 		$this->setState('item.module',		$module);
 
 		// Get the form.
-		$form = parent::getForm('com_modules.module', 'module', array('control' => 'jform'));
+		$form = $this->loadForm('com_modules.module', 'module', array('control' => 'jform', 'load_data' => $loadData));
 		if (empty($form)) {
 			return false;
 		}
 
 		$form->setFieldAttribute('position', 'client', $this->getState('item.client_id') == 0 ? 'site' : 'administrator');
-		
+
 		return $form;
 	}
 
@@ -226,7 +230,7 @@ class ModulesModelModule extends JModelAdmin
 	 * @return	mixed	The data for the form.
 	 * @since	1.6
 	 */
-	protected function getFormData()
+	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
 		$data = JFactory::getApplication()->getUserState('com_modules.edit.module.data', array());
@@ -244,6 +248,7 @@ class ModulesModelModule extends JModelAdmin
 	 * @param	integer	The id of the primary key.
 	 *
 	 * @return	mixed	Object on success, false on failure.
+	 * @since	1.6
 	 */
 	public function getItem($pk = null)
 	{
@@ -290,7 +295,8 @@ class ModulesModelModule extends JModelAdmin
 					$table->module		= $extension->element;
 					$table->client_id	= $extension->client_id;
 				} else {
-					$this->setError('COM_MODULES_ERROR_CANNOT_GET_MODULE');
+					$app = JFactory::getApplication();
+					$app->redirect(JRoute::_('index.php?option=com_modules&view=modules',false));
 					return false;
 				}
 			}
@@ -350,7 +356,9 @@ class ModulesModelModule extends JModelAdmin
 	 * @param	type	The table type to instantiate
 	 * @param	string	A prefix for the table class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
+	 *
 	 * @return	JTable	A database object
+	 * @since	1.6
 	*/
 	public function getTable($type = 'Module', $prefix = 'JTable', $config = array())
 	{
@@ -359,6 +367,9 @@ class ModulesModelModule extends JModelAdmin
 
 	/**
 	 * Prepare and sanitise the table prior to saving.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
 	protected function prepareTable(&$table)
 	{
@@ -381,6 +392,8 @@ class ModulesModelModule extends JModelAdmin
 	/**
 	 * @param	object	A form object.
 	 * @param	mixed	The data expected for the form.
+	 *
+	 * @return	void
 	 * @throws	Exception if there is an error loading the form.
 	 * @since	1.6
 	 */
@@ -390,9 +403,10 @@ class ModulesModelModule extends JModelAdmin
 		jimport('joomla.filesystem.folder');
 
 		// Initialise variables.
+		$lang		= JFactory::getLanguage();
 		$clientId	= $this->getState('item.client_id');
 		$module		= $this->getState('item.module');
-		$lang		= JFactory::getLanguage();
+
 		$client		= JApplicationHelper::getClientInfo($clientId);
 		$formFile	= JPath::clean($client->path.'/modules/'.$module.'/'.$module.'.xml');
 
@@ -417,7 +431,9 @@ class ModulesModelModule extends JModelAdmin
 	 * Method to save the form data.
 	 *
 	 * @param	array	The form data.
+	 *
 	 * @return	boolean	True on success.
+	 * @since	1.6
 	 */
 	public function save($data)
 	{
@@ -550,6 +566,7 @@ class ModulesModelModule extends JModelAdmin
 	 * A protected method to get a set of ordering conditions.
 	 *
 	 * @param	object	A record object.
+	 *
 	 * @return	array	An array of conditions to add to add to ordering queries.
 	 * @since	1.6
 	 */

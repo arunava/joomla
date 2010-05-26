@@ -22,12 +22,36 @@ jimport('joomla.application.component.modelform');
 class WeblinksModelForm extends JModelForm
 {
 	/**
+	 * @since	1.6
+	 */
+	protected $context = 'com_weblinks.edit.weblink';
+
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @return	void
+	 * @since	1.6
+	 */
+	protected function populateState()
+	{
+		$app = JFactory::getApplication();
+
+		// Load the parameters.
+		$params	= $app->getParams();
+		$this->setState('params', $params);
+	}
+
+	/**
 	 * Returns a reference to the a Table object, always creating it
 	 *
 	 * @param	type	The table type to instantiate
 	 * @param	string	A prefix for the table class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
+	 *
 	 * @return	JTable	A database object
+	 * @since	1.6
 	*/
 	public function getTable($type = 'Weblink', $prefix = 'WeblinksTable', $config = array())
 	{
@@ -41,13 +65,16 @@ class WeblinksModelForm extends JModelForm
 	 * @param	string		$xml		The form data. Can be XML string if file flag is set to false.
 	 * @param	array		$options	Optional array of parameters.
 	 * @param	boolean		$clear		Optional argument to force load a new form.
+	 *
 	 * @return	mixed		JForm object on success, False on error.
+	 * @since	1.6
 	 */
-	public function &getForm($xml = 'weblink', $name = 'com_weblinks.weblink', $options = array(), $clear = false)
+	public function getForm($xml = 'weblink', $name = 'com_weblinks.weblink', $options = array(), $clear = false)
 	{
 		$options += array('control' => 'jform');
 
-		$form = parent::getForm($name, $xml, $options);
+		$form = $this->loadForm($name, $xml, $options);
+
 		if (empty($form)) {
 			return false;
 		}
@@ -58,10 +85,11 @@ class WeblinksModelForm extends JModelForm
 	/**
 	 * Method to validate the form data.
 	 *
-	 * @access	public
 	 * @param	object		$form		The form to validate against.
 	 * @param	array		$data		The data to validate.
+	 *
 	 * @return	mixed		Array of filtered data if valid, false otherwise.
+	 * @since	1.6
 	 */
 	public function validate($form, $data)
 	{
@@ -70,6 +98,9 @@ class WeblinksModelForm extends JModelForm
 		return parent::validate($form, $data);
 	}
 
+	/**
+	 * @since	1.6
+	 */
 	protected function _setAccessFilters(&$form, $data)
 	{
 		$user = JFactory::getUser();
@@ -83,6 +114,8 @@ class WeblinksModelForm extends JModelForm
 	 * Prepare and sanitise the table data prior to saving.
 	 *
 	 * @param	JTable	A JTable object.
+	 *
+	 * @return	void
 	 * @since	1.6
 	 */
 	protected function prepareTable(&$table)
@@ -110,8 +143,7 @@ class WeblinksModelForm extends JModelForm
 
 				$table->ordering = $max+1;
 			}
-		}
-		else {
+		} else {
 			// Set the values
 			//$table->modified	= $date->toMySQL();
 			//$table->modified_by	= $user->get('id');

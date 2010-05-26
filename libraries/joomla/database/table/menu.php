@@ -47,7 +47,7 @@ class JTableMenu extends JTableNested
 			$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_CANNOT_UNSET_DEFAULT'));
 			return false;
 		}
-		
+
 		if (is_array($array['params']))
 		{
 			$registry = new JRegistry();
@@ -72,7 +72,7 @@ class JTableMenu extends JTableNested
 		}
 		$this->alias = JApplication::stringURLSafe($this->alias);
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->format('Y-m-d-H-i-s');
 		}
 
 		return true;
@@ -99,6 +99,12 @@ class JTableMenu extends JTableNested
 				$table->checked_out_time='0000-00-00 00:00:00';
 				$table->store();
 			}
+		}
+		// Verify that the alias is unique
+		$table = JTable::getInstance('Menu','JTable');
+		if ($table->load(array('alias'=>$this->alias,'parent_id'=>$this->parent_id)) && ($table->id != $this->id || $this->id==0)) {
+			$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS'));
+			return false;
 		}
 		return parent::store($updateNulls);
 	}

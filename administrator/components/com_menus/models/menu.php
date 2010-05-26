@@ -99,12 +99,15 @@ class MenusModelMenu extends JModelForm
 	/**
 	 * Method to get the menu item form.
 	 *
-	 * @return	mixed	JForm object on success, false on failure.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm()
+	public function getForm($data = array(), $loadData = true)
 	{
 		// Get the form.
-		$form = parent::getForm('com_menus.menu', 'menu', array('control' => 'jform'));
+		$form = $this->loadForm('com_menus.menu', 'menu', array('control' => 'jform', 'load_data' => $loadData));
 		if (empty($form)) {
 			return false;
 		}
@@ -118,7 +121,7 @@ class MenusModelMenu extends JModelForm
 	 * @return	mixed	The data for the form.
 	 * @since	1.6
 	 */
-	protected function getFormData()
+	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
 		$data = JFactory::getApplication()->getUserState('com_menus.edit.menu.data', array());
@@ -164,7 +167,7 @@ class MenusModelMenu extends JModelForm
 
 		// Store the data.
 		if (!$table->store()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
 
@@ -224,7 +227,7 @@ class MenusModelMenu extends JModelForm
 		$db->setQuery(
 			'SELECT id, title, params, position' .
 			' FROM #__modules' .
-			' WHERE module = '.$db->quote('mod_mainmenu')
+			' WHERE module = '.$db->quote('mod_menu')
 		);
 		$modules = $db->loadObjectList();
 

@@ -39,73 +39,70 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 <form action="<?php JRoute::_('index.php?option=com_modules'); ?>" method="post" name="adminForm" id="module-form" class="form-validate">
 	<div class="width-60 fltlft">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('JOPTION_REQUIRED');?>	</legend>
-
-	<!-- Module metadata -->
-
-			<?php echo $this->form->getLabel('title'); ?>
-			<?php echo $this->form->getInput('title'); ?>
-
-			<?php echo $this->form->getLabel('position'); ?>
-			<?php echo $this->form->getInput('custom_position'); ?>
-			<?php echo $this->form->getInput('position'); ?>
-
-			<?php if ((string) $this->item->xml->name != 'Login Form'): ?>
-			<?php echo $this->form->getLabel('published'); ?>
-			<?php echo $this->form->getInput('published'); ?>
-			<?php endif; ?>
-
-			<?php echo $this->form->getLabel('access'); ?>
-			<?php echo $this->form->getInput('access'); ?>
-
-		</fieldset>
-		<fieldset class="adminform">
 			<legend><?php echo JText::_('JDETAILS'); ?></legend>
-			<?php echo $this->form->getLabel('ordering'); ?>
-			<div id="jform_ordering" class="fltlft"><?php echo $this->form->getInput('ordering'); ?></div>
+			<ul class="adminformlist">
 
-			<?php echo $this->form->getLabel('showtitle'); ?>
-			<?php echo $this->form->getInput('showtitle'); ?>
+			<li><?php echo $this->form->getLabel('title'); ?>
+			<?php echo $this->form->getInput('title'); ?></li>
 
-			<?php echo $this->form->getLabel('note'); ?>
-			<?php echo $this->form->getInput('note'); ?>
+			<li><?php echo $this->form->getLabel('position'); ?>
+			<?php echo $this->form->getInput('custom_position'); ?>
+			<?php echo $this->form->getInput('position'); ?></li>
 
 			<?php if ((string) $this->item->xml->name != 'Login Form'): ?>
-			<?php echo $this->form->getLabel('publish_up'); ?>
-			<?php echo $this->form->getInput('publish_up'); ?>
-
-			<?php echo $this->form->getLabel('publish_down'); ?>
-			<?php echo $this->form->getInput('publish_down'); ?>
+			<li><?php echo $this->form->getLabel('published'); ?>
+			<?php echo $this->form->getInput('published'); ?></li>
 			<?php endif; ?>
 
-			<?php echo $this->form->getLabel('language'); ?>
-			<?php echo $this->form->getInput('language'); ?>
+			<li><?php echo $this->form->getLabel('access'); ?>
+			<?php echo $this->form->getInput('access'); ?></li>
+
+			<li><?php echo $this->form->getLabel('ordering'); ?>
+			<?php echo $this->form->getInput('ordering'); ?></li>
+
+			<li><?php echo $this->form->getLabel('showtitle'); ?>
+			<?php echo $this->form->getInput('showtitle'); ?></li>
+
+			<?php if ((string) $this->item->xml->name != 'Login Form'): ?>
+			<li><?php echo $this->form->getLabel('publish_up'); ?>
+			<?php echo $this->form->getInput('publish_up'); ?></li>
+
+			<li><?php echo $this->form->getLabel('publish_down'); ?>
+			<?php echo $this->form->getInput('publish_down'); ?></li>
+			<?php endif; ?>
+
+			<li><?php echo $this->form->getLabel('language'); ?>
+			<?php echo $this->form->getInput('language'); ?></li>
+
+			<li><?php echo $this->form->getLabel('note'); ?>
+			<?php echo $this->form->getInput('note'); ?></li>
 
 			<?php if ($this->item->id) : ?>
-				<?php echo $this->form->getLabel('id'); ?>
-				<?php echo $this->form->getInput('id'); ?>
+				<li><?php echo $this->form->getLabel('id'); ?>
+				<?php echo $this->form->getInput('id'); ?></li>
 			<?php endif; ?>
 
-			<?php echo $this->form->getLabel('module'); ?>
+			<li><?php echo $this->form->getLabel('module'); ?>
 			<?php echo $this->form->getInput('module'); ?>
-			<input type="text" size="35" value="<?php if ($this->item->xml) echo ($text = (string) $this->item->xml->name) ? JText::_($text) : $this->item->module;else echo JText::_(MODULES_ERR_XML);?>" class="readonly" readonly="readonly" />
+			<input type="text" size="35" value="<?php if ($this->item->xml) echo ($text = (string) $this->item->xml->name) ? JText::_($text) : $this->item->module;else echo JText::_(MODULES_ERR_XML);?>" class="readonly" readonly="readonly" /></li>
 
-
-			<?php echo $this->form->getLabel('client_id'); ?>
+			<li><?php echo $this->form->getLabel('client_id'); ?>
 			<input type="text" size="35" value="<?php echo $this->item->client_id == 0 ? JText::_('JSITE') : JText::_('JADMINISTRATOR'); ?>	" class="readonly" readonly="readonly" />
+			<?php echo $this->form->getInput('client_id'); ?>
+			</li>
 
-			<br class="clr" />
-	<?php if ($this->item->xml) : ?>
+			<div class="clr" /></div>
+			<?php if ($this->item->xml) : ?>
 				<?php if ($text = trim($this->item->xml->description)) : ?>
 					<label>
 						<?php echo JText::_('COM_MODULES_MODULE_DESCRIPTION'); ?>
 					</label>
-					<?php echo JText::_($text); ?>
+					<span class="readonly mod-desc"><?php echo JText::_($text); ?></span>
 				<?php endif; ?>
 			<?php else : ?>
-				<?php echo JText::_('COM_MODULES_ERR_XML'); ?>
+				<p class="error"><?php echo JText::_('COM_MODULES_ERR_XML'); ?></p>
 			<?php endif; ?>
-			<br class="clr" />
+			<div class="clr" /></div>
 		</fieldset>
 	</div>
 
@@ -119,19 +116,20 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 	<?php echo JHtml::_('sliders.end'); ?>
 	</div>
 
+	<?php if ($this->item->client_id == 0) :?>
 	<div class="width-60 fltlft">
-
 		<?php echo $this->loadTemplate('assignment'); ?>
-
 	</div>
+	<?php endif; ?>
 
 	<div class="clr"></div>
 	<?php if ($hasContent) : ?>
 		<fieldset class="adminform">
 			<legend><?php echo JText::_('COM_MODULES_CUSTOM_OUTPUT'); ?></legend>
-
-			<?php echo $this->form->getLabel('content'); ?>
-			<?php echo $this->form->getInput('content'); ?>
+			<ul class="adminformlist">
+			<li><?php echo $this->form->getLabel('content'); ?>
+			<?php echo $this->form->getInput('content'); ?></li>
+			</ul>
 
 		</fieldset>	endif;
 	<?php endif; ?>

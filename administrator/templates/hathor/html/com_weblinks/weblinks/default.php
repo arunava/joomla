@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
 
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
-JHtml::_('script','multiselect.js');
+JHtml::_('script','system/multiselect.js',false,true);
 $user	= &JFactory::getUser();
 $userId	= $user->get('id');
 $listOrder	= $this->state->get('list.ordering');
@@ -24,38 +24,52 @@ $listDirn	= $this->state->get('list.direction');
 	<fieldset id="filter-bar">
 	<legend class="element-invisible"><?php echo JText::_('Filters'); ?></legend>
 		<div class="filter-search">
-			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSearch_Filter_Label'); ?></label>
+			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?></label>
 			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('COM_WEBLINKS_SEARCH_IN_TITLE'); ?>" />
-			<button type="submit"><?php echo JText::_('JSearch_Filter_Submit'); ?></button>
-			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSearch_Filter_Clear'); ?></button>
+			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 		</div>
 		<div class="filter-select">
 			<label class="selectlabel" for="filter_access">
-				<?php echo JText::_('Filter_Access'); ?>
+				<?php echo JText::_('JOPTION_SELECT_ACCESS'); ?>
 			</label>
 			<select name="filter_access" id="filter_access" class="inputbox">
-				<option value=""><?php echo JText::_('JOption_Select_Access');?></option>
+				<option value=""><?php echo JText::_('JOPTION_SELECT_ACCESS');?></option>
 				<?php echo JHtml::_('select.options', JHtml::_('access.assetgroups'), 'value', 'text', $this->state->get('filter.access'));?>
 			</select>
 
 			<label class="selectlabel" for="filter_published">
-				<?php echo JText::_('Filter_State'); ?>
+				<?php echo JText::_('JOPTION_SELECT_PUBLISHED'); ?>
 			</label>
 			<select name="filter_published" id="filter_published" class="inputbox">
-				<option value=""><?php echo JText::_('JOption_Select_Published');?></option>
+				<option value=""><?php echo JText::_('JOPTION_SELECT_PUBLISHED');?></option>
 				<?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions'), 'value', 'text', $this->state->get('filter.published'), true);?>
 			</select>
 
 			<label class="selectlabel" for="filter_category_id">
-				<?php echo JText::_('Filter_Category'); ?>
+				<?php echo JText::_('JOPTION_SELECT_CATEGORY'); ?>
 			</label>
 			<select name="filter_category_id" id="filter_category_id" class="inputbox">
-				<option value=""><?php echo JText::_('JOption_Select_Category');?></option>
+				<option value=""><?php echo JText::_('JOPTION_SELECT_CATEGORY');?></option>
 				<?php echo JHtml::_('select.options', JHtml::_('category.options', 'com_weblinks'), 'value', 'text', $this->state->get('filter.category_id'));?>
+			</select>
+			<label class="selectlabel" for="filter_language">
+				<?php echo JText::_('JOPTION_SELECT_LANGUAGE'); ?>
+			</label>
+			<select name="filter_language" id="filter_language" class="inputbox">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
+			</select>
+			<label class="selectlabel" for="filter_language">
+				<?php echo JText::_('JOPTION_SELECT_LANGUAGE'); ?>
+			</label>
+			<select name="filter_language" id="filter_language" class="inputbox">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
 			</select>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('Go'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 
 		</div>
 	</fieldset>
@@ -64,36 +78,33 @@ $listDirn	= $this->state->get('list.direction');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th class="row-number-col">
-					<?php echo JText::_('JGrid_Heading_Row_Number'); ?>
-				</th>
 				<th class="checkmark-col">
 					<input type="checkbox" name="toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(<?php echo count($this->items); ?>);" />
 				</th>
 				<th class="title">
-					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Title', 'a.title', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap state-col">
 					<?php echo JHtml::_('grid.sort',  'JPUBLISHED', 'a.state', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap title category-col">
-					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Category', 'category_title', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_CATEGORY', 'category_title', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap ordering-col">
-					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Ordering', 'a.ordering', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ORDERING', 'a.ordering', $listDirn, $listOrder); ?>
 					<?php echo JHtml::_('grid.order',  $this->items, 'filesave.png', 'weblinks.saveorder'); ?>
 				</th>
 				<th class="title access-col">
-					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_Access', 'a.access', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ACCESS', 'a.access', $listDirn, $listOrder); ?>
 				</th>
 				<th class="hits-col">
 					<?php echo JHtml::_('grid.sort',  'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
 				</th>
 				<th class="width-5">
-					<?php echo JHtml::_('grid.sort', 'JGrid_Heading_Language', 'a.language', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_LANGUAGE', 'a.language', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap id-col">
-					<?php echo JHtml::_('grid.sort',  'JGrid_Heading_ID', 'a.id', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
 				</th>
 			</tr>
 		</thead>
@@ -106,18 +117,16 @@ $listDirn	= $this->state->get('list.direction');
 			$item->cat_link = JRoute::_('index.php?option=com_categories&extension=com_weblinks&task=edit&type=other&cid[]='. $item->catid);
 			$canCreate	= $user->authorise('core.create',		'com_weblinks.category.'.$item->catid);
 			$canEdit	= $user->authorise('core.edit',			'com_weblinks.category.'.$item->catid);
-			$canChange	= $user->authorise('core.edit.state',	'com_weblinks.category.'.$item->catid);
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id') || $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_weblinks.category.'.$item->catid) && $canCheckin;
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<th>
-					<?php echo $this->pagination->getRowOffset($i); ?>
-				</th>
 				<td>
 					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
 				</td>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'weblinks.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canCreate || $canEdit) : ?>
 						<a href="<?php echo JRoute::_('index.php?option=com_weblinks&task=weblink.edit&id='.(int) $item->id); ?>">
@@ -151,7 +160,11 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo $item->hits; ?>
 				</td>
 				<td class="center">
-					<?php echo $item->language ? $this->escape($item->language) : JText::_('JDEFAULT'); ?>
+					<?php if ($item->language=='*'):?>
+						<?php echo JText::_('JALL'); ?>
+					<?php else:?>
+						<?php echo $item->language_title ? $this->escape($item->language_title) : JText::_('JUNDEFINED'); ?>
+					<?php endif;?>
 				</td>
 				<td class="center">
 					<?php echo $item->id; ?>

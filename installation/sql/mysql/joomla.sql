@@ -172,18 +172,19 @@ CREATE TABLE `#__categories` (
   `modified_user_id` int(10) unsigned NOT NULL default '0',
   `modified_time` timestamp NOT NULL default '0000-00-00 00:00:00',
   `hits` int(10) unsigned NOT NULL default '0',
-  `language` varchar(7) NOT NULL,
+  `language` char(7) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `cat_idx` (`extension`,`published`,`access`),
   KEY `idx_access` (`access`),
   KEY `idx_checkout` (`checked_out`),
   KEY `idx_path` (`path`),
   KEY `idx_left_right` (`lft`,`rgt`),
-  KEY `idx_alias` (`alias`)
+  KEY `idx_alias` (`alias`),
+  INDEX `idx_language` (`language`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 INSERT INTO `#__categories` VALUES
-(1, 0, 0, 0, 1, 0, '', 'system', 'ROOT', 'root', '', '', 1, 0, '0000-00-00 00:00:00', 1, '{}', '', '', '', 0, '2009-10-18 16:07:09', 0, '0000-00-00 00:00:00', 0, '');
+(1, 0, 0, 0, 1, 0, '', 'system', 'ROOT', 'root', '', '', 1, 0, '0000-00-00 00:00:00', 1, '{}', '', '', '', 0, '2009-10-18 16:07:09', 0, '0000-00-00 00:00:00', 0, '*');
 
 # -------------------------------------------------------
 
@@ -363,37 +364,35 @@ CREATE TABLE `#__extensions` (
   INDEX `element_clientid`(`element`, `client_id`),
   INDEX `element_folder_clientid`(`element`, `folder`, `client_id`),
   INDEX `extension`(`type`,`element`,`folder`,`client_id`)
-) TYPE=MyISAM CHARACTER SET `utf8`;
+) TYPE=MyISAM AUTO_INCREMENT=10000 CHARACTER SET `utf8`;
 
 # Components
 INSERT INTO `#__extensions` (`extension_id`, `name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`) VALUES
 (1, 'com_mailto', 'component', 'com_mailto', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (2, 'com_wrapper', 'component', 'com_wrapper', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (3, 'com_admin', 'component', 'com_admin', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(4, 'com_banners', 'component', 'com_banners', '', 1, 1, 1, 0, '', '{"purchase_type":"1","track_impressions":"0","track_clicks":"0","metakey_prefix":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(4, 'com_banners', 'component', 'com_banners', '', 1, 1, 1, 0, '', '{"purchase_type":"3","track_impressions":"0","track_clicks":"0","metakey_prefix":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (5, 'com_cache', 'component', 'com_cache', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (6, 'com_categories', 'component', 'com_categories', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (7, 'com_checkin', 'component', 'com_checkin', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(8, 'com_contact', 'component', 'com_contact', '', 1, 1, 1, 0, '', '{"show_contact_list":"0","show_name":"1","show_position":"1","show_email":"0","show_street_address":"1","show_suburb":"1","show_state":"1","show_postcode":"1","show_country":"1","show_telephone":"1","show_mobile":"1","show_fax":"1","show_webpage":"1","show_misc":"1","show_image":"1","allow_vcard":"0","show_articles":"1","show_profile":"1","show_links":"1","linka_name":"","linkb_name":"","linkc_name":"","linkd_name":"","linke_name":"","contact_icons":"0","icon_address":"","icon_email":"","icon_telephone":"","icon_mobile":"","icon_fax":"","icon_misc":"","show_headings":"1","show_position_headings":"1","show_email_headings":"0","show_telephone_headings":"1","show_mobile_headings":"1","show_fax_headings":"1","allow_vcard_headings":"0","show_email_form":"1","email_description":"","show_email_copy":"1","banned_email":"","banned_subject":"","banned_text":"","validate_session":"1","custom_reply":"0","redirect":"","show_category_crumb":"0","article_allow_ratings":"0","article_allow_comments":"0","metakey":"","metadesc":"","robots":"","author":"","rights":"","xreference":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(8, 'com_contact', 'component', 'com_contact', '', 1, 1, 1, 0, '', '{"show_contact_category":"hide","show_contact_list":"0","show_name":"1","show_position":"1","show_email":"0","show_street_address":"1","show_suburb":"1","show_state":"1","show_postcode":"1","show_country":"1","show_telephone":"1","show_mobile":"1","show_fax":"1","show_webpage":"1","show_misc":"1","show_image":"1","image":"","allow_vcard":"0","show_articles":"0","show_profile":"0","show_links":"0","linka_name":"","linkb_name":"","linkc_name":"","linkd_name":"","linke_name":"","contact_icons":"0","icon_address":"","icon_email":"","icon_telephone":"","icon_mobile":"","icon_fax":"","icon_misc":"","show_headings":"1","show_position_headings":"1","show_email_headings":"0","show_telephone_headings":"1","show_mobile_headings":"0","show_fax_headings":"0","allow_vcard_headings":"0","show_suburb_headings":"1","show_state_headings":"1","show_country_headings":"1","show_email_form":"1","show_email_copy":"1","banned_email":"","banned_subject":"","banned_text":"","validate_session":"1","custom_reply":"0","redirect":"","show_category_crumb":"0","metakey":"","metadesc":"","robots":"","author":"","rights":"","xreference":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (9, 'com_cpanel', 'component', 'com_cpanel', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(10, 'com_installer', 'component', 'com_installer', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(10, 'com_installer', 'component', 'com_installer', '', 1, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (11, 'com_languages', 'component', 'com_languages', '', 1, 1, 1, 0, '', '{"administrator":"en-GB","site":"en-GB"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (12, 'com_login', 'component', 'com_login', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(13, 'com_media', 'component', 'com_media', '', 1, 1, 0, 1, '', '{"upload_extensions":"bmp,csv,doc,gif,ico,jpg,jpeg,odg,odp,ods,odt,pdf,png,ppt,swf,txt,xcf,xls,BMP,CSV,DOC,GIF,ICO,JPG,JPEG,ODG,ODP,ODS,ODT,PDF,PNG,PPT,SWF,TXT,XCF,XLS","upload_maxsize":"10000000","file_path":"images","image_path":"images","restrict_uploads":"1","allowed_media_usergroup":"3","check_mime":"1","image_extensions":"bmp,gif,jpg,png","ignore_extensions":"","upload_mime":"image\\/jpeg,image\\/gif,image\\/png,image\\/bmp,application\\/x-shockwave-flash,application\\/msword,application\\/excel,application\\/pdf,application\\/powerpoint,text\\/plain,application\\/x-zip","upload_mime_illegal":"text\\/html","enable_flash":"0"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(14, 'com_menus', 'component', 'com_menus', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(13, 'com_media', 'component', 'com_media', '', 1, 1, 0, 1, '', '{"upload_extensions":"bmp,csv,doc,gif,ico,jpg,jpeg,odg,odp,ods,odt,pdf,png,ppt,swf,txt,xcf,xls,BMP,CSV,DOC,GIF,ICO,JPG,JPEG,ODG,ODP,ODS,ODT,PDF,PNG,PPT,SWF,TXT,XCF,XLS","upload_maxsize":"10485760","file_path":"images","image_path":"images","restrict_uploads":"1","allowed_media_usergroup":"3","check_mime":"1","image_extensions":"bmp,gif,jpg,png","ignore_extensions":"","upload_mime":"image\\/jpeg,image\\/gif,image\\/png,image\\/bmp,application\\/x-shockwave-flash,application\\/msword,application\\/excel,application\\/pdf,application\\/powerpoint,text\\/plain,application\\/x-zip","upload_mime_illegal":"text\\/html","enable_flash":"0"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(14, 'com_menus', 'component', 'com_menus', '', 1, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (15, 'com_messages', 'component', 'com_messages', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(16, 'com_modules', 'component', 'com_modules', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(17, 'com_newsfeeds', 'component', 'com_newsfeeds', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(18, 'com_plugins', 'component', 'com_plugins', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(19, 'com_search', 'component', 'com_search', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(20, 'com_templates', 'component', 'com_templates', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(21, 'com_weblinks', 'component', 'com_weblinks', '', 1, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(22, 'com_comments', 'component', 'com_comments', '', 1, 1, 0, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(16, 'com_modules', 'component', 'com_modules', '', 1, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(17, 'com_newsfeeds', 'component', 'com_newsfeeds', '', 1, 1, 1, 0, '', '{"show_feed_image":"1","show_feed_description":"1","show_item_description":"1","feed_word_count":"0","show_headings":"1","show_name":"1","show_articles":"0","show_link":"1","show_description":"1","show_description_image":"1","display_num":"","show_pagination_limit":"1","show_pagination":"1","show_pagination_results":"1","show_cat_items":"1"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(18, 'com_plugins', 'component', 'com_plugins', '', 1, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(19, 'com_search', 'component', 'com_search', '', 1, 1, 1, 0, '', '{"enabled":"0","show_date":"1"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(20, 'com_templates', 'component', 'com_templates', '', 1, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(21, 'com_weblinks', 'component', 'com_weblinks', '', 1, 1, 1, 0, '', '{"show_comp_description":"1","comp_description":"","show_link_hits":"1","show_link_description":"1","show_other_cats":"0","show_headings":"0","show_numbers":"0","show_report":"1","count_clicks":"1","target":"0","link_icons":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(22, 'com_content', 'component', 'com_content', '', 1, 1, 0, 0, '', '{"show_title":"1","link_titles":"1","show_intro":"1","show_category":"1","link_category":"1","show_parent_category":"0","link_parent_category":"0","show_author":"1","link_author":"0","show_create_date":"0","show_modify_date":"0","show_publish_date":"1","show_item_navigation":"1","show_readmore":"1","show_icons":"1","show_print_icon":"1","show_email_icon":"1","show_hits":"1","num_leading_articles":"1","num_intro_articles":"4","num_columns":"2","num_links":"4","multi_column_order":"0","show_pagination":"2","show_pagination_results":"1","display_num":"10","show_headings":"1","list_show_title":"0","show_date":"hide","date_format":"","list_hits":"1","list_author":"1","filter_field":"hide","show_pagination_limit":"1","maxLevel":"1","show_category_title":"0","show_empty_categories":"0","show_description":"0","show_description_image":"0","show_cat_num_articles":"0","drill_down_layout":"0","orderby_pri":"order","orderby_sec":"rdate","show_noauth":"0","show_feed_link":"1","feed_summary":"0","filter_type":"BL","filter_tags":"","filter_attritbutes":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (23, 'com_config', 'component', 'com_config', '', 1, 1, 0, 1, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(24, 'com_content', 'component', 'com_content', '', 1, 1, 0, 1, '', '{"show_title":"1","link_titles":"1","show_intro":"1","show_category":"1","link_category":"1","show_parent_category":"0","link_parent_category":"0","show_author":"1","link_author":"0","show_create_date":"1","show_modify_date":"1","show_publish_date":"1","show_item_navigation":"1","show_readmore":"1","show_icons":"1","show_print_icon":"1","show_email_icon":"1","show_hits":"1","num_leading_articles":"1","num_intro_articles":"4","num_columns":"2","num_links":"4","multi_column_order":"1","show_pagination":"1","show_pagination_results":"1","display_num":"10","show_headings":"1","show_date":"created","date_format":"","filter_field":"title","show_pagination_limit":"1","list_hits":"1","list_author":"1","show_description":"0","show_description_image":"0","drill_down_layout":"0","show_subcategory_content":"0","max_levels":"3","empty_categories":"1","article_count":"0","orderby_pri":"alpha","orderby_sec":"rdate","show_noauth":"0","show_feed_link":"1","feed_summary":"0","filter_type":"BL","filter_tags":"","filter_attritbutes":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(25, 'com_redirect', 'component', 'com_redirect', '', 1, 1, 0, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(26, 'com_users', 'component', 'com_users', '', 1, 1, 0, 1, '', '{"allowUserRegistration":"1","new_usertype":"2","useractivation":"1","frontend_userparams":"1","mailSubjectPrefix":"","mailBodySuffix":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0);
-
+(24, 'com_redirect', 'component', 'com_redirect', '', 1, 1, 0, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(25, 'com_users', 'component', 'com_users', '', 1, 1, 0, 1, '', '{"allowUserRegistration":"1","new_usertype":"2","useractivation":"1","frontend_userparams":"1","mailSubjectPrefix":"","mailBodySuffix":""}', '', '', 0, '0000-00-00 00:00:00', 0, 0);
 
 # Libraries
 INSERT INTO `#__extensions` (`extension_id`, `name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`) VALUES
@@ -427,7 +426,8 @@ INSERT INTO `#__extensions` (`extension_id`, `name`, `type`, `element`, `folder`
 (218, 'mod_whosonline', 'module', 'mod_whosonline', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (219, 'mod_wrapper', 'module', 'mod_wrapper', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
 (220, 'mod_articles_category', 'module', 'mod_articles_category', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
-(221, 'mod_articles_categories', 'module', 'mod_articles_categories', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0);
+(221, 'mod_articles_categories', 'module', 'mod_articles_categories', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(222, 'mod_languages', 'module', 'mod_languages', '', 0, 1, 1, 0, '', '', '', '', 0, '0000-00-00 00:00:00', 0, 0);	 
 
 ## Administrator
 INSERT INTO `#__extensions` (`extension_id`, `name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`) VALUES
@@ -479,8 +479,9 @@ INSERT INTO `#__extensions` (`extension_id`, `name`, `type`, `element`, `folder`
 (427, 'plg_system_sef', 'plugin', 'sef', 'system', 0, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 6, 0),
 (428, 'plg_user_contactcreator', 'plugin', 'contactcreator', 'user', 0, 0, 1, 0, '', '{"autowebpage":"","category":"26","autopublish":"0"}', '', '', 0, '0000-00-00 00:00:00', 1, 0),
 (429, 'plg_user_joomla', 'plugin', 'joomla', 'user', 0, 1, 1, 0, '', '{"autoregister":"1"}', '', '', 0, '0000-00-00 00:00:00', 2, 0),
-(430, 'plg_user_profile', 'plugin', 'profile', 'user', 0, 1, 1, 0, '', '{"register-require_address1":"0","register-require_address2":"0","register-require_city":"0","register-require_region":"0","register-require_country":"0","register-require_postal_code":"0","register-require_phone":"0","register-require_website":"0","profile-require_address1":"1","profile-require_address2":"1","profile-require_city":"1","profile-require_region":"1","profile-require_country":"1","profile-require_postal_code":"1","profile-require_phone":"1","profile-require_website":"1"}', '', '', 0, '0000-00-00 00:00:00', 0, 0);
-
+(430, 'plg_user_profile', 'plugin', 'profile', 'user', 0, 0, 1, 0, '', '{"register-require_address1":"0","register-require_address2":"0","register-require_city":"0","register-require_region":"0","register-require_country":"0","register-require_postal_code":"0","register-require_phone":"0","register-require_website":"0","profile-require_address1":"1","profile-require_address2":"1","profile-require_city":"1","profile-require_region":"1","profile-require_country":"1","profile-require_postal_code":"1","profile-require_phone":"1","profile-require_website":"1"}', '', '', 0, '0000-00-00 00:00:00', 0, 0),
+(431, 'plg_extension_joomla', 'plugin', 'joomla', 'extension', 0, 1, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 1, 0),
+(432, 'plg_system_languagefilter', 'plugin', 'languagefilter', 'system', 0, 0, 1, 0, '', '{}', '', '', 0, '0000-00-00 00:00:00', 0, 0);	 
 
 # Templates
 
@@ -521,11 +522,11 @@ CREATE TABLE `#__languages` (
   UNIQUE `idx_sef` (`sef`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-INSERT INTO `#__languages` (`lang_id`,`lang_code`,`title`,`title_native`,`sef`,`image`,`description`,`published`)
+INSERT INTO `#__languages` (`lang_id`,`lang_code`,`title`,`title_native`,`sef`,`image`,`description`,`metakey`,`metadesc`,`published`)
 VALUES
-	(1, 'en-GB', 'English (UK)', 'English (UK)', 'uk', '', 'en', 1),
-	(2, 'en-US', 'English (US)', 'English (US)', 'us', '', 'en', 0),
-	(3, 'xx-XX', 'xx (test)', 'xx (test)', 'xx', '', 'xx', 1);
+	(1,'en-GB','English (UK)','English (UK)','en','en','','','',1),
+	(2,'en-US','English (US)','English (US)','us','en','','','',0),
+	(3,'xx-XX','xx (Test)','xx (Test)','xx','br','','','',1);
 
 #
 # Table structure for table `#__menu`
@@ -543,7 +544,7 @@ CREATE TABLE `#__menu` (
   `published` tinyint(4) NOT NULL default '0' COMMENT 'The published state of the menu link.',
   `parent_id` integer unsigned NOT NULL default '1' COMMENT 'The parent menu item in the menu tree.',
   `level` integer unsigned NOT NULL default '0' COMMENT 'The relative level in the tree.',
-  `component_id` integer unsigned NOT NULL default '0' COMMENT 'FK to #__extensionss.id',
+  `component_id` integer unsigned NOT NULL default '0' COMMENT 'FK to #__extensions.id',
   `ordering` integer NOT NULL default '0' COMMENT 'The relative ordering of the menu item in the tree.',
   `checked_out` integer unsigned NOT NULL default '0' COMMENT 'FK to #__users.id',
   `checked_out_time` timestamp NOT NULL default '0000-00-00 00:00:00' COMMENT 'The time the menu item was checked out.',
@@ -562,6 +563,7 @@ CREATE TABLE `#__menu` (
   KEY `idx_left_right` (`lft`,`rgt`),
   KEY `idx_alias` (`alias`),
   KEY `idx_path` (`path`(333)),
+  UNIQUE `idx_alias_parent_id` (`alias`, `parent_id`),
   INDEX `idx_language` (`language`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
@@ -582,12 +584,12 @@ INSERT INTO `#__menu` VALUES
 	(13,'_adminmenu','com_newsfeeds','News Feeds','','News Feeds','index.php?option=com_newsfeeds','component',0,1,1,17,0,0,'0000-00-00 00:00:00',0,0,'class:newsfeeds',0,'',23,28,0,'*'),
 	(14,'_adminmenu','com_newsfeeds_feeds','Feeds','','News Feeds/Feeds','index.php?option=com_newsfeeds','component',0,13,2,17,0,0,'0000-00-00 00:00:00',0,0,'class:newsfeeds',0,'',24,25,0,'*'),
 	(15,'_adminmenu','com_newsfeeds_categories','Categories','','News Feeds/Categories','index.php?option=com_categories&extension=com_newsfeeds','component',0,13,2,6,0,0,'0000-00-00 00:00:00',0,0,'class:newsfeeds-cat',0,'',26,27,0,'*'),
-	(16,'_adminmenu','com_redirect','Redirect','','Redirect','index.php?option=com_redirect','component',0,1,1,100,0,0,'0000-00-00 00:00:00',0,0,'class:redirect',0,'',37,38,0,'*'),
+	(16,'_adminmenu','com_redirect','Redirect','','Redirect','index.php?option=com_redirect','component',0,1,1,24,0,0,'0000-00-00 00:00:00',0,0,'class:redirect',0,'',37,38,0,'*'),
 	(17,'_adminmenu','com_search','Search','','Search','index.php?option=com_search','component',0,1,1,19,0,0,'0000-00-00 00:00:00',0,0,'class:search',0,'',29,30,0,'*'),
 	(18,'_adminmenu','com_weblinks','Weblinks','','Weblinks','index.php?option=com_weblinks','component',0,1,1,21,0,0,'0000-00-00 00:00:00',0,0,'class:weblinks',0,'',31,36,0,'*'),
 	(19,'_adminmenu','com_weblinks_links','Links','','Weblinks/Links','index.php?option=com_weblinks','component',0,18,2,21,0,0,'0000-00-00 00:00:00',0,0,'class:weblinks',0,'',32,33,0,'*'),
 	(20,'_adminmenu','com_weblinks_categories','Categories','','Weblinks/Categories','index.php?option=com_categories&extension=com_weblinks','component',0,18,2,6,0,0,'0000-00-00 00:00:00',0,0,'class:weblinks-cat',0,'',34,35,0,'*'),
-	(101, 'mainmenu', 'Home', 'home', '', 'home', 'index.php?option=com_content&view=featured', 'component', 1, 1, 1, 99, 0, 0, '0000-00-00 00:00:00', 0, 1, '', 0, '{"num_leading_articles":"1","num_intro_articles":"3","num_columns":"3","num_links":"0","orderby_pri":"","orderby_sec":"front","order_date":"","multi_column_order":"1","show_pagination":"2","show_pagination_results":"1","show_noauth":"","article-allow_ratings":"","article-allow_comments":"","show_feed_link":"1","feed_summary":"","show_title":"","link_titles":"","show_intro":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_readmore":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_hits":"","menu-anchor_title":"","menu-anchor_css":"","menu_image":"","show_page_heading":1,"page_title":"","page_heading":"","pageclass_sfx":"","menu-meta_description":"","menu-meta_keywords":"","robots":"","secure":0}', 231, 232, 1,'*');
+	(101, 'mainmenu', 'Home', 'home', '', 'home', 'index.php?option=com_content&view=featured', 'component', 1, 1, 1, 22, 0, 0, '0000-00-00 00:00:00', 0, 1, '', 0, '{"num_leading_articles":"1","num_intro_articles":"3","num_columns":"3","num_links":"0","orderby_pri":"","orderby_sec":"front","order_date":"","multi_column_order":"1","show_pagination":"2","show_pagination_results":"1","show_noauth":"","article-allow_ratings":"","article-allow_comments":"","show_feed_link":"1","feed_summary":"","show_title":"","link_titles":"","show_intro":"","show_category":"","link_category":"","show_parent_category":"","link_parent_category":"","show_author":"","show_create_date":"","show_modify_date":"","show_publish_date":"","show_item_navigation":"","show_readmore":"","show_icons":"","show_print_icon":"","show_email_icon":"","show_hits":"","menu-anchor_title":"","menu-anchor_css":"","menu_image":"","show_page_heading":1,"page_title":"","page_heading":"","pageclass_sfx":"","menu-meta_description":"","menu-meta_keywords":"","robots":"","secure":0}', 231, 232, 1,'*');
 
 # -------------------------------------------------------
 
@@ -600,7 +602,8 @@ CREATE TABLE `#__menu_types` (
   `menutype` varchar(24) NOT NULL,
   `title` varchar(48) NOT NULL,
   `description` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  UNIQUE `idx_menutype` (`menutype`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 INSERT INTO `#__menu_types` VALUES (1, 'mainmenu', 'Main Menu', 'The main menu for the site');
@@ -683,8 +686,8 @@ INSERT INTO `#__modules` VALUES
 (15, 'Title', '', '', 1, 'title', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 'mod_title', 3, 1, '', 1, '*'),
 (16, 'User Menu', '', '', 2, 'position-7', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 'mod_menu', 2, 1, '{"menutype":"usermenu","startLevel":"0","endLevel":"0","showAllChildren":"0","tag_id":"","class_sfx":"","window_open":"","layout":"","moduleclass_sfx":"_menu","cache":"1","cache_time":"900","cachemode":"itemid"}', 0, '*'),
 (17, 'Login Form', '', '', 8, 'position-7', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 'mod_login', 1, 1, '{"greeting":"1","name":"0"}', 0, '*'),
-(18, 'Breadcrumbs', '', '', 1, 'position-2', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 'mod_breadcrumbs', 1, 1, '{"moduleclass_sfx":"","cache":"0","showHome":"1","homeText":"Home","showComponent":"1","separator":""}', 0, '*'),
-(19, 'Banners', '', '', 1, 'position-5', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 'mod_banners', 1, 1, '{"target":"1","count":"1","cid":"1","catid":"27","tag_search":"0","ordering":"0","header_text":"","footer_text":"","layout":"","moduleclass_sfx":"","cache":"1","cache_time":"0"}', 0, '*');
+(18, 'Breadcrumbs', '', '', 1, 'position-2', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 'mod_breadcrumbs', 1, 1, '{"moduleclass_sfx":"","showHome":"1","homeText":"Home","showComponent":"1","separator":"","cache":"1","cache_time":"900","cachemode":"itemid"}', 0, '*'),
+(19, 'Banners', '', '', 1, 'position-5', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 'mod_banners', 1, 1, '{"target":"1","count":"1","cid":"1","catid":"27","tag_search":"0","ordering":"0","header_text":"","footer_text":"","layout":"","moduleclass_sfx":"","cache":"1","cache_time":"900"}', 0, '*');
 
 # -------------------------------------------------------
 
@@ -797,11 +800,10 @@ CREATE TABLE `#__redirect_links` (
 #
 
 CREATE TABLE `#__schemas` (
-  `extensionid` int(11) NOT NULL,
-  `versionid` varchar(20) NOT NULL,
-  PRIMARY KEY (`extensionid`, `versionid`)
+  `extension_id` int(11) NOT NULL,
+  `version_id` varchar(20) NOT NULL,
+  PRIMARY KEY (`extension_id`, `version_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
 # -------------------------------------------------------
 
 #
@@ -887,10 +889,10 @@ CREATE TABLE IF NOT EXISTS `#__template_styles` (
   KEY `idx_home` (`home`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ;
 
-INSERT INTO `#__template_styles` VALUES (1, 'rhuk_milkyway', '0', '1', 'Milkyway - Default', '{"colorVariation":"blue","backgroundVariation":"blue","widthStyle":"fmax"}');
+INSERT INTO `#__template_styles` VALUES (1, 'rhuk_milkyway', '0', '0', 'Milkyway - Default', '{"colorVariation":"blue","backgroundVariation":"blue","widthStyle":"fmax"}');
 INSERT INTO `#__template_styles` VALUES (2, 'bluestork', '1', '1', 'Bluestork - Default', '{"useRoundedCorners":"1","showSiteName":"0"}');
 INSERT INTO `#__template_styles` VALUES (3, 'atomic', '0', '0', 'Atomic - Default', '{}');
-INSERT INTO `#__template_styles` VALUES (4, 'beez_20', '0', '0', 'Beez2 - Default', '{"wrapperSmall":"53","wrapperLarge":"72","logo":"-1","navposition":"left","templatecolor":"nature","html5":"0"}');
+INSERT INTO `#__template_styles` VALUES (4, 'beez_20', 0, 1, 'Beez2 - Default', '{"wrapperSmall":"53","wrapperLarge":"72","logo":"joomla_black.gif","sitetitle":"Joomla!","sitedescription":"Open Source Content Management Beta","navposition":"left","templatecolor":"personal","html5":"0"}');
 INSERT INTO `#__template_styles` VALUES (5, 'hathor', '1', '0', 'Hathor - Default', '{"showSiteName":"0","highContrast":"0","boldText":"0","altMenu":"0"}');
 
 # -------------------------------------------------------
@@ -925,13 +927,13 @@ CREATE TABLE IF NOT EXISTS `#__usergroups` (
 INSERT INTO `#__usergroups` (`id` ,`parent_id` ,`lft` ,`rgt` ,`title`)
 VALUES
 	(1,0,1,20,'Public'),
-	(2,1,8,19,'Registered'),
-	(3,2,11,16,'Author'),
-	(4,3,12,15,'Editor'),
-	(5,4,13,14,'Publisher'),
-	(6,1,2,7,'Manager'),
-	(7,6,3,6,'Administrator'),
-	(8,7,4,5,'Super Users');
+		(2,1,8,19,'Registered'),
+			(3,2,9,16,'Author'),
+				(4,3,10,13,'Editor'),
+					(5,4,11,12,'Publisher'),
+		(6,1,2,7,'Manager'),
+			(7,6,3,6,'Administrator'),
+				(8,7,4,5,'Super Users');
 
 # -------------------------------------------------------
 

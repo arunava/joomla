@@ -21,7 +21,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 	<?php echo $this->escape($this->params->get('page_heading')); ?>
 </h1>
 <?php endif; ?>
-	<?php if ($this->params->get('show_base_description')) : ?>
+<?php if ($this->params->get('show_base_description')) : ?>
 	<?php 	//If there is a description in the menu parameters use that; ?>
 		<?php if($this->params->get('categories_description')) : ?>
 			<?php echo  JHtml::_('content.prepare',$this->params->get('categories_description')); ?>
@@ -32,7 +32,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 					<?php  echo JHtml::_('content.prepare', $this->parent->description); ?>
 				</div>
 			<?php  endif; ?>
-		<?php  endif; ?>	
+		<?php  endif; ?>
 	<?php endif; ?>
 <?php
 echo $this->loadTemplate('items');

@@ -30,7 +30,7 @@ $function = 'jSelectUser_'.JRequest::getVar('field');
 			<?php echo JHtml::_('access.usergroup', 'filter_group_id', $this->state->get('filter.group_id')); ?>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('GO'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 
 		</div>
 	</fieldset>
@@ -42,7 +42,7 @@ $function = 'jSelectUser_'.JRequest::getVar('field');
 					<?php echo JHtml::_('grid.sort', 'COM_USERS_HEADING_NAME', 'a.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
 				<th class="nowrap width=25">
-					<?php echo JHtml::_('grid.sort', 'COM_USERS_HEADING_USERNAME', 'a.username', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_USERNAME', 'a.username', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
 				</th>
 				<th class="nowrap width=25">
 					<?php echo JHtml::_('grid.sort', 'COM_USERS_HEADING_GROUPS', 'a.group_names', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>

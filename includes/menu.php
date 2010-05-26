@@ -41,15 +41,19 @@ class JMenuSite extends JMenu
 			$query->where('m.parent_id > 0');
 			$query->order('m.lft');
 
+			$user =& JFactory::getUser();
+			$groups = implode(',', $user->authorisedLevels());
+			$query->where('m.access IN (' . $groups . ')');
+
 			// Filter by language
-			if ($app->getLanguageFilter()) {
+			if ($app->isSite() && $app->getLanguageFilter()) {
 				$query->where('m.language in (' . $db->Quote(JFactory::getLanguage()->getTag()) . ',' . $db->Quote('*') . ')');
 			}
 
 			// Set the query
 			$db->setQuery($query);
 			if (!($menus = $db->loadObjectList('id'))) {
-				JError::raiseWarning(500, "Error loading Menus: ".$db->getErrorMsg());
+				JError::raiseWarning(500, JText::sprintf('JERROR_LOADING_MENUS', $db->getErrorMsg()));
 				return false;
 			}
 

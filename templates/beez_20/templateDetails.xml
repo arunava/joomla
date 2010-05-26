@@ -57,9 +57,17 @@
 					label="TPL_BEEZ2_FIELD_WRAPPERLARGE_LABEL"
 					description="TPL_BEEZ2_FIELD_WRAPPERLARGE_DESC" />
 
-				<field name="logo" type="imagelist" directory="/images"
-					hide_default="1" default=""
+				<field name="logo" type="ImageList" directory="/images"
+					hide_default="1"
 					label="TPL_BEEZ2_FIELD_LOGO_LABEL" description="TPL_BEEZ2_FIELD_LOGO_DESC" />
+
+				<field name="sitetitle"  type="text" default="BEEZ 2.0"
+					label="TPL_BEEZ2_FIELD_SITETITLE_LABEL"
+					description="TPL_BEEZ2_FIELD_SITETITLE_DESC" />
+
+				<field name="sitedescription"  type="text" default="Your site name"
+					label="TPL_BEEZ2_FIELD_DESCRIPTION_LABEL"
+					description="TPL_BEEZ2_FIELD_DESCRIPTION_DESC" />
 
 				<field name="navposition" type="list" default="center"
 					label="TPL_BEEZ2_FIELD_NAVPOSITION_LABEL"

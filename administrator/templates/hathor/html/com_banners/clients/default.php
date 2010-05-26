@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
 
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
-JHtml::_('script','multiselect.js');
+JHtml::_('script','system/multiselect.js',false,true);
 $user	= JFactory::getUser();
 $userId	= $user->get('id');
 $listOrder	= $this->state->get('list.ordering');
@@ -41,7 +41,7 @@ $listDirn	= $this->state->get('list.direction');
 			</select>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('GO'); ?></button>
+				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
 
 		</div>
 	</fieldset>
@@ -82,7 +82,8 @@ $listDirn	= $this->state->get('list.direction');
 			$ordering	= ($listOrder == 'ordering');
 			$canCreate	= $user->authorise('core.create',		'com_banners');
 			$canEdit	= $user->authorise('core.edit',			'com_banners');
-			$canChange	= $user->authorise('core.edit.state',	'com_banners');
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id') || $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_banners') && $canCheckin;
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
 				<td class="center">
@@ -90,7 +91,7 @@ $listDirn	= $this->state->get('list.direction');
 				</td>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo JHtml::_('jgrid.checkedout', $item->editor, $item->checked_out_time); ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'clients.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canCreate || $canEdit) : ?>
 						<a href="<?php echo JRoute::_('index.php?option=com_banners&task=client.edit&id='.(int) $item->id); ?>">

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: icon.php 16650 2010-05-02 08:45:22Z mcsmom $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	com_content
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.

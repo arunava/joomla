@@ -24,13 +24,13 @@
 <fields name="params">
 <fieldset name="basic">
 			<field name="show_base_description" type="radio"
-				label="JGLOBAL_SHOW_BASE_DESCRIPTION_LABEL"
-				description="JGLOBAL_SHOW_BASE_DESCRIPTION_DESC"
+				label="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_LABEL"
+				description="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
-			</field>			
+			</field>
 			<field name="categories_description" type="textarea"
 				description="JGLOBAL_FIELD_CATEGORIES_DESC_DESC"
 				label="JGLOBAL_FIELD_CATEGORIES_DESC_LABEL"
@@ -167,7 +167,7 @@
 			</field>
 </fieldset>
 
-<fieldset name="newsfeed">
+<fieldset name="newsfeed" label="COM_NEWSFEEDS_FIELDSET_MORE_OPTIONS_LABEL">
 
 			<field name="show_feed_image" type="list"
 				description="COM_NEWSFEEDS_FIELD_SHOW_FEED_IMAGE_DESC"
@@ -205,24 +205,6 @@
 </fieldset>
 		<fieldset name="integration"
 		>
-
-			<field name="article-allow_ratings" type="list"
-				description="JGLOBAL_Allow_Ratings_Desc"
-				label="JGLOBAL_Allow_Ratings_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
-
-			<field name="article-allow_comments" type="list"
-				description="JGLOBAL_Allow_Comments_Desc"
-				label="JGLOBAL_Allow_Comments_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
 
 			<field name="show_feed_link" type="list"
 				description="JGLOBAL_Show_Feed_Link_Desc"
