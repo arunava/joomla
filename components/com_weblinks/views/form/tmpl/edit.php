@@ -18,7 +18,7 @@ JHtml::_('behavior.formvalidation');
 $params = $this->state->get('params');
 ?>
 
-<script language="javascript" type="text/javascript">
+<script type="text/javascript">
 function submitbutton(task) {
 	if (task == 'weblink.cancel' || document.formvalidator.isValid(document.id('adminForm'))) {
 		submitform(task);
@@ -48,7 +48,9 @@ function submitbutton(task) {
 				<?php echo $this->form->getInput('state'); ?>
 				<br />
 			<?php endif; ?>
-
+			<?php echo $this->form->getLabel('language'); ?>
+			<?php echo $this->form->getInput('language'); ?>
+			<br />
 			<?php echo $this->form->getLabel('description'); ?>
 			<?php echo $this->form->getInput('description'); ?>
 	</fieldset>
@@ -59,9 +61,8 @@ function submitbutton(task) {
 		<button type="button" onclick="submitbutton('weblink.cancel')">
 			<?php echo JText::_('JCANCEL') ?>
 		</button>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHTML::_( 'form.token' ); ?>
 	</fieldset>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHTML::_( 'form.token' ); ?>
 </form>
 </div>

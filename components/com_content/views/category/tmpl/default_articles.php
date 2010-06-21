@@ -25,19 +25,19 @@ $listDirn	= $this->state->get('list.direction');
 <form action="<?php echo JFilterOutput::ampReplace(JFactory::getURI()->toString()); ?>" method="post" name="adminForm">
 	<?php if ($this->params->get('filter_field') != 'hide') :?>
 	<fieldset class="filters">
-		<legend class="element-invisible">
+		<legend class="hidelabeltxt">
 			<?php echo JText::_('JGLOBAL_FILTER_LABEL'); ?>
 		</legend>
 
 		<div class="filter-search">
-			<label class="filter-search-lbl" for="filter-search"><?php echo JText::_('COM_CONTENT_'.$this->params->get('filter_field').'_FILTER_LABEL').'&nbsp;'; ?></label>
+			<label class="filter-search-lbl" for="filter-search"><?php echo JText::_('COM_CONTENT_'.$this->params->get('filter_field').'_FILTER_LABEL').'&#160;'; ?></label>
 			<input type="text" name="filter-search" id="filter-search" value="<?php echo $this->escape($this->state->get('list.filter')); ?>" class="inputbox" onchange="document.adminForm.submit();" title="<?php echo JText::_('COM_CONTENT_FILTER_SEARCH_DESC'); ?>" />
 		</div>
 		<?php endif; ?>
 
 		<?php if ($this->params->get('show_pagination_limit')) : ?>
 		<div class="display-limit">
-			<?php echo JText::_('JGLOBAL_DISPLAY_NUM'); ?>&nbsp;
+			<?php echo JText::_('JGLOBAL_DISPLAY_NUM'); ?>&#160;
 			<?php echo $this->pagination->getLimitBox(); ?>
 		</div>
 		<?php endif; ?>
@@ -46,13 +46,16 @@ $listDirn	= $this->state->get('list.direction');
 	</fieldset>
 	<?php endif; ?>
 
-	<table class="category">
+	<table class="category" border="1">
 		<?php if ($this->params->get('show_headings')) :?>
 		<thead>
 			<tr>
+				<?php if ($this->params->get('list_show_title',1)) : ?>
 				<th class="list-title" id="tableOrdering">
 					<?php  echo JHTML::_('grid.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder) ; ?>
 				</th>
+				<?php endif; ?>
+
 				<?php if ($date = $this->params->get('list_show_date')) : ?>
 				<th class="list-date" id="tableOrdering2">
 					<?php echo JHTML::_('grid.sort', 'COM_CONTENT_'.$date.'_DATE', 'a.created', $listDirn, $listOrder); ?>
@@ -80,12 +83,12 @@ $listDirn	= $this->state->get('list.direction');
 			<tr class="cat-list-row<?php echo $i % 2; ?>">
 
 				<?php if (in_array($article->access, $this->user->authorisedLevels())) : ?>
-
+					<?php if ($this->params->get('list_show_title',1)) : ?>
 					<td class="list-title">
 						<a href="<?php echo JRoute::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catid)); ?>">
 						<?php echo $this->escape($article->title); ?></a>
 					</td>
-
+					<?php endif; ?>
 
 					<?php if ($this->params->get('list_show_date')) : ?>
 					<td class="list-date">
@@ -139,10 +142,12 @@ $listDirn	= $this->state->get('list.direction');
 		<?php echo $this->pagination->getPagesLinks(); ?>
 	</div>
 	<?php endif; ?>
-
-	<!-- @TODO add hidden inputs -->
-	<input type="hidden" name="filter_order" value="" />
-	<input type="hidden" name="filter_order_Dir" value="" />
-	<input type="hidden" name="limitstart" value="" />
+	
+	<div>
+		<!-- @TODO add hidden inputs -->
+		<input type="hidden" name="filter_order" value="" />
+		<input type="hidden" name="filter_order_Dir" value="" />
+		<input type="hidden" name="limitstart" value="" />
+	</div>
 </form>
 <?php endif; ?>

@@ -14,10 +14,10 @@ JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 // Load the JavaScript behaviors.
 JHtml::_('behavior.tooltip');
 JHtml::_('behavior.formvalidation');
-JHtml::_('script', 'installation/template/js/installation.js', true, false, true);
+JHtml::_('script', 'installation/template/js/installation.js', true, false, false, false);
 ?>
 
-<script language="JavaScript" type="text/javascript">
+<script type="text/javascript">
 <!--
 	function validateForm(frm, task) {
 		Joomla.submitform(task);
@@ -106,7 +106,7 @@ JHtml::_('script', 'installation/template/js/installation.js', true, false, true
 											<?php echo JText::_(($option->state) ? 'JYES' : 'JNO'); ?>
 										</span>
 										<span class="small">
-											<?php echo $option->notice; ?>&nbsp;
+											<?php echo $option->notice; ?>&#160;
 										</span>
 									</td>
 								</tr>
@@ -190,9 +190,8 @@ JHtml::_('script', 'installation/template/js/installation.js', true, false, true
 			</div>
 		</div>
 	</div>
+	<input type="hidden" name="task" value="" />
+<?php echo JHtml::_('form.token'); ?>
 </div>
 <div class="clr"></div>
-
-<input type="hidden" name="task" value="" />
-<?php echo JHtml::_('form.token'); ?>
 </form>

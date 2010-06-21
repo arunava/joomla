@@ -21,6 +21,7 @@ JHtml::_('behavior.formvalidation');
 
 	<form id="member-registration" action="<?php echo JRoute::_('index.php?option=com_users&task=registration.register'); ?>" method="post" class="form-validate">
 <?php foreach ($this->form->getFieldsets() as $fieldset): // Iterate through the form fieldsets and display each one.?>
+	<p><?php echo JText::_($fieldset->label); ?></p>
 	<?php $fields = $this->form->getFieldset($fieldset->name);?>
 	<?php if (count($fields)):?>
 		<fieldset>
@@ -49,9 +50,10 @@ JHtml::_('behavior.formvalidation');
 		<button type="submit" class="validate"><?php echo JText::_('JREGISTER');?></button>
 	<?php echo JText::_('COM_USERS_OR');?>
 		<a href="<?php echo JRoute::_('');?>" title="<?php echo JText::_('JCANCEL');?>"><?php echo JText::_('JCANCEL');?></a>
-
-		<input type="hidden" name="option" value="com_users" />
-		<input type="hidden" name="task" value="registration.register" />
-	<?php echo JHtml::_('form.token');?>
+		<div>
+			<input type="hidden" name="option" value="com_users" />
+			<input type="hidden" name="task" value="registration.register" />
+			<?php echo JHtml::_('form.token');?>
+		</div>
 	</form>
 </div>

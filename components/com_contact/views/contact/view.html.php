@@ -31,7 +31,7 @@ class ContactViewContact extends JView
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
-			JError::raiseError(500, implode("\n", $errors));
+			JError::raiseWarning(500, implode("\n", $errors));
 			return false;
 		}
 
@@ -63,11 +63,10 @@ class ContactViewContact extends JView
 
 
 		// Make contact parameters available to views
-		$contact_params = new JRegistry;
-		$contact_params->loadJSON($contact->params);
-		$temp = clone($params);
-		$temp->merge($contact_params);
-		$contact->params = $temp;
+		$temp = new JRegistry;
+		$temp->loadJSON($contact->params);
+		$params->merge($temp);
+		
 
 		// Handle email cloaking
 		if ($contact->email_to && $params->get('show_email')) {

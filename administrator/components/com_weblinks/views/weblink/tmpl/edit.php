@@ -55,7 +55,6 @@ JHtml::_('behavior.formvalidation');
 
 			<li><?php echo $this->form->getLabel('language'); ?>
 			<?php echo $this->form->getInput('language'); ?></li>
-
 			<li><?php echo $this->form->getLabel('id'); ?>
 			<?php echo $this->form->getInput('id'); ?></li>
 			</ul>
@@ -100,9 +99,8 @@ JHtml::_('behavior.formvalidation');
 
 		<?php echo $this->loadTemplate('metadata'); ?>
 
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
 	<div class="clr"></div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>

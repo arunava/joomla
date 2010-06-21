@@ -27,6 +27,203 @@ $ -> Language fix or change
 - -> Removed
 ! -> Note
 
+21-Jun-2010 Mark Dexter
+# Beez template fixes (Angie Radke)
+
+21-Jun-2010 Jean-Marie Simonet
+[#21020] Ordering of weblinks does not work as expected. Thanks Omar.
+[#21116] [patch] Update Hathor with the new saveorder icon behavior. Thanks Andrea.
+[#21064] Login redirection not functioning. Thanks Omar.
+[#21120] Article Button in Editor missing left side in Milkyway. Thanks Marijke
+[#21057] Mistyped template name in joomla data. Thanks Christophe.
+[#20725] System Path Disclosure
+[#21037] Two similar options in Module Latest News. Thanks Christophe and Stephania. + string
+[#21061] Fatal error when "Show Title" is set to "No". Thanks Omar.
+[#20945] email error when creating a new user. Thanks Elin.
+[#21059] Image selector layout problems. Thanks Omar.
+[#20837] Deleting usergroup that have been assigned to access levels does not remove them from the #__viewlevels table. Thanks Christophe.
+[#21081] [patch] URL not required when submitting weblink. Thanks Michael.
+[#20695] Parameter merge for contacts categories view is not working. Thanks Bill.
+
+21-Jun-2010 Christophe Demko
+ # Fixed issue [#20786] com_users - no frontend_userparams
+ # Fixed issue [#21118] Thumbnails not showing on frontend in Popup
+
+20-Jun-2010 Mark Dexter
+# [#20781] [patch] Remove deprecated attribute language from all occurrences of the tag script
+# [#20989] input elements must be nested in a block level tag
+# [#21119] [patch] Passwords displayed as plain text in Global Config
+# [#20875] Error in css beez template
+
+20-Jun-2010 Christophe Demko
+ # Correcting a small issue in JHtmlJGrid
+
+20-Jun-2010 Jean-Marie Simonet
+[#20757] Contacts unpublished visible in frontend. Thanks Christophe.
+[#21042] When enabling/disabling the flash uploader, page refresh needed on 'Options > Save'. Thanks Omar.
+[#21036] Ordering text for new items is floating up and to the right. Thanks Omar
+[#20701] A lot of core extensions have not been marked as "protected. Thanks Nicholas.
+
+19-Jun-2010 Mark Dexter
+# [#21010] &nbsp; must not be used (Thanks Rouven)
+# [#20634] Ordering Categories with integers doesn't work
+# [#20483] After opening and saving plugin, plugin is removed [strict]
+
+19-Jun-2010 Jean-Marie Simonet
+[#21073] Media Manager image upload issue (front-end)
+[#21039] Default path for install from directory missing. Thanks Artyom.
+$ Added missing string
+[#20966] Blog Order Down Doesn't Work In Some Cases. Thanks Mark.
+
+18-Jun-2010 Jean-Marie Simonet
+[#21046] menu - single article missing string + some
+[#21049] frontpage editor image upload string error (Thanks Bill)
+$ Adding strings in com_media.ini frontend
+[#21062] admin com_media language file is loaded in frontend. Thanks Christophe. + some missing strings .
+ 
+17-Jun-2010 Jean-Marie Simonet
+# [#21019] Language field moved in a not visible position Thanks Airton.
+# [#21041] Adjust JModelList list.start accordingly. Thanks Sven
+
+17-Jun-2010 Christophe Demko
+ # Correcting a small issue in JHtml::_includeRelativeFiles
+ 
+16-Jun-2010 Christophe Demko
+ # Fixed issue [#20941] incorrect selection after creating user account (Rune Sjøen)
+ ^ Reformatting docblock comments
+
+16-Jun-2010 Jean-Marie Simonet
+$ [#21011] [patch] JERROR_NOLOGIN_BLOCKED on front end. Thanks Michael.
+# [#20882] banner module count field accepts negative numbers. Thanks Elin.
+# [#21014] JHtmlSlider library is buggy. Thanks Christophe.
+# [#21030] Well formed error in com_installer. Thanks Christophe and Rouven.
+
+15-Jun-2010 Mark Dexter
+# Update version information to beta3
+# Fix problem with hard-coding table prefix in sample data (Elin Waring)
+# [#21025] Fix problem with hard-coding table prefix in update scripts
+
+15-Jun-2010 Jean-Marie Simonet
+$# Correcting a key/string
+# [#20944] Cannot create new user - IE8. Thanks Christophe.
+#$ [#21018] Adding lang field in submit weblink. 
+#+[#21006] Error in modal css template. Thanks Christophe
+
+15-Jun-2010 Christophe Demko
+ $ Correcting string in com_languages
+ $ Correcting strings in installation files
+
+-------------------- 1.6.0 Beta3 Release [14-Jun-2010] ------------------
+
+14-Jun-2010 Jean-Marie Simonet
+[#21007] Alias in list views does not support RTL. Thanks Andrew.
+$ Consolidated "Alias" value.
+$ Consolidating for RTL support the Filter string/value in back-end
+$ Consolidated "Description" value + some.
+# [#20979] single contact - enable show contact list. Thanks Tim.
+
+14-Jun-2010 Mark Dexter
+ # [#21008] Hide new login button just introduced to login screen
+ # [#20529] User-Profile Plugin field settings ignored
+ # [#20625] Submit a web link -save error [strict]
+
+14-Jun-2010 Andrew Eddie
+ # Fixed issue [#20884] banner manager export not working fatal error (Rob Joyce, Phil Snell).
+
+13-Jun-2010 Ron Severdia
+^ Fixed select user button (Thanks Tim Plummer)
+# Reverting BlueStork error.php changes from previous commit. Will break until params bug is fixed.
+^ Relocate note & language fields to panel in Category & Article Manager (Thanks Tim Plummer)
+# News feed language fixes
+# Fixed template params in error.php (reverted until fixed)
+# Fixed CSS on ACL panel
+^ Sync up label CSS
+^ Little clean up and commenting in BlueStork CSS
+^ Relocate language dropdown in news feed (Thanks Tim Plummer)
+
+13-Jun-2010 Jean-Marie Simonet
+$ Normalizing Cpanel link in all admin error.php
+# Reverting part of new bluestork error.php [Revision 17643] as it breaks error display.
+# [#20992] [patch] Toolbar may generate code that is not well formed. Thanks Rouven.
+$ [#20991] Change Metadata to Metadata Options. Thanks Michael.
+# [#20996] Hathor CSS font-size fixes. Thanks Andrea.
+
+12-Jun-2010 Mark Dexter
+# Fix asset table problems in sample data (Elin Waring)
+
+12-Jun-2010 Ron Severdia
+# Fixed category header (Thanks Babs Gosgens)
+^ Fixed weblinks header icon (Thanks Tim Plummer)
+^ Move language dropdown to panel (Thanks Tim Plummer)
+^ [#20618] Fixed IE login bug 
+# Fixed modal widths (contents still need love)
+# [#20640] Fixed favicon MIME type (Thanks Rouven Wesling)
+^ Changed order icon to bg CSS and added inactive state
+# Fixed required indicator on IE
+^ Changed layout to 60/40 on edit banner client & edit contact
+- Removed deprecated IE6 stylesheet
+# Fixed language screen filter
++ Fixed BlueStork error.php page
+
+12-Jun-2010 Jean-Marie Simonet
+# [#20980] [patch] Hathor patches to Newsfeed Modal. Thanks Andrea.
+$# Added a bunch of missing strings values, corrected some keys (Thanks Stella), added sticky field in banner parameters.
+# [#20579] Time Change for Server/User does not update. Thanks Christophe.
+# [#20648] mod_wrapper: error on getting params. Thanks Riccardo and Elin.
+# [#20782] Username Reminder Request Incorrect. Thanks Airton.
+# [#20983] Issue with linking articles that have apostrophe in them. Thanks Christophe.
+#$ Missing string/change key
+$ [#20990] Remove excess JLIB_FORM_CHANGE_USER definition. Thanks Michael.
+
+11-Jun-2010 Christophe Demko
+ # Fixed issue [#20867] [Patch] Changes to Hathor to mirror changes in core admin layouts (Andrea Tarr)
+ # Fixed issue [#20968] Fix Category Parameters in Featured Menu Item (Mark Dexter, bill richardson)
+ # Fixed issues in the component installer and in com_alpha component
+
+11-Jun-2010 Jean-Marie Simonet
+# [#20489] JTableAsset::store failed. Thanks Christophe.
+# [#20962] [files and patch] Hathor error page. Thanks Andrea.
+# Corrected code duplication in hathor modal.php
+# [#20965] When in: Article Manager: Articles, Select language select does not work. Thanks Bill.
+
+10-Jun-2010 Christophe Demko
+ # Fixed issue [#20952] Joomla does not load template language file when an error is detected
+
+10-Jun-2010 Jean-Marie Simonet
+# [#20791] settings not saved on first step of installer. Thanks Rune.
+# [#20914] getOptions at category.php. Thanks Andrew.
+$ Added missing string
+$ Changed string in banner/tracks toolbar
+
+09-Jun-2010 Sam Moffatt
+ # Fixed bug where updates from deleted update sites were visible after extension uninstall
+ + Added convenience to adapter layer to pass through properties to instances in a uniform manner
+
+09-Jun-2010 Christophe Demko
+ # Fixed issue [#20938] [patch] Missing </ul> in layout override (Andrea Tarr)
+
+09-Jun-2010 Jean-Marie Simonet
+# [#20913] Minimum PHP version check in installer. Fixed for php.5.2.4
+# [#20939] textual error in article manager config page. Thanks Troy.
+# [#20570] archived articles - title linkable. Thanks Christophe.
+# [#20940] email validation creating user account gives bad error message. Thanks Bill and Rob.
+$ Adding missing string.
+# [#20854] Adding article from filtered Category. Thanks Phil.
+
+09-Jun-2010 Andrew Eddie
+ # Added format to invalid controller exception.
+ # Fixed issue [#20872] beez_20 javascript error when #nav is not present (Phil Snell, Bill Richardson).
+ # Fixed issue [#20901] PHP Notices when creating a 'External URL' menu item pointing to internal url (Rune Sjøen).
+ # Fixed issue [#20927] [patch] JModelAdmin Improvements (Omar Ramos).
+
+08-Jun-2010 Christophe Demko
+ # Fixed issue [#20913] Minimum PHP version check in installer (Rune Sjøen, Artyom Bisyarin)
+ # Fixed issue [#20896] Once you link a user from a contact, you can't go back to no linked user. (Elin Waring, Rune Sjøen)
+ # Fixed issue [#20894] Missing colon in user profile langauge file (Peter Osipof, bill richardson)
+ # Fixed issue [#20578] Category Manager (Loyd Headrick, Hannes Papenberg)
+ # Fixed issue [#20903] If an article ever has readmore in it, it can't be deleted (Elin Waring, bill richardson, Gobezu Sewu)
+ # Fixed issue [#20811] Use global missing in web links Target parameter (Stefania Gaianigo, Tim Plummer)
+
 08-Jun-2010 Sam Moffatt
  ^ Minor fixes to package installer adapter for translation
 
@@ -89,7 +286,7 @@ $ Missing strings
 03-Jun-2010 Christophe Demko
  # Fixed issue [#20813] Value Not Found for blank user field (bill richardson, Peter Osipof)
  # Fixed issue [#20591] Cannot delete all usergroups from an access level (Robert Flodstrom)
- # Fixed issue [#20825] [patch] Debug plug-in doesn't output well formed code (Rouven Weßling)
+ # Fixed issue [#20825] [patch] Debug plug-in doesn't output well formed code (Rouven Wesling)
  # Fixed issue [#20697] Uninstalling a component does not remove menu items of that component type
  # UI enhancement for com_menus
  # Fixed issue [#20805] Module linked to menu links (Aytug AKAR, Nikolai Plath, bill richardson)

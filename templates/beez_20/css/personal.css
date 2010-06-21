@@ -102,7 +102,7 @@ fieldset
 
 }
 
-*html .logoheader
+* html .logoheader
 {
 
  height:168px;
@@ -892,16 +892,6 @@ ul.newsflash-horiz li h4
 
 /* ++++++++++++++  login  ++++++++++++++ */
 
-#form-login .inputbox
-{
-        border:solid 1px #ddd;
-        background:url(../images/content_bg.gif) repeat-x;
-        /* CSS 3 works only in FF and Safari */
-        -moz-border-radius: 5px;
-        -webkit-border-radius: 4px;
-        border-radius:4px;
-}
-
 fieldset.input
 {
         border:0 ;
@@ -1312,3 +1302,6 @@ table.pagenav,
 table.pagenav tr,
 table.pagenav td
 {border:0 !important}
+
+/* ++++++++++++++  flashupload  ++++++++++++++ */
+.hide 			{ display: none; }

@@ -231,7 +231,7 @@ span.unwritable		{ color: #a20000;}
 	display: block;
 	float: left;
 	padding: 4px 20px 0 22px;
-	font-size: 1.3em;
+	font-size: 1.2em;
 }
 
 #module-status {
@@ -301,7 +301,7 @@ div.checkin-tick {
 
 .ol-captionfont {
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 1.3em;
+	font-size: 1.2em;
 	color: #ffffff;
 	font-weight: bold;
 }
@@ -342,7 +342,7 @@ div.pagetitle {
 }
 
 div.configuration {
-	font-size: 1.3em;
+	font-size: 1.2em;
 	font-weight: bold;
 	color: #2c2c2c;
 	line-height: 2em;
@@ -876,6 +876,7 @@ legend {
 
 fieldset p {
 	margin: 10px 0px;
+	font-size: 1.2em;
 }
 
 fieldset ol, ol#property-values, fieldset ul, ul#property-values {
@@ -1036,11 +1037,26 @@ input.disabled {
 }
 
 input,select, span.faux-input {
-	font-size: 1.3em;
+	font-size: 1.2em;
 	background-color: #ffffff;
 	border: 1px solid #c7c8b2;
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
+}
+
+span.readonly {
+	float: left;
+	font-size: 1.2em;
+	line-height: 2em;
+}
+
+div.readonly {
+	font-size: 1.2em;
+	line-height: 2em;
+}
+
+div.extdescript {
+	margin-left: 10px;
 }
 
 input[type="button"] {
@@ -1282,12 +1298,19 @@ th.state-col {
 }
 
 th.ordering-col {
-	width: 12%;
-}
-
-.categories th.ordering-col {
 	width: 10%;
 }
+
+th.ordering-col a {
+	display: block;
+	float:left;
+	margin-left: 3px;
+}
+
+th.ordering-col a img {
+	margin-left: 4px;
+	margin-right: 4px;
+} 
 
 .categories th.ordering-col input, .categories td.order input {
 	font-size: 1em;
@@ -1341,6 +1364,11 @@ table.adminlist {
 	border-spacing: 1px;
 	background-color: #ffffff;
 	color: #2c2c2c;
+}
+
+table.adminlist.modal {
+	border-right: 1px solid #c7c8b2;
+	border-left: 1px solid #c7c8b2;
 }
 
 table.adminlist a {
@@ -1550,6 +1578,24 @@ table.noshow fieldset {
 }
 
 /**
+ * Saving order icon styling in admin tables
+ */
+a.saveorder {
+	width: 16px;
+	height: 16px;
+	display:block; 
+	overflow: hidden;
+	background: url(../images/admin/filesave.png) no-repeat;
+	float:right;
+	margin-right: 8px; 
+}
+
+a.saveorder.inactive {
+	background-position: 0px -16px;
+}
+
+
+/**
  * Button styling
  */
 #editor-xtd-buttons {
@@ -1557,7 +1603,7 @@ table.noshow fieldset {
 }
 
 button {
-	font-size: 1.6em;
+	font-size: 1.2em;
 	font-family: Arial, Helvetica, sans-serif;
 	background-color: #f9fade;
 	border: 1px solid #c7c8b2;
@@ -1599,7 +1645,7 @@ button:hover,button:focus {
 	height: 2.2em;
 	float: left;
 	line-height: 2.2em;
-	font-size: 1.3em;
+	font-size: 1.2em;
 	font-weight: bold;
 	color: #2c2c2c;
 	cursor: default;
@@ -2793,6 +2839,8 @@ body.contentpane input, body.contentpane select {
 	display: none;
 }
 
+.hidebtn 		{ border: 0; padding: 0;margin:0;width: 0;height: 0;}
+
 	/* For elements that aren't to be seen by visual users but do need to be read by screenreaders.
 	 * Cannot be used for elements that can get focus such as links and form elements */
 .element-invisible, .hidelabeltxt {
@@ -2873,6 +2921,18 @@ div#jform_ordering {
 	margin-top: 3px;
 }
 
+/* Banner edit */
+#jform_impmade, #jform_clicks {
+	width:30px;
+}
+
+fieldset.adminform input#jform-imp {
+	width:5em;
+}
+
+fieldset.adminform input#jform_clickurl {
+	width: 20em;
+}
 /* Modal accessibility */
 #min-body.body-overlayed a {
 

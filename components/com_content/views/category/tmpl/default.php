@@ -43,27 +43,19 @@ $pageClass = $this->params->get('pageclass_sfx');
 	</div>
 	<?php endif; ?>
 
-	<?php if (is_array($this->children[$this->category->id]) && count($this->children[$this->category->id]) > 0 && $this->params->get('maxLevel') !=0) : ?>
-                <div class="cat-children">
+	<?php if (is_array($this->children) && count($this->children) > 0 && $this->params->get('maxLevel') !=0)  : ?>
+	<div class="jcat-children">
+		<h3>
+			<?php echo JTEXT::_('JGLOBAL_SUBCATEGORIES'); ?>
+		</h3>
 
-         <?php if ($this->params->get('show_category_title') OR $this->params->get('page_subheading'))
-         {  echo '<h3>' ;}
-         else
+		<?php echo $this->loadTemplate('children'); ?>
 
-        {echo '<h2>' ;} ?>
+	</div>
+	<?php endif; ?>
 
-<?php echo JTEXT::_('JGLOBAL_SUBCATEGORIES'); ?>
- <?php if ($this->params->get('show_category_title') OR $this->params->get('page_subheading'))
-         {  echo '</h3>' ;}
-         else
-
-        {echo '</h2>' ;} ?>
-                        <?php echo $this->loadTemplate('children'); ?>
-                </div>
-        <?php endif; ?>
-
-        <div class="cat-items">
-                <?php echo $this->loadTemplate('articles'); ?>
-        </div>
+	<div class="cat-items">
+		<?php echo $this->loadTemplate('articles'); ?>
+	</div>
 
 </div>
