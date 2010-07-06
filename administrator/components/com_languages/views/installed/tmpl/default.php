@@ -18,7 +18,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 		<?php echo $this->loadTemplate('ftp');?>
 	<?php endif; ?>
 
-	<fieldset class="filter clearfix">
+	<fieldset class="filter">
 		<div class="right">
 			<label for="filter_client_id">
 				<?php echo JText::_('COM_LANGUAGES_FILTER_CLIENT_LABEL'); ?>
@@ -36,7 +36,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 					<?php echo JText::_('COM_LANGUAGES_HEADING_NUM'); ?>
 				</th>
 				<th width="30">
-					&nbsp;
+					&#160;
 				</th>
 				<th width="25%" class="title">
 					<?php echo JText::_('COM_LANGUAGES_HEADING_LANGUAGE'); ?>
@@ -78,7 +78,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 					<?php echo $row->name;?>
 				</td>
 				<td width="5%" align="center">
-					<?php echo JHtml::_('languages.published',$row->published);?>
+					<?php echo JHtml::_('jgrid.isdefault', $row->published, $i, 'installed.', !$row->published);?>
 				</td>
 				<td align="center">
 					<?php echo $row->version; ?>
@@ -97,7 +97,9 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 		</tbody>
 	</table>
 
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

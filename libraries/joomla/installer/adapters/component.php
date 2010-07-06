@@ -43,14 +43,16 @@ class JInstallerComponent extends JAdapterInstance
 			$this->parent->setPath('source', ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE).'/components/'.$this->parent->extension->element);
 		}
 
-		$this->manifest = &$this->parent->getManifest();
+		$this->manifest = $this->parent->getManifest();
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
 
 		if (substr($name, 0, 4)=="com_") {
-			$name = substr($name, 4);
+			$extension = $name;
+		}
+		else {
+			$extension = "com_$name";
 		}
 
-		$extension = "com_$name";
 		$lang	= JFactory::getLanguage();
 		$source = $path ? $path : ($this->parent->extension->client_id ? JPATH_ADMINISTRATOR : JPATH_SITE).'/components/'.$extension;
 
@@ -69,7 +71,6 @@ class JInstallerComponent extends JAdapterInstance
 				$source = "$path/$folder";
 			}
 		}
-
 			$lang->load($extension.'.sys', $source, null, false, false)
 		||	$lang->load($extension.'.sys', JPATH_ADMINISTRATOR, null, false, false)
 		||	$lang->load($extension.'.sys', $source, $lang->getDefault(), false, false)
@@ -87,7 +88,7 @@ class JInstallerComponent extends JAdapterInstance
 		$db = $this->parent->getDbo();
 
 		// Get the extension manifest object
-		$this->manifest = &$this->parent->getManifest();
+		$this->manifest = $this->parent->getManifest();
 
 		/**
 		 * ---------------------------------------------------------------------------------------------
@@ -98,11 +99,14 @@ class JInstallerComponent extends JAdapterInstance
 		// Set the extensions name
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
 		if (substr($name, 0, 4)=="com_") {
-			$name = substr($name, 4);
+			$element = $name;
+		}
+		else {
+			$element = "com_$name";
 		}
 
 		$this->set('name', $name);
-		$this->set('element', strtolower('com_'.$name));
+		$this->set('element', $element);
 
 		// Get the component description
 		$this->parent->set('message', JText::_((string)$this->manifest->description));
@@ -449,7 +453,7 @@ class JInstallerComponent extends JAdapterInstance
 		}
 
 		// Set the schema version to be the latest update version
-		if ($this->manifest->update instanceof JXMLElement) {
+		if($this->manifest->update) {
 			$this->parent->setSchemaVersion($this->manifest->update->schemas, $eid);
 		}
 
@@ -498,13 +502,13 @@ class JInstallerComponent extends JAdapterInstance
 
 		// Set the extensions name
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$check=substr($name, 0, 4);
-
-		if ($check=="com_") {
-			$name = substr($name, 4);
+		if (substr($name, 0, 4)=="com_") {
+			$element = $name;
+		}
+		else {
+			$element = "com_$name";
 		}
 
-		$element = strtolower('com_'.$name);
 		$this->set('name', $name);
 		$this->set('element', $element);
 
@@ -745,7 +749,8 @@ class JInstallerComponent extends JAdapterInstance
 			)
 		);
 
-		if ($this->manifest->update instanceof JXMLElement) {
+		if($this->manifest->update)
+		{
 			$result = $this->parent->parseSchemaUpdates($this->manifest->update->schemas, $eid);
 
 			if ($result === false) {
@@ -926,17 +931,19 @@ class JInstallerComponent extends JAdapterInstance
 		}
 
 		// Set the extensions name
-		$name	= strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$check	= substr($name, 0, 4);
-
-		if ($check == 'com_') {
-			$name = substr($name, 4);
+		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
+		if (substr($name, 0, 4)=="com_") {
+			$element = $name;
+		}
+		else {
+			$element = "com_$name";
 		}
 
 		$this->set('name', $name);
+		$this->set('element', $element);
 
 		// Attempt to load the admin language file; might have uninstall strings
-		$this->loadLanguage(JPATH_ADMINISTRATOR.'/components/com_'.$name);
+		$this->loadLanguage(JPATH_ADMINISTRATOR.'/components/'.$element);
 
 		/**
 		 * ---------------------------------------------------------------------------------------------
@@ -1117,6 +1124,7 @@ class JInstallerComponent extends JAdapterInstance
 		$query->from('#__menu AS m');
 		$query->leftJoin('#__extensions AS e ON m.component_id = e.extension_id');
 		$query->where('m.parent_id = 1');
+		$query->where("m.menutype = '_adminmenu'");
 		$query->where('e.element = '.$db->quote($option));
 
 		$db->setQuery($query);
@@ -1273,6 +1281,8 @@ class JInstallerComponent extends JAdapterInstance
 			 */
 			$this->parent->pushStep(array ('type' => 'menu'));
 		}
+
+		return true;
 	}
 
 	/**
@@ -1303,7 +1313,10 @@ class JInstallerComponent extends JAdapterInstance
 
 		// Check for error
 		if ($error = $db->getErrorMsg() || empty($ids)){
-			JError::raiseWarning('Some_code_here', 'Some_message_here');
+			JError::raiseWarning('Some_code_here', 'Some_message_here');//@todo Some_more_descriptive_message_here =;)
+			if($error && $error != 1) {
+				JError::raiseWarning(100, $error);
+			}
 			return false;
 		} else {
 			// Iterate the items to delete each one.
@@ -1349,7 +1362,7 @@ class JInstallerComponent extends JAdapterInstance
 		foreach ($site_components as $component) {
 			if (file_exists(JPATH_SITE.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml')) {
 				$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_SITE.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml');
-				$extension = &JTable::getInstance('extension');
+				$extension = JTable::getInstance('extension');
 				$extension->set('type', 'component');
 				$extension->set('client_id', 0);
 				$extension->set('element', $component);
@@ -1363,7 +1376,7 @@ class JInstallerComponent extends JAdapterInstance
 		foreach ($admin_components as $component) {
 			if (file_exists(JPATH_ADMINISTRATOR.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml')) {
 				$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_ADMINISTRATOR.DS.'components'.DS.$component.DS.str_replace('com_','', $component).'.xml');
-				$extension = &JTable::getInstance('extension');
+				$extension = JTable::getInstance('extension');
 				$extension->set('type', 'component');
 				$extension->set('client_id', 1);
 				$extension->set('element', $component);
@@ -1423,12 +1436,13 @@ class JInstallerComponent extends JAdapterInstance
 
 		// Set the extensions name
 		$name = strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-
-		if (substr($name, 0, 4) == 'com_') {
-			$name = substr($name, 4);
+		if (substr($name, 0, 4)=="com_") {
+			$element = $name;
+		}
+		else {
+			$element = "com_$name";
 		}
 
-		$element = strtolower('com_'.$name);
 		$this->set('name', $name);
 		$this->set('element', $element);
 
@@ -1505,7 +1519,7 @@ class JInstallerComponent extends JAdapterInstance
 		// Normally we would copy files and create directories, lets skip to the optional files
 		// Note: need to dereference things!
 		// Parse optional tags
-		$this->parent->parseMedia($this->manifest->media);
+		//$this->parent->parseMedia($this->manifest->media);
 
 		// We don't do language because 1.6 suggests moving to extension based languages
 		//$this->parent->parseLanguages($this->manifest->languages);

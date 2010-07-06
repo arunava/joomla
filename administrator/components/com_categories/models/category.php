@@ -114,6 +114,7 @@ class CategoriesModelCategory extends JModelAdmin
 	public function getItem($pk = null)
 	{
 		if ($result = parent::getItem($pk)) {
+
 			// Prime required properties.
 			if (empty($result->id)) {
 				$result->parent_id	= $this->getState('category.parent_id');
@@ -124,6 +125,26 @@ class CategoriesModelCategory extends JModelAdmin
 			$registry = new JRegistry();
 			$registry->loadJSON($result->metadata);
 			$result->metadata = $registry->toArray();
+
+			// Convert the created and modified dates to local user time for display in the form.
+			jimport('joomla.utilities.date');
+			$tz	= new DateTimeZone(JFactory::getApplication()->getCfg('offset'));
+
+			if (intval($result->created_time)) {
+				$date = new JDate($result->created_time);
+				$date->setTimezone($tz);
+				$result->created_time = $date->toMySQL(true);
+			} else {
+				$result->created_time = null;
+			}
+
+			if (intval($result->modified_time)) {
+				$date = new JDate($result->modified_time);
+				$date->setTimezone($tz);
+				$result->modified_time = $date->toMySQL(true);
+			} else {
+				$result->modified_time = null;
+			}
 		}
 
 		return $result;
@@ -243,7 +264,7 @@ class CategoriesModelCategory extends JModelAdmin
 		$isNew	= true;
 
 		// Get a row instance.
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		// Load the row if saving an existing category.
 		if ($pk > 0) {
@@ -311,6 +332,28 @@ class CategoriesModelCategory extends JModelAdmin
 	}
 
 	/**
+	 * Method to save the reordered nested set tree.
+	 * First we save the new order values in the lft values of the changed ids.
+	 * Then we invoke the table rebuild to implement the new ordering.
+	 *
+	 * @return	boolean false on failuer or error, true otherwise
+	 * @since	1.6
+	*/
+	public function saveorder($idArray = null, $lft_array = null)
+	{
+		// Get an instance of the table object.
+		$table = $this->getTable();
+
+		if (!$table->saveorder($idArray, $lft_array)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+
+	}
+
+	/**
 	 * Method to perform batch operations on a category or a set of categories.
 	 *
 	 * @param	array	An array of commands to perform.
@@ -330,7 +373,7 @@ class CategoriesModelCategory extends JModelAdmin
 		}
 
 		if (empty($pks)) {
-			$this->setError(JText::_('COM_CATEGORIES_NO_CATEGORIES_SELECTED'));
+			$this->setError(JText::_('COM_CATEGORIES_NO_ITEM_SELECTED'));
 			return false;
 		}
 

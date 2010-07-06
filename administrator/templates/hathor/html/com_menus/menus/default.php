@@ -16,7 +16,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 // Load the tooltip behavior.
 JHtml::_('behavior.tooltip');
 
-$uri	= &JFactory::getUri();
+$uri	= JFactory::getUri();
 $return	= base64_encode($uri);
 $listOrder	= $this->state->get('list.ordering');
 $listDirn	= $this->state->get('list.direction');
@@ -35,7 +35,7 @@ $listDirn	= $this->state->get('list.direction');
 		<thead>
 			<tr>
 				<th class="checkmark-col" rowspan="2">
-					<input type="checkbox" name="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(this)" />
+					<input type="checkbox" name="checkall-toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(this)" />
 				</th>
 				<th rowspan="2">
 					<?php echo JHtml::_('grid.sort',  'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
@@ -72,7 +72,7 @@ $listDirn	= $this->state->get('list.direction');
 				<td>
 					<a href="<?php echo JRoute::_('index.php?option=com_menus&view=items&menutype='.$item->menutype) ?> ">
 						<?php echo $this->escape($item->title); ?></a>
-					<p class="smallsub">(<span><?php echo JText::_('COM_MENUS_MENU_MENUTYPE_LABEL') ?>:</span>
+					<p class="smallsub">(<span><?php echo JText::_('COM_MENUS_MENU_MENUTYPE_LABEL') ?></span>
 						<?php echo '<a href="'. JRoute::_('index.php?option=com_menus&task=menu.edit&cid[]='.$item->id).' title='.$this->escape($item->description).'">'.
 						$this->escape($item->menutype).'</a>'; ?>)</p>
 				</td>
@@ -94,9 +94,8 @@ $listDirn	= $this->state->get('list.direction');
 					if (isset($this->modules[$item->menutype])) :
 						foreach ($this->modules[$item->menutype] as &$module) :
 						?>
-						<li><a href="<?php echo JRoute::_('index.php?option=com_modules&task=module.edit&module_id='.$module->id.'&return='.$return);?>">
-							<?php echo $this->escape($module->title); ?></a>
-						<span class="smallsub">(<?php echo $this->escape($module->position);?>)</span></li>
+						<li><a class="modal" href="<?php echo JRoute::_('index.php?option=com_modules&task=module.edit&id='.$module->id.'&return='.$return.'&tmpl=component&layout=modal');?>" rel="{handler: 'iframe', size: {x: 1024, y: 450}}"  title="<?php echo JText::_('COM_MENUS_EDIT_MODULE_SETTINGS');?>">
+						<?php echo JText::sprintf('COM_MENUS_MODULE_ACCESS_POSITION', $this->escape($module->title), $this->escape($module->access_title), $this->escape($module->position)); ?></a></li>
 						<?php
 						endforeach;
 					endif;

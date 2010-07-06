@@ -29,15 +29,16 @@ function WeblinksBuildRoute(&$query)
 	$segments = array();
 
 	// get a menu item based on Itemid or currently active
-	$menu = &JSite::getMenu();
-	$params = JComponentHelper::getParams('com_weblinks');
+	$app	= JFactory::getApplication();
+	$menu	= $app->getMenu();
+	$params	= JComponentHelper::getParams('com_weblinks');
 	$advanced = $params->get('sef_advanced_link', 0);
 
 	if (empty($query['Itemid'])) {
-		$menuItem = &$menu->getActive();
+		$menuItem = $menu->getActive();
 	}
 	else {
-		$menuItem = &$menu->getItem($query['Itemid']);
+		$menuItem = $menu->getItem($query['Itemid']);
 	}
 	$mView	= (empty($menuItem->query['view'])) ? null : $menuItem->query['view'];
 	$mCatid	= (empty($menuItem->query['catid'])) ? null : $menuItem->query['catid'];
@@ -71,23 +72,27 @@ function WeblinksBuildRoute(&$query)
 			$menuCatid = $mId;
 			$categories = JCategories::getInstance('Weblinks');
 			$category = $categories->get($catid);
-			$path = $category->getPath();
-			$path = array_reverse($path);
-
-			$array = array();
-			foreach($path as $id)
+			if ($category)
 			{
-				if((int) $id == (int)$menuCatid)
+				//TODO Throw error that the category either not exists or is unpublished
+				$path = $category->getPath();
+				$path = array_reverse($path);
+
+				$array = array();
+				foreach($path as $id)
 				{
-					break;
+					if((int) $id == (int)$menuCatid)
+					{
+						break;
+					}
+					if($advanced)
+					{
+						list($tmp, $id) = explode(':', $id, 2);
+					}
+					$array[] = $id;
 				}
-				if($advanced)
-				{
-					list($tmp, $id) = explode(':', $id, 2);
-				}
-				$array[] = $id;
+				$segments = array_merge($segments, array_reverse($array));
 			}
-			$segments = array_merge($segments, array_reverse($array));
 			if($view == 'weblink')
 			{
 				if($advanced)
@@ -130,8 +135,9 @@ function WeblinksParseRoute($segments)
 	$vars = array();
 
 	//Get the active menu item.
-	$menu = &JSite::getMenu();
-	$item = &$menu->getActive();
+	$app 	= JFactory::getApplication();
+	$menu	= $app->getMenu();
+	$item	= $menu->getActive();
 	$params = JComponentHelper::getParams('com_weblinks');
 	$advanced = $params->get('sef_advanced_link', 0);
 

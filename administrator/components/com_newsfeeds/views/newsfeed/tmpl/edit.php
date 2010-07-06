@@ -24,8 +24,9 @@ JHtml::_('behavior.keepalive');
 		if (task == 'newsfeed.cancel' || document.formvalidator.isValid(document.id('newsfeed-form'))) {
 			submitform(task);
 		}
-		// @todo Deal with the editor methods
-		submitform(task);
+		else {
+			alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
+		}
 	}
 // -->
 </script>
@@ -77,7 +78,7 @@ JHtml::_('behavior.keepalive');
 
 				<li><?php echo $this->form->getLabel('cache_time'); ?>
 				<?php echo $this->form->getInput('cache_time'); ?></li>
-
+				
 				<li><?php echo $this->form->getLabel('rtl'); ?>
 				<?php echo $this->form->getInput('rtl'); ?></li>
 
@@ -113,10 +114,9 @@ JHtml::_('behavior.keepalive');
 			<?php echo $this->loadTemplate('metadata'); ?>
 
 		<?php echo JHtml::_('sliders.end'); ?>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
 
-	<div class="clr"></div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div class="clr"></div>	
 </form>

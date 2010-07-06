@@ -23,10 +23,10 @@ $listDirn	= $this->state->get('list.direction');
 		<div class="filter-search fltlft">
 
 			<label class="filter-hide-lbl"><?php echo JText::_('COM_BANNERS_BEGIN_LABEL'); ?></label>
-			<?php echo JHTML::_('calendar',$this->state->get('filter.begin'), 'filter_begin','filter_begin','%Y-%m-%d' , array('size'=>10,'onchange'=>'this.form.submit()'));?>
+			<?php echo JHTML::_('calendar',$this->state->get('filter.begin'), 'filter_begin','filter_begin','%Y-%m-%d' , array('size'=>10,'onchange'=>"this.form.fireEvent('submit');this.form.submit()"));?>
 
 			<label class="filter-hide-lbl"><?php echo JText::_('COM_BANNERS_END_LABEL'); ?></label>
-			<?php echo JHTML::_('calendar',$this->state->get('filter.end'), 'filter_end', 'filter_end','%Y-%m-%d' ,array('size'=>10,'onchange'=>'this.form.submit()'));?>
+			<?php echo JHTML::_('calendar',$this->state->get('filter.end'), 'filter_end', 'filter_end','%Y-%m-%d' ,array('size'=>10,'onchange'=>"this.form.fireEvent('submit');this.form.submit()"));?>
 
 		</div>
 		<div class="filter-select fltrt">
@@ -105,10 +105,11 @@ $listDirn	= $this->state->get('list.direction');
 		<?php endforeach; ?>
 		</tbody>
 	</table>
-
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

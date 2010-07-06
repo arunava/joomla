@@ -44,7 +44,7 @@ abstract class JHtmlBehavior
 		// If no debugging value is set, use the configuration setting
 		if ($debug === null)
 		{
-			$config = &JFactory::getConfig();
+			$config = JFactory::getConfig();
 			$debug = $config->get('debug');
 		}
 
@@ -56,7 +56,7 @@ abstract class JHtmlBehavior
 			self::framework(false);
 		}
 
-		JHtml::_('script','system/mootools-'.$type.$uncompressed.'.js', false, true);
+		JHtml::_('script','system/mootools-'.$type.$uncompressed.'.js', false, true, false, false);
 		$loaded[$type] = true;
 		return;
 	}
@@ -137,7 +137,7 @@ abstract class JHtmlBehavior
 		$options = JHtmlBehavior::_getJSObject($opt);
 
 		// Attach tooltips to document
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 		$document->addScriptDeclaration("
 		window.addEvent('domready', function() {
 			$$('$selector').each(function(el) {
@@ -161,7 +161,7 @@ abstract class JHtmlBehavior
 		static $modals;
 		static $included;
 
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 
 		// Load the necessary files if they haven't yet been loaded
 		if (!isset($included)) {
@@ -217,7 +217,7 @@ abstract class JHtmlBehavior
 		JHtml::_('script','system/progressbar.js', false, true);
 		JHtml::_('script','system/uploader.js', false, true);
 
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 
 		static $uploaders;
 
@@ -362,7 +362,7 @@ abstract class JHtmlBehavior
 
 		// Include mootools framework
 		JHtml::_('behavior.framework');
-		JHtml::_('script','system/mootree.js', false, true);
+		JHtml::_('script','system/mootree.js', false, true, false, false);
 		JHtml::_('stylesheet','system/mootree.css', array(), true);
 
 		if (isset($trees[$id]) && ($trees[$id])) {
@@ -398,7 +398,7 @@ abstract class JHtmlBehavior
 			tree'.$treeName.'.adopt(\''.$id.'\');})';
 
 		// Attach tooltips to document
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 		$document->addScriptDeclaration($js);
 
 		// Set static array
@@ -408,10 +408,11 @@ abstract class JHtmlBehavior
 
 	public static function calendar()
 	{
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
+		$tag = JFactory::getLanguage()->getTag();
 		JHtml::_('stylesheet','system/calendar-jos.css', array(' title' => JText::_('JLIB_HTML_BEHAVIOR_GREEN') ,' media' => 'all'), true);
-		JHtml::_('script','system/calendar.js', false, true);
-		JHtml::_('script','system/calendar-setup.js', false, true);
+		JHtml::_('script',$tag.'/calendar.js', false, true);
+		JHtml::_('script',$tag.'/calendar-setup.js', false, true);
 
 		$translation = JHtmlBehavior::_calendartranslation();
 		if ($translation) {
@@ -427,15 +428,15 @@ abstract class JHtmlBehavior
 		// Include mootools framework
 		JHtmlBehavior::mootools();
 
-		$config	= &JFactory::getConfig();
+		$config		= JFactory::getConfig();
 		$lifetime	= ($config->get('lifetime') * 60000);
 		$refreshTime =  ($lifetime <= 60000) ? 30000 : $lifetime - 60000;
 		//refresh time is 1 minute less than the liftime assined in the configuration.php file
 
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 		$script  = '';
 		$script .= 'function keepAlive() {';
-		$script .=  '	var myAjax = new Ajax("index.php", { method: "get" }).request();';
+		$script .=  '	var myAjax = new Request({method: "get", url: "index.php"}).send();';
 		$script .=  '}';
 		$script .=	' window.addEvent("domready", function()';
 		$script .=	'{ keepAlive.periodical('.$refreshTime.'); }';

@@ -231,7 +231,7 @@ span.unwritable		{ color: #a20000;}
 	display: block;
 	float: left;
 	padding: 4px 20px 0 22px;
-	font-size: 1.3em;
+	font-size: 1.2em;
 }
 
 #module-status {
@@ -301,7 +301,7 @@ div.checkin-tick {
 
 .ol-captionfont {
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 1.3em;
+	font-size: 1.2em;
 	color: #ffffff;
 	font-weight: bold;
 }
@@ -342,7 +342,7 @@ div.pagetitle {
 }
 
 div.configuration {
-	font-size: 1.3em;
+	font-size: 1.2em;
 	font-weight: bold;
 	color: #2c2c2c;
 	line-height: 2em;
@@ -562,7 +562,7 @@ div.current fieldset.radio label {
 	clear:none;
 	min-width: 45px;
 	float:left;
-	margin: 3px 0 0 5px;
+	margin: 3px 0 0 2px;
 }
 
 div.current input,
@@ -607,7 +607,7 @@ div#menu-assignment h3 {
 div#menu-assignment ul.menu-links li.menu-link label {
 	clear:none;
 	float: left;
-	margin: 3px 0 0 5px;
+	margin: 3px 0 0 2px;
 }
 div#menu-assignment ul.menu-links li.menu-link input {
 	clear: left;
@@ -876,6 +876,7 @@ legend {
 
 fieldset p {
 	margin: 10px 0px;
+	font-size: 1.2em;
 }
 
 fieldset ol, ol#property-values, fieldset ul, ul#property-values {
@@ -1036,17 +1037,33 @@ input.disabled {
 }
 
 input,select, span.faux-input {
-	font-size: 1.3em;
+	font-size: 1.2em;
 	background-color: #ffffff;
 	border: 1px solid #c7c8b2;
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 }
 
+span.readonly {
+	float: left;
+	font-size: 1.2em;
+	line-height: 2em;
+}
+
+div.readonly {
+	font-size: 1.2em;
+	line-height: 2em;
+}
+
+div.extdescript {
+	margin-left: 10px;
+}
+
 input[type="button"] {
+	font-family: Arial, Helvetica, sans-serif;
 	background-color: #f9fade;
-	padding:.1em 1em .1em 1em;
-	font-size: 1.1em;
+	padding: 1px 6px;
+	font-size: 1.2em;
 	line-height: 1.5em;
 }
 
@@ -1087,30 +1104,6 @@ label.selectlabel {
  * Option or Parameter styles
  */
 
-
-/* .paramlist span.paramlist-key {
-	vertical-align: bottom;
-}
-
-.paramlist span.paramlist-value {
-	vertical-align: bottom;
-}
-
-.paramlist .toplabel label {
-	text-align: left;
-	float: none;
-	margin: 5px 0 0 10px;
-}
-
-.paramlist .toplabel input,.paramlist .toplabel textarea,.paramlist .toplabel select
-	{
-	margin: 0 0 0 10px;
-}
-
-.paramlist {
-	overflow: hidden;
-} */
-
 .paramrules {
 	padding: 10px;
 	background: #f9fade;
@@ -1123,7 +1116,6 @@ span.gi {
 	font-weight: bold;
 	margin-right: 5px;
 }
-
 
 /**
  * Admintable Styles
@@ -1176,6 +1168,7 @@ table.admintable td.key.vtop {
 fieldset.adminform {
 	border: 1px solid #c7c8b2;
 	margin: 0 10px 10px 10px;
+	overflow: hidden;
 }
 
 ul.adminformlist,
@@ -1185,6 +1178,10 @@ dl.adminformlist li {
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+ul.adminformlist .button2-left, ul.adminformlist .button2-left {
+	margin-top: 5px;
 }
 
 	/* Table styles are for use with tabular data */
@@ -1301,12 +1298,19 @@ th.state-col {
 }
 
 th.ordering-col {
-	width: 12%;
-}
-
-.categories th.ordering-col {
 	width: 10%;
 }
+
+th.ordering-col a {
+	display: block;
+	float:left;
+	margin-left: 3px;
+}
+
+th.ordering-col a img {
+	margin-left: 4px;
+	margin-right: 4px;
+} 
 
 .categories th.ordering-col input, .categories td.order input {
 	font-size: 1em;
@@ -1360,6 +1364,11 @@ table.adminlist {
 	border-spacing: 1px;
 	background-color: #ffffff;
 	color: #2c2c2c;
+}
+
+table.adminlist.modal {
+	border-right: 1px solid #c7c8b2;
+	border-left: 1px solid #c7c8b2;
 }
 
 table.adminlist a {
@@ -1569,6 +1578,24 @@ table.noshow fieldset {
 }
 
 /**
+ * Saving order icon styling in admin tables
+ */
+a.saveorder {
+	width: 16px;
+	height: 16px;
+	display:block; 
+	overflow: hidden;
+	background: url(../images/admin/filesave.png) no-repeat;
+	float:right;
+	margin-right: 8px; 
+}
+
+a.saveorder.inactive {
+	background-position: 0px -16px;
+}
+
+
+/**
  * Button styling
  */
 #editor-xtd-buttons {
@@ -1576,7 +1603,7 @@ table.noshow fieldset {
 }
 
 button {
-	font-size: 1.6em;
+	font-size: 1.2em;
 	font-family: Arial, Helvetica, sans-serif;
 	background-color: #f9fade;
 	border: 1px solid #c7c8b2;
@@ -1618,7 +1645,7 @@ button:hover,button:focus {
 	height: 2.2em;
 	float: left;
 	line-height: 2.2em;
-	font-size: 1.3em;
+	font-size: 1.2em;
 	font-weight: bold;
 	color: #2c2c2c;
 	cursor: default;
@@ -1636,7 +1663,7 @@ button:hover,button:focus {
 .button2-left,.button2-right {
 	float: left;
 	line-height: 1.5em;
-	font-size: 1.7em;
+	font-size: 1.2em;
 	border: 1px solid #c7c8b2;
 	background-color: #f9fade;
 	-moz-border-radius: 3px;
@@ -2297,6 +2324,10 @@ a.jgrid:hover {
 	background-image: url(../images/menu/icon-16-links.png);
 }
 
+.icon-16-weblinks-cat {
+	background-image: url(../images/menu/icon-16-links-cat.png);
+}
+
 /**
  * Toolbar icons
  * These icons are used for the toolbar buttons
@@ -2322,7 +2353,7 @@ a.jgrid:hover {
 	background-image: url(../images/toolbar/icon-32-checkin.png);
 }
 
-.icon-32-config {
+.icon-32-options{
 	background-image: url(../images/toolbar/icon-32-config.png);
 }
 
@@ -2636,6 +2667,9 @@ a.jgrid:hover {
 .icon-48-weblinks {
 	background-image: url(../images/header/icon-48-links.png);
 }
+.icon-48-weblinks-categories {
+	background-image: url(../images/header/icon-48-links-cat.png);
+}
 
 /**
  * General styles
@@ -2805,6 +2839,8 @@ body.contentpane input, body.contentpane select {
 	display: none;
 }
 
+.hidebtn 		{ border: 0; padding: 0;margin:0;width: 0;height: 0;}
+
 	/* For elements that aren't to be seen by visual users but do need to be read by screenreaders.
 	 * Cannot be used for elements that can get focus such as links and form elements */
 .element-invisible, .hidelabeltxt {
@@ -2828,6 +2864,7 @@ legend.element-invisible {
 
 fieldset.panelform {
 	border: none 0;
+	overflow:hidden;
 }
 
 fieldset.adminform label,
@@ -2839,6 +2876,20 @@ fieldset.panelform span.faux-label {
 	min-width: 12em;
 	float:left;
 	margin-left: 10px;
+}
+
+fieldset.adminform.long label,
+fieldset.panelform.long label,
+fieldset.adminform.long span.faux-label,
+fieldset.panelform.long span.faux-label {
+	min-width: 18em;
+}
+
+fieldset.adminform fieldset.radio label,
+fieldset.panelform fieldset.radio label,
+fieldset.adminform fieldset.radio span.faux-label,
+fieldset.panelform fieldset.radio span.faux-label {
+	margin-left: 0;
 }
 
 
@@ -2870,6 +2921,18 @@ div#jform_ordering {
 	margin-top: 3px;
 }
 
+/* Banner edit */
+#jform_impmade, #jform_clicks {
+	width:30px;
+}
+
+fieldset.adminform input#jform-imp {
+	width:5em;
+}
+
+fieldset.adminform input#jform_clickurl {
+	width: 20em;
+}
 /* Modal accessibility */
 #min-body.body-overlayed a {
 
@@ -3024,7 +3087,7 @@ li.acl-editgroups,
 li.acl-resetbtn {
 	display:block;
 	float:left;
-	background-color: #ffffff;
+	background-color: #f9fade;
 	border: 1px solid #c7c8b2;
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
@@ -3091,6 +3154,17 @@ table#acl-config td select {
 	font-weight: normal;
 }
 
+label#jform_rules-lbl {
+	float: none;
+	white-space: nowrap;
+}
+
 /* Disabled until verified */
 label#jform_rules-lbl {display:none;}
+
+/**
+* Mod_rewrite Warning
 */
+#jform_sef_rewrite-lbl {
+	background: url(../images/admin/icon-16-notice-note.png) right top no-repeat;
+}

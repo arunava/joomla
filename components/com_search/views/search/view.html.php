@@ -27,22 +27,23 @@ class SearchViewSearch extends JView
 		require_once JPATH_COMPONENT_ADMINISTRATOR.DS.'helpers'.DS.'search.php';
 
 		// Initialise some variables
-		$app	= &JFactory::getApplication();
-		$pathway  = &$app->getPathway();
-		$uri	= &JFactory::getURI();
+		$app	= JFactory::getApplication();
+		$pathway = $app->getPathway();
+		$uri	= JFactory::getURI();
 
-		$error	= '';
+		$error	= null;
 		$rows	= null;
+		$results= null;
 		$total	= 0;
 
 		// Get some data from the model
-		$areas	= &$this->get('areas');
-		$state		= &$this->get('state');
+		$areas	= $this->get('areas');
+		$state		= $this->get('state');
 		$searchword = $state->get('keyword');
 
-		$params = &$app->getParams();
+		$params = $app->getParams();
 
-		$menus	= &JSite::getMenu();
+		$menus	= $app->getMenu();
 		$menu	= $menus->getActive();
 
 		// because the application sets a default page title, we need to get it
@@ -101,12 +102,11 @@ class SearchViewSearch extends JView
 		// put the filtered results back into the model
 		// for next release, the checks should be done in the model perhaps...
 		$state->set('keyword', $searchword);
-
-		if (!$error)
+		if ($error==null)
 		{
-			$results	= &$this->get('data');
-			$total		= &$this->get('total');
-			$pagination	= &$this->get('pagination');
+			$results	= $this->get('data');
+			$total		= $this->get('total');
+			$pagination	= $this->get('pagination');
 
 			require_once JPATH_SITE.DS.'components'.DS.'com_content'.DS.'helpers'.DS.'route.php';
 
@@ -151,8 +151,6 @@ class SearchViewSearch extends JView
 				$result->count		= $i + 1;
 			}
 		}
-
-		$this->result	= $total;
 
 		$this->assignRef('pagination',  $pagination);
 		$this->assignRef('results',		$results);

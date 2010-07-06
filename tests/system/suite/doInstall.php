@@ -1,4 +1,11 @@
 <?php
+/**
+ * @version		$Id$
+ * @package		Joomla.SystemTest
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * Does a standard Joomla! installation
+ */
 
 require_once 'SeleniumJoomlaTestCase.php';
 
@@ -49,7 +56,7 @@ class DoInstall extends SeleniumJoomlaTestCase
     for ($second = 0; ; $second++) {
         if ($second >= 15) $this->fail("timeout");
         try {
-            if ("Sample Data Loaded Successfully" == $this->getValue("instDefault")) break;
+            if (stripos($this->getValue("instDefault"),'SUCCESS')) break;
         } catch (Exception $e) {}
         sleep(1);
     }
@@ -64,10 +71,12 @@ class DoInstall extends SeleniumJoomlaTestCase
 	echo "Check for site menu\n";
 	$this->assertEquals("Site", $this->getText("link=Site"));
 	echo "Change error level to maximum\n";
-	$this->click("link=Global Configuration");
-    $this->waitForPageToLoad("30000");
+	$this->jClick('Global Configuration');
     $this->click("server");
     $this->select("jform_error_reporting", "label=Maximum");
+    echo "Turn caching off\n";
+    $this->click("system");
+    $this->select("jform_caching", "label=OFF - Caching disabled");
     $this->click("//li[@id='toolbar-save']/a/span");
     $this->waitForPageToLoad("30000");
 	$this->doAdminLogout();

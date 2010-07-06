@@ -36,10 +36,23 @@ $templateparams	= $app->getTemplate(true)->params;
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->language; ?>" lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" >
 	<head>
 		<jdoc:include type="head" />
-			<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/position.css" type="text/css" media="screen,projection" />
+		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/template.css" type="text/css" />
+		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/position.css" type="text/css" media="screen,projection" />
 		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/layout.css" type="text/css" media="screen,projection" />
 		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/print.css" type="text/css" media="Print" />
-		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/general.css" type="text/css" />
+<?php
+	$files = JHtml::_('stylesheet','templates/beez_20/css/general.css',null,false,true);
+	if ($files):
+		if (!is_array($files)):
+			$files = array($files);
+		endif;
+		foreach($files as $file):
+?>
+		<link rel="stylesheet" href="<?php echo $file;?>" type="text/css" />
+<?php
+	 	endforeach;
+	endif;
+?>
 		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/<?php echo $color; ?>.css" type="text/css" />
 		<?php if ($this->direction == 'rtl') : ?>
 		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/beez_20/css/template_rtl.css" type="text/css" />
@@ -79,10 +92,10 @@ $templateparams	= $app->getTemplate(true)->params;
 				<div class="logoheader">
 					<h1 id="logo">
 
-					<?php if ($logo != '' ): ?>
-					<img src="<?php echo $this->baseurl ?>/<?php echo $logo; ?>"  alt="<?php echo JText::_('TPL_BEEZ2_LOGO'); ?>" />
+					<?php if ($logo): ?>
+					<img src="<?php echo $this->baseurl ?>/<?php echo $logo; ?>"  alt="<?php echo $templateparams->get('sitetitle');?>" />
 					<?php endif;?>
-					<?php if ($logo == '' ): ?>
+					<?php if (!$logo ): ?>
 					<?php echo $templateparams->get('sitetitle');?>
 					<?php endif; ?>
 					<span class="header1">
@@ -97,7 +110,7 @@ $templateparams	= $app->getTemplate(true)->params;
 					    <li><a href="#additional" class="u2"><?php echo JText::_('TPL_BEEZ2_JUMP_TO_INFO'); ?></a></li>
 					   <?php endif; ?>
 					</ul>
-                   	<h2 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAV_VIEW_SEARCH'); ?></h2>
+					<h2 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAV_VIEW_SEARCH'); ?></h2>
 					<h3 class="unseen"><?php echo JText::_('TPL_BEEZ2_NAVIGATION'); ?></h3>
 					<jdoc:include type="modules" name="position-1" />
 					<div id="line">
@@ -105,9 +118,9 @@ $templateparams	= $app->getTemplate(true)->params;
 							<script type="text/javascript">
 							//<![CDATA[
 							document.write('<h3><?php echo JText::_('TPL_BEEZ2_FONTSIZE'); ?></h3><p class="fontsize">');
-							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_INCREASE_SIZE'); ?>" onclick="changeFontSize(2); return false;" class="larger"><?php echo JText::_('TPL_BEEZ2_BIGGER'); ?></a><span class="unseen">&nbsp;</span>');
+							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_INCREASE_SIZE'); ?>" onclick="changeFontSize(2); return false;" class="larger"><?php echo JText::_('TPL_BEEZ2_BIGGER'); ?></a><span class="unseen">&#160;</span>');
 							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_REVERT_STYLES_TO_DEFAULT'); ?>" onclick="revertStyles(); return false;" class="reset"><?php echo JText::_('TPL_BEEZ2_RESET'); ?></a> ');
-							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_DECREASE_SIZE'); ?>" onclick="changeFontSize(-2); return false;" class="smaller"><?php echo JText::_('TPL_BEEZ2_SMALLER'); ?></a><span class="unseen">&nbsp;</span></p>');
+							document.write('<a href="index.php" title="<?php echo JText::_('TPL_BEEZ2_DECREASE_SIZE'); ?>" onclick="changeFontSize(-2); return false;" class="smaller"><?php echo JText::_('TPL_BEEZ2_SMALLER'); ?></a><span class="unseen">&#160;</span></p>');
 							//]]>
 							</script>
 					</div>
@@ -160,7 +173,7 @@ $templateparams	= $app->getTemplate(true)->params;
 						<?php if ($this->getBuffer('message')) : ?>
 							<div class="error">
 								<h2>
-									<?php echo JText::_('TPL_BEEZ2_SYSTEM_MESSAGE'); ?>
+									<?php echo JText::_('JNOTICE'); ?>
 								</h2>
 								<jdoc:include type="message" />
 							</div>
@@ -229,22 +242,19 @@ $templateparams	= $app->getTemplate(true)->params;
 
 		<div id="footer-outer">
 
-		<?php if ($showbottom) : ?>
 			<div id="footer-inner">
 
+				<?php if ($showbottom) : ?>
 				<div id="bottom">
-				   <?php if ($this->countModules('position-9')): ?>
 					<div class="box box1"> <jdoc:include type="modules" name="position-9" style="beezDivision" headerlevel="3" /></div>
-					<?php endif; ?>
-					   <?php if ($this->countModules('position-10')): ?>
 					<div class="box box2"> <jdoc:include type="modules" name="position-10" style="beezDivision" headerlevel="3" /></div>
-					<?php endif; ?>
-					   <?php if ($this->countModules('position-11')): ?>
 					<div class="box box3"> <jdoc:include type="modules" name="position-11" style="beezDivision" headerlevel="3" /></div>
-					<?php endif ; ?>
 				</div>
-            </div>
-      <?php endif ; ?>
+				<?php endif ; ?>
+
+				<jdoc:include type="modules" name="debug" />
+
+			</div>
 
 			<div id="footer-sub">
 
@@ -268,6 +278,6 @@ $templateparams	= $app->getTemplate(true)->params;
 			</div>
 
 		</div>
-			<jdoc:include type="modules" name="debug" />
+
 	</body>
 </html>

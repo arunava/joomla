@@ -95,10 +95,6 @@ class ModulesModelModule extends JModelAdmin
 			}
 		}
 
-		// Clear the component's cache
-		$cache = JFactory::getCache('com_modules');
-		$cache->clean();
-		$cache->clean('mod_menu');
 		return true;
 	}
 
@@ -171,10 +167,6 @@ class ModulesModelModule extends JModelAdmin
 			}
 		}
 
-		// Clear the component's cache
-		$cache = JFactory::getCache('com_modules');
-		$cache->clean();
-		$cache->clean('mod_menu');
 		return true;
 	}
 
@@ -260,7 +252,7 @@ class ModulesModelModule extends JModelAdmin
 			$false	= false;
 
 			// Get a row instance.
-			$table = &$this->getTable();
+			$table = $this->getTable();
 
 			// Attempt to load the row.
 			$return = $table->load($pk);
@@ -549,15 +541,14 @@ class ModulesModelModule extends JModelAdmin
 			}
 		}
 
-		// Clean the cache.
-		$cache = JFactory::getCache('com_modules');
-		$cache->clean();
-		$cache->clean('mod_menu');
-
 		// Trigger the onExtensionAfterSave event.
 		$dispatcher->trigger('onExtensionAfterSave', array('com_modules.module', &$table, $isNew));
 
 		$this->setState('module.id', $table->id);
+
+		// Clear module cache
+		$cache = JFactory::getCache($table->module);
+		$cache->clean();
 
 		return true;
 	}

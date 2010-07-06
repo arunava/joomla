@@ -6,17 +6,28 @@
 		label="COM_CONFIG_CACHE_SETTINGS_LABEL">
 		<field
 			name="caching"
-			type="radio"
-			default="0"
+			type="list"
+			default="2"
 			label="COM_CONFIG_FIELD_CACHE_LABEL"
 			description="COM_CONFIG_FIELD_CACHE_DESC"
+			required="true"
 			filter="integer">
+			<option 
+				value="0">COM_CONFIG_FIELD_VALUE_CACHE_OFF</option>
 			<option
-				value="1">JYES</option>
+				value="1">COM_CONFIG_FIELD_VALUE_CACHE_CONSERVATIVE</option>
 			<option
-				value="0">JNO</option>
+				value="2">COM_CONFIG_FIELD_VALUE_CACHE_PROGRESSIVE</option>
 		</field>
-
+		<field
+			name="cache_handler"
+			type="cachehandler"
+			default=""
+			label="COM_CONFIG_FIELD_CACHE_HANDLER_LABEL"
+			description="COM_CONFIG_FIELD_CACHE_HANDLER_DESC"
+			filter="word">
+		</field>
+		
 		<field
 			name="cachetime"
 			type="text"
@@ -25,17 +36,9 @@
 			description="COM_CONFIG_FIELD_CACHE_TIME_DESC"
 			required="true"
 			filter="integer"
-			size="6" />
-
-		<field
-			name="cache_handler"
-			type="cachehandler"
-			default="file"
-			label="COM_CONFIG_FIELD_CACHE_HANDLER_LABEL"
-			description="COM_CONFIG_FIELD_CACHE_HANDLER_DESC"
-			required="true"
-			filter="word" />
+			size="6" />	
 	</fieldset>
+	
 	<fieldset
 		name="memcache"
 		label="COM_CONFIG_MEMCACHE_SETTINGS_LABEL">
@@ -219,7 +222,7 @@
 
 		<field
 			name="ftp_pass"
-			type="text"
+			type="password"
 			label="COM_CONFIG_FIELD_FTP_PASSWORD_LABEL"
 			description="COM_CONFIG_FIELD_FTP_PASSWORD_DESC"
 			filter="string"
@@ -240,9 +243,12 @@
 		<field
 			name="offset"
 			type="timezone"
+			default="UTC"
 			label="COM_CONFIG_FIELD_SERVER_TIMEZONE_LABEL"
 			description="COM_CONFIG_FIELD_SERVER_TIMEZONE_DESC"
-			required="true" />
+			required="true">
+			<option value="UTC">JLIB_FORM_VALUE_TIMEZONE_UTC</option>
+		</field>
 	</fieldset>
 
 	<fieldset
@@ -339,7 +345,7 @@
 
 		<field
 			name="smtppass"
-			type="text"
+			type="password"
 			label="COM_CONFIG_FIELD_MAIL_SMTP_PASSWORD_LABEL"
 			description="COM_CONFIG_FIELD_MAIL_SMTP_PASSWORD_DESC"
 			filter="string"
@@ -753,7 +759,6 @@
 			name="rules"
 			type="rules"
 			label="COM_CONFIG_FIELD_RULES_LABEL"
-			description="COM_CONFIG_FIELD_RULES_DESC"
 			class="inputbox"
 			filter="rules">
 			<action

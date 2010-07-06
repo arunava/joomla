@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
 JHtml::_('script','system/multiselect.js',false,true);
-$user	= &JFactory::getUser();
+$user	= JFactory::getUser();
 $userId	= $user->get('id');
 $listOrder	= $this->state->get('list.ordering');
 $listDirn	= $this->state->get('list.direction');
@@ -69,7 +69,7 @@ $listDirn	= $this->state->get('list.direction');
 			</select>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
+				<?php echo JText::_('JSUBMIT'); ?></button>
 
 		</div>
 	</fieldset>
@@ -79,7 +79,7 @@ $listDirn	= $this->state->get('list.direction');
 		<thead>
 			<tr>
 				<th class="checkmark-col">
-					<input type="checkbox" name="toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(<?php echo count($this->items); ?>);" />
+					<input type="checkbox" name="checkall-toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?>" onclick="checkAll(<?php echo count($this->items); ?>);" />
 				</th>
 				<th class="title">
 					<?php echo JHtml::_('grid.sort',  'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
@@ -135,7 +135,7 @@ $listDirn	= $this->state->get('list.direction');
 							<?php echo $this->escape($item->title); ?>
 					<?php endif; ?>
 					<p class="smallsub">
-						(<span><?php echo JText::_('COM_WEBLINKS_FIELD_ALIAS_LABEL'); ?>:</span> <?php echo $this->escape($item->alias);?>)</p>
+						<?php echo JText::sprintf('JGLOBAL_LIST_ALIAS', $this->escape($item->alias));?></p>
 				</td>
 				<td class="center">
 					<?php echo JHtml::_('jgrid.published', $item->state, $i, 'weblinks.');?>

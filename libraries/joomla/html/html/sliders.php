@@ -95,10 +95,10 @@ abstract class JHtmlSliders
 			// Include mootools framework.
 			JHtml::_('behavior.framework', true);
 
-			$document = &JFactory::getDocument();
+			$document = JFactory::getDocument();
 
-			$display = (isset($params['startOffset']) && ($params['startTransition'])) ? (int)$params['startOffset'] : null;
-			$show = (isset($params['startOffset']) && (!$params['startTransition'])) ? (int)$params['startOffset'] : null;
+			$display = (isset($params['startOffset']) && isset($params['startTransition'])  && $params['startTransition']) ? (int)$params['startOffset'] : null;
+			$show = (isset($params['startOffset']) && !(isset($params['startTransition']) && $params['startTransition'])) ? (int)$params['startOffset'] : null;
 			$options = '{';
 			$opt['onActive']		= 'function(toggler, i) {toggler.addClass(\'jpane-toggler-down\');toggler.removeClass(\'jpane-toggler\');Cookie.write(\'jpanesliders_'.$group.'\',$$(\'div#'.$group.'.pane-sliders .panel h3\').indexOf(toggler));}';
 			$opt['onBackground']	= "function(toggler, i) {toggler.addClass('jpane-toggler');toggler.removeClass('jpane-toggler-down');if($$('div#".$group.".pane-sliders .panel h3').length==$$('div#".$group.".pane-sliders .panel h3.jpane-toggler').length) Cookie.write('jpanesliders_".$group."',-1);}";

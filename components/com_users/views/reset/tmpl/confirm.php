@@ -11,6 +11,7 @@
 defined('_JEXEC') or die;
 
 JHtml::_('behavior.mootools');
+JHtml::_('behavior.keepalive');
 JHtml::_('behavior.formvalidation');
 ?>
 <div class="reset-confirm<?php echo $this->params->get('pageclass_sfx')?>">
@@ -23,7 +24,7 @@ JHtml::_('behavior.formvalidation');
 	<form action="<?php echo JRoute::_('index.php?option=com_users&task=reset.confirm'); ?>" method="post" class="form-validate">
 
 		<?php foreach ($this->form->getFieldsets() as $fieldset): ?>
-		<fieldset>
+		<p><?php echo JText::_($fieldset->label); ?></p>		<fieldset>
 			<dl>
 			<?php foreach ($this->form->getFieldset($fieldset->name) as $name => $field): ?>
 				<dt><?php echo $field->label; ?></dt>

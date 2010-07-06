@@ -20,17 +20,17 @@ class WrapperViewWrapper extends JView
 {
 	public function display($tpl = null)
 	{
-		$app		= &JFactory::getApplication();
-		$document	= &JFactory::getDocument();
+		$app		= JFactory::getApplication();
+		$document	= JFactory::getDocument();
 
-		$menus	= &JSite::getMenu();
+		$menus	= $app->getMenu();
 		$menu	= $menus->getActive();
 
-		$params = &$app->getParams();
+		$params = $app->getParams();
 
 		// because the application sets a default page title, we need to get it
 		// right from the menu item itself
-		$title = $this->params->get('page_title', '');
+		$title = $params->get('page_title', '');
 		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
 		}

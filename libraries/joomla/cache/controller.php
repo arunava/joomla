@@ -38,8 +38,8 @@ class JCacheController
 	 */
 	public function __construct($options)
 	{
-		$this->cache = new JCache($options);
-		$this->options = $this->cache->_options;
+		$this->cache 	= new JCache($options);
+		$this->options 	= $this->cache->_options;
 
 		// Overwrite default options with given options
 		foreach ($options AS $option=>$value) {
@@ -54,7 +54,7 @@ class JCacheController
 	 */
 	public function __call ($name, $arguments)
 	{
-		$nazaj = call_user_func_array (array ($this->cache,$name),$arguments);
+		$nazaj = call_user_func_array (array ($this->cache, $name), $arguments);
 		return $nazaj;
 	}
 
@@ -160,7 +160,7 @@ class JCacheController
 
 		// check again, we might got it from second attempt
 		if ($data !== false) {
-			$data = unserialize($data);
+			$data = unserialize(trim($data));  // trim to fix unserialize errors
 		}
 		return $data;
 	}

@@ -48,7 +48,7 @@ class MenusModelItem extends JModelAdmin
 		}
 
 		if (empty($pks)) {
-			$this->setError(JText::_('COM_MENUS_NO_MENUITEMS_SELECTED'));
+			$this->setError(JText::_('COM_MENUS_NO_ITEM_SELECTED'));
 			return false;
 		}
 
@@ -262,8 +262,8 @@ class MenusModelItem extends JModelAdmin
 		$menuType	= $parts[0];
 		$parentId	= (int) JArrayHelper::getValue($parts, 1, 0);
 
-		$table	= &$this->getTable();
-		$db		= &$this->getDbo();
+		$table	= $this->getTable();
+		$db		= $this->getDbo();
 
 		// Check that the parent exists.
 		if ($parentId) {
@@ -429,7 +429,7 @@ class MenusModelItem extends JModelAdmin
 		$pk = (!empty($pk)) ? $pk : (int)$this->getState('item.id');
 
 		// Get a level row instance.
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		// Attempt to load the row.
 		$table->load($pk);
@@ -492,7 +492,7 @@ class MenusModelItem extends JModelAdmin
 
 				if (isset($args['option'])) {
 					// Load the language file for the component.
-					$lang = &JFactory::getLanguage();
+					$lang = JFactory::getLanguage();
 						$lang->load($args['option'], JPATH_ADMINISTRATOR, null, false, false)
 					||	$lang->load($args['option'], JPATH_ADMINISTRATOR.'/components/'.$args['option'], null, false, false)
 					||	$lang->load($args['option'], JPATH_ADMINISTRATOR, $lang->getDefault(), false, false)
@@ -757,7 +757,7 @@ class MenusModelItem extends JModelAdmin
 	{
 		// Initialiase variables.
 		$db = $this->getDbo();
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		if (!$table->rebuild()) {
 			$this->setError($table->getError());
@@ -857,6 +857,31 @@ class MenusModelItem extends JModelAdmin
 
 		return true;
 	}
+	
+	/**
+	 * Method to save the reordered nested set tree.
+	 * First we save the new order values in the lft values of the changed ids.
+	 * Then we invoke the table rebuild to implement the new ordering.
+	 *
+	 * @param	array	id's of rows to be reordered
+	 * @param	array	lft values of rows to be reordered
+	 * @return	boolean false on failuer or error, true otherwise
+	 * @since	1.6
+	*/
+	public function saveorder($idArray = null, $lft_array = null)
+	{
+		// Get an instance of the table object.
+		$table = $this->getTable();
+
+		if (!$table->saveorder($idArray, $lft_array)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
+		return true;
+
+	}
+	
 
 	/**
 	 * Method to change the home state of one or more items.
@@ -937,7 +962,7 @@ class MenusModelItem extends JModelAdmin
 				}
 			}
 		}
-		
+
 		return parent::publish($pks,$value);
 	}
 }

@@ -612,7 +612,7 @@ class plgEditorTinymce extends JPlugin
 
 	function onGetInsertMethod($name)
 	{
-		$doc =& JFactory::getDocument();
+		$doc = JFactory::getDocument();
 
 		$js= "
 			function isBrowserIE() {
@@ -692,7 +692,7 @@ class plgEditorTinymce extends JPlugin
 			}
 		}
 
-		if(is_array($buttons) || (is_boolean($buttons) && $buttons))
+		if(is_array($buttons) || (is_bool($buttons) && $buttons))
 		{
 			$results = $this->_subject->getButtons($name, $buttons);
 

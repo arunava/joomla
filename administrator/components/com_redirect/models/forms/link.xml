@@ -74,16 +74,16 @@
 			name="created_date"
 			type="text"
 			id="created_date"
-			class="inputbox"
+			class="readonly"
 			label="COM_REDIRECT_FIELD_CREATED_DATE_LABEL"
 			size="20"
 			readonly="true" />
 
 		<field
-			name="updated_date"
+			name="modified_date"
 			type="text"
-			id="updated_date"
-			class="inputbox"
+			id="modified_date"
+			class="readonly"
 			label="COM_REDIRECT_FIELD_UPDATED_DATE_LABEL"
 			size="20"
 			readonly="true" />

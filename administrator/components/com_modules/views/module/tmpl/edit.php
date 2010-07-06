@@ -90,7 +90,7 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 			<input type="text" size="35" value="<?php echo $this->item->client_id == 0 ? JText::_('JSITE') : JText::_('JADMINISTRATOR'); ?>	" class="readonly" readonly="readonly" />
 			<?php echo $this->form->getInput('client_id'); ?>
 			</li>
-
+			</ul>
 			<div class="clr" /></div>
 			<?php if ($this->item->xml) : ?>
 				<?php if ($text = trim($this->item->xml->description)) : ?>
@@ -116,24 +116,30 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 	<?php echo JHtml::_('sliders.end'); ?>
 	</div>
 
+	<div class="clr"></div>
+	<?php if ($hasContent) : ?>
+	<div class="width-60 fltlft">
+		<fieldset class="adminform">
+			<legend><?php echo JText::_('COM_MODULES_CUSTOM_OUTPUT'); ?></legend>
+			<ul class="adminformlist">
+			<div class="clr"></div>
+			<li><?php echo $this->form->getLabel('content'); ?>
+			<div class="clr"></div>
+			<?php echo $this->form->getInput('content'); ?></li>
+			</ul>
+		</fieldset>
+	</div>
+	
+	<div class="clr"></div>
+	<?php endif; ?>
 	<?php if ($this->item->client_id == 0) :?>
 	<div class="width-60 fltlft">
 		<?php echo $this->loadTemplate('assignment'); ?>
 	</div>
 	<?php endif; ?>
 
-	<div class="clr"></div>
-	<?php if ($hasContent) : ?>
-		<fieldset class="adminform">
-			<legend><?php echo JText::_('COM_MODULES_CUSTOM_OUTPUT'); ?></legend>
-			<ul class="adminformlist">
-			<li><?php echo $this->form->getLabel('content'); ?>
-			<?php echo $this->form->getInput('content'); ?></li>
-			</ul>
-
-		</fieldset>	endif;
-	<?php endif; ?>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

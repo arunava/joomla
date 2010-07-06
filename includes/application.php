@@ -61,28 +61,20 @@ final class JSite extends JApplication
 
 		// if a language was specified it has priority
 		// otherwise use user or default language settings
+		jimport('joomla.plugin.helper');
+		JPluginHelper::importPlugin('system');
+
 		if (empty($options['language'])) {
-			$sef = JRequest::getString('lang', null);
-			if (!empty($sef)) {
-				$languages = JLanguageHelper::getLanguages('sef');
-				if (isset($languages[$sef])) {
-					$lang = $languages[$sef]->lang_code;
-					// Make sure that the sef's language exists
-					if ($lang && JLanguage::exists($lang)) {
-						$config = JFactory::getConfig();
-						$cookie_domain 	= $config->get('config.cookie_domain', '');
-						$cookie_path 	= $config->get('config.cookie_path', '/');
-						setcookie(JUtility::getHash('language'), $lang, time() + 365 * 86400, $cookie_path, $cookie_domain);
-						$options['language'] = $lang;
-					}
-				}
+			$lang = JRequest::getString('language', null);
+			if ($lang && JLanguage::exists($lang)) {
+				$options['language'] = $lang;
 			}
 		}
+
 		if ($this->_language_filter && empty($options['language'])) {
 			// Detect cookie language
 			jimport('joomla.utilities.utility');
 			$lang = JRequest::getString(JUtility::getHash('language'), null ,'cookie');
-
 			// Make sure that the user's language exists
 			if ($lang && JLanguage::exists($lang)) {
 				$options['language'] = $lang;
@@ -137,7 +129,7 @@ final class JSite extends JApplication
 		parent::route();
 
 		$Itemid = JRequest::getInt('Itemid');
-		$this->authorize($Itemid);
+		$this->authorise($Itemid);
 	}
 
 	/**
@@ -165,7 +157,11 @@ final class JSite extends JApplication
 				$languages = JLanguageHelper::getLanguages('lang_code');
 
 				// Set metadata
-				$document->setMetaData('keywords', $this->getCfg('MetaKeys') . ($languages[$lang_code]->metakey ? (', ' . $languages[$lang_code]->metakey) : ''));
+				if (isset($languages[$lang_code]) && $languages[$lang_code]->metakey) {
+					$document->setMetaData('keywords', $languages[$lang_code]->metakey);
+				} else {
+					$document->setMetaData('keywords', $this->getCfg('MetaKeys'));
+				}
 				$document->setMetaData('rights', $this->getCfg('MetaRights'));
 				$document->setMetaData('language', $lang_code);
 				if ($router->getMode() == JROUTER_MODE_SEF) {
@@ -180,7 +176,6 @@ final class JSite extends JApplication
 
 		$document->setTitle($params->get('page_title'));
 		$document->setDescription($params->get('page_description'));
-
 		$contents = JComponentHelper::renderComponent($component);
 		$document->setBuffer($contents, 'component');
 
@@ -237,8 +232,13 @@ final class JSite extends JApplication
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onBeforeRender');
 
+		$caching = false;
+		if ($this->getCfg('caching') && $this->getCfg('caching',2) == 2) {
+			$caching = true; 
+		}
+		
 		// Render the document.
-		JResponse::setBody($document->render($this->getCfg('caching'), $params));
+		JResponse::setBody($document->render($caching, $params));
 
 		// Trigger the onAfterRender event.
 		$this->triggerEvent('onAfterRender');
@@ -266,11 +266,19 @@ final class JSite extends JApplication
 	}
 
 	/**
-	 * Check if the user can access the application
+	 * @deprecated 1.6	Use the authorise method instead.
 	 */
 	public function authorize($itemid)
 	{
-		$menus	= JSite::getMenu();
+		return $this->authorise($itemid);
+	}
+
+	/**
+	 * Check if the user can access the application
+	 */
+	public function authorise($itemid)
+	{
+		$menus	= $this->getMenu();
 		$user	= JFactory::getUser();
 
 		if (!$menus->authorise($itemid))
@@ -319,16 +327,20 @@ final class JSite extends JApplication
 			$params[$hash] = clone JComponentHelper::getParams($option);
 
 			// Get menu parameters
-			$menus	= JSite::getMenu();
+			$menus	= $this->getMenu();
 			$menu	= $menus->getActive();
 
 			// Get language
 			$lang_code = JFactory::getLanguage()->getTag();
 			$languages = JLanguageHelper::getLanguages('lang_code');
 
-			$title 			= htmlspecialchars_decode($this->getCfg('sitename'));
-			$description	= $this->getCfg('MetaDesc') . $languages[$lang_code]->metadesc;
-			$rights			= $this->getCfg('MetaRights');
+			$title = htmlspecialchars_decode($this->getCfg('sitename'));
+			if (isset($languages[$lang_code]) && $languages[$lang_code]->metadesc) {
+				$description = $languages[$lang_code]->metadesc;
+			} else {
+				$description = $this->getCfg('MetaDesc');
+			}
+			$rights = $this->getCfg('MetaRights');
 			// Lets cascade the parameters if we have menu item parameters
 			if (is_object($menu)) {
 				$temp = new JRegistry;
@@ -376,6 +388,9 @@ final class JSite extends JApplication
 		// Get the id of the active menu item
 		$menu = $this->getMenu();
 		$item = $menu->getActive();
+		if (!$item) {
+			$item = $menu->getItem(JRequest::getVar('Itemid'));
+		}
 
 		$id = 0;
 		if (is_object($item)) { // valid item retrieved
@@ -449,10 +464,13 @@ final class JSite extends JApplication
 	/**
 	 * Return a reference to the JPathway object.
 	 *
-	 * @return object JPathway.
-	 * @since 1.5
+	 * @param	string	$name		The name of the application/client.
+	 * @param	array	$options	An optional associative array of configuration settings.
+	 *
+	 * @return	object	JMenu.
+	 * @since	1.5
 	 */
-	public function getMenu()
+	public function getMenu($name = null, $options = array())
 	{
 		$options	= array();
 		$menu		= parent::getMenu('site', $options);
@@ -462,10 +480,13 @@ final class JSite extends JApplication
 	/**
 	 * Return a reference to the JPathway object.
 	 *
-	 * @return object JPathway.
-	 * @since 1.5
+	 * @param	string	$name		The name of the application.
+	 * @param	array	$options	An optional associative array of configuration settings.
+	 *
+	 * @return	object JPathway.
+	 * @since	1.5
 	 */
-	public function getPathWay()
+	public function getPathway($name = null, $options = array())
 	{
 		$options = array();
 		$pathway = parent::getPathway('site', $options);
@@ -475,10 +496,13 @@ final class JSite extends JApplication
 	/**
 	 * Return a reference to the JRouter object.
 	 *
-	 * @return	JRouter.
+	 * @param	string	$name		The name of the application.
+	 * @param	array	$options	An optional associative array of configuration settings.
+	 *
+	 * @return	JRouter
 	 * @since	1.5
 	 */
-	static public function getRouter()
+	static public function getRouter($name = null, array $options = array())
 	{
 		$config = JFactory::getConfig();
 		$options['mode'] = $config->get('sef');

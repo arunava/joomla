@@ -474,7 +474,7 @@ class JUser extends JObject
 
 		if (array_key_exists('params', $array)) {
 			$params	= '';
-			$this->_params->bind($array['params']);
+			$this->_params->merge(new JRegistry($array['params']));
 			if (is_array($array['params'])) {
 				$params	= (string)$this->_params;
 			} else {
@@ -509,6 +509,7 @@ class JUser extends JObject
 		$table = $this->getTable();
 		$this->params = (string)$this->_params;
 		$table->bind($this->getProperties());
+		$table->groups = $this->groups;
 
 		// Check and store the object.
 		if (!$table->check()) {

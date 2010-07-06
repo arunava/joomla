@@ -27,6 +27,88 @@ $ -> Language fix or change
 - -> Removed
 ! -> Note
 
+05-Jul-2010 Mark Dexter
+# Fix system tests for sample data changes
+# Improvements to test methods (Matt Thomas)
+
+04-Jul-2010 Mark Dexter
+# Fix failing system tests (turn off caching, adjust for language changes)
+
+01-Jul-2010 Mark Dexter
+# Fix problems with system test acl0001Test (Matt Thomas)
+# Fix problems running JElement unit tests stand-alone
+
+30-Jun-2010 Mark Dexter
+# Fix failing system tests
+# Fix system tests for uncategorised category changes
+
+28-Jun-2010 Mark Dexter
+# Fix failing system test
++ Added tests for JInstaller
+
+27-Jun-2010 Mark Dexter
+# Fix failing system tests from [#20372] toggle name change
+
+26-Jun-2010 Ian MacLennan
++ Added JInstaller test
+# Improved JError handling in JoomlaTestCase
+
+25-Jun-2010 Mark Dexter
+# Fix failing JForm test in Windows (hard-coded '/')
+# Fix failing JFilterOutputTest (when running stand-alone)
+
+24-Jun-2010 Ian MacLennan
+# Fixed intermittently failing unit test
+# Added some JInstaller unit tests
+
+23-Jun-2010 Ian MacLennan
++ Added unit tests for JAdapter, JAdapterInstance and one for JObject
+# Fixed unit tests that were breaking because mocks were not getting properly injected
+# Fixed JCache unit tests to supply storage handler to accomodate behaviour change (thanks Klas)
+
+22-Jun-2010 Mark Dexter
+# Added test fixes for failing system tests on Hudson server
+
+22-Jun-2010 Ian MacLennan
+ # Added unit tests for JDocument
+
+20-Jun-2010 Mark Dexter
+# [#20735] JMailHelper unit tests
+
+19-Jun-2010 Mark Dexter
++ New system test featured0002test to test ordering down columns
++ New methods in SeleniumJoomlaTestCase for toggling featured and published in Article Manager
+
+12-Jun-2010 Mark Dexter
+# Fix failing featured0001Test
+
+08-Jun-2010 Mark Dexter
+^ Refactor methods in SeleniumJoomlaTestCase (Matt Thomas)
+# Fix system test errors
+^ Refactor menu0001Test to remove sleep statements
+
+07-Jun-2010 Sam Moffatt
+ # Fixed incorrect metadata in package sample
+
+07-Jun-2010 Mark Dexter
++ New system test for featured blog ordering
+# Clean up doc blocks for system tests 
+
+04-Jun-2010 Mark Dexter
+^ Improvements to SeleniumJoomlaTestCase. (Matt Thomas)
+
+30-May-2010 Mark Dexter
+# JLanguageTest fixes and improvements. Thanks Tudor Mazilu!  
+
+28-May-2010 Mark Dexter
+# Fix broken acl0001Test.php system test
+
+27-May-2010 Mark Dexter
+# Fix broken doInstall.php system test
+
+25-May-2010 Mark Dexter
+# Fix broken system tests (Matt Thomas)
+
 19-May-2010 Mark Dexter
 # Fix system test for template change
 

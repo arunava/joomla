@@ -39,14 +39,13 @@ abstract class NewsfeedsHelperRoute
 		{
 			$categories = JCategories::getInstance('Newsfeeds');
 			$category = $categories->get($catid);
-			if(!$category)
+			if($category)
 			{
-				die('The category is not published or does not exist');
 				//TODO Throw error that the category either not exists or is unpublished
+				$needles['category'] = array_reverse($category->getPath());
+				$needles['categories'] = $needles['category'];
+				$link .= '&catid='.$catid;
 			}
-			$needles['category'] = array_reverse($category->getPath());
-			$needles['categories'] = $needles['category'];
-			$link .= '&catid='.$catid;
 		}
 
 		if ($item = NewsfeedsHelperRoute::_findItem($needles)) {
@@ -82,8 +81,8 @@ abstract class NewsfeedsHelperRoute
 		{
 			self::$lookup = array();
 
-			$component	= &JComponentHelper::getComponent('com_newsfeeds');
-			$menus		= &JApplication::getMenu('site');
+			$component	= JComponentHelper::getComponent('com_newsfeeds');
+			$menus		= JApplication::getMenu('site');
 			$items		= $menus->getItems('component_id', $component->id);
 			foreach ($items as $item)
 			{

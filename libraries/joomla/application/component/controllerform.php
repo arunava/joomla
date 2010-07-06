@@ -74,7 +74,7 @@ class JControllerForm extends JController
 		if (empty($this->context)) {
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r)) {
-				JError::raiseError(500, 'JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME');
+				JError::raiseError(500, JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'));
 			}
 			$this->context = strtolower($r[2]);
 		}
@@ -138,7 +138,7 @@ class JControllerForm extends JController
 		// Access check.
 		if (!$this->allowAdd()) {
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
-			return JError::raiseWarning(403, 'JLIB_APPLICATION_ERROR_CREATE_RECORD_NOT_PERMITTED');
+			return JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_CREATE_RECORD_NOT_PERMITTED'));
 		}
 
 		// Clear the record edit information from the session.
@@ -209,7 +209,7 @@ class JControllerForm extends JController
 
 		// Initialise variables.
 		$app		= JFactory::getApplication();
-		$model		= &$this->getModel();
+		$model		= $this->getModel();
 		$table		= $model->getTable();
 		$checkin	= property_exists($table, 'checked_out');
 		$context	= "$this->option.edit.$this->context";
@@ -246,8 +246,14 @@ class JControllerForm extends JController
 
 	/**
 	 * This controller does not have a display method. Redirect back to the list view of the component.
+	 *
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	void
+	 * @since	1.5
 	 */
-	public function display()
+	public function display($cachable = false, $urlparams = false)
 	{
 		$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
 	}
@@ -284,7 +290,7 @@ class JControllerForm extends JController
 		$key		= $table->getKeyName();
 		if (!$this->allowEdit(array($key => $recordId), $key)) {
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
-			return JError::raiseWarning(403, 'JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED');
+			return JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED'));
 		}
 
 		// If record ids do not match, checkin previous record.
@@ -382,7 +388,7 @@ class JControllerForm extends JController
 		// Access check.
 		if (!$this->allowSave($data)) {
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
-			return JError::raiseWarning(403, 'JLIB_APPLICATION_ERROR_SAVE_NOT_PERMITTED');
+			return JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_SAVE_NOT_PERMITTED'));
 		}
 
 		// Validate the posted data.

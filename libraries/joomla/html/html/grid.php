@@ -125,7 +125,7 @@ abstract class JHtmlGrid
 
 	public static function checkedOut(&$row, $i, $identifier = 'id')
 	{
-		$user	= &JFactory::getUser();
+		$user	= JFactory::getUser();
 		$userid = $user->get('id');
 
 		$result = false;
@@ -208,8 +208,8 @@ abstract class JHtmlGrid
 
 	public static function order($rows, $image = 'filesave.png', $task = 'saveorder')
 	{
-		$image = JHTML::_('image','admin/'.$image, JText::_('JLIB_HTML_SAVE_ORDER'), NULL, true);
-		$href = '<a href="javascript:saveorder('.(count($rows)-1).', \''.$task.'\')" title="'.JText::_('JLIB_HTML_SAVE_ORDER').'">'.$image.'</a>';
+		// $image = JHTML::_('image','admin/'.$image, JText::_('JLIB_HTML_SAVE_ORDER'), NULL, true);
+		$href = '<a href="javascript:saveorder('.(count($rows)-1).', \''.$task.'\')" class="saveorder" title="'.JText::_('JLIB_HTML_SAVE_ORDER').'"></a>';
 		return $href;
 	}
 
@@ -268,7 +268,7 @@ abstract class JHtmlGrid
 		});';
 
 			// Add the behavior to the document head.
-			$document = & JFactory::getDocument();
+			$document = JFactory::getDocument();
 			$document->addScriptDeclaration($js);
 
 			$loaded = true;

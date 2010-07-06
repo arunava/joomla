@@ -22,7 +22,7 @@ class Group0001Test extends SeleniumJoomlaTestCase
     $this->waitForPageToLoad("30000");
     $saltGroup = mt_rand();
     $this->type("jform_title", "Test Group".$saltGroup);
-    $this->select("jformparent_id", "label=- Registered");
+    $this->select("jform_parent_id", "label=- Registered");
     $this->click("link=Save & Close");
     $this->waitForPageToLoad("30000");
     try {
@@ -34,7 +34,7 @@ class Group0001Test extends SeleniumJoomlaTestCase
     $this->type("filter_search", "Test Group".$saltGroup);
     $this->click("//button[@type='submit']");
     $this->waitForPageToLoad("30000");
-    $this->click("toggle");
+    $this->click("checkall-toggle");
     $this->click("//li[@id='toolbar-delete']/a/span");
     $this->waitForPageToLoad("30000");
     try {

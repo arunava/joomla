@@ -20,15 +20,18 @@ JHtml::_('behavior.formvalidation');
 	function submitbutton(task)
 	{
 		if (task == 'contact.cancel' || document.formvalidator.isValid(document.id('contact-form'))) {
+			<?php echo $this->form->getField('misc')->save(); ?>
+			submitform(task);
 		}
-		// @todo Deal with the editor methods
-		submitform(task);
+		else {
+			alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
+		}
 	}
 // -->
 </script>
 
 <form action="<?php JRoute::_('index.php?option=com_contact'); ?>" method="post" name="adminForm" id="contact-form" class="form-validate">
-	<div class="width-50 fltlft">
+	<div class="width-60 fltlft">
 		<fieldset class="adminform">
 			<legend><?php echo empty($this->item->id) ? JText::_('COM_CONTACT_NEW_CONTACT') : JText::sprintf('COM_CONTACT_EDIT_CONTACT', $this->item->id); ?></legend>
 			<ul class="adminformlist">
@@ -69,7 +72,7 @@ JHtml::_('behavior.formvalidation');
 		</fieldset>
 	</div>
 
-	<div class="width-50 fltrt">
+	<div class="width-40 fltrt">
 		<?php echo  JHtml::_('sliders.start', 'contact-slider'); ?>
 			<?php echo JHtml::_('sliders.panel',JText::_('COM_CONTACT_CONTACT_DETAILS'), 'basic-options'); ?>
 			<fieldset class="panelform">
@@ -127,8 +130,7 @@ JHtml::_('behavior.formvalidation');
 
 			<?php echo $this->loadTemplate('metadata'); ?>
 		<?php echo JHtml::_('sliders.end'); ?>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>

@@ -2,7 +2,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.FunctionalTest
+ * @package		Joomla.SystemTest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * checks that all menu choices are shown in back end
@@ -115,6 +115,7 @@ class Article0001 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//img[@alt='Edit']"));
 		echo "Drill to Sample Data article and check that edit icon is visible" . "\n";
 		$this->click("link=Home");
+		$this->waitForPageToLoad("30000");
 		$this->click("link=Sample Sites");
 		$this->waitForPageToLoad("30000");
 		$this->click("link=Park Blog");

@@ -58,7 +58,7 @@ $n = count($this->items);
 			</select>
 
 			<button type="button" id="filter-go" onclick="this.form.submit();">
-				<?php echo JText::_('TPL_HATHOR_GO'); ?></button>
+				<?php echo JText::_('JSUBMIT'); ?></button>
 		</div>
 	</fieldset>
 	<div class="clr"> </div>
@@ -67,7 +67,7 @@ $n = count($this->items);
 		<thead>
 			<tr>
 				<th class="checkmark-col">
-					<input type="checkbox" name="toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?> " onclick="checkAll(this)" />
+					<input type="checkbox" name="checkall-toggle" id="toggle" value="" title="<?php echo JText::_('TPL_HATHOR_CHECKMARK_ALL'); ?> " onclick="checkAll(this)" />
 				</th>
 				<th class="title">
 					<?php echo JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
@@ -79,7 +79,7 @@ $n = count($this->items);
 					<?php echo JHtml::_('grid.sort', 'COM_CONTENT_HEADING_FEATURED', 'a.featured', $listDirn, $listOrder); ?>
 				</th>
 				<th class="title category-col">
-					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_CATEGORY', 'a.catid', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_CATEGORY', 'category_title', $listDirn, $listOrder); ?>
 				</th>
 				<th class="nowrap ordering-col">
 					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ORDERING', 'a.ordering', $listDirn, $listOrder); ?>
@@ -130,7 +130,7 @@ $n = count($this->items);
 						<?php echo $this->escape($item->title); ?>
 					<?php endif; ?>
 					<p class="smallsub">
-						(<span><?php echo JText::_('JFIELD_ALIAS_LABEL'); ?>:</span> <?php echo $this->escape($item->alias);?>)</p>
+						<?php echo JText::sprintf('JGLOBAL_LIST_ALIAS', $this->escape($item->alias));?></p>
 				</td>
 				<td class="center">
 					<?php echo JHtml::_('jgrid.published', $item->state, $i, 'articles.', $canChange); ?>
@@ -158,7 +158,7 @@ $n = count($this->items);
 					<?php echo $this->escape($item->author_name); ?>
 				</td>
 				<td class="center">
-					<?php echo JHTML::_('date',$item->created, 'Y-m-d'); ?>
+					<?php echo JHTML::_('date',$item->created, JText::_('DATE_FORMAT_LC4')); ?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->hits; ?>

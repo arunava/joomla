@@ -52,9 +52,6 @@ $listDirn	= $this->state->get('list.direction');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="20">
-					<input type="checkbox" name="toggle" value="" onclick="checkAll(this)" />
-				</th>
 				<th class="title">
 					<?php echo JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 				</th>
@@ -62,7 +59,7 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_CATEGORY', 'a.catid', $listDirn, $listOrder); ?>
 				</th>
 				<th width="10%">
-					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ACCESS', 'category', $listDirn, $listOrder); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ACCESS', 'access_level', $listDirn, $listOrder); ?>
 				</th>
 				<th width="5%">
 					<?php echo JHtml::_('grid.sort',  'JDATE', 'a.created', $listDirn, $listOrder); ?>
@@ -82,11 +79,8 @@ $listDirn	= $this->state->get('list.direction');
 		<tbody>
 		<?php foreach ($this->items as $i => $item) : ?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<td class="center">
-					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
-				</td>
 				<td>
-					<a class="pointer" onclick="if (window.parent) window.parent.<?php echo $function;?>('<?php echo $item->id; ?>', '<?php echo $this->escape($item->title); ?>', '<?php echo $this->escape($item->catid); ?>');">
+					<a class="pointer" onclick="if (window.parent) window.parent.<?php echo $function;?>('<?php echo $item->id; ?>', '<?php echo $this->escape(addslashes($item->title)); ?>', '<?php echo $this->escape($item->catid); ?>');">
 						<?php echo $this->escape($item->title); ?></a>
 				</td>
 				<td class="center">
@@ -96,7 +90,7 @@ $listDirn	= $this->state->get('list.direction');
 					<?php echo $this->escape($item->access_level); ?>
 				</td>
 				<td class="center">
-					<?php echo JHTML::_('date',$item->created, 'Y-m-d'); ?>
+					<?php echo JHTML::_('date',$item->created, JText::_('DATE_FORMAT_LC4')); ?>
 				</td>
 				<td class="center">
 					<?php echo (int) $item->id; ?>
@@ -105,10 +99,12 @@ $listDirn	= $this->state->get('list.direction');
 			<?php endforeach; ?>
 		</tbody>
 	</table>
-
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-	<?php echo JHtml::_('form.token'); ?>
+	
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

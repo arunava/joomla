@@ -48,34 +48,30 @@ class JCache extends JObject
 	 */
 	public function __construct($options)
 	{
-		$conf = &JFactory::getConfig();
-
-		$caching = (int)$conf->get('caching', 1);
+		$conf = JFactory::getConfig();
 
 		$this->_options = array(
-			'cachebase'		=> $conf->get('cache_path',JPATH_ROOT.DS.'cache'),
-			'lifetime'		=> $conf->get('cachetime'),	// minutes to seconds
-			'language'		=> $conf->get('language','en-GB'),
-			'storage'		=> $conf->get('cache_handler', 'file'),
-			'defaultgroup'	=>'default',
-			'locking'		=>true,
-			'locktime'		=>15,
+			'cachebase'		=> $conf->get('cache_path', JPATH_ROOT.DS.'cache'),
+			'lifetime'		=> (int)$conf->get('cachetime'),
+			'language'		=> $conf->get('language', 'en-GB'),
+			'storage'		=> $conf->get('cache_handler',''),
+			'defaultgroup'	=> 'default',
+			'locking'		=> true,
+			'locktime'		=> 15,
 			'checkTime' 	=> true,
-			'caching'		=> $caching == 1 ? true : false
+			'caching'		=> ($conf->get('caching') >= 1) ? true : false
 		);
 
 		// Overwrite default options with given options
 		foreach ($options AS $option=>$value) {
-			if (isset($options[$option]) && $options[$option] !=='') {
+			if (isset($options[$option]) && $options[$option] !== '') {
 				$this->_options[$option] = $options[$option];
 			}
 		}
 
-		// Fix to detect if template positions are enabled...
-		//@todo remove, moved to safeuri parameters, no need to disable cache
-		/*if (JRequest::getCMD('tpl',0)) {
-		$this->_options['caching'] = false;
-		}*/
+		if (empty($this->_options['storage'])) {
+			$this->_options['caching'] = false;
+		}
 	}
 
 	/**
@@ -131,6 +127,17 @@ class JCache extends JObject
 	}
 
 	/**
+	 * Get caching state
+	 *
+	 * @return	boolean Caching state
+	 * @since	1.6
+	 */
+	public function getCaching()
+	{
+		return $this->_options['caching'];
+	}
+
+	/**
 	 * Set cache lifetime
 	 *
 	 * @param	int	$lt	Cache lifetime
@@ -156,7 +163,7 @@ class JCache extends JObject
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler) && $this->_options['caching']) {
 			return $handler->get($id, $group, $this->_options['checkTime']);
 		}
@@ -172,7 +179,7 @@ class JCache extends JObject
 	public function getAll()
 	{
 		// Get the storage
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler) && $this->_options['caching']) {
 			return $handler->getAll();
 		}
@@ -194,7 +201,7 @@ class JCache extends JObject
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage and store the cached data
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler) && $this->_options['caching']) {
 			$handler->_lifetime = $this->_options['lifetime'];
 			return $handler->store($id, $group, $data);
@@ -216,7 +223,7 @@ class JCache extends JObject
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler)) {
 			return $handler->remove($id, $group);
 		}
@@ -240,7 +247,7 @@ class JCache extends JObject
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		// Get the storage handler
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler)) {
 			return $handler->clean($group, $mode);
 		}
@@ -256,7 +263,7 @@ class JCache extends JObject
 	public function gc()
 	{
 		// Get the storage handler
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler)) {
 			return $handler->gc();
 		}
@@ -283,9 +290,9 @@ class JCache extends JObject
 
 		//allow storage handlers to perform locking on their own
 		// NOTE drivers with lock need also unlock or unlocking will fail because of false $id
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler) && $this->_options['locking'] == true && $this->_options['caching'] == true) {
-			$locked = $handler->lock($id,$group,$locktime);
+			$locked = $handler->lock($id, $group, $locktime);
 			if ($locked !== false) {
 				return $locked;
 			}
@@ -296,11 +303,11 @@ class JCache extends JObject
 		// set lifetime to locktime for storing in children
 		$this->_options['lifetime'] = $locktime;
 
-		$looptime = $locktime * 10;
-		$id2 = $id.'_lock';
+		$looptime 	= $locktime * 10;
+		$id2 		= $id.'_lock';
 
 		if ($this->_options['locking'] == true && $this->_options['caching'] == true ) {
-			$data_lock = $this->get($id2,$group);
+			$data_lock = $this->get($id2, $group);
 
 		} else {
 			$data_lock = false;
@@ -314,19 +321,19 @@ class JCache extends JObject
 			while ( $data_lock !== false ) {
 
 				if ( $lock_counter > $looptime) {
-					$returning->locked = false;
-					$returning->locklooped = true;
+					$returning->locked 		= false;
+					$returning->locklooped 	= true;
 					break;
 				}
 
 				usleep(100);
-				$data_lock = $this->get($id2,$group);
+				$data_lock = $this->get($id2, $group);
 				$lock_counter++;
 			}
 		}
 
 		if ($this->_options['locking'] == true && $this->_options['caching'] == true ) {
-			$returning->locked = $this->store(1,$id2,$group);
+			$returning->locked = $this->store(1, $id2, $group);
 		}
 
 		// revert lifetime to previuos one
@@ -351,15 +358,15 @@ class JCache extends JObject
 		$group = ($group) ? $group : $this->_options['defaultgroup'];
 
 		//allow handlers to perform unlocking on their own
-		$handler = &$this->_getStorage();
+		$handler = $this->_getStorage();
 		if (!JError::isError($handler) && $this->_options['caching']) {
-			$unlocked = $handler->unlock($id,$group);
+			$unlocked = $handler->unlock($id, $group);
 			if ($unlocked !== false) return $unlocked;
 		}
 
 		// fallback
 		if ($this->_options['caching']) {
-			$unlock = $this->remove($id.'_lock',$group);
+			$unlock = $this->remove($id.'_lock', $group);
 		}
 
 		return $unlock;
@@ -377,7 +384,7 @@ class JCache extends JObject
 			return self::$_handler[$this->_options['storage']];
 		}
 
-		self::$_handler[$this->_options['storage']] = &JCacheStorage::getInstance($this->_options['storage'], $this->_options);
+		self::$_handler[$this->_options['storage']] = JCacheStorage::getInstance($this->_options['storage'], $this->_options);
 		return self::$_handler[$this->_options['storage']];
 	}
 
@@ -388,20 +395,24 @@ class JCache extends JObject
 	 * @return	string	$body		Body of cached data
 	 * @since	1.6
 	 */
-	public static function getWorkarounds($data) {
+	public static function getWorkarounds($data,$options=array()) {
 
 		// Initialise variables.
-		$app 		= &JFactory::getApplication();
-		$document	= &JFactory::getDocument();
-		$body = null;
+		$app 		= JFactory::getApplication();
+		$document	= JFactory::getDocument();
+		$body 		= null;
 
 		// Get the document head out of the cache.
-		$document->setHeadData((isset($data['head'])) ? $data['head'] : array());
+		if (isset($options['mergehead']) && $options['mergehead'] == 1 && isset($data['head']) && !empty($data['head'])) {
+			$document->mergeHeadData($data['head']);
+		} else if (isset($data['head'])){ 
+			$document->setHeadData($data['head']);
+		}
 
 		// If the pathway buffer is set in the cache data, get it.
 		if (isset($data['pathway']) && is_array($data['pathway'])) {
 			// Push the pathway data into the pathway object.
-			$pathway = &$app->getPathWay();
+			$pathway = $app->getPathWay();
 			$pathway->setPathway($data['pathway']);
 		}
 
@@ -417,9 +428,9 @@ class JCache extends JObject
 		if (isset($data['body'])) {
 			// the following code searches for a token in the cached page and replaces it with the
 			// proper token.
-			$token	= JUtility::getToken();
-			$search = '#<input type="hidden" name="[0-9a-f]{32}" value="1" />#';
-			$replacement = '<input type="hidden" name="'.$token.'" value="1" />';
+			$token			= JUtility::getToken();
+			$search 		= '#<input type="hidden" name="[0-9a-f]{32}" value="1" />#';
+			$replacement 	= '<input type="hidden" name="'.$token.'" value="1" />';
 			$data['body'] = preg_replace($search, $replacement, $data['body']);
 			$body = $data['body'];
 		}
@@ -439,12 +450,29 @@ class JCache extends JObject
 	{
 		$loptions=array();
 		$loptions['nopathway'] = 0;
+		$loptions['nohead'] = 0;
+		$loptions['nomodules'] = 0;
+		$loptions['modulemode'] = 0;
+
 		if (isset($options['nopathway'])) {
 			$loptions['nopathway'] = $options['nopathway'];
 		}
+
+		if (isset($options['nohead'])) {
+			$loptions['nohead'] = $options['nohead'];
+		}
+
+		if (isset($options['nomodules'])) {
+			$loptions['nomodules'] = $options['nomodules'];
+		}
+		
+		if (isset($options['modulemode'])) {
+			$loptions['modulemode'] = $options['modulemode'];
+		}
+
 		// Initialise variables.
-		$app = &JFactory::getApplication();
-		$document	= &JFactory::getDocument();
+		$app 		= JFactory::getApplication();
+		$document	= JFactory::getDocument();
 
 		// Get the modules buffer before component execution.
 		$buffer1 = $document->getBuffer();
@@ -458,25 +486,36 @@ class JCache extends JObject
 		$cached['body'] = $data;
 
 		// Document head data
-		$cached['head'] = $document->getHeadData();
+		if ($loptions['nohead'] != 1) {
+			$cached['head'] = $document->getHeadData();
+			
+			if ($loptions['modulemode'] == 1) {
+					unset($cached['head']['title']);
+					unset($cached['head']['description']);
+					unset($cached['head']['link']);
+					unset($cached['head']['metaTags']);
+			}
+		}
 
 		// Pathway data
 		if ($app->isSite() && $loptions['nopathway'] != 1) {
-			$pathway			= &$app->getPathWay();
-			$cached['pathway'] = $pathway->getPathway();
+			$pathway			= $app->getPathWay();
+			$cached['pathway'] 	= isset($data['pathway']) ? $data['pathway'] : $pathway->getPathway();
 		}
 
-		// @todo chech if the following is needed, seems like it should be in page cache
-		// Get the module buffer after component execution.
-		$buffer2 = $document->getBuffer();
+		if ($loptions['nomodules'] != 1) {
+			// @todo chech if the following is needed, seems like it should be in page cache
+			// Get the module buffer after component execution.
+			$buffer2 = $document->getBuffer();
 
-		// Make sure the module buffer is an array.
-		if (!isset($buffer2['module']) || !is_array($buffer2['module'])) {
-			$buffer2['module'] = array();
+			// Make sure the module buffer is an array.
+			if (!isset($buffer2['module']) || !is_array($buffer2['module'])) {
+				$buffer2['module'] = array();
+			}
+
+			// Compare the second module buffer against the first buffer.
+			$cached['module'] = array_diff_assoc($buffer2['module'], $buffer1['module']);
 		}
-
-		// Compare the second module buffer against the first buffer.
-		$cached['module'] = array_diff_assoc($buffer2['module'], $buffer1['module']);
 
 		return $cached;
 	}
@@ -489,30 +528,32 @@ class JCache extends JObject
 	 */
 	public static function makeId()
 	{
-		$app = & JFactory::getApplication();
+		$app = JFactory::getApplication();
 		// get url parameters set by plugins
 		$registeredurlparams = $app->get('registeredurlparams');
 
 		if (empty($registeredurlparams)) {
-			/*$registeredurlparams=new stdClass();
-			$registeredurlparams->Itemid='INT';
-			$registeredurlparams->catid='INT';
-			$registeredurlparams->id='INT';**/
+			/*
+			$registeredurlparams = new stdClass();
+			$registeredurlparams->Itemid 	= 'INT';
+			$registeredurlparams->catid 	= 'INT';
+			$registeredurlparams->id 		= 'INT';
+			*/
 
 			return md5(serialize(JRequest::getURI()));   // provided for backwards compatibility - THIS IS NOT SAFE!!!!
 		}
 		// framework defaults
-		$registeredurlparams->format='WORD';
-		$registeredurlparams->option='WORD';
-		$registeredurlparams->view='WORD';
-		$registeredurlparams->layout='WORD';
-		$registeredurlparams->tpl='CMD';
-		$registeredurlparams->id='INT';
+		$registeredurlparams->format 	= 'WORD';
+		$registeredurlparams->option 	= 'WORD';
+		$registeredurlparams->view		= 'WORD';
+		$registeredurlparams->layout	= 'WORD';
+		$registeredurlparams->tpl		= 'CMD';
+		$registeredurlparams->id		= 'INT';
 
 		$safeuriaddon = new stdClass();
 
 		foreach ($registeredurlparams AS $key => $value) {
-			$safeuriaddon->$key = JRequest::getVar($key, null,'default',$value);
+			$safeuriaddon->$key = JRequest::getVar($key, null, 'default', $value);
 		}
 
 		return md5(serialize($safeuriaddon));

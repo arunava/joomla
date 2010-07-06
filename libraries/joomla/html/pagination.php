@@ -248,7 +248,7 @@ class JPagination extends JObject
 	 */
 	public function getPagesLinks()
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Build the page navigation list.
 		$data = $this->_buildDataObject();
@@ -416,7 +416,7 @@ class JPagination extends JObject
 			return JHtml::_('jgrid.orderUp', $i, $task, '', $alt, $enabled, $checkbox);
 		}
 		else {
-			return '&nbsp;';
+			return '&#160;';
 		}
 	}
 
@@ -440,7 +440,7 @@ class JPagination extends JObject
 			return JHtml::_('jgrid.orderDown', $i, $task, '', $alt, $enabled, $checkbox);
 		}
 		else {
-			return '&nbsp;';
+			return '&#160;';
 		}
 	}
 
@@ -448,7 +448,7 @@ class JPagination extends JObject
 	{
 		$html = "<div class=\"list-footer\">\n";
 
-		$html .= "\n<div class=\"limit\">".JText::_('JLIB_HTML_DISPLAY_NUM').$list['limitfield']."</div>";
+		$html .= "\n<div class=\"limit\">".JText::_('JGLOBAL_DISPLAY_NUM').$list['limitfield']."</div>";
 		$html .= $list['pageslinks'];
 		$html .= "\n<div class=\"counter\">".$list['pagescounter']."</div>";
 
@@ -476,7 +476,7 @@ class JPagination extends JObject
 
 	protected function _item_active(&$item)
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		if ($app->isAdmin())
 		{
 			if ($item->base > 0) {
@@ -493,7 +493,7 @@ class JPagination extends JObject
 
 	protected function _item_inactive(&$item)
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		if ($app->isAdmin()) {
 			return "<span>".$item->text."</span>";
 		}

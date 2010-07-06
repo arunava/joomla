@@ -49,26 +49,27 @@ JHtml::_('behavior.formvalidation');
 				echo '<p class="tab-description">'.JText::_($fieldSet->description).'</p>';
 			endif;
 	?>
-		<ul class="adminformlist">
+		
 			<?php
 			foreach ($this->form->getFieldset($name) as $field):
 			?>
-					<li><?php echo $field->label; ?>
-					<?php echo $field->input; ?></li>
+					<?php echo $field->label; ?>
+					<?php echo $field->input; ?>
 
 			<?php
 			endforeach;
 			?>
-			</ul>
+			
 
 	<div class="clr"></div>
 	<?php
 		endforeach;
 	echo JHtml::_('tabs.end');
 	?>
-
-	<input type="hidden" name="id" value="<?php echo $this->component->id;?>" />
-	<input type="hidden" name="component" value="<?php echo $this->component->option;?>" />
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="id" value="<?php echo $this->component->id;?>" />
+		<input type="hidden" name="component" value="<?php echo $this->component->option;?>" />
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

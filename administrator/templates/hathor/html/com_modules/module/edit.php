@@ -93,23 +93,21 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 			<?php echo $this->form->getInput('client_id'); ?></li>
 			</ul>
 		
-			<div class="clr"></div>
 			<?php if ($this->item->xml) : ?>
 				<?php if ($text = trim($this->item->xml->description)) : ?>
 					<span class="faux-label">
 						<?php echo JText::_('COM_MODULES_MODULE_DESCRIPTION'); ?>
 					</span>
-					<?php echo JText::_($text); ?>
+					<div class="clr"></div>
+					<div class="readonly mod-desc extdescript">
+						<?php echo JText::_($text); ?>
+					</div>
 				<?php endif; ?>
 			<?php else : ?>
 				<?php echo JText::_('COM_MODULES_ERR_XML'); ?>
 			<?php endif; ?>
 			<div class="clr" /></div>
 		</fieldset>
-
-		<div>
-			<?php echo $this->loadTemplate('assignment'); ?>
-		</div>
 
 		<div class="clr"></div>
 
@@ -118,11 +116,17 @@ $hasContent = empty($this->item->module) || $this->item->module == 'custom' || $
 				<legend><?php echo JText::_('COM_MODULES_CUSTOM_OUTPUT'); ?></legend>
 				<ul class="adminformlist">
 					<li><?php echo $this->form->getLabel('content'); ?>
+				<div class="clr"></div>
 					<?php echo $this->form->getInput('content'); ?></li>
 				</ul>
-
-			</fieldset>	endif;
-	<?php endif; ?>
+			</fieldset>
+		<?php endif; ?>
+		
+		<?php if ($this->item->client_id == 0) :?>
+		<div>
+			<?php echo $this->loadTemplate('assignment'); ?>
+		</div>
+		<?php endif; ?>
 
 	</div>
 

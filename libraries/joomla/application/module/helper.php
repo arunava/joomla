@@ -21,8 +21,6 @@ jimport('joomla.application.component.helper');
  */
 abstract class JModuleHelper
 {
-
-
 	/**
 	 * Get module by name (real, eg 'Breadcrumbs' or folder, eg 'mod_breadcrumbs')
 	 *
@@ -34,7 +32,7 @@ abstract class JModuleHelper
 	public static function &getModule($name, $title = null)
 	{
 		$result		= null;
-		$modules	= &JModuleHelper::_load();
+		$modules	= JModuleHelper::_load();
 		$total		= count($modules);
 		for ($i = 0; $i < $total; $i++)
 		{
@@ -77,11 +75,11 @@ abstract class JModuleHelper
 	 */
 	public static function &getModules($position)
 	{
-		$app		= &JFactory::getApplication();
+		$app		= JFactory::getApplication();
 		$position	= strtolower($position);
 		$result		= array();
 
-		$modules = &JModuleHelper::_load();
+		$modules = JModuleHelper::_load();
 
 		$total = count($modules);
 		for ($i = 0; $i < $total; $i++)
@@ -113,7 +111,7 @@ abstract class JModuleHelper
 	 */
 	public static function isEnabled($module)
 	{
-		$result = &JModuleHelper::getModule($module);
+		$result = JModuleHelper::getModule($module);
 		return (!is_null($result));
 	}
 
@@ -130,7 +128,7 @@ abstract class JModuleHelper
 		static $chrome;
 
 		$option = JRequest::getCmd('option');
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
 
 		// Record the scope.
 		$scope	= $app->scope;
@@ -149,7 +147,7 @@ abstract class JModuleHelper
 		// Load the module
 		if (!$module->user && file_exists($path))
 		{
-			$lang = &JFactory::getLanguage();
+			$lang = JFactory::getLanguage();
 			// 1.5 or Core then
 			// 1.6 3PD
 				$lang->load($module->module, JPATH_BASE, null, false, false)
@@ -254,9 +252,9 @@ abstract class JModuleHelper
 
 		$Itemid = JRequest::getInt('Itemid');
 		$app	= JFactory::getApplication();
-		$user	= &JFactory::getUser();
+		$user	= JFactory::getUser();
 		$groups	= implode(',', $user->authorisedLevels());
-		$db		= &JFactory::getDbo();
+		$db		= JFactory::getDbo();
 
 		$query = new JDatabaseQuery;
 		$query->select('id, title, module, position, content, showtitle, params, mm.menuid');
@@ -272,14 +270,14 @@ abstract class JModuleHelper
 
 		$clientid = (int) $app->getClientId();
 
-		$query->where('m.access IN ('.$groups.')');
+		if (!$user->authorise('core.admin',1)) {
+			$query->where('m.access IN ('.$groups.')');
+		}
 		$query->where('m.client_id = '. $clientid);
 		if (isset($Itemid)) {
 			$query->where('(mm.menuid = '. (int) $Itemid .' OR mm.menuid <= 0)');
 		}
 		$query->order('position, ordering');
-
-		$cacheid = md5(serialize(array($Itemid,$groups,$clientid,JFactory::getLanguage()->getTag())));
 
 		// Filter by language
 		if ($app->isSite() && $app->getLanguageFilter()) {
@@ -289,8 +287,10 @@ abstract class JModuleHelper
 		// Set the query
 		$db->setQuery($query);
 
-		$cache = JFactory::getCache ('com_modules', 'callback' );
-		$modules = $cache->get(array($db,'loadObjectList'),null,$cacheid,false);
+		$cache 		= JFactory::getCache ('com_modules', 'callback');
+		$cacheid 	= md5(serialize(array($Itemid, $groups, $clientid, JFactory::getLanguage()->getTag())));
+
+		$modules = $cache->get(array($db, 'loadObjectList'), null, $cacheid, false);
 		if (null === $modules)
 		{
 			JError::raiseWarning('SOME_ERROR_CODE', JText::sprintf('JLIB_APPLICATION_ERROR_MODULE_LOAD', $db->getErrorMsg()));
@@ -364,54 +364,76 @@ abstract class JModuleHelper
 	*
 	* @since	1.6
 	*/
-	public static function ModuleCache ($module, $moduleparams, $cacheparams) {
+	public static function ModuleCache($module, $moduleparams, $cacheparams)
+	{
+		if(!isset ($cacheparams->modeparams)) {
+			$cacheparams->modeparams=null;
+		}
 
-		if(!isset ($cacheparams->modeparams))$cacheparams->modeparams=null;
-		if(!isset ($cacheparams->cachegroup)) $cacheparams->cachegroup = $module->module;
+		if(!isset ($cacheparams->cachegroup)) {
+			$cacheparams->cachegroup = $module->module;
+		}
 
-		if (!is_array($cacheparams->methodparams)) $cacheparams->methodparams = array($cacheparams->methodparams);
+		if (!is_array($cacheparams->methodparams)) {
+			$cacheparams->methodparams = array($cacheparams->methodparams);
+		}
 
-		$user = &JFactory::getUser();
-		$cache = &JFactory::getCache($cacheparams->cachegroup,'callback');
-		$conf = &JFactory::getConfig();
+		$user = JFactory::getUser();
+		$cache = JFactory::getCache($cacheparams->cachegroup, 'callback');
+		$conf = JFactory::getConfig();
 
 		// turn cache off for internal callers if parameters are set to off and for all loged in users
-		if($moduleparams->get('owncache', null) == 0  || $conf->get('caching') == 0 || $user->get('id')) $cache->setCaching = false ;
+		if($moduleparams->get('owncache', null) == 0  || $conf->get('caching') == 0 || $user->get('id')) {
+			$cache->setCaching = false;
+		}
 
 		$cache->setLifeTime($moduleparams->get('cache_time', $conf->get('cachetime') * 60));
+
+		$wrkaroundoptions = array (
+			'nopathway' 	=> 1,
+			'nohead' 		=> 0,
+			'nomodules' 	=> 1,
+			'modulemode' 	=> 1,
+			'mergehead' 	=> 1
+		);
+		
+		$wrkarounds = true;
 
 		switch ($cacheparams->cachemode) {
 
 			case 'id':
-				$ret = $cache->get(array($cacheparams->class, $cacheparams->method),$cacheparams->methodparams,$cacheparams->modeparams,true);
+				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $cacheparams->modeparams, $wrkarounds, $wrkaroundoptions);
 				break;
 
 			case 'safeuri':
 				$secureid=null;
 				if (is_array($cacheparams->modeparams)) {
-				$uri = & JRequest::get();
-				$safeuri=new stdClass();
-				foreach ($cacheparams->modeparams AS $key => $value) {
-					// use int filter for id/catid to clean out spamy slugs
-					if (isset($uri[$key])) $safeuri->$key = JRequest::_cleanVar($uri[$key], 0,$value);
-				} }
+					$uri = JRequest::get();
+					$safeuri = new stdClass();
+					foreach ($cacheparams->modeparams AS $key => $value) {
+						// use int filter for id/catid to clean out spamy slugs
+						if (isset($uri[$key])) {
+							$safeuri->$key = JRequest::_cleanVar($uri[$key], 0,$value);
+						}
+					} }
 				$secureid = md5(serialize(array($safeuri, $cacheparams->method, $moduleparams)));
-				$ret = $cache->get(array($cacheparams->class,$cacheparams->method),$cacheparams->methodparams,$module->id. $user->get('aid', 0).$secureid,true);
+				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->id. $user->get('aid', 0).$secureid, $wrkarounds, $wrkaroundoptions);
 				break;
 
 			case 'static':
-				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->module.md5(serialize($cacheparams->methodparams)) ,true);
+				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->module.md5(serialize($cacheparams->methodparams)), $wrkarounds, $wrkaroundoptions);
 				break;
 
 			case 'oldstatic':  // provided for backward compatibility, not really usefull
-				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->id. $user->get('aid', 0),true);
+				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->id. $user->get('aid', 0), $wrkarounds, $wrkaroundoptions);
 				break;
 
 			case 'itemid':
 			default:
-				$ret = $cache->get(array($cacheparams->class,$cacheparams->method), $cacheparams->methodparams , $module->id. $user->get('aid', 0).JRequest::getVar('Itemid',null,'default','INT'), true);
+				$ret = $cache->get(array($cacheparams->class, $cacheparams->method), $cacheparams->methodparams, $module->id. $user->get('aid', 0).JRequest::getVar('Itemid',null,'default','INT'), $wrkarounds, $wrkaroundoptions);
 				break;
 		}
-	return $ret;
+		
+		return $ret;
 	}
 }
