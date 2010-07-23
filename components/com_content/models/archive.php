@@ -31,42 +31,44 @@ class ContentModelArchive extends ContentModelArticles
 	/**
 	 * Method to auto-populate the model state.
 	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
-		parent::_populateState();
+		parent::populateState();
 
 		// Add archive properties
-		$params = $this->_state->params;
-		
+		$params = $this->state->params;
+
 		// Filter on archived articles
-		$this->setState('filter.published', -1);
-		
+		$this->setState('filter.published', 2);
+
 		// Filter on month, year
 		$this->setState('filter.month', JRequest::getInt('month'));
 		$this->setState('filter.year', JRequest::getInt('year'));
-		
+
 		// Optional filter text
 		$this->setState('list.filter', JRequest::getString('filter-search'));
-		
+
 		// Get list limit
-		$app =& JFactory::getApplication();
+		$app = JFactory::getApplication();
 		$itemid = JRequest::getInt('Itemid', 0);
 		$limit = $app->getUserStateFromRequest('com_content.archive.list' . $itemid . '.limit', 'limit', $params->get('display_num'));
 		$this->setState('list.limit', $limit);
-	}	
-	
+	}
+
 	/**
 	 * @return	JDatabaseQuery
 	 */
-	function _getListQuery()
+	function getListQuery()
 	{
 		// Set the archive ordering
-		$params = $this->_state->params;
+		$params = $this->state->params;
 		$articleOrderby = $params->get('orderby_sec', 'rdate');
 		$articleOrderDate = $params->get('order_date');
-		
+
 		// No category ordering
 		$categoryOrderby = '';
 		$secondary = ContentHelperQuery::orderbySecondary($articleOrderby, $articleOrderDate) . ', ';
@@ -76,27 +78,29 @@ class ContentModelArchive extends ContentModelArticles
 		$this->setState('list.ordering', $orderby);
 		$this->setState('list.direction', '');
 		// Create a new query object.
-		$query = parent::_getListQuery();
-		
+		$query = parent::getListQuery();
+
 		// Add routing for archive
 		$query->select(' CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(\':\', a.id, a.alias) ELSE a.id END as slug');
 		$query->select(' CASE WHEN CHAR_LENGTH(c.alias) THEN CONCAT_WS(":", c.id, c.alias) ELSE c.id END as catslug');
-		
+
 		// Filter on month, year
 		// First, get the date field
 		$queryDate = ContentHelperQuery::getQueryDate($articleOrderDate);
-		
+
 		if ($month = $this->getState('filter.month')) {
 			$query->where('MONTH('. $queryDate . ') = ' . $month);
 		}
-		
+
 		if ($year = $this->getState('filter.year')) {
 			$query->where('YEAR('. $queryDate . ') = ' . $year);
 		}
-		
+
+		//echo nl2br(str_replace('#__','jos_',$query));
+
 		return $query;
 	}
-	
+
 	/**
 	 * Method to get the archived article list
 	 *
@@ -106,11 +110,11 @@ class ContentModelArchive extends ContentModelArticles
 	public function getData()
 	{
 		$app = JFactory::getApplication();
+
 		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
+		if (empty($this->_data)) {
 			// Get the page/component configuration
-			$params = &$app->getParams();
+			$params = $app->getParams();
 
 			// Get the pagination request variables
 			$limit		= JRequest::getVar('limit', $params->get('display_num', 20), '', 'int');
@@ -137,5 +141,4 @@ class ContentModelArchive extends ContentModelArticles
 
 		return $result;
 	}
-
 }

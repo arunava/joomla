@@ -19,38 +19,35 @@ jimport('joomla.application.component.view');
  */
 class NewsfeedsViewNewsfeeds extends JView
 {
-	protected $state;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
 		parent::display($tpl);
-		$this->_setToolbar();
+		$this->addToolbar();
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$state	= $this->get('State');
 		$canDo	= NewsfeedsHelper::getActions($state->get('filter.category_id'));
@@ -63,14 +60,18 @@ class NewsfeedsViewNewsfeeds extends JView
 			JToolBarHelper::editList('newsfeed.edit','JTOOLBAR_EDIT');
 		}
 		if ($canDo->get('core.edit.state')) {
-			JToolBarHelper::custom('newsfeeds.publish', 'publish.png', 'publish_f2.png', 'JToolbar_Publish', true);
-			JToolBarHelper::custom('newsfeeds.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JToolbar_Unpublish', true);
 			JToolBarHelper::divider();
+			JToolBarHelper::custom('newsfeeds.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
+			JToolBarHelper::custom('newsfeeds.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_UNPUBLISH', true);
+			JToolBarHelper::divider();
+			JToolBarHelper::archiveList('newsfeeds.archive','JTOOLBAR_ARCHIVE');
 		}
-		if ($state->get('filter.published') == -2 && $canDo->get('core.delete')) {
+		if(JFactory::getUser()->authorise('core.manage','com_checkin')) {
+			JToolBarHelper::custom('newsfeeds.checkin', 'checkin.png', 'checkin_f2.png', 'JTOOLBAR_CHECKIN', true);
+		}
+		if ($state->get('filter.state') == -2 && $canDo->get('core.delete')) {
 			JToolBarHelper::deleteList('', 'newsfeeds.delete','JTOOLBAR_EMPTY_TRASH');
-		}
-		else if ($canDo->get('core.edit.state')) {
+		} else if ($canDo->get('core.edit.state')) {
 			JToolBarHelper::trash('newsfeeds.trash','JTOOLBAR_TRASH');
 		}
 		if ($canDo->get('core.admin')) {
@@ -78,6 +79,6 @@ class NewsfeedsViewNewsfeeds extends JView
 			JToolBarHelper::preferences('com_newsfeeds');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.newsfeed','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_COMPONENTS_NEWSFEEDS_FEEDS');
 	}
 }

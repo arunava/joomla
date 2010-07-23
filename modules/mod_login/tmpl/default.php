@@ -9,6 +9,7 @@
 
 // no direct access
 defined('_JEXEC') or die;
+JHtml::_('behavior.keepalive');
 ?>
 <?php if ($type == 'logout') : ?>
 <form action="index.php" method="post" name="form-login" id="form-login">
@@ -21,8 +22,8 @@ defined('_JEXEC') or die;
 	} endif; ?>
 	</div>
 <?php endif; ?>
-	<div align="center">
-		<input type="submit" name="Submit" class="button" value="<?php echo JText::_('MOD_LOGIN_BUTTON_LOGOUT'); ?>" />
+	<div class="logout-button">
+		<input type="submit" name="Submit" class="button" value="<?php echo JText::_('JLOGOUT'); ?>" />
 	</div>
 
 	<input type="hidden" name="option" value="com_users" />
@@ -37,7 +38,7 @@ defined('_JEXEC') or die;
 						' JLanguage.LOGIN_WITH_OPENID = \''.JText::_('LOGIN_WITH_OPENID').'\';'.
 						' JLanguage.NORMAL_LOGIN = \''.JText::_('NORMAL_LOGIN').'\';'.
 						' var modlogin = 1;';
-		$document = &JFactory::getDocument();
+		$document = JFactory::getDocument();
 		$document->addScriptDeclaration($langScript);
 		JHTML::_('script','openid.js');
 endif; ?>
@@ -49,7 +50,7 @@ endif; ?>
 		<input id="modlgn_username" type="text" name="username" class="inputbox"  size="18" />
 	</p>
 	<p id="form-login-password">
-		<label for="modlgn_passwd"><?php echo JText::_('MOD_LOGIN_PASSWORD') ?></label>
+		<label for="modlgn_passwd"><?php echo JText::_('JGLOBAL_PASSWORD') ?></label>
 		<input id="modlgn_passwd" type="password" name="password" class="inputbox" size="18"  />
 	</p>
 	<?php if (JPluginHelper::isEnabled('system', 'remember')) : ?>
@@ -58,7 +59,11 @@ endif; ?>
 		<input id="modlgn_remember" type="checkbox" name="remember" class="inputbox" value="yes"/>
 	</p>
 	<?php endif; ?>
-	<input type="submit" name="Submit" class="button" value="<?php echo JText::_('MOD_LOGIN_BUTTON_LOGIN') ?>" />
+	<input type="submit" name="Submit" class="button" value="<?php echo JText::_('JLOGIN') ?>" />
+	<input type="hidden" name="option" value="com_users" />
+	<input type="hidden" name="task" value="user.login" />
+	<input type="hidden" name="return" value="<?php echo $return; ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 	</fieldset>
 	<ul>
 		<li>
@@ -70,7 +75,7 @@ endif; ?>
 			<?php echo JText::_('MOD_LOGIN_FORGOT_YOUR_USERNAME'); ?></a>
 		</li>
 		<?php
-		$usersConfig = &JComponentHelper::getParams('com_users');
+		$usersConfig = JComponentHelper::getParams('com_users');
 		if ($usersConfig->get('allowUserRegistration')) : ?>
 		<li>
 			<a href="<?php echo JRoute::_('index.php?option=com_users&view=registration'); ?>">
@@ -79,10 +84,5 @@ endif; ?>
 		<?php endif; ?>
 	</ul>
 	<?php echo $params->get('posttext'); ?>
-
-	<input type="hidden" name="option" value="com_users" />
-	<input type="hidden" name="task" value="user.login" />
-	<input type="hidden" name="return" value="<?php echo $return; ?>" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>
 <?php endif; ?>

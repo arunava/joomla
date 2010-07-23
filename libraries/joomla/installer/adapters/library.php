@@ -27,16 +27,17 @@ class JInstallerLibrary extends JAdapterInstance
 	 * @param	string	$path the path where to find language files
 	 * @since	1.6
 	 */
-	public function loadLanguage($path)
+	public function loadLanguage($path=null)
 	{
 		$source = $this->parent->getPath('source');
 		if (!$source) {
 			$this->parent->setPath('source', JPATH_LIBRARIES . '/'.$this->parent->extension->element);
 		}
-		$this->manifest = &$this->parent->getManifest();
+		$this->manifest = $this->parent->getManifest();
 		$extension = 'lib_' . strtolower(JFilterInput::getInstance()->clean((string)$this->manifest->name, 'cmd'));
-		$lang =& JFactory::getLanguage();
-		$source = $path;
+		$name = strtolower((string)$this->manifest->libraryname);
+		$lang = JFactory::getLanguage();
+		$source = $path ? $path : JPATH_LIBRARIES . "/$name";
 			$lang->load($extension . '.sys', $source, null, false, false)
 		||	$lang->load($extension . '.sys', JPATH_SITE, null, false, false)
 		||	$lang->load($extension . '.sys', $source, $lang->getDefault(), false, false)
@@ -66,7 +67,7 @@ class JInstallerLibrary extends JAdapterInstance
 		$this->set('name', $name);
 		$this->set('element', $element);
 
-		$db = &$this->parent->getDbo();
+		$db = $this->parent->getDbo();
 		$db->setQuery('SELECT extension_id FROM #__extensions WHERE type="library" AND element = "'. $element .'"');
 		$result = $db->loadResult();
 		if ($result)
@@ -81,7 +82,7 @@ class JInstallerLibrary extends JAdapterInstance
 			else
 			{
 				// abort the install, no upgrade possible
-				$this->parent->abort(JText::_('Library').' '. JText::_('Install').': '.JText::_('Library already installed'));
+				$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_LIB_INSTALL_ALREADY_INSTALLED'));
 				return false;
 			}
 		}
@@ -99,7 +100,7 @@ class JInstallerLibrary extends JAdapterInstance
 		// Set the installation path
 		$group = (string)$this->manifest->libraryname;
 		if ( ! $group) {
-			$this->parent->abort(JText::_('Library').' '.JText::_('Install').': '.JText::_('No library file specified'));
+			$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_LIB_INSTALL_NOFILE'));
 			return false;
 		}
 		else
@@ -119,7 +120,7 @@ class JInstallerLibrary extends JAdapterInstance
 		{
 			if (!$created = JFolder::create($this->parent->getPath('extension_root')))
 			{
-				$this->parent->abort(JText::_('Library').' '.JText::_('Install').': '.JText::_('FAILED_TO_CREATE_DIRECTORY').': "'.$this->parent->getPath('extension_root').'"');
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_LIB_INSTALL_FAILED_TO_CREATE_DIRECTORY', $this->parent->getPath('extension_root')));
 				return false;
 			}
 		}
@@ -149,7 +150,7 @@ class JInstallerLibrary extends JAdapterInstance
 		 * Extension Registration
 		 * ---------------------------------------------------------------------------------------------
 		 */
-		$row = & JTable::getInstance('extension');
+		$row = JTable::getInstance('extension');
 		$row->name = $this->get('name');
 		$row->type = 'library';
 		$row->element = $this->get('element');
@@ -164,7 +165,7 @@ class JInstallerLibrary extends JAdapterInstance
 		if (!$row->store())
 		{
 			// Install failed, roll back changes
-			$this->parent->abort(JText::_('Library').' '.JText::_('Install').': '.$db->stderr(true));
+			$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_LIB_INSTALL_ROLLBACK', $db->stderr(true)));
 			return false;
 		}
 
@@ -181,7 +182,7 @@ class JInstallerLibrary extends JAdapterInstance
 		if (!$this->parent->copyFiles(array($manifest), true))
 		{
 			// Install failed, rollback changes
-			$this->parent->abort(JText::_('Library').' '.JText::_('Install').': '.JText::_('COULD_NOT_COPY_SETUP_FILE'));
+			$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_LIB_INSTALL_COPY_SETUP'));
 			return false;
 		}
 		return $row->get('extension_id');
@@ -212,7 +213,7 @@ class JInstallerLibrary extends JAdapterInstance
 		$this->set('name', $name);
 		$this->set('element', $element);
 		$installer = new JInstaller(); // we don't want to compromise this instance!
-		$db = &$this->parent->getDbo();
+		$db = $this->parent->getDbo();
 		$db->setQuery('SELECT extension_id FROM #__extensions WHERE type="library" AND element = "'. $element .'"');
 		$result = $db->loadResult();
 		if ($result) {
@@ -238,7 +239,7 @@ class JInstallerLibrary extends JAdapterInstance
 
 		// First order of business will be to load the module object table from the database.
 		// This should give us the necessary information to proceed.
-		$row = & JTable::getInstance('extension');
+		$row = JTable::getInstance('extension');
 		if (!$row->load((int) $id) || !strlen($row->element))
 		{
 			JError::raiseWarning(100, JText::_('ERRORUNKOWNEXTENSION'));
@@ -249,7 +250,7 @@ class JInstallerLibrary extends JAdapterInstance
 		// Because that is not a good idea...
 		if ($row->protected)
 		{
-			JError::raiseWarning(100, JText::_('Library').' '.JText::_('Uninstall').': '.JText::sprintf('WARNCOREMODULE', $row->name)."<br />".JText::_('WARNCOREMODULE2'));
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_LIB_UNINSTALL_WARNCORELIBRARY'));
 			return false;
 		}
 
@@ -267,7 +268,7 @@ class JInstallerLibrary extends JAdapterInstance
 			// If we cannot load the xml file return null
 			if ( ! $xml)
 			{
-				JError::raiseWarning(100, JText::_('Library').' '.JText::_('Uninstall').': '.JText::_('Could not load manifest file'));
+				JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_LIB_UNINSTALL_LOAD_MANIFEST'));
 				return false;
 			}
 
@@ -278,7 +279,7 @@ class JInstallerLibrary extends JAdapterInstance
 			 */
 			if ($xml->getName() != 'install' && $xml->getName() != 'extension')
 			{
-				JError::raiseWarning(100, JText::_('Library').' '.JText::_('Uninstall').': '.JText::_('Invalid manifest file'));
+				JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_LIB_UNINSTALL_INVALID_MANIFEST'));
 				return false;
 			}
 
@@ -291,7 +292,7 @@ class JInstallerLibrary extends JAdapterInstance
 			// remove this row entry since its invalid
 			$row->delete($row->extension_id);
 			unset($row);
-			JError::raiseWarning(100, 'Library Uninstall: Manifest File invalid or not found');
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_LIB_UNINSTALL_INVALID_NOTFOUND_MANIFEST'));
 			return false;
 		}
 
@@ -331,7 +332,7 @@ class JInstallerLibrary extends JAdapterInstance
 		{
 			$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_MANIFESTS.'/libraries/'.$file);
 			$file = JFile::stripExt($file);
-			$extension = &JTable::getInstance('extension');
+			$extension = JTable::getInstance('extension');
 			$extension->set('type', 'library');
 			$extension->set('client_id', 0);
 			$extension->set('element', $file);
@@ -378,7 +379,7 @@ class JInstallerLibrary extends JAdapterInstance
 		}
 		else
 		{
-			JError::raiseWarning(101, JText::_('Plugin').' '.JText::_('Discover Install').': '.JText::_('Failed to store extension details'));
+			JError::raiseWarning(101, JText::_('JLIB_INSTALLER_ERROR_LIB_DISCOVER_STORE_DETAILS'));
 			return false;
 		}
 	}

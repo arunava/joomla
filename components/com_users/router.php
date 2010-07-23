@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
  *
  * @param	array	The array of query string values for which to build a route.
  * @return	array	The URL route with segments represented as an array.
- * @version	1.0
+ * @since	1.5
  */
 function UsersBuildRoute(&$query)
 {
@@ -32,15 +32,14 @@ function UsersBuildRoute(&$query)
 	$segments = array();
 
 	// Get the relevant menu items if not loaded.
-	if (empty($items))
-	{
+	if (empty($items)) {
 		// Get all relevant menu items.
-		$menu	= & JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu();
 		$items	= $menu->getItems('component', 'com_users');
 
 		// Build an array of serialized query strings to menu item id mappings.
-		for ($i = 0, $n = count($items); $i < $n; $i++)
-		{
+		for ($i = 0, $n = count($items); $i < $n; $i++) {
 			// Check to see if we have found the resend menu item.
 			if (empty($resend) && !empty($items[$i]->query['view']) && ($items[$i]->query['view'] == 'resend')) {
 				$resend = $items[$i]->id;
@@ -75,24 +74,19 @@ function UsersBuildRoute(&$query)
 		// Set the default menu item to use for com_users if possible.
 		if ($profile) {
 			$default = $profile;
-		}
-		elseif ($registration) {
+		} elseif ($registration) {
 			$default = $registration;
-		}
-		elseif ($login) {
+		} elseif ($login) {
 			$default = $login;
 		}
 	}
 
-	if (!empty($query['view']))
-	{
-		switch ($query['view'])
-		{
+	if (!empty($query['view'])) {
+		switch ($query['view']) {
 			case 'reset':
 				if ($query['Itemid'] = $reset) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 				break;
@@ -100,8 +94,7 @@ function UsersBuildRoute(&$query)
 			case 'resend':
 				if ($query['Itemid'] = $resend) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 				break;
@@ -109,8 +102,7 @@ function UsersBuildRoute(&$query)
 			case 'remind':
 				if ($query['Itemid'] = $remind) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 				break;
@@ -118,8 +110,7 @@ function UsersBuildRoute(&$query)
 			case 'login':
 				if ($query['Itemid'] = $login) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 				break;
@@ -127,8 +118,7 @@ function UsersBuildRoute(&$query)
 			case 'registration':
 				if ($query['Itemid'] = $registration) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 				break;
@@ -141,18 +131,16 @@ function UsersBuildRoute(&$query)
 				unset ($query['view']);
 				if ($query['Itemid'] = $profile) {
 					unset ($query['view']);
-				}
-				else {
+				} else {
 					$query['Itemid'] = $default;
 				}
 
-				// Only append the member id if not "me".
-				$user = & JFactory::getUser();
-				if (!empty($query['member_id']) && ($query['member_id'] != $user->id)) {
-					$segments[] = $query['member_id'];
+				// Only append the user id if not "me".
+				$user = JFactory::getUser();
+				if (!empty($query['user_id']) && ($query['user_id'] != $user->id)) {
+					$segments[] = $query['user_id'];
 				}
-				unset ($query['member_id']);
-
+				unset ($query['user_id']);
 
 				break;
 		}
@@ -166,7 +154,7 @@ function UsersBuildRoute(&$query)
  *
  * @param	array	The URL route with segments represented as an array.
  * @return	array	The array of variables to set in the request.
- * @version	1.0
+ * @since	1.5
  */
 function UsersParseRoute($segments)
 {
@@ -179,34 +167,34 @@ function UsersParseRoute($segments)
 	}
 
 	// Get the package from the route segments.
-	$memberId = array_pop($segments);
+	$userId = array_pop($segments);
 
-	if (!is_numeric($memberId)) {
+	if (!is_numeric($userId)) {
 		$vars['view'] = 'profile';
 		return $vars;
 	}
-	if (is_numeric($memberId)){
-	// Get the package id from the packages table by alias.
-	$db = & JFactory::getDbo();
-	$db->setQuery(
-		'SELECT `id`' .
-		' FROM `#__users`' .
-		' WHERE `id` = '.(int) $memberId
-	);
-	$memberId = $db->loadResult();
+
+	if (is_numeric($userId)) {
+		// Get the package id from the packages table by alias.
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT `id`' .
+			' FROM `#__users`' .
+			' WHERE `id` = '.(int) $userId
+		);
+		$userId = $db->loadResult();
 	}
+
 	// Set the package id if present.
-	if ($memberId)
-	{
+	if ($userId) {
 		// Set the package id.
-		$vars['member_id'] = (int)$memberId;
+		$vars['user_id'] = (int)$userId;
 
 		// Set the view to package if not already set.
 		if (empty($vars['view'])) {
 			$vars['view'] = 'profile';
 		}
-	}
-	else {
+	} else {
 		JError::raiseError(404, JText::_('JGLOBAL_RESOURCE_NOT_FOUND'));
 	}
 

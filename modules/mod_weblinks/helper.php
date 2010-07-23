@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: helper.php 12152 2009-06-19 23:32:12Z eddieajau $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_related_items
  * @copyright	Copyright (C) 2005 - 2009 Open Source Matters, Inc. All rights reserved.
@@ -56,14 +56,14 @@ class modWeblinksHelper
 		/*
 		 * This was in the previous code before we changed over to using the
 		 * weblinkscategory model but I don't see any models using checked_out filters
-		 * in their _getListQuery() methods so I believe we should not be adding this now
+		 * in their getListQuery() methods so I believe we should not be adding this now
 		 */
 
 		/*
 		 $query->where('(a.checked_out = 0 OR a.checked_out = '.$user->id.')');
 		 */
 		for ($i =0; $i < count($items); $i++) {
-			$item =& $items[$i];
+			$item = &$items[$i];
 			if ($item->params->get('count_clicks', $params->get('count_clicks')) == 1) {
 				$item->link	= JRoute::_('index.php?task=weblink.go&catid='.$item->catslug.'&id='. $item->slug);
 			} else {

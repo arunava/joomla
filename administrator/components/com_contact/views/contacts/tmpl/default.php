@@ -12,15 +12,19 @@ defined('_JEXEC') or die;
 
 JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 JHtml::_('behavior.tooltip');
-JHTML::_('script','multiselect.js');
-$user	= &JFactory::getUser();
+JHTML::_('script','system/multiselect.js',false,true);
+$user	= JFactory::getUser();
 $userId	= $user->get('id');
+$listOrder	= $this->state->get('list.ordering');
+$listDirn	= $this->state->get('list.direction');
+$canOrder	= $user->authorise('core.edit.state', 'com_contact.category');
+$saveOrder	= $listOrder == 'ordering';
 ?>
 
 <form action="<?php echo JRoute::_('index.php?option=com_contact'); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
 		<div class="filter-search fltlft">
-			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('Filter'); ?>:</label>
+			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?></label>
 			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->state->get('filter.search'); ?>" title="<?php echo JText::_('COM_CONTACT_SEARCH_IN_NAME'); ?>" />
 			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
 			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
@@ -38,6 +42,10 @@ $userId	= $user->get('id');
 				<option value=""><?php echo JText::_('JOPTION_SELECT_CATEGORY');?></option>
 				<?php echo JHtml::_('select.options', JHtml::_('category.options', 'com_contact'), 'value', 'text', $this->state->get('filter.category_id'));?>
 			</select>
+			<select name="filter_language" class="inputbox" onchange="this.form.submit()">
+				<option value=""><?php echo JText::_('JOPTION_SELECT_LANGUAGE');?></option>
+				<?php echo JHtml::_('select.options', JHtml::_('contentlanguage.existing', true, true), 'value', 'text', $this->state->get('filter.language'));?>
+			</select>
 		</div>
 	</fieldset>
 	<div class="clr"> </div>
@@ -45,30 +53,32 @@ $userId	= $user->get('id');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="5">
-					<?php echo JText::_('JGRID_HEADING_ROW_NUMBER'); ?>
-				</th>
-				<th width="20">
-					<input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->items); ?>);" />
+				<th width="1%">
+					<input type="checkbox" name="checkall-toggle" value="" onclick="checkAll(this)" />
 				</th>
 				<th>
-					<?php echo JHtml::_('grid.sort',  'COM_CONTACT_TITLE_HEADING', 'a.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JGLOBAL_TITLE', 'a.name', $listDirn, $listOrder); ?>
 				</th>
 				<th width="5%" class="nowrap">
-					<?php echo JHtml::_('grid.sort',  'COM_CONTACT_STATE_HEADING', 'a.state', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JPUBLISHED', 'a.state', $listDirn, $listOrder); ?>
 				</th>
-				<th width="10%" class="nowrap">
-					<?php echo JHtml::_('grid.sort',  'COM_CONTACT_ORDER_HEADING', 'a.ordering', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
-					<?php echo JHtml::_('grid.order', $this->items, 'filesave.png', 'contacts.saveorder'); ?>
+				<th width="10%">
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ORDERING', 'ordering', $listDirn, $listOrder); ?>
+					<?php if ($canOrder && $saveOrder) :?>
+						<?php echo JHtml::_('grid.order',  $this->items, 'filesave.png', 'contacts.saveorder'); ?>
+					<?php endif; ?>
 				</th>
 				<th width="10%"  class="title">
-					<?php echo JHtml::_('grid.sort',  'COM_CONTACT_CATEGORY_HEADING', 'category_title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_CATEGORY', 'category_title', $listDirn, $listOrder); ?>
 				</th>
 				<th width="10%"  class="title">
-					<?php echo JHtml::_('grid.sort',  'COM_CONTACT_ACCESS_HEADING', 'access_level', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ACCESS', 'access_level', $listDirn, $listOrder); ?>
+				</th>
+				<th width="5%">
+					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_LANGUAGE', 'a.language', $listDirn, $listOrder); ?>
 				</th>
 				<th width="1%" class="nowrap">
-					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
 				</th>
 			</tr>
 		</thead>
@@ -83,43 +93,58 @@ $userId	= $user->get('id');
 		<?php
 		$n = count($this->items);
 		foreach ($this->items as $i => $item) :
-			$ordering	= ($this->state->get('list.ordering') == 'a.ordering');
-			$checkedOut	= JTable::isCheckedOut($userId, $item->checked_out);
+			$ordering	= $listOrder == 'ordering';
+			$canCreate	= $user->authorise('core.create',		'com_contact.category.'.$item->catid);
+			$canEdit	= $user->authorise('core.edit',			'com_contact.category.'.$item->catid);
+			$canCheckin	= $user->authorise('core.manage',		'com_checkin') || $item->checked_out==$user->get('id') || $item->checked_out==0;
+			$canChange	= $user->authorise('core.edit.state',	'com_contact.category.'.$item->catid) && $canCheckin;
 
 			$item->cat_link = JRoute::_('index.php?option=com_categories&extension=com_contact&task=edit&type=other&id='. $item->catid);
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<td>
-					<?php echo $this->pagination->getRowOffset($i); ?>
+				<td class="center">
+					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
 				</td>
 				<td>
-					<?php echo JHtml::_('grid.checkedout', $item, $i); ?>
-				</td>
-				<td>
-					<?php if (JTable::isCheckedOut($userId, $item->checked_out)) : ?>
-						<?php echo $item->name; ?>
-					<?php else : ?>
-						<a href="<?php echo JRoute::_('index.php?option=com_contact&task=contact.edit&id='.(int) $item->id); ?>">
-							<?php echo $this->escape($item->name) ?></a>
+					<?php if ($item->checked_out) : ?>
+						<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'contacts.', $canCheckin); ?>
 					<?php endif; ?>
-					<p class="smallsub">(<span><?php echo JText::_('COM_CONTACT_CONTACT_VIEW_ALIAS') ?>:</span>
-					<?php echo $this->escape($item->alias);?>)</p>
+					<?php if ($canCreate || $canEdit) : ?>
+						<a href="<?php echo JRoute::_('index.php?option=com_contact&task=contact.edit&id='.(int) $item->id); ?>">
+							<?php echo $this->escape($item->name); ?></a>
+					<?php else : ?>
+							<?php echo $this->escape($item->name); ?>
+					<?php endif; ?>
+					<p class="smallsub">
+						<?php echo JText::sprintf('JGLOBAL_LIST_ALIAS', $this->escape($item->alias));?></p>
 				</td>
 				<td align="center">
-					<?php echo JHtml::_('jgrid.published', $item->published, $i, 'contacts.');?>
+					<?php echo JHtml::_('jgrid.published', $item->published, $i, 'contacts.', $canChange);?>
 				</td>
 				<td class="order">
-					<span><?php echo $this->pagination->orderUpIcon($i, ($item->catid == @$this->items[$i-1]->catid),'contacts.orderup', 'JGRID_MOVE_UP', $ordering); ?></span>
-					<span><?php echo $this->pagination->orderDownIcon($i, $n, ($item->catid == @$this->items[$i+1]->catid), 'contacts.orderdown', 'JGRID_MOVE_DOWN', $ordering); ?></span>
-					<?php $disabled = $ordering ?  '' : 'disabled="disabled"'; ?>
-					<input type="text" name="order[]" size="5" value="<?php echo $item->ordering;?>" <?php echo $disabled ?> class="text-area-order" />
+					<?php if ($canChange) : ?>
+						<?php if ($saveOrder) :?>
+							<span><?php echo $this->pagination->orderUpIcon($i, ($item->catid == @$this->items[$i-1]->catid),'contacts.orderup', 'JLIB_HTML_MOVE_UP', $ordering); ?></span>
+							<span><?php echo $this->pagination->orderDownIcon($i, $n, ($item->catid == @$this->items[$i+1]->catid), 'contacts.orderdown', 'JLIB_HTML_MOVE_DOWN', $ordering); ?></span>
+						<?php endif; ?>
+						<?php $disabled = $saveOrder ?  '' : 'disabled="disabled"'; ?>
+						<input type="text" name="order[]" size="5" value="<?php echo $item->ordering;?>" <?php echo $disabled ?> class="text-area-order" />
+					<?php else : ?>
+						<?php echo $item->ordering; ?>
+					<?php endif; ?>
 				</td>
-				<td>
-					<span >
-					<?php echo $item->category_title; ?></span>
+				<td align="center">
+					<?php echo $item->category_title; ?>
 				</td>
 				<td align="center">
 					<?php echo $item->access_level; ?>
+				</td>
+				<td class="center">
+					<?php if ($item->language=='*'):?>
+						<?php echo JText::_('JALL'); ?>
+					<?php else:?>
+						<?php echo $item->language_title ? $this->escape($item->language_title) : JText::_('JUNDEFINED'); ?>
+					<?php endif;?>
 				</td>
 				<td align="center">
 					<?php echo $item->id; ?>
@@ -128,10 +153,11 @@ $userId	= $user->get('id');
 			<?php endforeach; ?>
 		</tbody>
 	</table>
-
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

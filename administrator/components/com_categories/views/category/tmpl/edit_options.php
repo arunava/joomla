@@ -15,14 +15,16 @@ $fieldSets = $this->form->getFieldsets('params');
 foreach ($fieldSets as $name => $fieldSet) :
 	$label = !empty($fieldSet->label) ? $fieldSet->label : 'COM_CATEGORIES_'.$name.'_FIELDSET_LABEL';
 	echo JHtml::_('sliders.panel',JText::_($label), $name.'-options');
-		if (isset($fieldSet->description) && trim($fieldSet->description)) :
-			echo '<p class="tip">'.$this->escape(JText::_($fieldSet->description)).'</p>';
-		endif;
-		?>
+	if (isset($fieldSet->description) && trim($fieldSet->description)) :
+		echo '<p class="tip">'.$this->escape(JText::_($fieldSet->description)).'</p>';
+	endif;
+	?>
 	<fieldset class="panelform">
 		<?php foreach ($this->form->getFieldset($name) as $field) : ?>
 			<?php echo $field->label; ?>
 			<?php echo $field->input; ?>
 		<?php endforeach; ?>
+		<?php echo $this->form->getLabel('note'); ?>
+		<?php echo $this->form->getInput('note'); ?>
 	</fieldset>
 <?php endforeach; ?>

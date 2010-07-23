@@ -4,8 +4,11 @@
 	<fieldset name="details"
 		addfieldpath="/administrator/components/com_banners/models/fields"
 	>
-		<field name="id" type="hidden" default="0" required="true"
-			readonly="true" />
+		<field name="id" type="text" default="0" required="true"
+			readonly="true" class="readonly"
+			label="JGLOBAL_FIELD_ID_LABEL" description ="JGLOBAL_FIELD_ID_DESC"/>
+
+
 
 		<field name="name" type="text" class="inputbox"
 			size="40" label="COM_BANNERS_FIELD_CLIENT_NAME_LABEL"
@@ -22,11 +25,12 @@
 			required="true" />
 
 		<field name="state" type="list"
-			label="COM_BANNERS_FIELD_CLIENT_STATE_LABEL" description="COM_BANNERS_FIELD_CLIENT_STATE_DESC"
+			label="JGLOBAL_STATE" description="COM_BANNERS_FIELD_CLIENT_STATE_DESC"
 			class="inputbox" size="1" default="1"
 		>
 			<option value="1">JPUBLISHED</option>
 			<option value="0">JUNPUBLISHED</option>
+			<option value="2">JARCHIVED</option>
 			<option value="-2">JTRASH</option>
 		</field>
 
@@ -65,7 +69,7 @@
 	</fieldset>
 
 	<fieldset name="metadata"
-		label="COM_BANNERS_GROUP_LABEL_METADATA_OPTIONS"
+		label="JGLOBAL_FIELDSET_METADATA_OPTIONS"
 	>
 
 		<field name="metakey" type="textarea" class="inputbox"

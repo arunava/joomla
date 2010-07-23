@@ -13,18 +13,20 @@ defined('_JEXEC') or die;
 JHtml::core();
 
 $n = count($this->items);
+$listOrder	= $this->state->get('list.ordering');
+$listDirn	= $this->state->get('list.direction');
 ?>
 
 <?php if (empty($this->items)) : ?>
-	<p> <?php echo JText::_('COM_WEBLINKS_NO_ARTICLES'); ?></p>
+	<p> <?php echo JText::_('COM_WEBLINKS_NO_WEBLINKS'); ?></p>
 <?php else : ?>
 
 <form action="<?php echo JFilterOutput::ampReplace(JFactory::getURI()->toString()); ?>" method="post" name="adminForm">
 	<fieldset class="filters">
-	<legend class="element-invisible"><?php echo JText::_('JContent_Filter_Label'); ?></legend>
+	<legend class="hidelabeltxt"><?php echo JText::_('JGLOBAL_FILTER_LABEL'); ?></legend>
 	<?php if ($this->params->get('show_pagination_limit')) : ?>
 		<div class="display-limit">
-			<?php echo JText::_('COM_WEBLINKS_DISPLAY_NUM'); ?>&nbsp;
+			<?php echo JText::_('JGLOBAL_DISPLAY_NUM'); ?>&#160;
 			<?php echo $this->pagination->getLimitBox(); ?>
 		</div>
 	<?php endif; ?>
@@ -38,11 +40,11 @@ $n = count($this->items);
 				<?php echo JText::_('COM_WEBLINKS_NUM'); ?>
 			</th>
 			<th class="title">
-					<?php echo JHtml::_('grid.sort',  'COM_WEBLINKS_GRID_SORT', 'title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'COM_WEBLINKS_GRID_SORT', 'title', $listDirn, $listOrder); ?>
 			</th>
 			<?php if ($this->params->get('show_link_hits')) : ?>
 			<th class="hits">
-					<?php echo JHtml::_('grid.sort',  'JGLOBAL_HITS', 'hits', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort',  'JGLOBAL_HITS', 'hits', $listDirn, $listOrder); ?>
 			</th>
 			<?php endif; ?>
 		</tr>
@@ -91,7 +93,7 @@ $n = count($this->items);
 					}
 				?>
 			</p>
-	
+
 			<?php if (($this->params->get('show_link_description')) AND ($item->description !='')): ?>
 				<p>
 				<?php echo nl2br($item->description); ?>
@@ -117,8 +119,9 @@ $n = count($this->items);
 			<?php echo $this->pagination->getPagesLinks(); ?>
 		</div>
 	<?php endif; ?>
-
-		<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
+	<div>
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+	</div>
 </form>
 <?php endif; ?>

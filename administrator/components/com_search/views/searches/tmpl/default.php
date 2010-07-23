@@ -13,6 +13,8 @@ defined('_JEXEC') or die;
 // Include the component HTML helpers.
 JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 JHtml::_('behavior.tooltip');
+$listOrder	= $this->state->get('list.ordering');
+$listDirn	= $this->state->get('list.direction');
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_search&view=searches'); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
@@ -49,16 +51,16 @@ JHtml::_('behavior.tooltip');
 					<?php echo JText::_('JGRID_HEADING_ROW_NUMBER'); ?>
 				</th>
 				<th class="title">
-					<?php echo JHtml::_('grid.sort', 'COM_SEARCH_HEADING_PHRASE', 'a.search_term', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort', 'COM_SEARCH_HEADING_PHRASE', 'a.search_term', $listDirn, $listOrder); ?>
 				</th>
 				<th width="15%">
-					<?php echo JHtml::_('grid.sort', 'JGLOBAL_HITS', 'a.hits', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
 				</th>
 				<th width="15%">
 					<?php echo JText::_('COM_SEARCH_HEADING_RESULTS'); ?>
 				</th>
 				<th width="30%">
-					&nbsp;
+					&#160;
 				</th>
 			</tr>
 		</thead>
@@ -89,7 +91,7 @@ JHtml::_('behavior.tooltip');
 					<?php endif; ?>
 					</td>
 					<td>
-						&nbsp;
+						&#160;
 					</td>
 				</tr>
 			<?php endforeach; ?>
@@ -97,9 +99,11 @@ JHtml::_('behavior.tooltip');
 		</table>
 
 
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

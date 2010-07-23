@@ -13,7 +13,8 @@ jimport('joomla.html.html');
 jimport('joomla.filesystem.folder');
 jimport('joomla.filesystem.file');
 jimport('joomla.form.formfield');
-JLoader::register('JFormFieldList', dirname(__FILE__).'/list.php');
+jimport('joomla.form.helper');
+JFormHelper::loadFieldClass('list');
 
 /**
  * Supports an HTML select list of file
@@ -58,10 +59,10 @@ class JFormFieldFileList extends JFormFieldList
 
 		// Prepend some default options based on field attributes.
 		if (!$hideNone) {
-			$options[] = JHtml::_('select.option', '-1', JText::_('JOption_Do_Not_Use'));
+			$options[] = JHtml::_('select.option', '-1', JText::_('JOPTION_DO_NOT_USE'));
 		}
 		if (!$hideDefault) {
-			$options[] = JHtml::_('select.option', '', JText::_('JOption_Use_Default'));
+			$options[] = JHtml::_('select.option', '', JText::_('JOPTION_USE_DEFAULT'));
 		}
 
 		// Get a list of files in the search path with the given filter.

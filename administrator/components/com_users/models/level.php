@@ -8,7 +8,7 @@
 // No direct access.
 defined('_JEXEC') or die;
 
-jimport('joomla.application.component.modelform');
+jimport('joomla.application.component.modeladmin');
 jimport('joomla.access.helper');
 
 /**
@@ -18,33 +18,8 @@ jimport('joomla.access.helper');
  * @subpackage	com_users
  * @since		1.6
  */
-class UsersModelLevel extends JModelForm
+class UsersModelLevel extends JModelAdmin
 {
-	/**
-	 * Method to auto-populate the model state.
-	 */
-	protected function _populateState()
-	{
-		$app = JFactory::getApplication('administrator');
-
-		// Load the User state.
-		if (!($pk = (int) $app->getUserState('com_users.edit.level.id'))) {
-			$pk = (int) JRequest::getInt('id');
-		}
-		$this->setState('level.id', $pk);
-
-		// Load the parameters.
-		$params	= JComponentHelper::getParams('com_users');
-		$this->setState('params', $params);
-	}
-
-	/**
-	 * Prepare and sanitise the table prior to saving.
-	 */
-	protected function _prepareTable(&$table)
-	{
-	}
-
 	/**
 	 * Returns a reference to the a Table object, always creating it.
 	 *
@@ -52,6 +27,7 @@ class UsersModelLevel extends JModelForm
 	 * @param	string	A prefix for the table class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
 	 * @return	JTable	A database object
+	 * @since	1.6
 	*/
 	public function getTable($type = 'Viewlevel', $prefix = 'JTable', $config = array())
 	{
@@ -63,68 +39,70 @@ class UsersModelLevel extends JModelForm
 	 * Method to get a single record.
 	 *
 	 * @param	integer	The id of the primary key.
-	 *
 	 * @return	mixed	Object on success, false on failure.
+	 * @since	1.6
 	 */
-	public function &getItem($pk = null)
+	public function getItem($pk = null)
 	{
-		// Initialise variables.
-		$pk = (!empty($pk)) ? $pk : (int)$this->getState('level.id');
-		$false	= false;
-
-		// Get a row instance.
-		$table = &$this->getTable();
-
-		// Attempt to load the row.
-		$return = $table->load($pk);
-
-		// Check for a table object error.
-		if ($return === false && $table->getError()) {
-			$this->setError($table->getError());
-			return $false;
-		}
-
-		// Prime required properties.
-		if (empty($table->id))
-		{
-			// Prepare data for a new record.
-		}
-
-		$value = JArrayHelper::toObject($table->getProperties(1), 'JObject');
+		$result = parent::getItem($pk);
 
 		// Convert the params field to an array.
-		$value->rules = json_decode($value->rules);
+		$result->rules = json_decode($result->rules);
 
-		return $value;
+		return $result;
 	}
 
 	/**
 	 * Method to get the record form.
 	 *
-	 * @return	mixed	JForm object on success, false on failure.
+	 * @param	array	$data		An optional array of data for the form to interogate.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm()
+	public function getForm($data = array(), $loadData = true)
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication();
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_users.level', 'level', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = $this->loadForm('com_users.level', 'level', array('control' => 'jform', 'load_data' => $loadData));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_users.edit.level.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function loadFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_users.edit.level.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
+	}
+
+	/**
+	 * Override preprocessForm to load the user plugin group instead of content.
+	 *
+	 * @param	object	A form object.
+	 * @param	mixed	The data expected for the form.
+	 * @throws	Exception if there is an error in the form event.
+	 * @since	1.6
+	 */
+	protected function preprocessForm(JForm $form, $data)
+	{
+		parent::preprocessForm($form, $data, 'user');
 	}
 
 	/**
@@ -132,92 +110,13 @@ class UsersModelLevel extends JModelForm
 	 *
 	 * @param	array	The form data.
 	 * @return	boolean	True on success.
+	 * @since	1.6
 	 */
 	public function save($data)
 	{
-		// Initialise variables;
-		$table		= $this->getTable();
-		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('level.id');
-		$isNew		= true;
-
-		// Load the row if saving an existing record.
-		if ($pk > 0) {
-			$table->load($pk);
-			$isNew = false;
+		if (!isset($data['rules'])) {
+			$data['rules']=array();
 		}
-
-		// Bind the data.
-		if (!$table->bind($data)) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Prepare the row for saving
-		$this->_prepareTable($table);
-
-		// Check the data.
-		if (!$table->check()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		// Store the data.
-		if (!$table->store()) {
-			$this->setError($table->getError());
-			return false;
-		}
-
-		$this->setState('level.id', $table->id);
-
-		return true;
-	}
-
-	/**
-	 * Method to delete rows.
-	 *
-	 * @param	array	An array of item ids.
-	 *
-	 * @return	boolean	Returns true on success, false on failure.
-	 */
-	public function delete(&$pks)
-	{
-		// Typecast variable.
-		$pks = (array) $pks;
-		$user = JFactory::getUser();
-
-		// Get a row instance.
-		$table = &$this->getTable();
-
-		// Iterate the items to delete each one.
-		foreach ($pks as $i => $pk)
-		{
-			if ($table->load($pk))
-			{
-				// Access checks.
-				$allow = $user->authorise('core.edit.state', 'com_users');
-
-				if ($allow)
-				{
-					if (!$table->delete($pk))
-					{
-						$this->setError($table->getError());
-						return false;
-					}
-				}
-				else
-				{
-					// Prune items that you can't change.
-					unset($pks[$i]);
-					JError::raiseWarning(403, JText::_('JError_Core_Edit_State_not_permitted'));
-				}
-			}
-			else
-			{
-				$this->setError($table->getError());
-				return false;
-			}
-		}
-
-		return true;
+		return parent::save($data);
 	}
 }

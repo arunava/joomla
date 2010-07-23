@@ -46,7 +46,7 @@ class plgSystemDebug extends JPlugin
 			return;
 		}
 
-		$document	= &JFactory::getDocument();
+		$document	= JFactory::getDocument();
 		$doctype	= $document->getType();
 
 		// Only render for HTML output
@@ -92,21 +92,22 @@ class plgSystemDebug extends JPlugin
 		if ($this->params->get('queries', 1)) {
 			$newlineKeywords = '#\b(FROM|LEFT|INNER|OUTER|WHERE|SET|VALUES|ORDER|GROUP|HAVING|LIMIT|ON|AND)\b#i';
 
-			$db	= &JFactory::getDbo();
+			$db	= JFactory::getDbo();
 
 			echo '<h4>'.JText::sprintf('PLG_DEBUG_QUERIES_LOGGED',  $db->getTicker()).'</h4>';
 
 			if ($log = $db->getLog()) {
 				echo '<ol>';
 				foreach ($log as $k => $sql) {
-					$text = preg_replace($newlineKeywords, '<br />&nbsp;&nbsp;\\0', $sql);
+					$text = htmlspecialchars($sql, ENT_QUOTES);
+					$text = preg_replace($newlineKeywords, '<br />&#160;&#160;\\0', $text);
 					echo '<li>'.$text.'</li>';
 				}
 				echo '</ol>';
 			}
 		}
 
-		$lang = &JFactory::getLanguage();
+		$lang = JFactory::getLanguage();
 		if ($this->params->get('language_errorfiles', 1)) {
 			echo '<h4>'.JText::_('PLG_DEBUG_LANGUAGE_FILES_IN_ERROR').'</h4>';
 			$errorfiles = $lang->getErrorFiles();
@@ -120,7 +121,7 @@ class plgSystemDebug extends JPlugin
 				echo '<pre>'.JText::_('JNONE').'</pre>';
 			}
 		}
-		
+
 		if ($this->params->get('language_files', 1)) {
 			echo '<h4>'.JText::_('PLG_DEBUG_LANGUAGE_FILES_LOADED').'</h4>';
 			echo '<ul>';

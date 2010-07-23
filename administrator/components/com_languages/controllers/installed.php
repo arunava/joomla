@@ -20,23 +20,23 @@ class LanguagesControllerInstalled extends JController
 	/**
 	 * task to set the default language
 	 */
-	function publish()
+	function setDefault()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
 		$cid = JRequest::getCmd('cid', '');
-		$model = & $this->getModel('installed');
+		$model = $this->getModel('installed');
 		if ($model->publish($cid))
 		{
-			$msg = JText::_('COM_LANGS_MSG_DEFAULT_LANGUAGE_SAVED');
+			$msg = JText::_('COM_LANGUAGES_MSG_DEFAULT_LANGUAGE_SAVED');
 			$type = 'message';
 		}
 		else
 		{
-			$msg = & $this->getError();
+			$msg = $this->getError();
 			$type = 'error';
 		}
-		$client = & $model->getClient();
+		$client = $model->getClient();
 		$this->setredirect('index.php?option=com_languages&view=installed',$msg,$type);
 	}
 }

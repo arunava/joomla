@@ -49,6 +49,7 @@ class JUserTest extends JoomlaDatabaseTestCase
 		include_once JPATH_BASE . '/libraries/joomla/user/user.php';
 
 		parent::setUp();
+		parent::setUpBeforeClass();
 
 		$this->saveFactoryState();
 		$this->saveErrorHandlers();
@@ -95,7 +96,7 @@ class JUserTest extends JoomlaDatabaseTestCase
 				false,
 				array(
 					'code' => 'SOME_ERROR_CODE',
-					'msg' => 'JUser::_load: User nobody does not exist',
+					'msg' => 'JLIB_USER_ERROR_ID_NOT_EXISTS',
 					'info' => ''
 				),
 			),

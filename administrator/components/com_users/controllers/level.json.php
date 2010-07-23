@@ -39,7 +39,7 @@ class UsersControllerLevel extends JController
 		$data['parent_id'] = (!empty($data['parent_id'])) ? (int) $data['parent_id'] : 1;
 
 		// Get the model and attempt to validate the posted data.
-		$model = &$this->getModel('Level');
+		$model = $this->getModel('Level');
 		$return	= $model->validate($data);
 
 		// Check for validation errors.
@@ -112,7 +112,7 @@ class UsersLevelResponse
 		{
 			// Prepare the error response.
 			$this->error	= true;
-			$this->header	= JText::_('USERS_LEVEL_HEADER_ERROR');
+			$this->header	= JText::_('COM_USERS_LEVEL_HEADER_ERROR');
 			$this->message	= $state->getMessage();
 		}
 		else

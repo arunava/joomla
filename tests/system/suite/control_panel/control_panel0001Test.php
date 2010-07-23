@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.FunctionalTest
+ * @package		Joomla.SystemTest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * checks that all menu choices are shown in back end
@@ -22,7 +22,7 @@ class ControlPanel0001 extends SeleniumJoomlaTestCase
 		$this->doAdminLogin();
 		$this->gotoSite();
 		$this->doFrontEndLogin();
-		$this->gotoSite();		
+		$this->gotoSite();
 		$this->doFrontEndLogout();
 		$this->gotoAdmin();
 		echo "Check that top menu options are visible.\n";
@@ -68,7 +68,7 @@ class ControlPanel0001 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("link=Newsfeeds"));
 		$this->assertTrue($this->isElementPresent("link=Feeds"));
 		$this->assertTrue($this->isElementPresent("//ul[@id='menu-newsfeeds']/li[2]/a"));
-		$this->assertTrue($this->isElementPresent("link=Redirect Manager"));
+		$this->assertTrue($this->isElementPresent("link=Redirect"));
 		$this->assertTrue($this->isElementPresent("link=Search"));
 		$this->assertTrue($this->isElementPresent("link=Weblinks"));
 		$this->assertTrue($this->isElementPresent("link=Links"));

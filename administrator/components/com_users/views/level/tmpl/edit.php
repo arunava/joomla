@@ -19,7 +19,6 @@ JHtml::_('behavior.formvalidation');
 ?>
 
 <script type="text/javascript">
-<!--
 function submitbutton(task)
 {
 	if (task == 'level.cancel' || document.formvalidator.isValid(document.id('level-form'))) {
@@ -85,27 +84,27 @@ window.addEvent('domready', function(){
 	});
 });
 */
-// -->
 </script>
 
 
 <form action="<?php JRoute::_('index.php?option=com_users'); ?>" method="post" name="adminForm" id="level-form" class="form-validate">
 	<div class="width-100">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('Users_Level_Details');?></legend>
-			<?php echo $this->form->getLabel('title'); ?>
-			<?php echo $this->form->getInput('title'); ?>
+			<legend><?php echo JText::_('COM_USERS_LEVEL_DETAILS');?></legend>
+			<ul class="adminformlist">
+				<li><?php echo $this->form->getLabel('title'); ?></li>
+				<li><?php echo $this->form->getInput('title'); ?></li>
+			</ul>
 		</fieldset>
 	</div>
 
 	<div class="width-50">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('Users_User_Groups_Having_Access');?></legend>
+			<legend><?php echo JText::_('COM_USERS_USER_GROUPS_HAVING_ACCESS');?></legend>
 			<?php echo JHtml::_('access.usergroups', 'jform[rules]', $this->item->rules); ?>
 		</fieldset>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>
 <div class="clr"></div>

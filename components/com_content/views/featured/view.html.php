@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: view.html.php 15908 2010-04-07 03:16:54Z hackwar $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -37,8 +37,8 @@ class ContentViewFeatured extends JView
 	function display($tpl = null)
 	{
 		// Initialise variables.
-		$user =& JFactory::getUser();
-		$app =& JFactory::getApplication();
+		$user = JFactory::getUser();
+		$app = JFactory::getApplication();
 
 		$state 		= $this->get('State');
 		$items 		= $this->get('Items');
@@ -50,7 +50,7 @@ class ContentViewFeatured extends JView
 			return false;
 		}
 
-		$params =& $state->params;
+		$params = &$state->params;
 
 		// PREPARE THE DATA
 
@@ -65,32 +65,27 @@ class ContentViewFeatured extends JView
 			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
 			$item->catslug = ($item->category_alias) ? ($item->catid . ':' . $item->category_alias) : $item->catid;
 			$item->parent_slug = ($item->parent_alias) ? ($item->parent_id . ':' . $item->parent_alias) : $item->parent_id;
-			$article_params = new JRegistry;
-			$article_params->loadJSON($item->attribs);
-			$temp = clone($params);
-			$temp->merge($article_params);
-			$item->params = $temp;
 			// No link for ROOT category
 			if ($item->parent_alias == 'root') {
 				$item->parent_slug = null;
 			}
-			
+
 			$item->event = new stdClass();
 
-			$dispatcher =& JDispatcher::getInstance();
+			$dispatcher = JDispatcher::getInstance();
 
 			// Ignore content plugins on links.
 			if ($i < $numLeading + $numIntro)
 			{
 				$item->introtext = JHtml::_('content.prepare', $item->introtext);
 
-				$results = $dispatcher->trigger('onAfterDisplayTitle', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentAfterTitle', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->afterDisplayTitle = trim(implode("\n", $results));
 
-				$results = $dispatcher->trigger('onBeforeDisplayContent', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentBeforeDisplay', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->beforeDisplayContent = trim(implode("\n", $results));
 
-				$results = $dispatcher->trigger('onAfterDisplayContent', array(&$item, &$item->params, 0));
+				$results = $dispatcher->trigger('onContentAfterDisplay', array('com_content.article', &$item, &$item->params, 0));
 				$item->event->afterDisplayContent = trim(implode("\n", $results));
 			}
 		}
@@ -103,7 +98,7 @@ class ContentViewFeatured extends JView
 		$limit = $numLeading;
 		for ($i = 0; $i < $limit && $i < $max; $i++)
 		{
-			$this->lead_items[$i] =& $items[$i];
+			$this->lead_items[$i] = &$items[$i];
 		}
 
 		// The second group is the intro articles.
@@ -111,7 +106,7 @@ class ContentViewFeatured extends JView
 		// Order articles across, then down (or single column mode)
 		for ($i = $numLeading; $i < $limit && $i < $max; $i++)
 		{
-			$this->intro_items[$i] =& $items[$i];
+			$this->intro_items[$i] = &$items[$i];
 		}
 
 		$this->columns = max(1, $params->def('num_columns', 1));
@@ -126,7 +121,7 @@ class ContentViewFeatured extends JView
 		// The remainder are the links.
 		for ($i = $numLeading + $numIntro; $i < $max; $i++)
 		{
-			$this->link_items[$i] =& $items[$i];
+			$this->link_items[$i] = &$items[$i];
 		}
 
 		$this->assignRef('params', $params);
@@ -144,24 +139,26 @@ class ContentViewFeatured extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app		= &JFactory::getApplication();
-		$menus		= &JSite::getMenu();
+		$app		= JFactory::getApplication();
+		$menus		= $app->getMenu();
 		$title 		= null;
 
 		// Because the application sets a default page title,
 		// we need to get it from the menu item itself
 		$menu = $menus->getActive();
-		if($menu)
+		if ($menu)
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_CONTENT_DEFAULT_PAGE_TITLE')); 
+			$this->params->def('page_heading', JText::_('JGLOBAL_ARTICLES'));
 		}
-		
+
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 

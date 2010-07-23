@@ -48,11 +48,11 @@ abstract class JHtmlRules
 
 		$html[] = '<div class="acl-options">';
 		$html[] = '	<dl class="tabs">';
-		$html[] = '		<dt><a href="#">'.JText::_('CONTENT_ACCESS_SUMMARY').'</a></dt>';
+		$html[] = '		<dt><a href="#">'.JText::_('JLIB_HTML_ACCESS_SUMMARY').'</a></dt>';
 		$html[] = '		<dd>';
-		$html[] = '			<p>'.JText::_('CONTENT_ACCESS_SUMMARY_DESC').'</p>';
-		$html[] = '			<table class="aclsummary-table" summary="'.JText::_('CONTENT_ACCESS_SUMMARY_DESC').'">';
-		$html[] = '			<caption>'.JText::_('CONTENT_ACCESS_SUMMARY_DESC_CAPTION').'</caption>';
+		$html[] = '			<p>'.JText::_('JLIB_HTML_ACCESS_SUMMARY_DESC').'</p>';
+		$html[] = '			<table class="aclsummary-table" summary="'.JText::_('JLIB_HTML_ACCESS_SUMMARY_DESC').'">';
+		$html[] = '			<caption>'.JText::_('JLIB_HTML_ACCESS_SUMMARY_DESC_CAPTION').'</caption>';
 		$html[] = '			<tr>';
 		$html[] = '				<th class="col1 hidelabeltxt">'.JText::_('JGROUPS').'</th>';
 		foreach ($actions as $i => $action)
@@ -77,11 +77,13 @@ abstract class JHtmlRules
 
 		foreach ($actions as $action)
 		{
-			$html[] = '		<dt><a href="#">'.JText::_($action->title).'</a></dt>';
+			$actionTitle = JText::_($action->title);
+			$actionDesc	= JText::_($action->description);
+			$html[] = '		<dt><a href="#">'.$actionTitle.'</a></dt>';
 			$html[] = '		<dd>';
-			$html[] = '			<p>'.JText::_($action->description).'</p>';
-			$html[] = '			<table class="aclmodify-table" summary="'.JText::_($action->description).'">';
-			$html[] = '			<caption>'.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_ACL').' '.JText::_($action->title).' '.JText::_('CONTENT_ACCESS_MODIFY_DESC_CAPTION_TABLE').'</caption>';
+			$html[] = '			<p>'.$actionDesc.'</p>';
+			$html[] = '			<table class="aclmodify-table" summary="'.strip_tags($actionDesc).'">';
+			$html[] = '			<caption>'.JText::_('JLIB_HTML_ACCESS_MODIFY_DESC_CAPTION_ACL').' '.$actionTitle.' '.JText::_('JLIB_HTML_ACCESS_MODIFY_DESC_CAPTION_TABLE').'</caption>';
 			$html[] = '			<tr>';
 			$html[] = '				<th class="col1 hidelabeltxt">'.JText::_('JGROUPS').'</th>';
 			$html[] = '				<th class="col2">'.JText::_('JINHERIT').'</th>';
@@ -97,7 +99,7 @@ abstract class JHtmlRules
 				$html[] = '				<td class="col1">'.$group->text.'</td>';
 				$html[] = '				<td class="col2">'.($inheriting->allow($action->name, $group->identities) ? $images['allow-i'] : $images['deny-i']).'</td>';
 				$html[] = '				<td class="col3">';
-				$html[] = '					<select id="'.$idPrefix.'_'.$action->name.'_'.$group->value.'" class="inputbox" size="1" name="'.$control.'['.$action->name.']['.$group->value.']" title="'.JText::_('JMODIFY')." ".$group->text.'">';
+				$html[] = '					<select id="'.$idPrefix.'_'.$action->name.'_'.$group->value.'" class="inputbox" size="1" name="'.$control.'['.$action->name.']['.$group->value.']" title="'.JText::sprintf('JSELECT_ALLOW_DENY_GROUP', $actionTitle, $group->text).'">';
 				$html[] = '						<option value=""'.($selected === null ? ' selected="selected"' : '').'>'.JText::_('JINHERIT').'</option>';
 				$html[] = '						<option value="1"'.($selected === true ? ' selected="selected"' : '').'>'.JText::_('JALLOW').'</option>';
 				$html[] = '						<option value="0"'.($selected === false ? ' selected="selected"' : '').'>'.JText::_('JDENY').'</option>';
@@ -120,8 +122,8 @@ abstract class JHtmlRules
 		$html[] = '		<li class="acl-denied">'.JText::_('JDENIED').'</li>';
 		$html[] = '	</ul>';
 		$html[] = '	<ul class="acllegend fltrt">';
-		$html[] = '		<li class="acl-editgroups"><a href="#">'.JText::_('CONTENT_ACCESS_EDIT_GROUPS').'</a></li>';
-		$html[] = '		<li class="acl-resetbtn"><a href="#">'.JText::_('CONTENT_ACCESS_RESET_TO_INHERIT').'</a></li>';
+		$html[] = '		<li class="acl-editgroups"><a href="#">'.JText::_('JLIB_HTML_ACCESS_EDIT_GROUPS').'</a></li>';
+		$html[] = '		<li class="acl-resetbtn"><a href="#">'.JText::_('JLIB_HTML_ACCESS_RESET_TO_INHERIT').'</a></li>';
 		$html[] = '	</ul>';
 		$html[] = '</div>';
 
@@ -162,7 +164,7 @@ abstract class JHtmlRules
 		foreach ($options as &$option)
 		{
 			// Pad the option text with spaces using depth level as a multiplier.
-			//$option->text = str_repeat('&nbsp;&nbsp;',$option->level).$option->text;
+			//$option->text = str_repeat('&#160;&#160;',$option->level).$option->text;
 
 			$option->identities = ($option->parents) ? explode(',', $option->parents.','.$option->value) : array($option->value);
 		}

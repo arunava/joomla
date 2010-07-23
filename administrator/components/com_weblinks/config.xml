@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 	<fieldset name="component"
-		label="JCONFIG_COMPONENT_LABEL"
-		description="JCONFIG_COMPONENT_DESC"
+		label="COM_WEBLINKS_COMPONENT_LABEL"
+		description="COM_WEBLINKS_COMPONENT_DESC"
 	>
 
 		<field name="show_comp_description" type="radio"
 			default="1"
 			description="COM_WEBLINKS_FIELD_CONFIG_DESCRIPTION_DESC"
-			label="COM_WEBLINKS_FIELD_CONFIG_DESCRIPTION_LABEL"
+			label="JGLOBAL_DESCRIPTION"
 		>
 			<option value="0">JHIDE</option>
 			<option value="1">JSHOW</option>
@@ -16,15 +16,11 @@
 
 		<field name="comp_description" type="textarea"
 			cols="50"
-			description="COM_WEBLINKS_FIELD_CONFIG_INTRO_DESC" 
+			description="COM_WEBLINKS_FIELD_CONFIG_INTRO_DESC"
 			label="COM_WEBLINKS_FIELD_CONFIG_INTRO_LABEL"
 			rows="3"
 		/>
 
-		<field name="spacer1" type="spacer"
-			hr="true"
-		/>
-		
 		<field name="show_link_hits" type="radio"
 			default="1"
 			description="COM_WEBLINKS_FIELD_CONFIG_HITS_DESC"
@@ -78,7 +74,7 @@
 			<option value="0">JHIDE</option>
 			<option value="1">JSHOW</option>
 		</field>
-		
+
 		<field name="count_clicks" type="radio"
 			default="1"
 			description="COM_WEBLINKS_FIELD_CONFIG_COUNTCLICKS_DESC"
@@ -88,24 +84,19 @@
 			<option value="1">JYES</option>
 		</field>
 
-		<field name="spacer2" type="spacer"
-			hr="true"
-		/>
-
 		<field name="target" type="list"
 			default="0"
 			description="COM_WEBLINKS_FIELD_TARGET_DESC"
 			label="COM_WEBLINKS_FIELD_TARGET_LABEL"
 		>
-			<option value="0">PARENT_WINDOW_WITH_BROWSER_NAVIGATION</option>
-			<option value="1">NEW_WINDOW_WITH_BROWSER_NAVIGATION</option>
-			<option value="2">NEW_WINDOW_WITHOUT_BROWSER_NAVIGATION</option>
+			<option value="0">JBROWSERTARGET_PARENT</option>
+			<option value="1">JBROWSERTARGET_NEW</option>
+			<option value="2">JBROWSERTARGET_POPUP</option>
+			<option value="3">JBROWSERTARGET_MODAL</option>
 		</field>
 
-		<field name="link_icons" type="imagelist"
-			default=""
-			description="COM_WEBLINKS_FIELD_CONFIG_ICON_DESC" 
-			directory="/images"
+		<field name="link_icons" type="media"
+			description="COM_WEBLINKS_FIELD_CONFIG_ICON_DESC"
 			label="COM_WEBLINKS_FIELD_CONFIG_ICON_LABEL"
 		/>
 	</fieldset>

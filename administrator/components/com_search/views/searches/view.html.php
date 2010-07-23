@@ -19,18 +19,20 @@ jimport('joomla.application.component.view');
  */
 class SearchViewSearches extends JView
 {
-	protected $state;
+	protected $enabled;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
+		$this->enabled		= $this->state->params->get('enabled');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -38,30 +40,27 @@ class SearchViewSearches extends JView
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('enabled',		$state->params->get('enabled'));
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$canDo	= SearchHelper::getActions();
 
 		JToolBarHelper::title(JText::_('COM_SEARCH_MANAGER_SEARCHES'), 'search.png');
-		JToolBarHelper::custom('searches.reset', 'refresh.png', 'refresh_f2.png', 'Reset', false);
+		JToolBarHelper::custom('searches.reset', 'refresh.png', 'refresh_f2.png', 'JSEARCH_RESET', false);
 
 		JToolBarHelper::divider();
 		if ($canDo->get('core.admin')) {
 			JToolBarHelper::preferences('com_search');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.stats.searches','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_COMPONENTS_SEARCH');
 	}
 }

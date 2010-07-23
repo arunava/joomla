@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <metadata>
-	<layout title="com_contact_categories_view_default_title">
+	<layout title="COM_CONTACT_CATEGORIES_VIEW_DEFAULT_TITLE">
+		<help
+			key = "JHELP_MENUS_MENU_ITEM_CONTACT_CATEGORIES"
+		/>
 		<message>
 			<![CDATA[COM_CONTACT_CATEGORIES_VIEW_DEFAULT_DESC]]>
 		</message>
@@ -11,9 +14,9 @@
 		<fieldset name="request"
 		>
 			<field name="id" type="category"
-				description="CHOOSE_CATEGORY_DESC"
+				description="JGLOBAL_FIELD_CATEGORIES_CHOOSE_CATEGORY_DESC"
 				extension="com_contact"
-				label="CHOOSE_CATEGORY_LABEL"
+				label="JGLOBAL_FIELD_CATEGORIES_CHOOSE_CATEGORY_LABEL"
 				show_root="true"
 				required="true"
 			/>
@@ -21,15 +24,23 @@
 	</fields>
 <fields name="params">
 <fieldset name="basic">
+			<field name="show_base_description" type="list"
+				label="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_LABEL"
+				description="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
 			<field name="categories_description" type="textarea"
-				description="COM_CONTENT_FIELD_CATEGORIES_DESC_DESC"
-				label="COM_CONTENT_FIELD_CATEGORIES_DESC_LABEL"
+				description="JGLOBAL_FIELD_CATEGORIES_DESC_DESC"
+				label="JGLOBAL_FIELD_CATEGORIES_DESC_LABEL"
 				cols="25"
 				rows="5"
 			/>
 			<field name="maxLevel" type="list"
-				description="COM_CONTENT_FIELD_MAXLEVEL_DESC"
-				label="COM_CONTENT_FIELD_MAXLEVEL_LABEL"
+				description="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_DESC"
+				label="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_LABEL"
 			>
 				<option value="-1">JALL</option>
 				<option value="0">JNONE</option>
@@ -40,17 +51,17 @@
 				<option value="5">J5</option>
 			</field>
 
-			<field name="show_empty_categories" type="radio"
-				label="Show empty Categories"
-				description="Show/Hide empty(no items) categories"
+			<field name="show_empty_categories" type="list"
+				label="JGLOBAL_SHOW_EMPTY_CATEGORIES_LABEL"
+				description="JGLOBAL_SHOW_EMPTY_CATEGORIES_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
 			<field name="show_description" type="list"
-				description="JGLOBAL_Show_Category_Description_Desc"
-				label="JGLOBAL_Show_Category_Description_Label"
+				description="JGLOBAL_SHOW_CATEGORY_DESCRIPTION_DESC"
+				label="JGLOBAL_SHOW_CATEGORY_DESCRIPTION_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -58,16 +69,16 @@
 			</field>
 
 			<field name="show_description_image" type="list"
-				description="JGLOBAL_Show_Category_Image_Desc"
-				label="JGLOBAL_Show_Category_Image_Label"
+				description="JGLOBAL_SHOW_CATEGORY_IMAGE_DESC"
+				label="JGLOBAL_SHOW_CATEGORY_IMAGE_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
-			<field name="show_cat_num_articles" type="radio"
-				label="Num Category Items"
-				description="PARAMCATITEMS"
+			<field name="show_cat_num_articles" type="list"
+				label="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_LABEL"
+				description="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -76,8 +87,8 @@
 </fieldset>
 <fieldset name="advanced">
 			<field name="display_num" type="list"
-				description="JGLOBAL_Number_Items_List_Desc"
-				label="JGLOBAL_Number_Items_List_Label"
+				description="JGLOBAL_NUMBER_ITEMS_LIST_DESC"
+				label="JGLOBAL_NUMBER_ITEMS_LIST_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="5">J5</option>
@@ -92,8 +103,8 @@
 			</field>
 
 			<field name="show_headings" type="list"
-				description="JGLOBAL_Show_Headings_Desc"
-				label="JGLOBAL_Show_Headings_Label"
+				description="JGLOBAL_SHOW_HEADINGS_DESC"
+				label="JGLOBAL_SHOW_HEADINGS_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -101,19 +112,19 @@
 			</field>
 
 			<field name="filter_field" type="list"
-				description="JGLOBAL_Filter_Field_Desc"
-				label="JGLOBAL_Filter_Field_Label"
+				description="JGLOBAL_FILTER_FIELD_DESC"
+				label="JGLOBAL_FILTER_FIELD_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="hide">JHIDE</option>
-				<option value="title">Title</option>
+				<option value="title">JGLOBAL_TITLE</option>
 				<option value="author">JAUTHOR</option>
-				<option value="hits">Hits</option>
+				<option value="hits">JGLOBAL_HITS</option>
 			</field>
 
 			<field name="show_pagination" type="list"
-				description="JGLOBAL_Pagination_Desc"
-				label="JGLOBAL_Pagination_Label"
+				description="JGLOBAL_PAGINATION_DESC"
+				label="JGLOBAL_PAGINATION_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -122,16 +133,25 @@
 			</field>
 
 			<field name="show_noauth" type="list"
-				description="JGLOBAL_Show_Unauth_Links_Desc"
-				label="JGLOBAL_Show_Unauth_Links_Label"
+				description="JGLOBAL_SHOW_UNAUTH_LINKS_DESC"
+				label="JGLOBAL_SHOW_UNAUTH_LINKS_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 </fieldset>
 
-<fieldset name="contact">
+<fieldset name="contact" label="COM_CONTACT_BASIC_OPTIONS_FIELDSET_LABEL">
+			<field name="presentation_style" type="list"
+				description="COM_CONTACT_FIELD_PRESENTATION_DESC"
+				label="COM_CONTACT_FIELD_PRESENTATION_LABEL"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="sliders">COM_CONTACT_FIELD_VALUE_SLIDERS</option>
+				<option value="tabs">COM_CONTACT_FIELD_VALUE_TABS</option>
+				<option value="plain">COM_CONTACT_FIELD_VALUE_PLAIN</option>
+			</field>
 			<field name="show_name" type="list"
 				description="COM_CONTACT_FIELD_PARAMS_NAME_DESC"
 				label="COM_CONTACT_FIELD_PARAMS_NAME_LABEL"
@@ -277,7 +297,7 @@
 				<option value="1">JSHOW</option>
 			</field>
 
-			<field name="show_links" type="list" default="1"
+			<field name="show_links" type="list"
 				description="COM_CONTACT_FIELD_SHOW_LINKS_DESC"
 				label="COM_CONTACT_FIELD_SHOW_LINKS_LABEL"
 			>
@@ -317,7 +337,7 @@
 			/>
 </fieldset>
 		<!-- Form options. -->
-		<fieldset name="Contact_Form"
+		<fieldset name="Contact_Form" label="COM_CONTACT_MAIL_FIELDSET_LABEL"
 		>
 
 			<field name="show_email_form" type="list"
@@ -387,27 +407,9 @@
 		<fieldset name="integration"
 		>
 
-			<field name="article-allow_ratings" type="list"
-				description="JGLOBAL_Allow_Ratings_Desc"
-				label="JGLOBAL_Allow_Ratings_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
-
-			<field name="article-allow_comments" type="list"
-				description="JGLOBAL_Allow_Comments_Desc"
-				label="JGLOBAL_Allow_Comments_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
-
 			<field name="show_feed_link" type="list"
-				description="JGLOBAL_Show_Feed_Link_Desc"
-				label="JGLOBAL_Show_Feed_Link_Label"
+				description="JGLOBAL_SHOW_FEED_LINK_DESC"
+				label="JGLOBAL_SHOW_FEED_LINK_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -415,8 +417,8 @@
 			</field>
 
 			<field name="feed_summary" type="list"
-				description="JGLOBAL_Feed_Summary_Desc"
-				label="JGLOBAL_Feed_Summary_Label"
+				description="JGLOBAL_FEED_SUMMARY_DESC"
+				label="JGLOBAL_FEED_SUMMARY_LABEL"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JGLOBAL_INTRO_TEXT</option>

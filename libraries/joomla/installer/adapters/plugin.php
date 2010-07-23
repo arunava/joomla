@@ -40,7 +40,7 @@ class JInstallerPlugin extends JAdapterInstance
 		if (!$source) {
 			$this->parent->setPath('source', JPATH_PLUGINS . '/'.$this->parent->extension->folder.'/'.$this->parent->extension->element);
 		}
-		$this->manifest = &$this->parent->getManifest();
+		$this->manifest = $this->parent->getManifest();
 		$element = $this->manifest->files;
 		if ($element)
 		{
@@ -60,19 +60,19 @@ class JInstallerPlugin extends JAdapterInstance
 			if ($name)
 			{
 				$extension = "plg_${group}_${name}";
-				$lang =& JFactory::getLanguage();
+				$lang = JFactory::getLanguage();
 				$source = $path ? $path : JPATH_PLUGINS . "/$group/$name";
 				$folder = (string)$element->attributes()->folder;
 				if ($folder && file_exists("$path/$folder"))
 				{
 					$source = "$path/$folder";
 				}
-					$lang->load($extension . '.sys', $source, null, false, false)
+				$lang->load($extension . '.sys', $source, null, false, false)
 				||	$lang->load($extension . '.sys', JPATH_ADMINISTRATOR, null, false, false)
 				||	$lang->load($extension . '.sys', $source, $lang->getDefault(), false, false)
 				||	$lang->load($extension . '.sys', JPATH_ADMINISTRATOR, $lang->getDefault(), false, false);
-			}
-		}
+	}
+}
 	}
 	/**
 	 * Custom install method
@@ -84,7 +84,7 @@ class JInstallerPlugin extends JAdapterInstance
 	public function install()
 	{
 		// Get a database connector object
-		$db = &$this->parent->getDbo();
+		$db = $this->parent->getDbo();
 
 		// Get the extension manifest object
 		$this->manifest = $this->parent->getManifest();
@@ -135,7 +135,7 @@ class JInstallerPlugin extends JAdapterInstance
 		}
 		else
 		{
-			$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('No plugin file specified'));
+			$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_NO_FILE', JText::_('JLIB_INSTALLER_'.$this->route)));
 			return false;
 		}
 
@@ -155,7 +155,7 @@ class JInstallerPlugin extends JAdapterInstance
 		catch(JException $e)
 		{
 			// Install failed, roll back changes
-			$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.$db->stderr(true));
+			$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_ROLLBACK', JText::_('JLIB_INSTALLER_'.$this->route), $db->stderr(true)));
 			return false;
 		}
 		$id = $db->loadResult();
@@ -180,7 +180,7 @@ class JInstallerPlugin extends JAdapterInstance
 			{
 				// overwrite is set
 				// we didn't have overwrite set, find an udpate function or find an update tag so lets call it safe
-				$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('Another extension is already using directory').': "'.$this->parent->getPath('extension_root').'"');
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_DIRECTORY', JText::_('JLIB_INSTALLER_'.$this->route), $this->parent->getPath('extension_root')));
 				return false;
 			}
 		}
@@ -215,8 +215,14 @@ class JInstallerPlugin extends JAdapterInstance
 		// run preflight if possible (since we know we're not an update)
 		ob_start();
 		ob_implicit_flush(false);
-		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'preflight')) {
-			$this->parent->manifestClass->preflight($this->route, $this);
+		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'preflight'))
+		{
+			if($this->parent->manifestClass->preflight($this->route, $this) === false)
+			{
+				// Install failed, rollback changes
+				$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_PLG_INSTALL_CUSTOM_INSTALL_FAILURE'));
+				return false;
+			}
 		}
 		$msg = ob_get_contents(); // create msg object; first use here
 		ob_end_clean();
@@ -233,7 +239,7 @@ class JInstallerPlugin extends JAdapterInstance
 		{
 			if (!$created = JFolder::create($this->parent->getPath('extension_root')))
 			{
-				$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('FAILED_TO_CREATE_DIRECTORY').': "'.$this->parent->getPath('extension_root').'"');
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_CREATE_DIRECTORY', JText::_('JLIB_INSTALLER_'.$this->route), $this->parent->getPath('extension_root')));
 				return false;
 			}
 		}
@@ -270,7 +276,7 @@ class JInstallerPlugin extends JAdapterInstance
 				if (!$this->parent->copyFiles(array ($path)))
 				{
 					// Install failed, rollback changes
-					$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('Could not copy PHP manifest file.'));
+					$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_MANIFEST', JText::_('JLIB_INSTALLER_'.$this->route)));
 					return false;
 				}
 			}
@@ -281,22 +287,22 @@ class JInstallerPlugin extends JAdapterInstance
 		 * Database Processing Section
 		 * ---------------------------------------------------------------------------------------------
 		 */
-
+		$row = JTable::getInstance('extension');
 		// Was there a plugin already installed with the same name?
 		if ($id)
 		{
 			if (!$this->parent->getOverwrite())
 			{
 				// Install failed, roll back changes
-				$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('Plugin').' "'. $this->get('name') .'" '.JText::_('ALREADY_EXISTS'));
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_ALLREADY_EXISTS', JText::_('JLIB_INSTALLER_'.$this->route), $this->get('name')));
 				return false;
 			}
-
+			$row->load($id);
 		}
 		else
 		{
 			// Store in the extensions table (1.6)
-			$row = & JTable::getInstance('extension');
+
 			$row->name = $this->get('name');
 			$row->type = 'plugin';
 			$row->ordering = 0;
@@ -319,7 +325,7 @@ class JInstallerPlugin extends JAdapterInstance
 			if (!$row->store())
 			{
 				// Install failed, roll back changes
-				$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.$db->stderr(true));
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_ROLLBACK', JText::_('JLIB_INSTALLER_'.$this->route), $db->stderr(true)));
 				return false;
 			}
 
@@ -336,19 +342,43 @@ class JInstallerPlugin extends JAdapterInstance
 		 */
 		// try for Joomla 1.5 type queries
 		// second argument is the utf compatible version attribute
-		$utfresult = $this->parent->parseSQLFiles($xml->{strtolower($this->route)}->sql);
-		if ($utfresult === false)
-		{
-			// Install failed, rollback changes
-			$this->parent->abort(JText::_('Module').' '.JText::_($this->route).': '.JText::_('SQLERRORORFILE')." ".$db->stderr(true));
-			return false;
+		if(strtolower($this->route) == 'install') {
+			$utfresult = $this->parent->parseSQLFiles($this->manifest->install->sql);
+			if ($utfresult === false)
+			{
+				// Install failed, rollback changes
+				$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_SQL_ERROR', JText::_('JLIB_INSTALLER_'.$this->route), $db->stderr(true)));
+				return false;
+			}
+
+			// Set the schema version to be the latest update version
+			if($this->manifest->update) {
+				$this->parent->setSchemaVersion($this->manifest->update->schemas, $row->extension_id);
+			}
+		} else if(strtolower($this->route) == 'update') {
+			if($this->manifest->update)
+			{
+				$result = $this->parent->parseSchemaUpdates($this->manifest->update->schemas, $row->extension_id);
+				if ($result === false)
+				{
+					// Install failed, rollback changes
+					$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_UPDATE_SQL_ERROR', $db->stderr(true)));
+					return false;
+				}
+			}
 		}
 
 		// Start Joomla! 1.6
 		ob_start();
 		ob_implicit_flush(false);
-		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,$this->route)) {
-			$this->parent->manifestClass->{$this->route}($this);
+		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,$this->route))
+		{
+			if($this->parent->manifestClass->{$this->route}($this) === false)
+			{
+				// Install failed, rollback changes
+				$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_PLG_INSTALL_CUSTOM_INSTALL_FAILURE'));
+				return false;
+			}
 		}
 		$msg .= ob_get_contents(); // append messages
 		ob_end_clean();
@@ -363,13 +393,14 @@ class JInstallerPlugin extends JAdapterInstance
 		if (!$this->parent->copyManifest(-1))
 		{
 			// Install failed, rollback changes
-			$this->parent->abort(JText::_('Plugin').' '.JText::_($this->route).': '.JText::_('COULD_NOT_COPY_SETUP_FILE'));
+			$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_INSTALL_COPY_SETUP', JText::_('JLIB_INSTALLER_'.$this->route)));
 			return false;
 		}
 		// And now we run the postflight
 		ob_start();
 		ob_implicit_flush(false);
-		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'postflight')) {
+		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'postflight'))
+		{
 			$this->parent->manifestClass->postflight($this->route, $this);
 		}
 		$msg .= ob_get_contents(); // append messages
@@ -412,14 +443,14 @@ class JInstallerPlugin extends JAdapterInstance
 		// Initialise variables.
 		$row	= null;
 		$retval = true;
-		$db		= &$this->parent->getDbo();
+		$db		= $this->parent->getDbo();
 
 		// First order of business will be to load the module object table from the database.
 		// This should give us the necessary information to proceed.
-		$row = & JTable::getInstance('extension');
+		$row = JTable::getInstance('extension');
 		if (!$row->load((int) $id))
 		{
-			JError::raiseWarning(100, JText::_('ERRORUNKOWNEXTENSION'));
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_ERRORUNKOWNEXTENSION'));
 			return false;
 		}
 
@@ -427,14 +458,14 @@ class JInstallerPlugin extends JAdapterInstance
 		// Because that is not a good idea...
 		if ($row->protected)
 		{
-			JError::raiseWarning(100, JText::_('Plugin').' '.JText::_('Uninstall').': '.JText::sprintf('WARNCOREPLUGIN', $row->name)."<br />".JText::_('WARNCOREPLUGIN2'));
+			JError::raiseWarning(100, JText::sprintf('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_WARNCOREPLUGIN', $row->name));
 			return false;
 		}
 
 		// Get the plugin folder so we can properly build the plugin path
 		if (trim($row->folder) == '')
 		{
-			JError::raiseWarning(100, JText::_('Plugin').' '.JText::_('Uninstall').': '.JText::_('Folder field empty, cannot remove files'));
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_FOLDER_FIELD_EMPTY'));
 			return false;
 		}
 
@@ -450,12 +481,12 @@ class JInstallerPlugin extends JAdapterInstance
 
 		// Because plugins don't have their own folders we cannot use the standard method of finding an installation manifest
 		// Since 1.6 they do, however until we move to 1.7 and remove 1.6 legacy we still need to use this method
-		// when we get there it'll be something like "$manifest = &$this->parent->getManifest();"
+		// when we get there it'll be something like "$manifest = $this->parent->getManifest();"
 		$manifestFile = $this->parent->getPath('extension_root').DS.$row->element.'.xml';
 
 		if ( ! file_exists($manifestFile))
 		{
-			JError::raiseWarning(100, 'Plugin Uninstall: Manifest File invalid or not found');
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_INVALID_NOTFOUND_MANIFEST'));
 			return false;
 		}
 
@@ -466,7 +497,7 @@ class JInstallerPlugin extends JAdapterInstance
 		// If we cannot load the xml file return null
 		if (!$xml)
 		{
-			JError::raiseWarning(100, JText::_('Plugin').' '.JText::_('Uninstall').': '.JText::_('Could not load manifest file'));
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_LOAD_MANIFEST'));
 			return false;
 		}
 
@@ -477,7 +508,7 @@ class JInstallerPlugin extends JAdapterInstance
 		 */
 		if ($xml->getName() != 'install' && $xml->getName() != 'extension')
 		{
-			JError::raiseWarning(100, JText::_('Plugin').' '.JText::_('Uninstall').': '.JText::_('Invalid manifest file'));
+			JError::raiseWarning(100, JText::_('JLIB_INSTALLER_ERROR_PLG_UNINSTALL_INVALID_MANIFEST'));
 			return false;
 		}
 
@@ -514,8 +545,14 @@ class JInstallerPlugin extends JAdapterInstance
 		// run preflight if possible (since we know we're not an update)
 		ob_start();
 		ob_implicit_flush(false);
-		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'preflight')) {
-			$this->parent->manifestClass->preflight($this->route, $this);
+		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'preflight'))
+		{
+			if($this->parent->manifestClass->preflight($this->route, $this) === false)
+			{
+				// Install failed, rollback changes
+				$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_PLG_INSTALL_CUSTOM_INSTALL_FAILURE'));
+				return false;
+			}
 		}
 		$msg = ob_get_contents(); // create msg object; first use here
 		ob_end_clean();
@@ -531,14 +568,15 @@ class JInstallerPlugin extends JAdapterInstance
 		if ($utfresult === false)
 		{
 			// Install failed, rollback changes
-			$this->parent->abort(JText::_('Plugin').' '.JText::_('Uninstall').': '.JText::_('SQLERRORORFILE')." ".$db->stderr(true));
+			$this->parent->abort(JText::sprintf('JLIB_INSTALLER_ABORT_PLG_UNINSTALL_SQL_ERROR', $db->stderr(true)));
 			return false;
 		}
 
 		// Start Joomla! 1.6
 		ob_start();
 		ob_implicit_flush(false);
-		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'uninstall')) {
+		if ($this->parent->manifestClass && method_exists($this->parent->manifestClass,'uninstall'))
+		{
 			$this->parent->manifestClass->uninstall($this);
 		}
 		$msg = ob_get_contents(); // append messages
@@ -552,7 +590,13 @@ class JInstallerPlugin extends JAdapterInstance
 
 		// Remove all media and languages as well
 		$this->parent->removeFiles($xml->media);
-		$this->parent->removeFiles($xml->languages,1);
+		$this->parent->removeFiles($xml->languages, 1);
+
+		// Remove the schema version
+		$query = $db->getQuery(true);
+		$query->delete()->from('#__schemas')->where('extension_id = '. $row->extension_id);
+		$db->setQuery($query);
+		$db->Query();
 
 		// Now we will no longer need the plugin object, so lets delete it
 		$row->delete($row->extension_id);
@@ -560,7 +604,7 @@ class JInstallerPlugin extends JAdapterInstance
 
 		// If the folder is empty, let's delete it
 		$files = JFolder::files($this->parent->getPath('extension_root'));
-		
+
 		JFolder::delete($this->parent->getPath('extension_root'));
 
 		if ($msg) {
@@ -590,7 +634,7 @@ class JInstallerPlugin extends JAdapterInstance
 				$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_SITE.'/plugins/'.$folder.'/'.$file);
 				$file = JFile::stripExt($file);
 				if ($file == 'example') continue; // ignore example plugins
-				$extension = &JTable::getInstance('extension');
+				$extension = JTable::getInstance('extension');
 				$extension->set('type', 'plugin');
 				$extension->set('client_id', 0);
 				$extension->set('element', $file);
@@ -609,7 +653,7 @@ class JInstallerPlugin extends JAdapterInstance
 					$manifest_details = JApplicationHelper::parseXMLInstallFile(JPATH_SITE.'/plugins/'.$folder.'/'.$plugin_folder.'/'.$file);
 					$file = JFile::stripExt($file);
 					if ($file == 'example') continue; // ignore example plugins
-					$extension = &JTable::getInstance('extension');
+					$extension = JTable::getInstance('extension');
 					$extension->set('type', 'plugin');
 					$extension->set('client_id', 0);
 					$extension->set('element', $file);
@@ -664,7 +708,7 @@ class JInstallerPlugin extends JAdapterInstance
 		}
 		else
 		{
-			JError::raiseWarning(101, JText::_('Plugin').' '.JText::_('Discover Install').': '.JText::_('Failed to store extension details'));
+			JError::raiseWarning(101, JText::_('JLIB_INSTALLER_ERROR_PLG_DISCOVER_STORE_DETAILS'));
 			return false;
 		}
 	}
@@ -687,7 +731,7 @@ class JInstallerPlugin extends JAdapterInstance
 		}
 		else
 		{
-			JError::raiseWarning(101, JText::_('Plugin').' '.JText::_('Refresh Manifest Cache').': '.JText::_('Failed to store extension details'));
+			JError::raiseWarning(101, JText::_('JLIB_INSTALLER_ERROR_PLG_REFRESH_MANIFEST_CACHE'));
 			return false;
 		}
 	}

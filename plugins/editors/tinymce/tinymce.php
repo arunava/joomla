@@ -7,7 +7,7 @@
  */
 
 // Do not allow direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
 
@@ -455,7 +455,7 @@ class plgEditorTinymce extends JPlugin
 					remove_script_host : false,
 					// Layout
 					$content_css
-					document_base_url : \"". JURI::root() ."\",
+					document_base_url : \"". JURI::root() ."\"
 				});
 				</script>";
 				break;
@@ -612,7 +612,7 @@ class plgEditorTinymce extends JPlugin
 
 	function onGetInsertMethod($name)
 	{
-		$doc =& JFactory::getDocument();
+		$doc = JFactory::getDocument();
 
 		$js= "
 			function isBrowserIE() {
@@ -692,7 +692,7 @@ class plgEditorTinymce extends JPlugin
 			}
 		}
 
-		if(!empty($buttons))
+		if(is_array($buttons) || (is_bool($buttons) && $buttons))
 		{
 			$results = $this->_subject->getButtons($name, $buttons);
 

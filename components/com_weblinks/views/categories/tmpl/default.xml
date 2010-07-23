@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <metadata>
 	<layout title="com_weblinks_categories_view_default_title">
+		<help
+			key="JHELP_MENUS_MENU_ITEM_WEBLINK_CATEGORIES"
+		/>
 		<message>
 			<![CDATA[com_weblinks_categories_view_default_desc]]>
 		</message>
@@ -8,12 +11,12 @@
 
 	<!-- Add fields to the request variables for the layout. -->
 	<fields name="request">
-		<fieldset name="request" label="COM_MENUS_BASIC_FIELDSET_LABEL" description="">
-
+		<fieldset name="request"
+		>
 			<field name="id" type="category"
-				description="CHOOSE_CATEGORY_DESC"
+				description="JGLOBAL_CHOOSE_CATEGORY_DESC"
 				extension="com_weblinks"
-				label="CHOOSE_CATEGORY_LABEL"
+				label="JGLOBAL_CHOOSE_CATEGORY_LABEL"
 				show_root="true"
 				required="true"
 			/>
@@ -23,15 +26,23 @@
 	<!-- Add fields to the parameters object for the layout. -->
 <fields name="params">
 <fieldset name="basic">
+			<field name="show_base_description" type="radio"
+				label="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_LABEL"
+				description="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
 			<field name="categories_description" type="textarea"
-				description="COM_CONTENT_FIELD_CATEGORIES_DESC_DESC"
-				label="COM_CONTENT_FIELD_CATEGORIES_DESC_LABEL"
+				description="JGLOBAL_FIELD_CATEGORIES_DESC_DESC"
+				label="JGLOBAL_FIELD_CATEGORIES_DESC_LABEL"
 				cols="25"
 				rows="5"
 			/>
 			<field name="maxLevel" type="list"
-				description="COM_CONTENT_FIELD_MAXLEVEL_DESC"
-				label="COM_CONTENT_FIELD_MAXLEVEL_LABEL"
+				description="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_DESC"
+				label="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_LABEL"
 			>
 				<option value="-1">JALL</option>
 				<option value="0">JNONE</option>
@@ -43,13 +54,22 @@
 			</field>
 
 			<field name="show_empty_categories" type="radio"
-				label="Show empty Categories"
-				description="Show/Hide empty(no items) categories"
+				label="JGLOBAL_SHOW_EMPTY_CATEGORIES_LABEL"
+				description="JGLOBAL_SHOW_EMPTY_CATEGORIES_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
+		<field name="show_numbers" type="radio"
+			default="1"
+			description="COM_WEBLINKS_FIELD_CONFIG_SHOWNUMBERS_DESC"
+			label="COM_WEBLINKS_FIELD_CONFIG_SHOWNUMBERS_LABEL"
+		>
+			<option value="">JGLOBAL_USE_GLOBAL</option>
+			<option value="0">JHIDE</option>
+			<option value="1">JSHOW</option>
+		</field>
 			<field name="show_description" type="list"
 				description="JGLOBAL_Show_Category_Description_Desc"
 				label="JGLOBAL_Show_Category_Description_Label"
@@ -68,8 +88,8 @@
 				<option value="1">JSHOW</option>
 			</field>
 			<field name="show_cat_num_articles" type="radio"
-				label="Num Category Items"
-				description="PARAMCATITEMS"
+				label="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_LABEL"
+				description="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -134,24 +154,6 @@
 
 		<fieldset name="integration"
 		>
-
-			<field name="article-allow_ratings" type="list"
-				description="JGLOBAL_Allow_Ratings_Desc"
-				label="JGLOBAL_Allow_Ratings_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
-
-			<field name="article-allow_comments" type="list"
-				description="JGLOBAL_Allow_Comments_Desc"
-				label="JGLOBAL_Allow_Comments_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
 
 			<field name="show_feed_link" type="list"
 				description="JGLOBAL_Show_Feed_Link_Desc"

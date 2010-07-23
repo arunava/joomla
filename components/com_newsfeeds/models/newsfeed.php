@@ -38,7 +38,7 @@ class NewsfeedsModelNewsfeed extends JModel
 	 *
 	 * @since 1.5
 	 */
-	function __construct()
+	public function __construct()
 	{
 		parent::__construct();
 
@@ -52,7 +52,7 @@ class NewsfeedsModelNewsfeed extends JModel
 	 * @access	public
 	 * @param	int Newsfeed identifier
 	 */
-	function setId($id)
+	public function setId($id)
 	{
 		// Set newsfeed id and wipe data
 		$this->_id		= $id;
@@ -64,13 +64,13 @@ class NewsfeedsModelNewsfeed extends JModel
 	 *
 	 * @since 1.5
 	 */
-	function &getData()
+	public function &getData()
 	{
 		// Load the newsfeed data
-		if ($this->_loadData())
-		{
+		if ($this->_loadData()) {
+
 			// Initialise some variables
-			$user = &JFactory::getUser();
+			$user = JFactory::getUser();
 
 			// Make sure the category is published
 			if (!$this->_data->published) {
@@ -98,27 +98,41 @@ class NewsfeedsModelNewsfeed extends JModel
 	/**
 	 * Method to load newsfeed data
 	 *
-	 * @access	private
 	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	function _loadData()
+	protected function _loadData()
 	{
 		// Lets load the content if it doesn't already exist
-		if (empty($this->_data))
-		{
-			$query = 'SELECT f.*, cc.title AS category,'.
-					' cc.published AS cat_pub, cc.access AS cat_access,'.
-					' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(\':\', cc.id, cc.alias) ELSE cc.id END as catslug'.
-					' FROM #__newsfeeds AS f' .
-					' LEFT JOIN #__categories AS cc ON cc.id = f.catid' .
-					' WHERE f.id = '.$this->_id;
-			$this->_db->setQuery($query);
-			$this->_data = $this->_db->loadObject();
+		if (empty($this->_data)) {
+
+			$db = $this->getDbo();
+			$query = $db->getQuery(true);
+			$query->select('f.*');
+			$query->select('cc.title AS category, cc.published AS cat_pub, cc.access AS cat_access');
+			$query->select('CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(\':\', cc.id, cc.alias) ELSE cc.id END as catslug');
+			$query->from('#__newsfeeds AS f');
+			$query->leftJoin('#__categories AS cc ON cc.id = f.catid');
+			$query->where('f.id = '.(int) $this->_id);
+
+			// Filter by start and end dates.
+			$nullDate = $db->quote($db->getNullDate());
+			$nowDate = $db->quote(JFactory::getDate()->toMySQL());
+
+			$query->where('(f.publish_up = '.$nullDate . ' OR f.publish_up <= '.$nowDate.')');
+			$query->where('(f.publish_down = '.$nullDate . ' OR f.publish_down >= '.$nowDate.')');
+
+			$db->setQuery($query);
+			$this->_data = $db->loadObject();
+
+			// Convert metadata fields to objects.
+			$registry = new JRegistry;
+			$registry->loadJSON($this->_data->metadata);
+			$this->_data->metadata = $registry;
+
 			return (boolean) $this->_data;
 		}
+
 		return true;
 	}
-
 }
-?>

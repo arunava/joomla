@@ -18,14 +18,6 @@ jimport('joomla.application.component.view');
 class AdminViewHelp extends JView
 {
 	/**
-	 * @var string the help url
-	 */
-	protected $help_url=null;
-	/**
-	 * @var string the full help url
-	 */
-	protected $full_help_url=null;
-	/**
 	 * @var string the search string
 	 */
 	protected $help_search=null;
@@ -45,34 +37,24 @@ class AdminViewHelp extends JView
 	 * @var string url for the latest version check
 	 */
 	protected $latest_version_check= 'http://www.joomla.org/download.html';
+	/**
+	 * @var string url for the start here link.
+	 */
+	protected $start_here = null;
 
 	/**
 	 * Display the view
 	 */
 	function display($tpl = null)
 	{
-		// Get the values
-		$help_url = & $this->get('HelpURL');
-		$full_help_url = & $this->get('FullHelpURL');
-		$help_search = & $this->get('HelpSearch');
-		$page = & $this->get('Page');
-		$toc = & $this->get('Toc');
-		$lang_tag = & $this->get('LangTag');
-		$latest_version_check = & $this->get('LatestVersionCheck');
+		// Initialise variables.
+		$this->help_search			= $this->get('HelpSearch');
+		$this->page					= $this->get('Page');
+		$this->toc					= $this->get('Toc');
+		$this->lang_tag				= $this->get('LangTag');
+		$this->latest_version_check	= $this->get('LatestVersionCheck');
 
-		// Assign values to the view
-		$this->assignRef('help_url', $help_url);
-		$this->assignRef('full_help_url', $full_help_url);
-		$this->assignRef('help_search', $help_search);
-		$this->assignRef('page', $page);
-		$this->assignRef('toc', $toc);
-		$this->assignRef('lang_tag', $lang_tag);
-		$this->assignRef('latest_version_check', $latest_version_check);
-
-		// Setup the toolbar
-		$this->_setToolBar();
-
-		// Display the view
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 	/**
@@ -80,7 +62,7 @@ class AdminViewHelp extends JView
 	 *
 	 * @since	1.6
 	 */
-	protected function _setToolBar()
+	protected function addToolbar()
 	{
 		JToolBarHelper::title(JText::_('COM_ADMIN_HELP'), 'help_header.png');
 	}

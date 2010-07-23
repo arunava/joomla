@@ -37,7 +37,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* Test normal parameters
 			*/
-			array(
+			'normal' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -68,7 +68,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* Non integer size
 			*/
-			array(
+			'nonintsize' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -99,7 +99,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* No format provided
 			*/
-			array(
+			'noformat' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -130,7 +130,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* With an onchange value
 			*/
-			array(
+			'onchange' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -162,7 +162,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* With bad readonly value
 			*/
-			array(
+			'bad_readonly' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -193,7 +193,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* disabled is true, no class
 			*/
-			array(
+			'disabled_no_class' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'myValue',
@@ -224,7 +224,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 			/*
 			* value = 'NOW'
 			*/
-			array(
+			'value_is_now' => array(
 				'myCalendarElement',
 				'myCalendarId',
 				'NOW',
@@ -239,7 +239,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 					'filter' => ''
 				),
 				array(
-					strftime('%Y-%m-%d'),
+					'strftime(\'%Y-%m-%d\')',
 					'myCalendarElement',
 					'myCalendarId',
 					'%Y-%m-%d',
@@ -251,10 +251,6 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 					)
 				)
 			)
-
-
-
-
 		);
 	}
 
@@ -264,13 +260,12 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 	 */
 	public function testGetInputAttributes($name, $id, $value, $element, $expectedParameters)
 	{
-
 		// we create stubs for config and session/user objects
 		$config = new stdClass;
 		JFactory::$config = $config;		// put the stub in place
 		$sessionMock = $this->getMock('sessionMock', array('get'));
 
-		require_once(JPATH_BASE.'/libraries/joomla/user/user.php');
+		require_once JPATH_BASE.'/libraries/joomla/user/user.php';
 		$userObject = new JUser;
 
 		$sessionMock->expects($this->any())
@@ -283,6 +278,10 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		// include our inspector which will allow us to manipulate and call protected methods and attributes
 		require_once dirname(__FILE__).'/inspectors/JFormFieldCalendar.php';
 		$calendar = new JFormFieldCalendarInspector;
+
+		if ($expectedParameters[0] == 'strftime(\'%Y-%m-%d\')') {
+			$expectedParameters[0] = strftime('%Y-%m-%d');
+		}
 
 		// setup our values from our data set
 		$calendar->setProtectedProperty('element', $element);
@@ -311,9 +310,8 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		JFactory::$config = $config;		// put the stub in place
 		$sessionMock = $this->getMock('sessionMock', array('get'));
 
-		require_once(JPATH_BASE.'/libraries/joomla/user/user.php');
+		require_once JPATH_BASE.'/libraries/joomla/user/user.php';
 		$userObject = new JUser;
-		
 
 		$sessionMock->expects($this->any())
 					->method('get')
@@ -334,7 +332,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		$calendar = new JFormFieldCalendarInspector;
 
 		// setup our values from our data set
-		$calendar->setProtectedProperty('element', 
+		$calendar->setProtectedProperty('element',
 				array(
 					'format' => '%m-%Y-%d',
 					'size' => '25',
@@ -350,8 +348,8 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		$calendar->setProtectedProperty('id', 'myElementId');
 		$calendar->setProtectedProperty('value', 1269442718);   // 1269442718
 
-		$config->set('offset', -5);
-		$userObject->setParam('timezone', -3);
+		$config->set('offset', 'US/Eastern'); // -5
+		$userObject->setParam('timezone', 'America/Buenos_Aires'); // -3
 
 		// create the mock to implant into JHtml so that we can check our values
 		$mock = $this->getMock('calendarHandler', array('calendar'));
@@ -371,9 +369,8 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		JHtml::register('calendar', array($mock, 'calendar'));		// register our mock with JHtml
 
 		$calendar->getInput();			// invoke our method
-		JHtml::unregister('calendar');	// unregister the mock	
+		JHtml::unregister('calendar');	// unregister the mock
 	}
-
 
 	public function testGetInputUser_UTC()
 	{
@@ -382,9 +379,9 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		JFactory::$config = $config;		// put the stub in place
 		$sessionMock = $this->getMock('sessionMock', array('get'));
 
-		require_once(JPATH_BASE.'/libraries/joomla/user/user.php');
+		require_once JPATH_BASE.'/libraries/joomla/user/user.php';
 		$userObject = new JUser;
-		
+
 
 		$sessionMock->expects($this->any())
 					->method('get')
@@ -405,7 +402,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		$calendar = new JFormFieldCalendarInspector;
 
 		// setup our values from our data set
-		$calendar->setProtectedProperty('element', 
+		$calendar->setProtectedProperty('element',
 				array(
 					'format' => '%m-%Y-%d',
 					'size' => '25',
@@ -421,7 +418,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		$calendar->setProtectedProperty('id', 'myElementId');
 		$calendar->setProtectedProperty('value', 1269442718);   // 1269442718
 
-		$config->set('offset', 4);
+		$config->set('offset', 'Asia/Muscat'); // +4
 
 		// we don't set the user param to see if it properly falls back to the server time (as it should)
 
@@ -443,7 +440,7 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 		JHtml::register('calendar', array($mock, 'calendar'));		// register our mock with JHtml
 
 		$calendar->getInput();			// invoke our method
-		JHtml::unregister('calendar');	// unregister the mock	
+		JHtml::unregister('calendar');	// unregister the mock
 
 		// create the mock to implant into JHtml so that we can check our values
 		$mock2 = $this->getMock('calendarHandler', array('calendar'));
@@ -460,16 +457,14 @@ class JFormFieldCalendarTest extends JoomlaTestCase
 				)
 			);
 
-		$config->set('offset', -5);
-		$userObject->setParam('timezone', 4);		// now we set the user param to test it out.
+		$config->set('offset', 'US/Eastern'); // -5
+		$userObject->setParam('timezone', 'Asia/Muscat'); // +4		// now we set the user param to test it out.
 
 		JHtml::register('calendar', array($mock2, 'calendar'));		// register our mock with JHtml
 
 		$calendar->getInput();			// invoke our method
-		JHtml::unregister('calendar');	// unregister the mock	
-
+		JHtml::unregister('calendar');	// unregister the mock
 	}
-
 
 	/**
 	 * Test the getInput method.

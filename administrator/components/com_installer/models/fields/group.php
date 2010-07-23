@@ -1,10 +1,15 @@
-<?php defined('_JEXEC') or die('Restricted access');
-
+<?php
 /**
- * @version		$Id: manage.php 14276 2010-01-18 14:20:28Z louis $
+ * @version		$Id$
+ * @package		Joomla.Administrator
+ * @subpackage	com_installer
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License, see LICENSE.php
  */
+
+// No direct access.
+defined('_JEXEC') or die;
+
 jimport('joomla.form.formfield');
 
 /**
@@ -16,7 +21,6 @@ jimport('joomla.form.formfield');
  */
 class JFormFieldGroup extends JFormField
 {
-
 	/**
 	 * The field type.
 	 *
@@ -28,19 +32,22 @@ class JFormFieldGroup extends JFormField
 	 * Method to get the field input.
 	 *
 	 * @return	string		The field input.
+	 * @since	1.6
 	 */
-	protected function getInput() 
+	protected function getInput()
 	{
 		$onchange	= $this->element['onchange'] ? ' onchange="'.(string) $this->element['onchange'].'"' : '';
 		$options = array();
+
 		foreach ($this->element->children() as $option) {
 			$options[] = JHtml::_('select.option', (string)$option->attributes()->value, JText::_(trim($option->data())));
 		}
+
 		$dbo = JFactory::getDbo();
-		$query = new JDatabaseQuery;
+		$query = $dbo->getQuery(true);
 		$query->select('DISTINCT `folder`');
 		$query->from('#__extensions');
-		$query->where('`folder` != ""');
+		$query->where('`folder` != '.$dbo->quote(''));
 		$query->order('`folder`');
 		$dbo->setQuery((string)$query);
 		$folders = $dbo->loadResultArray();
@@ -48,7 +55,9 @@ class JFormFieldGroup extends JFormField
 		foreach($folders as $folder) {
 			$options[] = JHtml::_('select.option', $folder, $folder);
 		}
+
 		$return = JHtml::_('select.genericlist', $options, $this->name, $onchange, 'value', 'text', $this->value, $this->id);
+
 		return $return;
 	}
 }

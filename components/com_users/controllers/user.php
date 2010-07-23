@@ -9,32 +9,36 @@
 
 defined('_JEXEC') or die;
 
-require_once(JPATH_COMPONENT.'/controller.php');
+require_once JPATH_COMPONENT.'/controller.php';
 
 /**
  * Registration controller class for Users.
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.6
  */
 class UsersControllerUser extends UsersController
 {
 	/**
 	 * Method to log in a user.
 	 *
-	 * @access	public
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function login()
+	public function login()
 	{
 		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
 
-		$app = &JFactory::getApplication();
-		$data = $app->getUserState('users.login.form.data', array());
+		$app = JFactory::getApplication();
+
+		// Populate the data array:
+		$data = array();
+		$data['return'] = base64_decode(JRequest::getVar('return', '', 'POST', 'BASE64'));
+		$data['username'] = JRequest::getVar('username', '', 'method', 'username');
+		$data['password'] = JRequest::getString('password', '', 'post', JREQUEST_ALLOWRAW);
 
 		// Set the return URL if empty.
-		if (!isset($data['return']) || empty($data['return'])) {
+		if (empty($data['return'])) {
 			$data['return'] = 'index.php?option=com_users&view=profile';
 		}
 
@@ -45,8 +49,8 @@ class UsersControllerUser extends UsersController
 
 		// Get the log in credentials.
 		$credentials = array();
-		$credentials['username'] = JRequest::getVar('username', '', 'method', 'username');
-		$credentials['password'] = JRequest::getString('password', '', 'post', JREQUEST_ALLOWRAW);
+		$credentials['username'] = $data['username'];
+		$credentials['password'] = $data['password'];
 
 		// Perform the log in.
 		$error = $app->login($credentials, $options);
@@ -65,19 +69,17 @@ class UsersControllerUser extends UsersController
 	/**
 	 * Method to log out a user.
 	 *
-	 * @access	public
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function logout()
+	public function logout()
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Perform the log in.
 		$error = $app->logout();
 
 		// Check if the log out succeeded.
-		if (!JError::isError($error))
-		{
+		if (!JError::isError($error)) {
 			// Get the return url from the request and validate that it is internal.
 			$return = JRequest::getVar('return', '', 'method', 'base64');
 			$return = base64_decode($return);
@@ -95,23 +97,21 @@ class UsersControllerUser extends UsersController
 	/**
 	 * Method to register a user.
 	 *
-	 * @access	public
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function register()
+	public function register()
 	{
-		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Get the form data.
 		$data	= JRequest::getVar('user', array(), 'post', 'array');
 
 		// Get the model and validate the data.
-		$model	= &$this->getModel('Registration', 'UsersModel');
+		$model	= $this->getModel('Registration', 'UsersModel');
 		$return	= $model->validate($data);
 
 		// Check for errors.
-		if ($return === false)
-		{
+		if ($return === false) {
 			// Get the validation messages.
 			$app	= &JFactory::getApplication();
 			$errors	= $model->getErrors();
@@ -137,13 +137,12 @@ class UsersControllerUser extends UsersController
 		$return	= $model->register($data);
 
 		// Check for errors.
-		if ($return === false)
-		{
+		if ($return === false) {
 			// Save the data in the session.
 			$app->setUserState('users.registration.form.data', $data);
 
 			// Redirect back to the registration form.
-			$message = JText::sprintf('USERS REGISTRATION FAILED', $model->getError());
+			$message = JText::sprintf('COM_USERS_REGISTRATION_SAVE_FAILED', $model->getError());
 			$this->setRedirect('index.php?option=com_users&view=registration', $message, 'error');
 			return false;
 		}
@@ -157,29 +156,27 @@ class UsersControllerUser extends UsersController
 	/**
 	 * Method to login a user.
 	 *
-	 * @access	public
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function remind()
+	public function remind()
 	{
 		// Check the request token.
-		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
 
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('User', 'UsersModel');
+		$app	= JFactory::getApplication();
+		$model	= $this->getModel('User', 'UsersModel');
 		$data	= JRequest::getVar('jform', array(), 'post', 'array');
 
 		// Submit the username remind request.
 		$return	= $model->processRemindRequest($data);
 
 		// Check for a hard error.
-		if (JError::isError($return))
-		{
+		if (JError::isError($return)) {
 			// Get the error message to display.
 			if ($app->getCfg('error_reporting')) {
 				$message = $return->getMessage();
 			} else {
-				$message = JText::_('USERS_REMIND_REQUEST_ERROR');
+				$message = JText::_('COM_USERS_REMIND_REQUEST_ERROR');
 			}
 
 			// Get the route to the next page.
@@ -190,30 +187,26 @@ class UsersControllerUser extends UsersController
 			// Go back to the complete form.
 			$this->setRedirect(JRoute::_($route, false), $message, 'error');
 			return false;
-		}
-		// Complete failed.
-		elseif ($return === false)
-		{
+		} elseif ($return === false) {
+			// Complete failed.
 			// Get the route to the next page.
 			$itemid = UsersHelperRoute::getRemindRoute();
 			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
 			$route	= 'index.php?option=com_users&view=remind'.$itemid;
 
 			// Go back to the complete form.
-			$message = JText::sprintf('USERS_REMIND_REQUEST_FAILED', $model->getError());
+			$message = JText::sprintf('COM_USERS_REMIND_REQUEST_FAILED', $model->getError());
 			$this->setRedirect(JRoute::_($route, false), $message, 'notice');
 			return false;
-		}
-		// Complete succeeded.
-		else
-		{
+		} else {
+			// Complete succeeded.
 			// Get the route to the next page.
 			$itemid = UsersHelperRoute::getLoginRoute();
 			$itemid = $itemid !== null ? '&Itemid='.$itemid : '';
 			$route	= 'index.php?option=com_users&view=login'.$itemid;
 
 			// Proceed to the login form.
-			$message = JText::_('USERS_REMIND_REQUEST_SUCCESS');
+			$message = JText::_('COM_USERS_REMIND_REQUEST_SUCCESS');
 			$this->setRedirect(JRoute::_($route, false), $message);
 			return true;
 		}
@@ -222,12 +215,11 @@ class UsersControllerUser extends UsersController
 	/**
 	 * Method to login a user.
 	 *
-	 * @access	public
-	 * @since	1.0
+	 * @since	1.6
 	 */
-	function resend()
+	public function resend()
 	{
 		// Check for request forgeries
-		JRequest::checkToken('post') or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
 	}
 }

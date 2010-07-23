@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: edit.php 15576 2010-03-25 12:43:26Z louis $
+ * @version		$Id$
  * @package		Joomla.Administrator
  * @subpackage	com_content
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -39,7 +39,7 @@ defined('_JEXEC') or die;
 			<tr width="40%">
 				<td class="key" align="right">
 					<label for="title">
-						<?php echo JText::_( 'PGB PAGE TITLE' ); ?>
+						<?php echo JText::_( 'COM_CONTENT_PAGEBREAK_TITLE' ); ?>
 					</label>
 				</td>
 				<td>
@@ -49,7 +49,7 @@ defined('_JEXEC') or die;
 			<tr width="60%">
 				<td class="key" align="right">
 					<label for="alias">
-						<?php echo JText::_( 'PGB TOC ALIAS PROMPT' ); ?>
+						<?php echo JText::_( 'COM_CONTENT_PAGEBREAK_TOC' ); ?>
 					</label>
 				</td>
 				<td>
@@ -58,4 +58,4 @@ defined('_JEXEC') or die;
 			</tr>
 		</table>
 		</form>
-		<button onclick="insertPagebreak();"><?php echo JText::_( 'PGB INS PAGEBRK' ); ?></button>
+		<button onclick="insertPagebreak();"><?php echo JText::_( 'COM_CONTENT_PAGEBREAK_INSERT_BUTTON' ); ?></button>

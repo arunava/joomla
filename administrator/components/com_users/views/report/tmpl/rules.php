@@ -23,7 +23,7 @@ $extensions	= $this->data['extensions'];
 		<thead>
 			<tr>
 				<th>
-					<?php echo JText::_('Users_Report_Extension'); ?>
+					<?php echo JText::_('COM_USERS_REPORT_EXTENSION'); ?>
 				</th>
 				<?php foreach ($actions as $name) : ?>
 				<th>
@@ -35,7 +35,7 @@ $extensions	= $this->data['extensions'];
 		<tfoot>
 			<tr>
 				<td colspan="15">
-					&nbsp;
+					&#160;
 				</td>
 			</tr>
 		</tfoot>
@@ -51,11 +51,11 @@ $extensions	= $this->data['extensions'];
 				<td class="center">
 					<?php
 					if ($allowed === null) :
-						echo '<span class="disable">Deny</span>';
+						echo '<span class="disable">'.JText::_('JDENY').'</span>';
 					elseif ($allowed) :
-						echo '<span class="allow">'.JText::_('JAllow').'</span>';
+						echo '<span class="allow">'.JText::_('JALLOW').'</span>';
 					else :
-						echo '<span class="deny">'.JText::_('JDeny').'</span>';
+						echo '<span class="deny">'.JText::_('JDENY').'</span>';
 					endif;
 					?>
 				</td>

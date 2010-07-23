@@ -14,22 +14,30 @@ JHtml::addIncludePath(JPATH_COMPONENT.'/helpers');
 
 $pageClass = $this->params->get('pageclass_sfx');
 ?>
-<div class="article-category-blog<?php echo $pageClass;?>">
-<?php if ($this->params->def('show_page_heading', 1)) : ?>
+
+<div class="blog<?php echo $pageClass;?>">
+<?php if ($this->params->get('show_page_heading')!=0 or $this->params->get('show_category_title')): ?>
 <h1>
+
+<?php if ( $this->params->get('show_page_heading')!=0) : ?>
 	<?php echo $this->escape($this->params->get('page_heading')); ?>
+<?php endif; ?>
+	<?php if ($this->params->get('show_category_title')) :?>
+
+
+	<?php	echo '<span class="subheading-category">'.$this->category->title.'</span>'; ?>
+	<?php endif; ?>
+
 </h1>
 <?php endif; ?>
 
-<?php if($this->params->get('show_category_title', 1) && $this->params->get('page_subheading')) : ?>
-<h2>
-	<?php echo $this->escape($this->params->get('page_subheading')); ?>
-</h2>
-<?php endif; ?>
+
+
+
 <?php if ($this->params->get('show_description', 1) || $this->params->def('show_description_image', 1)) : ?>
 	<div class="category-desc">
 	<?php if ($this->params->get('show_description_image') && $this->category->getParams()->get('image')) : ?>
-		<img src="images/<?php echo $this->category->getParams()->get('image'); ?>"/>
+		<img src="<?php echo $this->category->getParams()->get('image'); ?>"/>
 	<?php endif; ?>
 	<?php if ($this->params->get('show_description') && $this->category->description) : ?>
 		<?php echo JHtml::_('content.prepare', $this->category->description); ?>
@@ -38,11 +46,7 @@ $pageClass = $this->params->get('pageclass_sfx');
 	</div>
 <?php endif; ?>
 
-	<?php if (is_array($this->children[$this->category->id]) && count($this->children[$this->category->id]) > 0) : ?>
-		<div class="cat-children">
-			<?php echo $this->loadTemplate('children'); ?>
-		</div>
-	<?php endif; ?>
+
 
 <?php $leadingcount=0 ; ?>
 <?php if (!empty($this->lead_items)) : ?>
@@ -72,8 +76,8 @@ $pageClass = $this->params->get('pageclass_sfx');
 		$rowcount=( ((int)$key-1) %	(int) $this->columns) +1;
 		$row = $counter / $this->columns ;
 
-		if($rowcount==1) : ?>
-	<div class="items-row cols-<?php echo (int) $this->columns;?> <? echo 'row-'.$row ; ?>">
+		if ($rowcount==1) : ?>
+	<div class="items-row cols-<?php echo (int) $this->columns;?> <?php echo 'row-'.$row ; ?>">
 	<?php endif; ?>
 	<div class="item column-<?php echo $rowcount;?><?php echo $item->state == 0 ? ' system-unpublished' : null; ?>">
 		<?php
@@ -98,6 +102,15 @@ $pageClass = $this->params->get('pageclass_sfx');
 
 <?php endif; ?>
 
+
+	<?php if (is_array($this->children[$this->category->id]) && count($this->children[$this->category->id]) > 0 && $this->params->get('maxLevel') !=0) : ?>
+		<div class="cat-children">
+		<h3>
+<?php echo JTEXT::_('JGLOBAL_SUBCATEGORIES'); ?>
+</h3>
+			<?php echo $this->loadTemplate('children'); ?>
+		</div>
+	<?php endif; ?>
 
 <?php if (($this->params->def('show_pagination', 1) == 1  || ($this->params->get('show_pagination') == 2)) && ($this->pagination->get('pages.total') > 1)) : ?>
 		<div class="pagination">

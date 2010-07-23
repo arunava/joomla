@@ -22,15 +22,19 @@ jimport('joomla.application.component.controller');
 class SearchController extends JController
 {
 	/**
-	 * Method to show the search view
+	 * Method to display a view.
 	 *
-	 * @access	public
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	JController		This object to support chaining.
 	 * @since	1.5
 	 */
-	function display()
+	public function display($cachable = false, $urlparams = false)
 	{
 		JRequest::setVar('view','search'); // force it to be the polls view
-		parent::display();
+
+		return parent::display($cachable, $urlparams);
 	}
 
 	function search()
@@ -60,14 +64,15 @@ class SearchController extends JController
 		}
 
 				// set Itemid id for links from menu
-		$menu = &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu();
 		$items	= $menu->getItems('link', 'index.php?option=com_search&view=search');
 
 		if(isset($items[0])) {
 			$post['Itemid'] = $items[0]->id;
 		} else if (JRequest::getInt('Itemid') > 0) { //use Itemid from requesting page only if there is no existing menu
 			$post['Itemid'] = JRequest::getInt('Itemid');
-		} 
+		}
 
 		unset($post['task']);
 		unset($post['submit']);

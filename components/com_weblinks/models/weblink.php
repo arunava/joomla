@@ -30,14 +30,11 @@ class WeblinksModelWeblink extends JModelItem
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
+	 * Note. Calling getState in this method will result in recursion.
 	 *
-	 * @return	void
 	 * @since	1.6
 	 */
-	public function _populateState()
+	public function populateState()
 	{
 		$app = JFactory::getApplication();
 		$params	= $app->getParams();
@@ -68,7 +65,7 @@ class WeblinksModelWeblink extends JModelItem
 			}
 
 			// Get a level row instance.
-			$table = &JTable::getInstance('Weblink', 'WeblinksTable');
+			$table = JTable::getInstance('Weblink', 'WeblinksTable');
 
 			// Attempt to load the row.
 			if ($table->load($id))
@@ -105,7 +102,7 @@ class WeblinksModelWeblink extends JModelItem
 			$id = $this->getState('weblink.id');
 		}
 
-		$weblink = &$this->getTable('Weblink', 'WeblinksTable');
+		$weblink = $this->getTable('Weblink', 'WeblinksTable');
 		return $weblink->hit($id);
 	}
 }

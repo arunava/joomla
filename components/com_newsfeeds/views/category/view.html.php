@@ -29,17 +29,17 @@ class NewsfeedsViewCategory extends JView
 
 	function display($tpl = null)
 	{
-		$app		= &JFactory::getApplication();
-		$params		= &$app->getParams();
+		$app		= JFactory::getApplication();
+		$params		= $app->getParams();
 
 		// Get some data from the models
-		$state		= &$this->get('State');
-		$items		= &$this->get('Items');
-		$category	= &$this->get('Category');
-		$children	= &$this->get('Children');
-		$parent 	= &$this->get('Parent');
-		$pagination	= &$this->get('Pagination');
-		
+		$state		= $this->get('State');
+		$items		= $this->get('Items');
+		$category	= $this->get('Category');
+		$children	= $this->get('Children');
+		$parent 	= $this->get('Parent');
+		$pagination	= $this->get('Pagination');
+
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
@@ -55,9 +55,9 @@ class NewsfeedsViewCategory extends JView
 		{
 			//TODO Raise error for missing parent category here
 		}
-		
+
 		// Check whether category access level allows access.
-		$user	= &JFactory::getUser();
+		$user	= JFactory::getUser();
 		$groups	= $user->authorisedLevels();
 		if (!in_array($category->access, $groups)) {
 			return JError::raiseError(403, JText::_("JERROR_ALERTNOAUTHOR"));
@@ -96,9 +96,9 @@ class NewsfeedsViewCategory extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app		= &JFactory::getApplication();
-		$menus		= &JSite::getMenu();
-		$pathway	= &$app->getPathway();
+		$app		= JFactory::getApplication();
+		$menus		= $app->getMenu();
+		$pathway	= $app->getPathway();
 		$title 		= null;
 
 		// Because the application sets a default page title,
@@ -108,7 +108,7 @@ class NewsfeedsViewCategory extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_NEWSFEEDS_DEFAULT_PAGE_TITLE')); 
+			$this->params->def('page_heading', JText::_('COM_NEWSFEEDS_DEFAULT_PAGE_TITLE'));
 		}
 		$id = (int) @$menu->query['id'];
 		if($menu && $menu->query['view'] != 'newsfeed' && $id != $this->category->id)
@@ -127,13 +127,40 @@ class NewsfeedsViewCategory extends JView
 				$pathway->addItem($title, $link);
 			}
 		}
-		
+
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
 		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
+		}
 		$this->document->setTitle($title);
+
+		if ($this->category->metadesc) {
+			$this->document->setDescription($this->category->metadesc);
+		}
+
+		if ($this->category->metakey) {
+			$this->document->setMetadata('keywords', $this->category->metakey);
+		}
+
+		if ($app->getCfg('MetaTitle') == '1') {
+			$this->document->setMetaData('title', $this->category->getMetadata()->get('page_title'));
+		}
+
+		if ($app->getCfg('MetaAuthor') == '1') {
+			$this->document->setMetaData('author', $this->category->getMetadata()->get('author'));
+		}
+
+		$mdata = $this->category->getMetadata()->toArray();
+
+		foreach ($mdata as $k => $v) {
+			if ($v) {
+				$this->document->setMetadata($k, $v);
+			}
+		}
+
 
 		// Add alternate feed link
 		if ($this->params->get('show_feed_link', 1) == 1)

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: view.html.php 11952 2009-06-01 03:21:19Z robs $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -19,16 +19,18 @@ jimport('joomla.application.component.view');
  */
 class ContactViewContact extends JView
 {
+	protected $form;
+	protected $item;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	function display($tpl = null)
 	{
-		$app	= &JFactory::getApplication();
-		$state		= $this->get('state');
-		$item		= $this->get('item');
-		$form		= $this->get('form');
+		$this->form		= $this->get('form');
+		$this->item		= $this->get('item');
+		$this->state	= $this->get('state');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -36,41 +38,28 @@ class ContactViewContact extends JView
 			return false;
 		}
 
-		// Bind the label to the form.
-		// First, unpack the email_form options from the params
-		$item->set('email_form', new JObject());
-		foreach ($form->getGroup('email_form') as $thisField) {
-			$item->email_form->set($thisField->name, $item->params->get($thisField->name));
-			$item->params->set($thisField->name, null);
-		}
-
-		$form->bind($item);
-
-		$this->assignRef('state',	$state);
-		$this->assignRef('item',	$item);
-		$this->assignRef('form',	$form);
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
-		JRequest::setVar('hidemainmenu', true);
-
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Add the page title and toolbar.
 	 *
 	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
-		$user		= &JFactory::getUser();
+		JRequest::setVar('hidemainmenu', true);
+
+		$user		= JFactory::getUser();
 		$isNew		= ($this->item->id == 0);
 		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
 		JRequest::setVar('hidemainmenu', 1);
 
-		JToolBarHelper::title(JText::_('COM_CONTACT_MANAGER_CONTACT'));
+		JToolBarHelper::title(JText::_('COM_CONTACT_MANAGER_CONTACT'), 'contact.png');
 		JToolBarHelper::apply('contact.apply','JTOOLBAR_APPLY');
 		JToolBarHelper::save('contact.save','JTOOLBAR_SAVE');
-		JToolBarHelper::addNew('contact.save2new', 'JTOOLBAR_SAVE_AND_NEW');
+		JToolBarHelper::custom('contact.save2new', 'save-new.png', 'save-new_f2.png', 'JTOOLBAR_SAVE_AND_NEW', false);
 				// If an existing item, can save to a copy.
 		if (!$isNew) {
 			JToolBarHelper::custom('contact.save2copy','save-copy.png', 'save-copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY',false );
@@ -78,11 +67,10 @@ class ContactViewContact extends JView
 
 		if (empty($this->item->id))  {
 			JToolBarHelper::cancel('contact.cancel','JTOOLBAR_CANCEL');
-		}
-		else {
+		} else {
 			JToolBarHelper::cancel('contact.cancel', 'JTOOLBAR_CLOSE');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.contact.edit'.'JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_COMPONENTS_CONTACTS_CONTACTS_EDIT');
 	}
 }

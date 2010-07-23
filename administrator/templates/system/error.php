@@ -17,12 +17,14 @@ defined('_JEXEC') or die;
 	<tr>
 		<td align="center">
 			<h1>
-				<?php echo $this->error->getCode() ?> - <?php echo JText::_('AN_ERROR_HAS_OCCURRED') ?>
+				<?php echo $this->error->getCode() ?> - <?php echo JText::_('JERROR_AN_ERROR_HAS_OCCURRED') ?>
+			</h1>
 		</td>
 	</tr>
 	<tr>
 		<td width="39%" align="center">
 			<p><?php echo $this->error->getMessage(); ?></p>
+			<p><a href="index.php"><?php echo JText::_('JGLOBAL_TPL_CPANEL_LINK_TEXT') ?></a></p>
 			<p>
 				<?php if ($this->debug) :
 					echo $this->renderBacktrace();

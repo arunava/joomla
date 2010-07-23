@@ -1,6 +1,6 @@
 <?php
 /**
-* @version $Id: strspn.php,v 1.1 2006/02/25 13:50:17 harryf Exp $
+* @version $Id$
 * @package utf8
 * @subpackage strings
 */
@@ -19,6 +19,11 @@
 function utf8_strspn($str, $mask, $start = NULL, $length = NULL) {
 
     $mask = preg_replace('!([\\\\\\-\\]\\[/^])!','\\\${1}',$mask);
+
+	// Fix for $start but no $length argument.
+    if ($start !== null && $length === null) {
+    	$length = utf8_strlen($str);
+    }
 
     if ( $start !== NULL || $length !== NULL ) {
         $str = utf8_substr($str, $start, $length);

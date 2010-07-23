@@ -38,7 +38,7 @@ class JUserHelper
 		if (!array_key_exists($groupId, $user->groups))
 		{
 			// Get the title of the group.
-			$db	= &JFactory::getDbo();
+			$db	= JFactory::getDbo();
 			$db->setQuery(
 				'SELECT `title`' .
 				' FROM `#__usergroups`' .
@@ -53,7 +53,7 @@ class JUserHelper
 
 			// If the group does not exist, return an exception.
 			if (!$title) {
-				return new JException(JText::_('Access_Usergroup_Invalid'));
+				return new JException(JText::_('JLIB_USER_EXCEPTION_ACCESS_USERGROUP_INVALID'));
 			}
 
 			// Add the group data to the user object.
@@ -66,11 +66,11 @@ class JUserHelper
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = & JFactory::getUser((int) $userId);
+		$temp = JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = & JFactory::getUser();
+		$temp = JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -88,7 +88,7 @@ class JUserHelper
 	public static function getUserGroups($userId)
 	{
 		// Get the user object.
-		$user = &JUser::getInstance((int) $userId);
+		$user = JUser::getInstance((int) $userId);
 
 		return isset($user->groups) ? $user->groups : array();
 	}
@@ -104,7 +104,7 @@ class JUserHelper
 	public static function removeUserFromGroup($userId, $groupId)
 	{
 		// Get the user object.
-		$user = & JUser::getInstance((int) $userId);
+		$user = JUser::getInstance((int) $userId);
 
 		// Remove the user from the group if necessary.
 		if (array_key_exists($groupId, $user->groups))
@@ -119,11 +119,11 @@ class JUserHelper
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = & JFactory::getUser((int) $userId);
+		$temp = JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = & JFactory::getUser();
+		$temp = JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -143,14 +143,14 @@ class JUserHelper
 	public static function setUserGroups($userId, $groups)
 	{
 		// Get the user object.
-		$user = & JUser::getInstance((int) $userId);
+		$user = JUser::getInstance((int) $userId);
 
 		// Set the group ids.
 		JArrayHelper::toInteger($groups);
 		$user->groups = array_fill_keys(array_values($groups), null);
 
 		// Get the titles for the user groups.
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 		$db->setQuery(
 			'SELECT `id`, `title`' .
 			' FROM `#__usergroups`' .
@@ -174,11 +174,11 @@ class JUserHelper
 		}
 
 		// Set the group data for any preloaded user objects.
-		$temp = & JFactory::getUser((int) $userId);
+		$temp = JFactory::getUser((int) $userId);
 		$temp->groups = $user->groups;
 
 		// Set the group data for the user object in the session.
-		$temp = & JFactory::getUser();
+		$temp = JFactory::getUser();
 		if ($temp->id == $userId) {
 			$temp->groups = $user->groups;
 		}
@@ -192,15 +192,15 @@ class JUserHelper
 	function getProfile($userId = 0)
 	{
 		if ($userId == 0) {
-			$user	= & JFactory::getUser();
+			$user	= JFactory::getUser();
 			$userId	= $user->id;
 		}
 		else {
-			$user	= & JFactory::getUser((int) $userId);
+			$user	= JFactory::getUser((int) $userId);
 		}
 
 		// Get the dispatcher and load the users plugins.
-		$dispatcher	= &JDispatcher::getInstance();
+		$dispatcher	= JDispatcher::getInstance();
 		JPluginHelper::importPlugin('users');
 
 		$data = new JObject;
@@ -221,7 +221,7 @@ class JUserHelper
 	public static function activateUser($activation)
 	{
 		// Initialize some variables.
-		$db = & JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		// Lets get the id of the user we want to activate
 		$query = 'SELECT id'
@@ -236,7 +236,7 @@ class JUserHelper
 		// Is it a valid user to activate?
 		if ($id)
 		{
-			$user = &JUser::getInstance((int) $id);
+			$user = JUser::getInstance((int) $id);
 
 			$user->set('block', '0');
 			$user->set('activation', '');
@@ -250,7 +250,7 @@ class JUserHelper
 		}
 		else
 		{
-			JError::raiseWarning("SOME_ERROR_CODE", JText::_('UNABLE TO FIND A USER WITH GIVEN ACTIVATION STRING'));
+			JError::raiseWarning("SOME_ERROR_CODE", JText::_('JLIB_USER_ERROR_UNABLE_TO_FIND_USER'));
 			return false;
 		}
 
@@ -266,7 +266,7 @@ class JUserHelper
 	public static function getUserId($username)
 	{
 		// Initialise some variables
-		$db = & JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		$query = 'SELECT id FROM #__users WHERE username = ' . $db->Quote($username);
 		$db->setQuery($query, 0, 1);

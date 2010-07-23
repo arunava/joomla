@@ -20,16 +20,6 @@ defined('JPATH_BASE') or die;
 class JCacheStorageApc extends JCacheStorage
 {
 	/**
-	 * Constructor
-	 *
-	 * @param array $options optional parameters
-	 */
-	public function __construct($options = array())
-	{
-		parent::__construct($options);
-	}
-
-	/**
 	 * Get cached data from APC by id and group
 	 *
 	 * @param	string	$id			The cache data id
@@ -51,43 +41,37 @@ class JCacheStorageApc extends JCacheStorage
 	 * @since	1.6
 	 */
 	public function getAll()
-	{	
+	{
 		parent::getAll();
 
-		$allinfo = apc_cache_info('user');
-		$keys = $allinfo['cache_list'];
-		$secret = $this->_hash;
-		
+		$allinfo 	= apc_cache_info('user');
+		$keys 		= $allinfo['cache_list'];
+		$secret 	= $this->_hash;
+
 		$data = array();
 
 		foreach ($keys as $key) {
-				
-			$name=$key['info'];
-			$namearr=explode('-',$name);
-				
-			if ($namearr !== false && $namearr[0]==$secret &&  $namearr[1]=='cache') {
-					
+
+			$name 		= $key['info'];
+			$namearr 	= explode('-', $name);
+
+			if ($namearr !== false && $namearr[0] == $secret &&  $namearr[1] == 'cache') {
 				$group = $namearr[2];
-					
+
 				if (!isset($data[$group])) {
-					$item = new JCacheStorageHelper();
+					$item = new JCacheStorageHelper($group);
 				} else {
 					$item = $data[$group];
 				}
 
-				$item->updateSize($key['mem_size']/1024,$group);
-					
+				$item->updateSize($key['mem_size']/1024);
+
 				$data[$group] = $item;
-					
 			}
 		}
 
-			
 		return $data;
 	}
-
-
-
 
 	/**
 	 * Store the data to APC by id and group
@@ -131,14 +115,15 @@ class JCacheStorageApc extends JCacheStorage
 	 */
 	public function clean($group, $mode)
 	{
-		$allinfo = apc_cache_info('user');
-		$keys = $allinfo['cache_list'];
+		$allinfo 	= apc_cache_info('user');
+		$keys 		= $allinfo['cache_list'];
+		$secret 	= $this->_hash;
 
-		$secret = $this->_hash;
 		foreach ($keys as $key) {
 
-			if (strpos($key['info'], $secret.'-cache-'.$group.'-')===0 xor $mode != 'group')
-			apc_delete($key['info']);
+			if (strpos($key['info'], $secret.'-cache-'.$group.'-') === 0 xor $mode != 'group') {
+				apc_delete($key['info']);
+			}
 		}
 		return true;
 	}
@@ -147,14 +132,14 @@ class JCacheStorageApc extends JCacheStorage
 	 * Force garbage collect expired cache data as items are removed only on fetch!
 	 *
 	 * @return boolean  True on success, false otherwise.
-	 * * @since	1.6
+	 * @since	1.6
 	 */
 	public function gc()
 	{
-		$lifetime = $this->_lifetime;
-		$allinfo = apc_cache_info('user');
-		$keys = $allinfo['cache_list'];
-		$secret = $this->_hash;
+		$lifetime 	= $this->_lifetime;
+		$allinfo 	= apc_cache_info('user');
+		$keys 		= $allinfo['cache_list'];
+		$secret 	= $this->_hash;
 
 		foreach ($keys as $key) {
 			if (strpos($key['info'], $secret.'-cache-')) {
@@ -172,27 +157,27 @@ class JCacheStorageApc extends JCacheStorage
 	{
 		return extension_loaded('apc');
 	}
-	
+
 	/**
 	 * Lock cached item - override parent as this is more efficient
 	 *
 	 * @param	string	$id		The cache data id
 	 * @param	string	$group	The cache data group
 	 * @param	integer	$locktime Cached item max lock time
+	 * @return	boolean	True on success, false otherwise.
 	 * @since	1.6
-	 * @return boolean  True on success, false otherwise.
 	 */
 	public function lock($id,$group,$locktime)
-	{	
+	{
 		$returning = new stdClass();
 		$returning->locklooped = false;
-				
+
 		$looptime = $locktime * 10;
-		
+
 		$cache_id = $this->_getCacheId($id, $group).'_lock';
-			
+
 		$data_lock = apc_add( $cache_id, 1, $locktime );
-				
+
 		if ( $data_lock === FALSE ) {
 
 			$lock_counter = 0;
@@ -201,8 +186,8 @@ class JCacheStorageApc extends JCacheStorage
 			while ( $data_lock === FALSE ) {
 
 				if ( $lock_counter > $looptime ) {
-					$returning->locked = false;
-					$returning->locklooped = true;
+					$returning->locked 		= false;
+					$returning->locklooped 	= true;
 					break;
 				}
 
@@ -210,30 +195,29 @@ class JCacheStorageApc extends JCacheStorage
 				$data_lock = apc_add( $cache_id, 1, $locktime );
 				$lock_counter++;
 			}
-			
+
 		}
-			$returning->locked = $data_lock;
-		return $returning;	
-		
+		$returning->locked = $data_lock;
+
+		return $returning;
 	}
-	
+
 	/**
 	 * Unlock cached item - override parent for cacheid compatibility with lock
 	 *
 	 * @param	string	$id		The cache data id
 	 * @param	string	$group	The cache data group
 	 * @param	integer	$locktime Cached item max lock time
+	 * @return	boolean	True on success, false otherwise.
 	 * @since	1.6
-	 * @return boolean  True on success, false otherwise.
 	 */
 	public function unlock($id,$group=null)
-	{	
+	{
 		$unlock = false;
-		
+
 		$cache_id = $this->_getCacheId($id, $group).'_lock';
-		
+
 		$unlock = apc_delete($cache_id);
 		return $unlock;
 	}
-
 }

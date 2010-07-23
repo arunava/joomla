@@ -15,129 +15,123 @@ JHtml::_('behavior.tooltip');
 JHtml::_('behavior.formvalidation');
 ?>
 <script type="text/javascript">
-<!--
 	function submitbutton(task)
 	{
 		if (task == 'banner.cancel' || document.formvalidator.isValid(document.id('banner-form'))) {
 			submitform(task);
 		}
-		// @todo Deal with the editor methods
-		submitform(task);
 	}
 	window.addEvent('domready', function() {
 		document.id('jform_type0').addEvent('click', function(e){
 			document.id('image').setStyle('display', 'block');
+			document.id('url').setStyle('display', 'block');
 			document.id('custom').setStyle('display', 'none');
-			document.id('jform_image_url').fireEvent('change');
 		});
 		document.id('jform_type1').addEvent('click', function(e){
 			document.id('image').setStyle('display', 'none');
-			document.id('flash').setStyle('display', 'none');
-			document.id('alt').setStyle('display', 'none');
+			document.id('url').setStyle('display', 'none');
 			document.id('custom').setStyle('display', 'block');
 		});
-		document.id('jform_image_url').addEvent('change',function(e){
-			regex=/\.swf$/;
-			if(regex.test(document.id('jform_image_url').value))
-			{
-				document.id('flash').setStyle('display', 'block');
-				document.id('alt').setStyle('display', 'none');
-			}
-			else
-			{
-				document.id('flash').setStyle('display', 'none');
-				document.id('alt').setStyle('display', 'block');
-			}
-		});
-		if(document.id('jform_type0').checked==true)
-		{
+		if(document.id('jform_type0').checked==true) {
 			document.id('jform_type0').fireEvent('click');
-		}
-		else
-		{
+		} else {
 			document.id('jform_type1').fireEvent('click');
 		}
-		document.id('jform_image_url').fireEvent('change');
 	});
-
-
-// -->
 </script>
 
 <form action="<?php JRoute::_('index.php?option=com_banners'); ?>" method="post" name="adminForm" id="banner-form" class="form-validate">
-<div class="width-60 fltlft">
-	<fieldset class="adminform">
-		<legend><?php echo empty($this->item->id) ? JText::_('COM_BANNERS_NEW_BANNER') : JText::sprintf('COM_BANNERS_EDIT_BANNER', $this->item->id); ?></legend>
+	<div class="width-60 fltlft">
+		<fieldset class="adminform">
+			<legend><?php echo empty($this->item->id) ? JText::_('COM_BANNERS_NEW_BANNER') : JText::sprintf('COM_BANNERS_BANNER_DETAILS', $this->item->id); ?></legend>
+			<ul class="adminformlist">
+				<li><?php echo $this->form->getLabel('name'); ?>
+				<?php echo $this->form->getInput('name'); ?></li>
 
-		<?php foreach($this->form->getFieldset('details') as $field): ?>
-			<?php if (!$field->hidden): ?>
-				<?php echo $field->label; ?>
-			<?php endif; ?>
-			<?php echo $field->input; ?>
-		<?php endforeach; ?>
+				<li><?php echo $this->form->getLabel('alias'); ?>
+				<?php echo $this->form->getInput('alias'); ?></li>
 
-		<div id="image">
-			<?php foreach($this->form->getFieldset('image') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
-			<?php endforeach; ?>
-		</div>
-		<div id="flash">
-			<?php foreach($this->form->getFieldset('flash') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
-			<?php endforeach; ?>
-		</div>
-		<div id="alt">
-			<?php foreach($this->form->getFieldset('alt') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
-			<?php endforeach; ?>
-		</div>
-		<div id="custom">
-			<?php foreach($this->form->getFieldset('custom') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
-			<?php endforeach; ?>
-		</div>
-	</fieldset>
-</div>
+				<li><?php echo $this->form->getLabel('access'); ?>
+				<?php echo $this->form->getInput('access'); ?></li>
+
+				<li><?php echo $this->form->getLabel('catid'); ?>
+				<?php echo $this->form->getInput('catid'); ?></li>
+
+				<li><?php echo $this->form->getLabel('type'); ?>
+				<?php echo $this->form->getInput('type'); ?></li>
+
+				<li>
+				<div id="image">
+					<?php foreach($this->form->getFieldset('image') as $field): ?>
+						<?php if (!$field->hidden): ?>
+							<?php echo $field->label; ?>
+						<?php endif; ?>
+						<?php echo $field->input; ?>
+					<?php endforeach; ?>
+				</div>
+				</li>
+
+				<li><div id="custom">
+					<?php echo $this->form->getLabel('custombannercode'); ?>
+					<?php echo $this->form->getInput('custombannercode'); ?>
+				</div>
+				</li>
+
+				<li><div id="url">
+				<?php echo $this->form->getLabel('clickurl'); ?>
+				<?php echo $this->form->getInput('clickurl'); ?>
+				</div>
+				</li>
+
+				<li><?php echo $this->form->getLabel('description'); ?>
+				<?php echo $this->form->getInput('description'); ?></li>
+
+
+
+				<li><?php echo $this->form->getLabel('language'); ?>
+				<?php echo $this->form->getInput('language'); ?></li>
+
+				<li><?php echo $this->form->getLabel('id'); ?>
+				<?php echo $this->form->getInput('id'); ?></li>
+			</ul>
+			<div class="clr"> </div>
+
+		</fieldset>
+	</div>
+
 <div class="width-40 fltrt">
 	<?php echo JHtml::_('sliders.start','banner-sliders-'.$this->item->id, array('useCookie'=>1)); ?>
 
 	<?php echo JHtml::_('sliders.panel',JText::_('COM_BANNERS_GROUP_LABEL_PUBLISHING_DETAILS'), 'publishing-details'); ?>
 		<fieldset class="adminform">
+		<ul class="adminformlist">
 			<?php foreach($this->form->getFieldset('publish') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
+				<li>
+					<?php if (!$field->hidden): ?>
+						<?php echo $field->label; ?>
+					<?php endif; ?>
+					<?php echo $field->input; ?>
+				</li>
 			<?php endforeach; ?>
+			</ul>
 		</fieldset>
 
-	<?php echo JHtml::_('sliders.panel',JText::_('COM_BANNERS_GROUP_LABEL_METADATA_OPTIONS'), 'metadata'); ?>
+	<?php echo JHtml::_('sliders.panel',JText::_('JGLOBAL_FIELDSET_METADATA_OPTIONS'), 'metadata'); ?>
 		<fieldset class="adminform">
-			<?php foreach($this->form->getFieldset('metadata') as $field): ?>
-				<?php if (!$field->hidden): ?>
-					<?php echo $field->label; ?>
-				<?php endif; ?>
-				<?php echo $field->input; ?>
-			<?php endforeach; ?>
+			<ul class="adminformlist">
+				<?php foreach($this->form->getFieldset('metadata') as $field): ?>
+					<?php if (!$field->hidden): ?>
+						<li><?php echo $field->label; ?></li>
+					<?php endif; ?>
+					<li><?php echo $field->input; ?></li>
+				<?php endforeach; ?>
+			</ul>
 		</fieldset>
 
 	<?php echo JHtml::_('sliders.end'); ?>
+	<input type="hidden" name="task" value="" />
+	<?php echo JHtml::_('form.token'); ?>
 </div>
 
 <div class="clr"></div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>

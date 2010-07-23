@@ -19,59 +19,60 @@ jimport('joomla.application.component.view');
  */
 class PluginsViewPlugins extends JView
 {
-	protected $state;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
 		parent::display($tpl);
-		$this->_setToolbar();
+		$this->addToolbar();
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$state	= $this->get('State');
 		$canDo	= PluginsHelper::getActions();
 
 		JToolBarHelper::title(JText::_('COM_PLUGINS_MANAGER_PLUGINS'), 'plugin');
 
+		if ($canDo->get('core.edit')) {
+			JToolBarHelper::editList('plugin.edit', 'JTOOLBAR_EDIT');
+		}
+
 		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::divider();
 			JToolBarHelper::custom('plugins.publish', 'publish.png', 'publish_f2.png', 'JTOOLBAR_ENABLE', true);
 			JToolBarHelper::custom('plugins.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_DISABLE', true);
 		}
-
-		/**
-		* Don't think we need an Edit button if names are clickable.
-		*/
-		//if ($canDo->get('core.edit')) {
-		//	JToolBarHelper::editList('plugin.edit');
-		// }
+		if(JFactory::getUser()->authorise('core.manage','com_checkin')) {
+			JToolBarHelper::divider();
+			JToolBarHelper::custom('plugins.checkin', 'checkin.png', 'checkin_f2.png', 'JTOOLBAR_CHECKIN', true);
+		}
 
 		if ($canDo->get('core.admin')) {
+			JToolBarHelper::divider();
 			JToolBarHelper::preferences('com_plugins');
 		}
-		JToolBarHelper::help('screen.plugins','JTOOLBAR_HELP');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('JHELP_EXTENSIONS_PLUGIN_MANAGER');
 	}
 }

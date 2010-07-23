@@ -203,7 +203,7 @@ class JPagination extends JObject
 		// Initialise variables.
 		$html = null;
 		if ($this->get('pages.total') > 1) {
-			$html .= JText::sprintf('JPAGE_CURRENT_OF_TOTAL', $this->get('pages.current'), $this->get('pages.total'));
+			$html .= JText::sprintf('JLIB_HTML_PAGE_CURRENT_OF_TOTAL', $this->get('pages.current'), $this->get('pages.total'));
 		}
 		return $html;
 	}
@@ -230,11 +230,11 @@ class JPagination extends JObject
 
 		// If there are results found.
 		if ($this->total > 0) {
-			$msg = JText::sprintf('RESULTS_OF', $fromResult, $toResult, $this->total);
+			$msg = JText::sprintf('JLIB_HTML_RESULTS_OF', $fromResult, $toResult, $this->total);
 			$html .= "\n".$msg;
 		}
 		else {
-			$html .= "\n".JText::_('No_records_found');
+			$html .= "\n".JText::_('JLIB_HTML_NO_RECORDS_FOUND');
 		}
 
 		return $html;
@@ -248,7 +248,7 @@ class JPagination extends JObject
 	 */
 	public function getPagesLinks()
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Build the page navigation list.
 		$data = $this->_buildDataObject();
@@ -381,8 +381,8 @@ class JPagination extends JObject
 		for ($i = 5; $i <= 30; $i += 5) {
 			$limits[] = JHtml::_('select.option', "$i");
 		}
-		$limits[] = JHtml::_('select.option', '50');
-		$limits[] = JHtml::_('select.option', '100');
+		$limits[] = JHtml::_('select.option', '50', JText::_('J50'));
+		$limits[] = JHtml::_('select.option', '100', JText::_('J100'));
 		$limits[] = JHtml::_('select.option', '0', JText::_('JALL'));
 
 		$selected = $this->_viewall ? 0 : $this->limit;
@@ -400,68 +400,55 @@ class JPagination extends JObject
 	/**
 	 * Return the icon to move an item UP.
 	 *
-	 * @param	integer	The row index.
-	 * @param	boolean	True to show the icon.
-	 * @param	string	The task to fire.
-	 * @param	string	The image alternate text string.
+	 * @param	int				$i			The row index.
+	 * @param	boolean			$condition	True to show the icon.
+	 * @param	string			$task		The task to fire.
+	 * @param	string			$alt		The image alternate text string.
+	 * @param	boolean			$enabled	An optional setting for access control on the action.
+	 * @param	string			$checkbox	An optional prefix for checkboxes.
+	 *
 	 * @return	string	Either the icon to move an item up or a space.
 	 * @since	1.0
 	 */
-	public function orderUpIcon($i, $condition = true, $task = 'orderup', $alt = 'JGrid_Move_Up', $enabled = true)
+	public function orderUpIcon($i, $condition = true, $task = 'orderup', $alt = 'JLIB_HTML_MOVE_UP', $enabled = true, $checkbox='cb')
 	{
-		$alt = JText::_($alt);
-
-		$html = '&nbsp;';
-		if (($i > 0 || ($i + $this->limitstart > 0)) && $condition)
-		{
-			if ($enabled) {
-				$html	= '<a href="#reorder" onclick="return listItemTask(\'cb'.$i.'\',\''.$task.'\')" title="'.$alt.'">';
-				$html	.= JHTML::_('image','admin/uparrow.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
-				$html	.= '</a>';
-			}
-			else {
-				$html	= JHTML::_('image','admin/uparrow0.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
-			}
+		if (($i > 0 || ($i + $this->limitstart > 0)) && $condition) {
+			return JHtml::_('jgrid.orderUp', $i, $task, '', $alt, $enabled, $checkbox);
 		}
-
-		return $html;
+		else {
+			return '&#160;';
+		}
 	}
 
 	/**
 	 * Return the icon to move an item DOWN.
 	 *
-	 * @param	int		The row index.
-	 * @param	int		The number of items in the list.
-	 * @param	boolean	True to show the icon.
-	 * @param	string	The task to fire.
-	 * @param	string	The image alternate text string.
+	 * @param	int				$i			The row index.
+	 * @param	int				$n			The number of items in the list.
+	 * @param	boolean			$condition	True to show the icon.
+	 * @param	string			$task		The task to fire.
+	 * @param	string			$alt		The image alternate text string.
+	 * @param	boolean			$enabled	An optional setting for access control on the action.
+	 * @param	string			$checkbox	An optional prefix for checkboxes.
+	 *
 	 * @return	string	Either the icon to move an item down or a space.
 	 * @since	1.0
 	 */
-	public function orderDownIcon($i, $n, $condition = true, $task = 'orderdown', $alt = 'JGrid_Move_Down', $enabled = true)
+	public function orderDownIcon($i, $n, $condition = true, $task = 'orderdown', $alt = 'JLIB_HTML_MOVE_DOWN', $enabled = true, $checkbox='cb')
 	{
-		$alt = JText::_($alt);
-
-		$html = '&nbsp;';
-		if (($i < $n -1 || $i + $this->limitstart < $this->total - 1) && $condition)
-		{
-			if ($enabled) {
-				$html	= '<a href="#reorder" onclick="return listItemTask(\'cb'.$i.'\',\''.$task.'\')" title="'.$alt.'">';
-				$html	.= JHTML::_('image','admin/downarrow.png', $alt, array( 'width' => 16, 'height' => 16, 'border' =>0), true);
-				$html	.= '</a>';
-			} else {
-				$html	= JHTML::_('image','admin/downarrow0.png', $alt, array( 'width' => 16, 'height' => 16, 'border' => 0), true);
-			}
+		if (($i < $n -1 || $i + $this->limitstart < $this->total - 1) && $condition) {
+			return JHtml::_('jgrid.orderDown', $i, $task, '', $alt, $enabled, $checkbox);
 		}
-
-		return $html;
+		else {
+			return '&#160;';
+		}
 	}
 
 	protected function _list_footer($list)
 	{
 		$html = "<div class=\"list-footer\">\n";
 
-		$html .= "\n<div class=\"limit\">".JText::_('DISPLAY_NUM').$list['limitfield']."</div>";
+		$html .= "\n<div class=\"limit\">".JText::_('JGLOBAL_DISPLAY_NUM').$list['limitfield']."</div>";
 		$html .= $list['pageslinks'];
 		$html .= "\n<div class=\"counter\">".$list['pagescounter']."</div>";
 
@@ -489,7 +476,7 @@ class JPagination extends JObject
 
 	protected function _item_active(&$item)
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		if ($app->isAdmin())
 		{
 			if ($item->base > 0) {
@@ -506,7 +493,7 @@ class JPagination extends JObject
 
 	protected function _item_inactive(&$item)
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 		if ($app->isAdmin()) {
 			return "<span>".$item->text."</span>";
 		}
@@ -536,15 +523,15 @@ class JPagination extends JObject
 			}
 		}
 
-		$data->all = new JPaginationObject(JText::_('VIEW_ALL'), $this->prefix);
+		$data->all = new JPaginationObject(JText::_('JLIB_HTML_VIEW_ALL'), $this->prefix);
 		if (!$this->_viewall) {
 			$data->all->base	= '0';
 			$data->all->link	= JRoute::_($params.'&'.$this->prefix.'limitstart=');
 		}
 
 		// Set the start and previous data objects.
-		$data->start	= new JPaginationObject(JText::_('Start'), $this->prefix);
-		$data->previous	= new JPaginationObject(JText::_('Prev'), $this->prefix);
+		$data->start	= new JPaginationObject(JText::_('JLIB_HTML_START'), $this->prefix);
+		$data->previous	= new JPaginationObject(JText::_('JPREV'), $this->prefix);
 
 		if ($this->get('pages.current') > 1)
 		{
@@ -559,8 +546,8 @@ class JPagination extends JObject
 		}
 
 		// Set the next and end data objects.
-		$data->next	= new JPaginationObject(JText::_('Next'), $this->prefix);
-		$data->end	= new JPaginationObject(JText::_('End'), $this->prefix);
+		$data->next	= new JPaginationObject(JText::_('JNEXT'), $this->prefix);
+		$data->end	= new JPaginationObject(JText::_('JLIB_HTML_END'), $this->prefix);
 
 		if ($this->get('pages.current') < $this->get('pages.total'))
 		{

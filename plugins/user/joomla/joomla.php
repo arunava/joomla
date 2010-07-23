@@ -30,7 +30,7 @@ class plgUserJoomla extends JPlugin
 	 * @param	boolean		True if user was succesfully stored in the database
 	 * @param	string		Message
 	 */
-	public function onAfterDeleteUser($user, $succes, $msg)
+	public function onUserAfterDelete($user, $succes, $msg)
 	{
 		if (!$succes) {
 			return false;
@@ -55,7 +55,7 @@ class plgUserJoomla extends JPlugin
 	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	function onLoginUser($user, $options = array())
+	function onUserLogin($user, $options = array())
 	{
 		jimport('joomla.user.helper');
 
@@ -68,7 +68,7 @@ class plgUserJoomla extends JPlugin
 
 		// If the user is blocked, redirect with an error
 		if ($instance->get('block') == 1) {
-			return JError::raiseWarning('SOME_ERROR_CODE', JText::_('E_NOLOGIN_BLOCKED'));
+			return JError::raiseWarning('SOME_ERROR_CODE', JText::_('JERROR_NOLOGIN_BLOCKED'));
 		}
 
 		// Authorise the user based on the group information
@@ -79,7 +79,7 @@ class plgUserJoomla extends JPlugin
 		// Chek the user can login.
 		$result	= $instance->authorise($options['action']);
 		if (!$result) {
-			return JError::raiseWarning(401, JText::_('JError_Login_denied'));
+			return JError::raiseWarning(401, JText::_('JERROR_LOGIN_DENIED'));
 		}
 
 		// Mark the user as logged in
@@ -115,19 +115,23 @@ class plgUserJoomla extends JPlugin
 	 * @return object	True on success
 	 * @since 1.5
 	 */
-	function onLogoutUser($user, $options = array())
+	function onUserLogout($user, $options = array())
 	{
-		$my = JFactory::getUser();
+		$my 		= JFactory::getUser();
+		$session 	= JFactory::getSession();
+		$app 		= JFactory::getApplication();
+
 		// Make sure we're a valid user first
-		if ($user['id'] == 0 && !$my->get('tmp_user')) return true;
+		if ($user['id'] == 0 && !$my->get('tmp_user')) {
+			return true;
+		}
 
 		// Check to see if we're deleting the current session
-		if ($my->get('id') == $user['id']) {
+		if ($my->get('id') == $user['id'] && $options['clientid'] == $app->getClientId()) {
 			// Hit the user last visit field
 			$my->setLastVisit();
 
 			// Destroy the php session for this user
-			$session = JFactory::getSession();
 			$session->destroy();
 		} else {
 			// Force logout all users with that userid
@@ -147,13 +151,12 @@ class plgUserJoomla extends JPlugin
 	 *
 	 * If options['autoregister'] is true, if the user doesn't exist yet he will be created
 	 *
-	 * @access	public
 	 * @param	array	holds the user data
 	 * @param	array	array holding options (remember, autoregister, group)
 	 * @return	object	A JUser object
 	 * @since	1.5
 	 */
-	function &_getUser($user, $options = array())
+	protected function &_getUser($user, $options = array())
 	{
 		$instance = JUser::getInstance();
 		if ($id = intval(JUserHelper::getUserId($user['username'])))  {

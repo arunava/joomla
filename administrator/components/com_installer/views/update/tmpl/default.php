@@ -5,10 +5,14 @@
  * @subpackage	com_installer
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.6
  */
 
 // no direct access
 defined('_JEXEC') or die;
+
+$listOrder	= $this->state->get('list.ordering');
+$listDirn	= $this->state->get('list.direction');
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_installer&view=update');?>" method="post" name="adminForm">
 	<?php if ($this->showMessage) : ?>
@@ -23,14 +27,13 @@ defined('_JEXEC') or die;
 	<table class="adminlist" cellspacing="1">
 		<thead>
 			<tr>
-				<th width="10"><?php echo JText::_('COM_INSTALLER_HEADING_NUM'); ?></th>
-				<th width="20"><input type="checkbox" name="toggle" value="" onclick="checkAll(this)" /></th>
-				<th class="nowrap"><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_NAME', 'name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?></th>
-				<th class="nowrap"><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_INSTALLTYPE', 'extension_id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?></th>
-				<th ><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_TYPE', 'type', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?></th>
+				<th width="20"><input type="checkbox" name="checkall-toggle" value="" onclick="checkAll(this)" /></th>
+				<th class="nowrap"><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_NAME', 'name', $listDirn, $listOrder); ?></th>
+				<th class="nowrap"><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_INSTALLTYPE', 'extension_id', $listDirn, $listOrder); ?></th>
+				<th ><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_TYPE', 'type', $listDirn, $listOrder); ?></th>
 				<th width="10%" class="center"><?php echo JText::_('JVERSION'); ?></th>
-				<th><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_FOLDER', 'folder', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?></th>
-				<th><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_CLIENT', 'client_id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?></th>
+				<th><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_FOLDER', 'folder', $listDirn, $listOrder); ?></th>
+				<th><?php echo JHTML::_('grid.sort', 'COM_INSTALLER_HEADING_CLIENT', 'client_id', $listDirn, $listOrder); ?></th>
 				<th width="25%"><?php echo JText::_('COM_INSTALLER_HEADING_DETAILSURL'); ?></th>
 			</tr>
 		</thead>
@@ -42,10 +45,9 @@ defined('_JEXEC') or die;
 		<tbody>
 		<?php foreach($this->items as $i=>$item):?>
 			<tr class="row<?php echo $i%2; ?>">
-				<td><?php echo $this->pagination->getRowOffset($i); ?></td>
 				<td><?php echo JHtml::_('grid.id', $i, $item->update_id); ?></td>
 				<td>
-					<span class="editlinktip hasTip" title="<?php echo JText::_('COM_INSTALLER_TIP_UPDATE_DESCRIPTION');?>::<?php echo $item->description ? $item->description : JText::_('COM_INSTALLER_MSG_UPDATE_NODESC'); ?>">
+					<span class="editlinktip hasTip" title="<?php echo JText::_('JGLOBAL_DESCRIPTION');?>::<?php echo $item->description ? $item->description : JText::_('COM_INSTALLER_MSG_UPDATE_NODESC'); ?>">
 					<?php echo $item->name; ?>
 					</span>
 				</td>
@@ -65,9 +67,11 @@ defined('_JEXEC') or die;
 		<p class="nowarning"><?php echo JText::_('COM_INSTALLER_MSG_UPDATE_NOUPDATES'); ?></p>
 	<?php endif; ?>
 
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
-	<?php echo JHTML::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHTML::_('form.token'); ?>
+	</div>
 </form>

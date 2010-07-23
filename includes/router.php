@@ -1,6 +1,8 @@
 <?php
 /**
  * @version		$Id$
+ * @package		Joomla.Site
+ * @subpackage	Application
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -29,7 +31,7 @@ class JRouterSite extends JRouter
 		$vars = array();
 
 		// Get the application
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		if ($app->getCfg('force_ssl') == 2 && strtolower($uri->getScheme()) != 'https') {
 			//forward to https
@@ -67,14 +69,14 @@ class JRouterSite extends JRouter
 
 	public function &build($url)
 	{
-		$uri = &parent::build($url);
+		$uri = parent::build($url);
 
 		// Get the path data
 		$route = $uri->getPath();
 
 		//Add the suffix to the uri
 		if ($this->_mode == JROUTER_MODE_SEF && $route) {
-			$app = &JFactory::getApplication();
+			$app = JFactory::getApplication();
 
 			if ($app->getCfg('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/')) {
 				if ($format = $uri->getVar('format', 'html')) {
@@ -97,12 +99,13 @@ class JRouterSite extends JRouter
 
 	protected function _parseRawRoute(&$uri)
 	{
-		$vars = array();
-		$menu = &JSite::getMenu(true);
+		$vars	= array();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu(true);
 
 		//Handle an empty URL (special case)
 		if (!$uri->getVar('Itemid') && !$uri->getVar('option')) {
-			$item = $menu->getDefault();
+			$item = $menu->getDefault(JFactory::getLanguage()->getTag());
 			if (!is_object($item)) {
 				// No default item set
 				return $vars;
@@ -126,10 +129,12 @@ class JRouterSite extends JRouter
 		//Get the itemid, if it hasn't been set force it to null
 		$this->setVar('Itemid', JRequest::getInt('Itemid', null));
 
-		//Only an Itemid ? Get the full information from the itemid
+		// Only an Itemid ? Get the full information from the itemid
 		if (count($this->getVars()) == 1) {
 			$item = $menu->getItem($this->getVar('Itemid'));
-			$vars = $vars + $item->query;
+			if ($item !== NULL && is_array($item->query)) {
+				$vars = $vars + $item->query;
+			}
 		}
 
 		// Set the active menu item
@@ -140,10 +145,10 @@ class JRouterSite extends JRouter
 
 	protected function _parseSefRoute(&$uri)
 	{
-		$vars = array();
-
-		$menu  = &JSite::getMenu(true);
-		$route = $uri->getPath();
+		$vars	= array();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu(true);
+		$route	= $uri->getPath();
 
 		// Get the variables from the uri
 		$vars = $uri->getQuery(true);
@@ -155,7 +160,7 @@ class JRouterSite extends JRouter
 				return $this->_parseRawRoute($uri);
 			}
 
-			$item = $menu->getDefault();
+			$item = $menu->getDefault(JFactory::getLanguage()->getTag());
 
 			//Set the information in the request
 			$vars = $item->query;
@@ -237,7 +242,7 @@ class JRouterSite extends JRouter
 			}
 		} else {
 			//Set active menu item
-			if ($item = &$menu->getActive()) {
+			if ($item = $menu->getActive()) {
 				$vars = $item->query;
 			}
 		}
@@ -261,7 +266,8 @@ class JRouterSite extends JRouter
 			return;
 		}
 
-		$menu = &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu();
 
 		/*
 		 * Build the component route
@@ -303,7 +309,9 @@ class JRouterSite extends JRouter
 		if (isset($query['Itemid']) && !empty($query['Itemid'])) {
 			$item = $menu->getItem($query['Itemid']);
 			if (is_object($item) && $query['option'] == $item->component) {
-				$tmp = !empty($tmp) ? $item->route.'/'.$tmp : $item->route;
+				if (!$item->home || $item->language!='*') {
+					$tmp = !empty($tmp) ? $item->route.'/'.$tmp : $item->route;
+				}
 				$built = true;
 			}
 		}
@@ -315,7 +323,9 @@ class JRouterSite extends JRouter
 		$route .= '/'.$tmp;
 
 		// Unset unneeded query information
-		unset($query['Itemid']);
+		if (isset($item) && $query['option'] == $item->component) {
+			unset($query['Itemid']);
+		}
 		unset($query['option']);
 
 		//Set query again in the URI
@@ -330,7 +340,7 @@ class JRouterSite extends JRouter
 
 		// Process the pagination support
 		if ($this->_mode == JROUTER_MODE_SEF) {
-			$app = &JFactory::getApplication();
+			$app = JFactory::getApplication();
 
 			if ($start = $uri->getVar('start')) {
 				$uri->delVar('start');
@@ -345,13 +355,16 @@ class JRouterSite extends JRouter
 	{
 		// Make sure any menu vars are used if no others are specified
 		if (($this->_mode != JROUTER_MODE_SEF) && $uri->getVar('Itemid') && count($uri->getQuery(true)) == 2) {
-			$menu = &JSite::getMenu();
+			$app	= JFactory::getApplication();
+			$menu	= $app->getMenu();
 
 			// Get the active menu item
 			$itemid = $uri->getVar('Itemid');
 			$item = $menu->getItem($itemid);
 
-			$uri->setQuery($item->query);
+			if ($item) {
+				$uri->setQuery($item->query);
+			}
 			$uri->setVar('Itemid', $itemid);
 		}
 
@@ -362,7 +375,7 @@ class JRouterSite extends JRouter
 		$route = $uri->getPath();
 
 		if ($this->_mode == JROUTER_MODE_SEF && $route) {
-			$app = &JFactory::getApplication();
+			$app = JFactory::getApplication();
 
 			if ($limitstart = $uri->getVar('limitstart')) {
 				$uri->setVar('start', (int) $limitstart);
@@ -373,13 +386,14 @@ class JRouterSite extends JRouter
 		$uri->setPath($route);
 	}
 
-	protected function &_createURI($url)
+	protected function _createURI($url)
 	{
 		//Create the URI
-		$uri = &parent::_createURI($url);
+		$uri = parent::_createURI($url);
 
 		// Set URI defaults
-		$menu = &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menu	= $app->getMenu();
 
 		// Get the itemid form the URI
 		$itemid = $uri->getVar('Itemid');

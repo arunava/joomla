@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: controller.php 15936 2010-04-08 06:32:41Z infograf768 $
+ * @version		$Id$
  * @package		Joomla.Framework
  * @subpackage	Application
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -29,19 +29,19 @@ class JControllerAdmin extends JController
 	 * @var		string	The URL option for the component.
 	 * @since	1.6
 	 */
-	protected $_option;
-
-	/**
-	 * @var		string	The URL view list variable.
-	 * @since	1.6
-	 */
-	protected $_view_list;
+	protected $option;
 
 	/**
 	 * @var		string	The prefix to use with controller messages.
 	 * @since	1.6
 	 */
-	protected $_msgprefix;
+	protected $text_prefix;
+
+	/**
+	 * @var		string	The URL view list variable.
+	 * @since	1.6
+	 */
+	protected $view_list;
 
 	/**
 	 * Constructor.
@@ -63,22 +63,22 @@ class JControllerAdmin extends JController
 		$this->registerTask('orderdown',	'reorder');
 
 		// Guess the option as com_NameOfController.
-		if (empty($this->_option)) {
-			$this->_option = 'com_'.strtolower($this->getName());
+		if (empty($this->option)) {
+			$this->option = 'com_'.strtolower($this->getName());
 		}
 
 		// Guess the JText message prefix. Defaults to the option.
-		if (empty($this->_msgprefix)) {
-			$this->_msgprefix = strtoupper($this->_option);
+		if (empty($this->text_prefix)) {
+			$this->text_prefix = strtoupper($this->option);
 		}
 
 		// Guess the list view as the suffix, eg: OptionControllerSuffix.
-		if (empty($this->_view_list)) {
+		if (empty($this->view_list)) {
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r)) {
-				JError::raiseError(500, 'JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME');
+				JError::raiseError(500, JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'));
 			}
-			$this->_view_list = strtolower($r[2]);
+			$this->view_list = strtolower($r[2]);
 		}
 	}
 
@@ -96,7 +96,7 @@ class JControllerAdmin extends JController
 		$cid	= JRequest::getVar('cid', array(), '', 'array');
 
 		if (!is_array($cid) || count($cid) < 1) {
-			JError::raiseWarning(500, JText::_($this->_msgprefix.'_NO_ITEM_SELECTED'));
+			JError::raiseWarning(500, JText::_($this->text_prefix.'_NO_ITEM_SELECTED'));
 		} else {
 			// Get the model.
 			$model = $this->getModel();
@@ -107,22 +107,27 @@ class JControllerAdmin extends JController
 
 			// Remove the items.
 			if ($model->delete($cid)) {
-				$this->setMessage(JText::sprintf((count($cid) == 1) ? $this->_msgprefix.'_ITEM_DELETED' : $this->_msgprefix.'_N_ITEMS_DELETED', count($cid)));
+				$this->setMessage(JText::plural($this->text_prefix.'_N_ITEMS_DELETED', count($cid)));
 			} else {
 				$this->setMessage($model->getError());
 			}
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false));
+		$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
 	}
 
 	/**
 	 * Display is not supported by this controller.
 	 *
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	JController		This object to support chaining.
 	 * @since	1.6
 	 */
-	public function display()
+	public function display($cachable = false, $urlparams = false)
 	{
+		return $this;
 	}
 
 	/**
@@ -142,10 +147,10 @@ class JControllerAdmin extends JController
 		$value	= JArrayHelper::getValue($data, $task, 0, 'int');
 
 		if (empty($cid)) {
-			JError::raiseWarning(500, JText::_($this->_msgprefix.'_NO_ITEM_SELECTED'));
+			JError::raiseWarning(500, JText::_($this->text_prefix.'_NO_ITEM_SELECTED'));
 		} else {
 			// Get the model.
-			$model	= $this->getModel();
+			$model = $this->getModel();
 
 			// Make sure the item ids are integers
 			JArrayHelper::toInteger($cid);
@@ -155,19 +160,19 @@ class JControllerAdmin extends JController
 				JError::raiseWarning(500, $model->getError());
 			} else {
 				if ($value == 1) {
-					$ntext = $this->_msgprefix.'_N_ITEMS_PUBLISHED';
+					$ntext = $this->text_prefix.'_N_ITEMS_PUBLISHED';
 				} else if ($value == 0) {
-					$ntext = $this->_msgprefix.'_N_ITEMS_UNPUBLISHED';
+					$ntext = $this->text_prefix.'_N_ITEMS_UNPUBLISHED';
 				} else if ($value == 2) {
-					$ntext = $this->_msgprefix.'_N_ITEMS_ARCHIVED';
+					$ntext = $this->text_prefix.'_N_ITEMS_ARCHIVED';
 				} else {
-					$ntext = $this->_msgprefix.'_N_ITEMS_TRASHED';
+					$ntext = $this->text_prefix.'_N_ITEMS_TRASHED';
 				}
-				$this->setMessage(JText::__($ntext, count($cid)));
+				$this->setMessage(JText::plural($ntext, count($cid)));
 			}
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false));
+		$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
 	}
 
 	/**
@@ -190,12 +195,12 @@ class JControllerAdmin extends JController
 		if ($return === false) {
 			// Reorder failed.
 			$message = JText::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError());
-			$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false), $message, 'error');
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
 			return false;
 		} else {
 			// Reorder succeeded.
 			$message = JText::_('JLIB_APPLICATION_SUCCESS_ITEM_REORDERED');
-			$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false), $message);
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message);
 			return true;
 		}
 	}
@@ -222,9 +227,50 @@ class JControllerAdmin extends JController
 		$model = $this->getModel();
 
 		// Save the ordering
-		$model->saveorder($pks, $order);
+		$return = $model->saveorder($pks, $order);
 
-		$this->setMessage(JText::_('JLIB_APPLICATION_SUCCESS_ORDERING_SAVED'));
-		$this->setRedirect(JRoute::_('index.php?option='.$this->_option.'&view='.$this->_view_list, false));
+		if ($return === false)
+		{
+			// Reorder failed
+			$message = JText::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError());
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
+			return false;
+		} else
+		{
+			// Reorder succeeded.
+			$this->setMessage(JText::_('JLIB_APPLICATION_SUCCESS_ORDERING_SAVED'));
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
+			return true;
+		}
 	}
+
+	/**
+	 * Check in of one or more records.
+	 *
+	 * @since	1.6
+	 */
+	public function checkin()
+	{
+		// Check for request forgeries.
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+
+		// Initialise variables.
+		$user	= JFactory::getUser();
+		$ids	= JRequest::getVar('cid', null, 'post', 'array');
+
+		$model = $this->getModel();
+		$return = $model->checkin($ids);
+		if ($return === false) {
+			// Checkin failed.
+			$message = JText::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError());
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
+			return false;
+		} else {
+			// Checkin succeeded.
+			$message =  JText::plural($this->text_prefix.'_N_ITEMS_CHECKED_IN', count($ids));
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message);
+			return true;
+		}
+	}
+
 }

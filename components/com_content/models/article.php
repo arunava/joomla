@@ -31,11 +31,13 @@ class ContentModelArticle extends JModelItem
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
-		$app =& JFactory::getApplication('site');
+		$app = JFactory::getApplication('site');
 
 		// Load state from the request.
 		$pk = JRequest::getInt('id');
@@ -50,7 +52,7 @@ class ContentModelArticle extends JModelItem
 
 		// TODO: Tune these values based on other permissions.
 		$this->setState('filter.published', 1);
-		$this->setState('filter.archived', -1);
+		$this->setState('filter.archived', 2);
 	}
 
 	/**
@@ -70,8 +72,8 @@ class ContentModelArticle extends JModelItem
 		}
 
 		if (!isset($this->_item[$pk])) {
-			try
-			{
+
+			try {
 				$db = $this->getDbo();
 				$query = $db->getQuery(true);
 
@@ -92,6 +94,12 @@ class ContentModelArticle extends JModelItem
 
 				$query->where('a.id = ' . (int) $pk);
 
+				// Filter by start and end dates.
+				$nullDate = $db->Quote($db->getNullDate());
+				$nowDate = $db->Quote(JFactory::getDate()->toMySQL());
+
+				$query->where('(a.publish_up = ' . $nullDate . ' OR a.publish_up <= ' . $nowDate . ')');
+				$query->where('(a.publish_down = ' . $nullDate . ' OR a.publish_down >= ' . $nowDate . ')');
 				// Filter by published state.
 				$published = $this->getState('filter.published');
 				$archived = $this->getState('filter.archived');
@@ -108,13 +116,13 @@ class ContentModelArticle extends JModelItem
 				}
 
 				if (empty($data)) {
-					throw new Exception(JText::_('Content_Error_Article_not_found'), 404);
+					JError::raiseError(404, JText::_('COM_CONTENT_ERROR_ARTICLE_NOT_FOUND'));
 				}
 
 				// Check for published state if filter set.
-				if (((is_numeric($published)) || (is_numeric($archived))) && (($data->state != $published) && ($data->state != $archived))) 
+				if (((is_numeric($published)) || (is_numeric($archived))) && (($data->state != $published) && ($data->state != $archived)))
 				{
-					throw new Exception(JText::_('Content_Error_Article_not_found'), 404);
+					JError::raiseError(404, JText::_('COM_CONTENT_ERROR_ARTICLE_NOT_FOUND'));
 				}
 
 				// Convert parameter fields to objects.
@@ -134,7 +142,7 @@ class ContentModelArticle extends JModelItem
 				}
 				else {
 					// If no access filter is set, the layout takes some responsibility for display of limited information.
-					$user =& JFactory::getUser();
+					$user = JFactory::getUser();
 					$groups = $user->authorisedLevels();
 
 					if ($data->catid == 0 || $data->category_access === null) {
@@ -147,7 +155,7 @@ class ContentModelArticle extends JModelItem
 
 				$this->_item[$pk] = $data;
 			}
-			catch (Exception $e)
+			catch (JException $e)
 			{
 				$this->setError($e);
 				$this->_item[$pk] = false;

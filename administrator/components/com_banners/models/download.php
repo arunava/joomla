@@ -20,10 +20,15 @@ jimport('joomla.application.component.modelform');
 class BannersModelDownload extends JModelForm
 {
 	protected $_context = 'com_banners.tracks';
+
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		jimport('joomla.utilities.utility');
 		$basename = JRequest::getString(JUtility::getHash($this->_context.'.basename'),'__SITE__','cookie');
@@ -32,25 +37,38 @@ class BannersModelDownload extends JModelForm
 		$compressed = JRequest::getInt(JUtility::getHash($this->_context.'.compressed'),1,'cookie');
 		$this->setState('compressed',$compressed);
 	}
+
 	/**
 	 * Method to get the record form.
 	 *
-	 * @return	mixed	JForm object on success, false on failure.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 *
+	 * @return	mixed	A JForm object on success, false on failure
 	 * @since	1.6
 	 */
-	public function getForm()
+	public function getForm($data = array(), $loadData = true)
 	{
 		// Get the form.
-		try {
-			$form = parent::getForm('com_banners.download', 'download', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = $this->loadForm('com_banners.download', 'download', array('control' => 'jform', 'load_data' => $loadData));
+		if (empty($form)) {
 			return false;
 		}
 
-		$form->setValue('basename',$this->getState('basename'));
-		$form->setValue('compressed',$this->getState('compressed'));
-
 		return $form;
+	}
+
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function loadFormData()
+	{
+		return array(
+			'basename'		=> $this->getState('basename'),
+			'compressed'	=> $this->getState('compressed')
+		);
 	}
 }

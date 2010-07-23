@@ -2,7 +2,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.FunctionalTest
+ * @package		Joomla.SystemTest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * checks that all menu choices are shown in back end
@@ -19,7 +19,7 @@ class Module0001 extends SeleniumJoomlaTestCase
 	{
 		$this->setUp();
 		echo ("testUnpublishModule"."\n");
-		$this->gotoAdmin();		
+		$this->gotoAdmin();
 		$this->doAdminLogin();
 		$this->gotoSite();
 		echo ("Check that login form is present"."\n");
@@ -32,7 +32,8 @@ class Module0001 extends SeleniumJoomlaTestCase
 		$this->type("filter_search", "Login Form");
 		$this->click("//button[@type='submit']");
 		$this->waitForPageToLoad("30000");
-		$this->click("//img[@alt='Published']");
+    	$this->click("cb0");
+    	$this->click("//li[@id='toolbar-unpublish']/a/span");
 		$this->waitForPageToLoad("30000");
 
 		echo ("Go back to front end and check that login is not shown"."\n");
@@ -47,7 +48,8 @@ class Module0001 extends SeleniumJoomlaTestCase
 		$this->type("filter_search", "Login Form");
 		$this->click("//button[@type='submit']");
 		$this->waitForPageToLoad("30000");
-		$this->click("//img[@alt='Unpublished']");
+    	$this->click("cb0");
+    	$this->click("//li[@id='toolbar-publish']/a/span");
 		$this->waitForPageToLoad("30000");
 		$this->doAdminLogout();
 	}
@@ -65,7 +67,8 @@ class Module0001 extends SeleniumJoomlaTestCase
 		$this->type("filter_search", "Login Form");
 		$this->click("//button[@type='submit']");
 		$this->waitForPageToLoad("30000");
-		$this->click("//img[@alt='Published']");
+    	$this->click("cb0");
+    	$this->click("//li[@id='toolbar-unpublish']/a/span");
 		$this->waitForPageToLoad("30000");
 
 		$this->gotoSite();
@@ -80,13 +83,14 @@ class Module0001 extends SeleniumJoomlaTestCase
 		$this->type("filter_search", "Login Form");
 		$this->click("//button[@type='submit']");
 		$this->waitForPageToLoad("30000");
-		$this->click("//img[@alt='Unpublished']");
+		$this->click("cb0");
+    	$this->click("//li[@id='toolbar-publish']/a/span");
 		$this->waitForPageToLoad("30000");
 
 		echo ("Go to front end and check that login form is present"."\n");
 		$this->gotoSite();
 		$this->assertTrue($this->isTextPresent("Login Form"));
-		
+
 		$this->gotoAdmin();
 		$this->doAdminLogout();
 	}

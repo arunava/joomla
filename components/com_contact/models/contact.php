@@ -14,7 +14,8 @@ jimport('joomla.application.component.modelitem');
 
 /**
  * @package		Joomla.Site
- * @subpackage	Contact
+ * @subpackage	com_contact
+ * @since 1.5
  */
 class ContactModelContact extends JModelItem
 {
@@ -24,15 +25,17 @@ class ContactModelContact extends JModelItem
 	 * @var		string
 	 */
 	protected $_context = 'com_contact.contact';
-	
+
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
-		$app =& JFactory::getApplication('site');
+		$app = JFactory::getApplication('site');
 
 		// Load state from the request.
 		$pk = JRequest::getInt('id');
@@ -44,6 +47,7 @@ class ContactModelContact extends JModelItem
 
 		// TODO: Tune these values based on other permissions.
 		$this->setState('filter.published', 1);
+		$this->setState('filter.archived', 2);
 	}
 
 	/**
@@ -73,18 +77,24 @@ class ContactModelContact extends JModelItem
 				$query->select('c.title AS category_title, c.alias AS category_alias, c.access AS category_access');
 				$query->join('LEFT', '#__categories AS c on c.id = a.catid');
 
-				
+
 				// Join over the categories to get parent category titles
 				$query->select('parent.title as parent_title, parent.id as parent_id, parent.path as parent_route, parent.alias as parent_alias');
 				$query->join('LEFT', '#__categories as parent ON parent.id = c.parent_id');
 
 				$query->where('a.id = ' . (int) $pk);
 
+				// Filter by start and end dates.
+				$nullDate = $db->Quote($db->getNullDate());
+				$nowDate = $db->Quote(JFactory::getDate()->toMySQL());
+
+				$query->where('(a.publish_up = ' . $nullDate . ' OR a.publish_up <= ' . $nowDate . ')');
+				$query->where('(a.publish_down = ' . $nullDate . ' OR a.publish_down >= ' . $nowDate . ')');
 				// Filter by published state.
 				$published = $this->getState('filter.published');
 				$archived = $this->getState('filter.archived');
 				if (is_numeric($published)) {
-					$query->where('(a.state = ' . (int) $published . ' OR a.state =' . (int) $archived . ')');
+					$query->where('(a.published = ' . (int) $published . ' OR a.published =' . (int) $archived . ')');
 				}
 
 				$db->setQuery($query);
@@ -92,19 +102,28 @@ class ContactModelContact extends JModelItem
 				$data = $db->loadObject();
 
 				if ($error = $db->getErrorMsg()) {
-					throw new Exception($error);
+					throw new JException($error);
 				}
 
 				if (empty($data)) {
-					throw new Exception(JText::_('Contact_Error_Contact_not_found'), 404);
+					throw new JException(JText::_('COM_CONTACT_ERROR_CONTACT_NOT_FOUND'), 404);
 				}
 
+				// Check for published state if filter set.
+				if (((is_numeric($published)) || (is_numeric($archived))) && (($data->published != $published) && ($data->published != $archived)))
+				{
+					JError::raiseError(404, JText::_('COM_CONTACT_ERROR_CONTACT_NOT_FOUND'));
+				}
 
 				// Convert parameter fields to objects.
 				$registry = new JRegistry;
 				$registry->loadJSON($data->params);
 				$data->params = clone $this->getState('params');
 				$data->params->merge($registry);
+
+				$registry = new JRegistry;
+				$registry->loadJSON($data->metadata);
+				$data->metadata = $registry;
 
 				// Compute access permissions.
 				if ($access = $this->getState('filter.access')) {
@@ -113,7 +132,7 @@ class ContactModelContact extends JModelItem
 				}
 				else {
 					// If no access filter is set, the layout takes some responsibility for display of limited information.
-					$user =& JFactory::getUser();
+					$user = JFactory::getUser();
 					$groups = $user->authorisedLevels();
 
 					if ($data->catid == 0 || $data->category_access === null) {
@@ -126,25 +145,29 @@ class ContactModelContact extends JModelItem
 
 				$this->_item[$pk] = $data;
 			}
-			catch (Exception $e)
+			catch (JException $e)
 			{
 				$this->setError($e);
 				$this->_item[$pk] = false;
 			}
+
 		}
 
+		$extendedData = $this->getContactQuery($pk);
+ 		$this->_item[$pk]->articles = $extendedData->articles;
+  		$this->_item[$pk]->profile = $extendedData->profile;
 		return $this->_item[$pk];
 	}
-}
 
-/**
- * 
-	function _getContactQuery($pk = null)
+
+
+
+	protected function  getContactQuery($pk = null)
 	{
 		// TODO: Cache on the fingerprint of the arguments
 		$db		= $this->getDbo();
 		$user	= JFactory::getUser();
-		$pk		= (!empty($pk)) ? $pk : (int) $this->getState('contact.id');
+		$pk = (!empty($pk)) ? $pk : (int) $this->getState('contact.id');
 
 		$query	= $db->getQuery(true);
 		if ($pk) {
@@ -161,12 +184,7 @@ class ContactModelContact extends JModelItem
 			$query->where('cc.published = 1');
 			$groups		= implode(',', $user->authorisedLevels());
 			$query->where('a.access IN ('.implode(',', $user->authorisedLevels()).')');
-		}
-		return $query;
-	}		
-		
-		$db		= $this->getDbo();
-		$query	= $this->_getContactQuery($pk);
+
 		try {
 			$db->setQuery($query);
 			$result = $db->loadObject();
@@ -181,11 +199,11 @@ class ContactModelContact extends JModelItem
 
 			// If we are showing a contact list, then the contact parameters take priority
 			// So merge the contact parameters with the merged parameters
-			if ($this->getState('params')->get('show_contact_list')) {
-				$registry = new JRegistry;
-				$registry->loadJSON($result->params);
-				$this->getState('params')->merge($registry);
-			}
+				if ($this->getState('params')->get('show_contact_list')) {
+					$registry = new JRegistry;
+					$registry->loadJSON($result->params);
+					$this->getState('params')->merge($registry);
+				}
 		} catch (Exception $e) {
 			$this->setError($e);
 			return false;
@@ -214,7 +232,9 @@ class ContactModelContact extends JModelItem
 			$profile = $db->loadObjectList();
 			$result->profile = $profile;
 		}
-
+		$this->contact = $result;
 		return $result;
+		}
+	}
+}
 
- */

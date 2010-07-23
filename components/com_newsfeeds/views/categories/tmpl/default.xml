@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <metadata>
 	<layout title="COM_NEWSFEEDS_CATEGORIES_VIEW_DEFAULT_TITLE">
+		<help
+			key = "JHELP_MENUS_MENU_ITEM_NEWSFEED_CATEGORIES"
+		/>
 		<message>
 			<![CDATA[COM_NEWSFEEDS_CATEGORIES_VIEW_DEFAULT_DESC]]>
 		</message>
@@ -11,9 +14,9 @@
 		<fieldset name="request"
 		>
 			<field name="id" type="category"
-				description="CHOOSE_CATEGORY_DESC"
+				description="JGLOBAL_CHOOSE_CATEGORY_DESC"
 				extension="com_newsfeeds"
-				label="CHOOSE_CATEGORY_LABEL"
+				label="JGLOBAL_CHOOSE_CATEGORY_LABEL"
 				show_root="true"
 				required="true"
 			/>
@@ -23,15 +26,23 @@
 	<!-- Add fields to the parameters object for the layout. -->
 <fields name="params">
 <fieldset name="basic">
+			<field name="show_base_description" type="radio"
+				label="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_LABEL"
+				description="JGLOBAL_FIELD_SHOW_BASE_DESCRIPTION_DESC"
+			>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
 			<field name="categories_description" type="textarea"
-				description="COM_CONTENT_FIELD_CATEGORIES_DESC_DESC"
-				label="COM_CONTENT_FIELD_CATEGORIES_DESC_LABEL"
+				description="JGLOBAL_FIELD_CATEGORIES_DESC_DESC"
+				label="JGLOBAL_FIELD_CATEGORIES_DESC_LABEL"
 				cols="25"
 				rows="5"
 			/>
 			<field name="maxLevel" type="list"
-				description="COM_CONTENT_FIELD_MAXLEVEL_DESC"
-				label="COM_CONTENT_FIELD_MAXLEVEL_LABEL"
+				description="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_DESC"
+				label="JGLOBAL_MAXIMUM_CATEGORY_LEVELS_LABEL"
 			>
 				<option value="-1">JALL</option>
 				<option value="0">JNONE</option>
@@ -43,8 +54,8 @@
 			</field>
 
 			<field name="show_empty_categories" type="radio"
-				label="Show empty Categories"
-				description="Show/Hide empty(no items) categories"
+				label="JGLOBAL_SHOW_EMPTY_CATEGORIES_LABEL"
+				description="JGLOBAL_SHOW_EMPTY_CATEGORIES_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -68,8 +79,8 @@
 				<option value="1">JSHOW</option>
 			</field>
 			<field name="show_cat_num_articles" type="radio"
-				label="Num Category Items"
-				description="PARAMCATITEMS"
+				label="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_LABEL"
+				description="JGLOBAL_FIELD_NUM_CATEGORY_ITEMS_DESC"
 			>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
@@ -159,7 +170,7 @@
 			</field>
 </fieldset>
 
-<fieldset name="newsfeed">
+<fieldset name="newsfeed" label="COM_NEWSFEEDS_FIELDSET_MORE_OPTIONS_LABEL">
 
 			<field name="show_feed_image" type="list"
 				description="COM_NEWSFEEDS_FIELD_SHOW_FEED_IMAGE_DESC"
@@ -197,24 +208,6 @@
 </fieldset>
 		<fieldset name="integration"
 		>
-
-			<field name="article-allow_ratings" type="list"
-				description="JGLOBAL_Allow_Ratings_Desc"
-				label="JGLOBAL_Allow_Ratings_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
-
-			<field name="article-allow_comments" type="list"
-				description="JGLOBAL_Allow_Comments_Desc"
-				label="JGLOBAL_Allow_Comments_Label"
-			>
-				<option value="">JGLOBAL_USE_GLOBAL</option>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
-			</field>
 
 			<field name="show_feed_link" type="list"
 				description="JGLOBAL_Show_Feed_Link_Desc"

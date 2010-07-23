@@ -17,6 +17,9 @@ abstract class modArticlesLatestHelper
 {
 	public static function getList(&$params)
 	{
+		// Get the dbo
+		$db = JFactory::getDbo();
+
 		// Get an instance of the generic articles model
 		$model = JModel::getInstance('Articles', 'ContentModel', array('ignore_request' => true));
 
@@ -35,32 +38,32 @@ abstract class modArticlesLatestHelper
 		$model->setState('filter.access', $access);
 
 		// Category filter
-		if ($catid = $params->get('catid')) {
-			$model->setState('filter.category_id', $catid);
-		}
+		$model->setState('filter.category_id', $params->get('catid', array()));
 
 		// User filter
 		$userId = JFactory::getUser()->get('id');
 		switch ($params->get('user_id'))
 		{
 			case 'by_me':
-				$model->setState('filter.author_id', $userId);
+				$model->setState('filter.author_id', (int) $userId);
 				break;
 			case 'not_me':
 				$model->setState('filter.author_id', $userId);
 				$model->setState('filter.author_id.include', false);
+				break;
+
+			case 0:
+				break;
+
+			default:
+				$model->setState('filter.author_id', (int) $params->get('user_id'));
 				break;
 		}
 
 		// Set ordering
 		$order_map = array(
 			'm_dsc' => 'a.modified DESC, a.created',
-			/*
-			 * TODO below line does not work because it's running through JDatabase::_getEscaped
-			 * which adds unnecessary quotes before and after the null date.
-			 * This should be uncommented when it's fixed.
-			 */
-			//'mc_dsc' => 'CASE WHEN (a.modified = \'0000-00-00 00:00:00\') THEN a.created ELSE a.modified END',
+			'mc_dsc' => 'CASE WHEN (a.modified = '.$db->quote($db->getNullDate()).') THEN a.created ELSE a.modified END',
 			'c_dsc' => 'a.created'
 		);
 

@@ -3,10 +3,13 @@
  * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.5
  */
 
 // no direct access
 defined('_JEXEC') or die;
+
+include_once dirname(__FILE__).'/../default/view.php';
 
 /**
  * Extension Manager Install View
@@ -15,11 +18,11 @@ defined('_JEXEC') or die;
  * @subpackage	com_installer
  * @since		1.5
  */
-
-include_once dirname(__FILE__).DS.'..'.DS.'default'.DS.'view.php';
-
 class InstallerViewInstall extends InstallerViewDefault
 {
+	/**
+	 * @since	1.5
+	 */
 	function display($tpl=null)
 	{
 		$paths = new stdClass();
@@ -29,5 +32,16 @@ class InstallerViewInstall extends InstallerViewDefault
 		$this->assignRef('state', $this->get('state'));
 
 		parent::display($tpl);
+	}
+
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
+	 */
+	protected function addToolbar()
+	{
+		parent::addToolbar();
+		JToolBarHelper::help('JHELP_EXTENSIONS_EXTENSION_MANAGER_INSTALL');
 	}
 }

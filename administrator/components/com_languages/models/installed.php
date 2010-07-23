@@ -60,29 +60,19 @@ class LanguagesModelInstalled extends JModelList
 	protected $path = null;
 
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_languages.installed';
-
-	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
+	 * Note. Calling getState in this method will result in recursion.
 	 *
-	 * @return	void
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$clientId = $app->getUserStateFromRequest($this->_context.'.filter.client_id', 'filter_client_id', 0);
+		$clientId = $app->getUserStateFromRequest($this->context.'.filter.client_id', 'filter_client_id', 0);
 		$this->setState('filter.client_id', $clientId);
 
 		// Load the parameters.
@@ -90,7 +80,7 @@ class LanguagesModelInstalled extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.title', 'asc');
+		parent::populateState('a.title', 'asc');
 	}
 
 	/**
@@ -104,12 +94,12 @@ class LanguagesModelInstalled extends JModelList
 	 * @return	string		A store id.
 	 * @since	1.6
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.client_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
@@ -120,7 +110,7 @@ class LanguagesModelInstalled extends JModelList
 	public function &getClient()
 	{
 		if (is_null($this->client)) {
-			$this->client = &JApplicationHelper::getClientInfo($this->getState('filter.client_id', 0));
+			$this->client = JApplicationHelper::getClientInfo($this->getState('filter.client_id', 0));
 		}
 		return $this->client;
 	}
@@ -135,7 +125,7 @@ class LanguagesModelInstalled extends JModelList
 		if (is_null($this->ftp))
 		{
 			jimport('joomla.client.helper');
-			$this->ftp = &JClientHelper::setCredentialsFromRequest('ftp');
+			$this->ftp = JClientHelper::setCredentialsFromRequest('ftp');
 		}
 		return $this->ftp;
 	}
@@ -161,16 +151,16 @@ class LanguagesModelInstalled extends JModelList
 		if (is_null($this->data))
 		{
 			// Get information
-			$folders	= &$this->_getFolders();
-			$path		= &$this->_getPath();
-			$client		= &$this->getClient();
+			$folders	= $this->getFolders();
+			$path		= $this->getPath();
+			$client		= $this->getClient();
 
 			// Compute all the languages
 			$data	= array ();
 			foreach ($folders as $folder)
 			{
 				$file = $path.DS.$folder.DS.$folder.'.xml';
-				$info = & JApplicationHelper::parseXMLLangMetaFile($file);
+				$info = JApplicationHelper::parseXMLLangMetaFile($file);
 				$row = new JObject();
 				$row->language = $folder;
 
@@ -181,7 +171,7 @@ class LanguagesModelInstalled extends JModelList
 					$row->$key = $value;
 				}
 				// if current than set published
-				$params = &JComponentHelper::getParams('com_languages');
+				$params = JComponentHelper::getParams('com_languages');
 				if ($params->get($client->name, 'en-GB') == $row->language) {
 					$row->published	= 1;
 				}
@@ -192,7 +182,7 @@ class LanguagesModelInstalled extends JModelList
 				$row->checked_out = 0;
 				$data[] = $row;
 			}
-			usort($data,array('LanguagesModelInstalled','_compareLanguages'));
+			usort($data,array('LanguagesModelInstalled','compareLanguages'));
 
 			// Prepare data
 			$limit = $this->getState('list.limit');
@@ -233,7 +223,7 @@ class LanguagesModelInstalled extends JModelList
 	{
 		if (is_null($this->total))
 		{
-			$folders = & $this->_getFolders();
+			$folders = $this->getFolders();
 			$this->total = count($folders);
 		}
 		return $this->total;
@@ -247,12 +237,12 @@ class LanguagesModelInstalled extends JModelList
 	public function publish($cid)
 	{
 		if ($cid) {
-			$client	= & $this->getClient();
+			$client	= $this->getClient();
 
-			$params = & JComponentHelper::getParams('com_languages');
+			$params = JComponentHelper::getParams('com_languages');
 			$params->set($client->name, $cid);
 
-			$table = & JTable::getInstance('extension');
+			$table = JTable::getInstance('extension');
 			$id = $table->find(array('element' => 'com_languages'));
 
 			// Load
@@ -274,7 +264,7 @@ class LanguagesModelInstalled extends JModelList
 			}
 		}
 		else {
-			$this->setError(JText::_('COM_LANGS_ERR_NO_LANGUAGE_SELECTED'));
+			$this->setError(JText::_('COM_LANGUAGES_ERR_NO_LANGUAGE_SELECTED'));
 			return false;
 		}
 		return true;
@@ -285,13 +275,13 @@ class LanguagesModelInstalled extends JModelList
 	 *
 	 * @return array languages folders
 	 */
-	protected function _getFolders()
+	protected function getFolders()
 	{
 		if (is_null($this->folders))
 		{
-			$path = & $this->_getPath();
+			$path = $this->getPath();
 			jimport('joomla.filesystem.folder');
-			$this->folders = &JFolder::folders($path, '.', false, false, array('.svn', 'CVS', '.DS_Store', '__MACOSX', 'pdf_fonts','overrides'));
+			$this->folders = JFolder::folders($path, '.', false, false, array('.svn', 'CVS', '.DS_Store', '__MACOSX', 'pdf_fonts','overrides'));
 		}
 		return $this->folders;
 	}
@@ -301,12 +291,12 @@ class LanguagesModelInstalled extends JModelList
 	 *
 	 * @return string the path to the languages folders
 	 */
-	protected function _getPath()
+	protected function getPath()
 	{
 		if (is_null($this->path))
 		{
-			$client = &$this->getClient();
-			$this->path = &JLanguage::getLanguagePath($client->path);
+			$client = $this->getClient();
+			$this->path = JLanguage::getLanguagePath($client->path);
 		}
 		return $this->path;
 	}
@@ -318,7 +308,7 @@ class LanguagesModelInstalled extends JModelList
 	 * @param object $lang2 the second language
 	 * @return integer
 	 */
-	protected function _compareLanguages($lang1,$lang2)
+	protected function compareLanguages($lang1,$lang2)
 	{
 		return strcmp($lang1->name,$lang2->name);
 	}

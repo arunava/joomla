@@ -1,12 +1,12 @@
 <?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
+defined('_JEXEC') or die; ?>
 <form action="<?php echo JRoute::_('index.php?view=category&id='.$this->category->slug); ?>" method="post" name="adminForm">
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
 <?php if ($this->params->get('show_limit')) : ?>
 <tr>
 	<td align="right" colspan="4">
 	<?php
-		echo JText::_('DISPLAY_NUM') .'&nbsp;';
+		echo JText::_('JGLOBAL_DISPLAY_NUM') .'&#160;';
 		echo $this->pagination->getLimitBox();
 	?>
 	</td>

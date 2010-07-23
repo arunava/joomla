@@ -26,8 +26,12 @@ class TemplatesModelStyle extends JModelForm
 
 	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = JFactory::getApplication('administrator');
 
@@ -65,10 +69,12 @@ class TemplatesModelStyle extends JModelForm
 				}
 
 				if (!$table->delete($pk)) {
-					throw new Exception($table->getError());
+					$this->setError($table->getError());
+					return false;
 				}
 			} else {
-				throw new Exception($table->getError());
+				$this->setError($table->getError());
+				return false;
 			}
 		}
 
@@ -127,11 +133,12 @@ class TemplatesModelStyle extends JModelForm
 	/**
 	 * Method to get the record form.
 	 *
-	 * @param	array		An optional array of source data.
-	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @param	array	$data		An optional array of data for the form to interogate.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm($data = null)
+	public function getForm($data = array(), $loadData = true)
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication();
@@ -151,22 +158,30 @@ class TemplatesModelStyle extends JModelForm
 		$this->setState('item.template',	$template);
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_templates.style', 'style', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = $this->loadForm('com_templates.style', 'style', array('control' => 'jform', 'load_data' => $loadData));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_templates.edit.style.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function loadFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_templates.edit.style.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -185,7 +200,7 @@ class TemplatesModelStyle extends JModelForm
 			$false	= false;
 
 			// Get a row instance.
-			$table = &$this->getTable();
+			$table = $this->getTable();
 
 			// Attempt to load the row.
 			$return = $table->load($pk);
@@ -230,11 +245,11 @@ class TemplatesModelStyle extends JModelForm
 
 	/**
 	 * @param	object	A form object.
-	 *
+	 * @param	mixed	The data expected for the form.
 	 * @throws	Exception if there is an error in the form event.
 	 * @since	1.6
 	 */
-	protected function preprocessForm($form)
+	protected function preprocessForm($form, $data)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
@@ -255,12 +270,17 @@ class TemplatesModelStyle extends JModelForm
 		if (file_exists($formFile)) {
 			// Get the template form.
 			if (!$form->loadFile($formFile, false, '//config')) {
-				throw new Exception(JText::_('JModelForm_Error_loadFile_failed'));
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
 			}
 		}
 
+		// Disable home field if it is default style
+		if(is_array($data) && $data['home'] || is_object($data) && $data->home) {
+			$form->setFieldAttribute('home','readonly','true');
+		}
+
 		// Trigger the default form events.
-		parent::preprocessForm($form);
+		parent::preprocessForm($form, $data);
 	}
 
 	/**
@@ -277,8 +297,8 @@ class TemplatesModelStyle extends JModelForm
 		$pk			= (!empty($data['id'])) ? $data['id'] : (int)$this->getState('style.id');
 		$isNew		= true;
 
-		// Include the content plugins for the onSave events.
-		JPluginHelper::importPlugin('content');
+		// Include the extension plugins for the save events.
+		JPluginHelper::importPlugin('extension');
 
 		// Load the row if saving an existing record.
 		if ($pk > 0) {
@@ -301,15 +321,56 @@ class TemplatesModelStyle extends JModelForm
 			return false;
 		}
 
+		// Trigger the onExtensionBeforeSave event.
+		$result = $dispatcher->trigger('onExtensionBeforeSave', array('com_templates.style', &$table, $isNew));
+		if (in_array(false, $result, true)) {
+			$this->setError($table->getError());
+			return false;
+		}
+
 		// Store the data.
 		if (!$table->store()) {
 			$this->setError($table->getError());
 			return false;
 		}
 
+		$user = JFactory::getUser();
+		if ($user->authorise('core.edit','com_menus') && $table->client_id==0) {
+			$n=0;
+
+			$db = JFactory::getDbo();
+			$user = JFactory::getUser();
+			$app = JFactory::getApplication();
+			$query=$db->getQuery(true);
+			$query->update('#__menu');
+			$query->set('template_style_id='.(int)$table->id);
+			$query->where('id IN ('.implode(',',$data['assigned']).')');
+			$query->where('template_style_id!='.(int)$table->id);
+			$query->where('checked_out in (0,'.(int)$user->id.')');
+			$db->setQuery($query);
+			$db->query();
+			$n = $n + $db->getAffectedRows();
+
+			$query=$db->getQuery(true);
+			$query->update('#__menu');
+			$query->set('template_style_id=0');
+			$query->where('id NOT IN ('.implode(',',$data['assigned']).')');
+			$query->where('template_style_id='.(int)$table->id);
+			$query->where('checked_out in (0,'.(int)$user->id.')');
+			$db->setQuery($query);
+			$db->query();
+			$n = $n + $db->getAffectedRows();
+			if ($n>0) {
+				$app->enQueueMessage(JText::plural('COM_TEMPLATES_MENU_CHANGED',$n));
+			}
+		}
+
 		// Clean the cache.
 		$cache = JFactory::getCache('com_templates');
 		$cache->clean();
+
+		// Trigger the onExtensionAfterSave event.
+		$dispatcher->trigger('onExtensionAfterSave', array('com_templates.style', &$table, $isNew));
 
 		$this->setState('style.id', $table->id);
 

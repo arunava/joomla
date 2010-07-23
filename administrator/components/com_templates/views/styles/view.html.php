@@ -19,61 +19,65 @@ jimport('joomla.application.component.view');
  */
 class TemplatesViewStyles extends JView
 {
-	protected $state;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$state	= $this->get('State');
 		$canDo	= TemplatesHelper::getActions();
 		$isSite	= ($state->get('filter.client_id') == 0);
 
+		JToolBarHelper::title(JText::_('COM_TEMPLATES_MANAGER_STYLES'), 'thememanager');
+
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::makeDefault('styles.setDefault', 'COM_TEMPLATES_TOOLBAR_SET_HOME');
+			JToolBarHelper::divider();
+		}
+
 		if ($canDo->get('core.edit')) {
 			JToolBarHelper::editList('style.edit','JTOOLBAR_EDIT');
 		}
-		if ($canDo->get('core.edit.state')) {
-			JToolBarHelper::custom('styles.sethome', 'default.png', 'default_f2.png', 'COM_TEMPLATES_TOOLBAR_SET_HOME', true);
-		}
-		JToolBarHelper::title(JText::_('COM_TEMPLATES_MANAGER_STYLES'), 'thememanager');
 		if ($canDo->get('core.create') && $isSite) {
 			JToolBarHelper::addNew('styles.duplicate', 'JTOOLBAR_DUPLICATE');
 		}
+
 		if ($canDo->get('core.delete') && $isSite) {
+			JToolBarHelper::divider();
 			JToolBarHelper::deleteList('', 'styles.delete','JTOOLBAR_DELETE');
 		}
+
 		if ($canDo->get('core.admin')) {
 			JToolBarHelper::divider();
 			JToolBarHelper::preferences('com_templates');
 		}
+
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.templates','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_TEMPLATE_MANAGER_STYLES');
 	}
 }

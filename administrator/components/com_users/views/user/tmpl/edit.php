@@ -21,24 +21,31 @@ $fieldsets = $this->form->getFieldsets();
 ?>
 
 <script type="text/javascript">
-<!--
 	function submitbutton(task)
 	{
 		if (task == 'user.cancel' || document.formvalidator.isValid(document.id('user-form'))) {
 			submitform(task);
 		}
 	}
-// -->
 </script>
 
 <form action="<?php JRoute::_('index.php?option=com_users'); ?>" method="post" name="adminForm" id="user-form" class="form-validate">
 	<div class="width-60 fltlft">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('Users_User_Account_Details'); ?></legend>
+			<legend><?php echo JText::_('COM_USERS_USER_ACCOUNT_DETAILS'); ?></legend>
+			<ul class="adminformlist">
 			<?php foreach($this->form->getFieldset('user_details') as $field) :?>
-				<?php echo $field->label; ?>
-				<?php echo $field->input; ?>
+				<li><?php echo $field->label; ?>
+				<?php echo $field->input; ?></li>
 			<?php endforeach; ?>
+			</ul>
+		</fieldset>
+
+		<fieldset id="user-groups" class="adminform">
+			<legend><?php echo JText::_('COM_USERS_ASSIGNED_GROUPS'); ?></legend>
+				<?php if ($this->grouplist) :
+					echo $this->loadTemplate('groups');
+				endif; ?>
 		</fieldset>
 
 	</div>
@@ -53,26 +60,21 @@ $fieldsets = $this->form->getFieldsets();
 			echo JHTML::_('sliders.panel', JText::_($fieldset->label), $fieldset->name);
 		?>
 		<fieldset class="panelform">
+		<ul class="adminformlist">
 		<?php foreach($this->form->getFieldset($fieldset->name) as $field): ?>
 			<?php if ($field->hidden): ?>
 				<?php echo $field->input; ?>
 			<?php else: ?>
-				<?php echo $field->label; ?>
-				<?php echo $field->input; ?>
+				<li><?php echo $field->label; ?>
+				<?php echo $field->input; ?></li>
 			<?php endif; ?>
 		<?php endforeach; ?>
+		</ul>
 		</fieldset>
 		<?php endforeach; ?>
 		<?php echo JHTML::_('sliders.end'); ?>
 
-		<fieldset id="user-groups">
-			<legend><?php echo JText::_('Users_Assigned_Groups'); ?></legend>
-				<?php if ($this->grouplist) :
-					echo $this->loadTemplate('groups');
-				endif; ?>
-		</fieldset>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
-
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
 </form>

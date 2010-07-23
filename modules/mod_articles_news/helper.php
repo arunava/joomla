@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: helper.php 15664 2010-03-28 18:29:08Z klascommit $
+ * @version		$Id$
  * @package		Joomla.Site
  * @subpackage	mod_articles_latest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
@@ -17,7 +17,8 @@ abstract class modArticlesNewsHelper
 {
 	public static function getList(&$params)
 	{
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
+		$db		= JFactory::getDbo();
 
 		// Get an instance of the generic articles model
 		$model = JModel::getInstance('Articles', 'ContentModel', array('ignore_request' => true));
@@ -42,19 +43,12 @@ abstract class modArticlesNewsHelper
 		$model->setState('filter.access', $access);
 
 		// Category filter
-		if ($catid = $params->get('catid')) {
-			$model->setState('filter.category_id', $catid);
-		}
+		$model->setState('filter.category_id', $params->get('catid', array()));
 
 		// Set ordering
 		$order_map = array(
 			'm_dsc' => 'a.modified DESC, a.created',
-			/*
-			 * TODO below line does not work because it's running through JDatabase::_getEscaped
-			 * which adds unnecessary quotes before and after the null date.
-			 * This should be uncommented when it's fixed.
-			 */
-			//'mc_dsc' => 'CASE WHEN (a.modified = \'0000-00-00 00:00:00\') THEN a.created ELSE a.modified END',
+			'mc_dsc' => 'CASE WHEN (a.modified = '.$db->quote($db->getNullDate()).') THEN a.created ELSE a.modified END',
 			'c_dsc' => 'a.created'
 		);
 
@@ -90,13 +84,13 @@ abstract class modArticlesNewsHelper
 				$item->introtext = preg_replace('/<img[^>]*>/', '', $item->introtext);
 			}
 
-			$results = $app->triggerEvent('onAfterDisplayTitle', array (&$item, &$params, 1));
+			$results = $app->triggerEvent('onContentAfterDisplay', array('com_content.article', &$item, &$params, 1));
 			$item->afterDisplayTitle = trim(implode("\n", $results));
 
-			$results = $app->triggerEvent('onBeforeDisplayContent', array (&$item, &$params, 1));
+			$results = $app->triggerEvent('onContentBeforeDisplay', array('com_content.article', &$item, &$params, 1));
 			$item->beforeDisplayContent = trim(implode("\n", $results));
 		}
-//echo "<pre>";print_r($item);echo "</pre>";
+
 		return $items;
 	}
 }

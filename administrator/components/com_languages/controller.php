@@ -18,37 +18,30 @@ defined('_JEXEC') or die;
 class LanguagesController extends JController
 {
 	/**
-	 * task to display the view
+	 * @var		string	The default view.
+	 * @since	1.6
 	 */
-	function display()
+	protected $default_view = 'installed';
+
+	/**
+	 * Method to display a view.
+	 *
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	JController		This object to support chaining.
+	 * @since	1.5
+	 */
+	public function display($cachable = false, $urlparams = false)
 	{
-		// Get the document object.
-		$document = &JFactory::getDocument();
+		require_once JPATH_COMPONENT.'/helpers/languages.php';
 
-		// Set the default view name and format from the Request.
-		$vName		= JRequest::getWord('view', 'installed');
-		$vFormat	= $document->getType();
-		$lName		= JRequest::getWord('layout', 'default');
+		parent::display();
 
-		// Get and render the view.
-		if ($view = &$this->getView($vName, $vFormat))
-		{
-			// Get the model for the view.
-			$model = &$this->getModel($vName);
+		// Load the submenu.
+		LanguagesHelper::addSubmenu(JRequest::getWord('view', 'installed'));
 
-			// Push the model into the view (as default).
-			$view->setModel($model, true);
-			$view->setLayout($lName);
-
-			// Push document object into the view.
-			$view->assignRef('document', $document);
-
-			$view->display();
-
-			// Load the submenu.
-			require_once JPATH_COMPONENT.DS.'helpers'.DS.'languages.php';
-			LanguagesHelper::addSubmenu($vName);
-		}
+		return $this;
 	}
 
 	/**
@@ -58,18 +51,15 @@ class LanguagesController extends JController
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
-		$model = & $this->getModel('languages');
-		if ($model->publish())
-		{
-			$msg = JText::_('COM_LANGS_MSG_DEFAULT_LANGUAGE_SAVED');
+		$model = $this->getModel('languages');
+		if ($model->publish()) {
+			$msg = JText::_('COM_LANGUAGES_MSG_DEFAULT_LANGUAGE_SAVED');
 			$type = 'message';
-		}
-		else
-		{
-			$msg = & $this->getError();
+		} else {
+			$msg = $this->getError();
 			$type = 'error';
 		}
-		$client = & $model->getClient();
+		$client = $model->getClient();
 		$this->setredirect('index.php?option=com_languages&client='.$client->id,$msg,$type);
 	}
 }

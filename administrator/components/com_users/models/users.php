@@ -19,31 +19,34 @@ jimport('joomla.application.component.modellist');
 class UsersModelUsers extends JModelList
 {
 	/**
-	 * Model context string.
-	 *
-	 * @var		string
-	 */
-	protected $_context = 'com_users.users';
-
-	/**
 	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		// Initialise variables.
 		$app = JFactory::getApplication('administrator');
 
+		// Adjust the context to support modal layouts.
+		if ($layout = JRequest::getVar('layout', 'default')) {
+			$this->context .= '.'.$layout;
+		}
+
 		// Load the filter state.
-		$search = $app->getUserStateFromRequest($this->_context.'.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context.'.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$active = $app->getUserStateFromRequest($this->_context.'.filter.active', 'filter_active');
+		$active = $app->getUserStateFromRequest($this->context.'.filter.active', 'filter_active');
 		$this->setState('filter.active', $active);
 
-		$state = $app->getUserStateFromRequest($this->_context.'.filter.state', 'filter_state');
+		$state = $app->getUserStateFromRequest($this->context.'.filter.state', 'filter_state');
 		$this->setState('filter.state', $state);
 
-		$groupId = $app->getUserStateFromRequest($this->_context.'.filter.group', 'filter_group_id', null, 'int');
+		$groupId = $app->getUserStateFromRequest($this->context.'.filter.group', 'filter_group_id', null, 'int');
 		$this->setState('filter.group_id', $groupId);
 
 		// Load the parameters.
@@ -51,7 +54,7 @@ class UsersModelUsers extends JModelList
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::_populateState('a.name', 'asc');
+		parent::populateState('a.name', 'asc');
 	}
 
 	/**
@@ -64,8 +67,9 @@ class UsersModelUsers extends JModelList
 	 * @param	string		$id	A prefix for the store id.
 	 *
 	 * @return	string		A store id.
+	 * @since	1.6
 	 */
-	protected function _getStoreId($id = '')
+	protected function getStoreId($id = '')
 	{
 		// Compile the store id.
 		$id	.= ':'.$this->getState('filter.search');
@@ -73,15 +77,16 @@ class UsersModelUsers extends JModelList
 		$id	.= ':'.$this->getState('filter.state');
 		$id	.= ':'.$this->getState('filter.group_id');
 
-		return parent::_getStoreId($id);
+		return parent::getStoreId($id);
 	}
 
 	/**
 	 * Build an SQL query to load the list data.
 	 *
 	 * @return	JDatabaseQuery
+	 * @since	1.6
 	 */
-	protected function _getListQuery()
+	protected function getListQuery()
 	{
 		// Create a new query object.
 		$db		= $this->getDbo();
@@ -107,15 +112,17 @@ class UsersModelUsers extends JModelList
 
 		// If the model is set to check item state, add to the query.
 		$state = $this->getState('filter.state');
+
 		if (is_numeric($state)) {
 			$query->where('a.block = '.(int) $state);
 		}
 
 		// If the model is set to check the activated state, add to the query.
 		$active = $this->getState('filter.active');
+
 		if (is_numeric($active)) {
 			if ($active == '0') {
-				$query->where('a.activation = ""');
+				$query->where('a.activation = '.$db->quote(''));
 			} else if ($active == '1') {
 				$query->where('LENGTH(a.activation) = 32');
 			}

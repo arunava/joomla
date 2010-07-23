@@ -6,7 +6,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 $cparams = JComponentHelper::getParams ('com_media');
 ?>
-<?php if ( $this->params->get( 'show_page_title', 1 ) && !$this->contact->params->get( 'popup' ) && $this->params->get('page_title') != $this->contact->name ) : ?>
+<?php if ( $this->params->get( 'show_page_heading', 1 ) && !$this->contact->params->get( 'popup' ) && $this->params->get('page_title') != $this->contact->name ) : ?>
 	<div class="componentheading<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>">
 		<?php echo $this->params->get( 'page_title' ); ?>
 	</div>
@@ -61,7 +61,7 @@ $cparams = JComponentHelper::getParams ('com_media');
 		</tr>
 		</table>
 	</td>
-	<td>&nbsp;</td>
+	<td>&#160;</td>
 </tr>
 <?php if ( $this->contact->params->get( 'allow_vcard' ) ) : ?>
 <tr>

@@ -22,44 +22,41 @@ jimport('joomla.application.component.view');
  */
 class CacheViewCache extends JView
 {
-	public $data;
-
-	public $state;
-
-	public $client;
-
-	public $pagination;
+	protected $client;
+	protected $data;
+	protected $pagination;
+	protected $state;
 
 	public function display($tpl = null)
 	{
-		$data		= $this->get('Data');
-		$client		= $this->get('Client');
-		$pagination = $this->get('Pagination');
-		$state		= $this->get('State');
+		$this->data			= $this->get('Data');
+		$this->client		= $this->get('Client');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
-		$this->assignRef('data',		$data);
-		$this->assignRef('client',		$client);
-		$this->assignRef('state',		$state);
-		$this->assignRef('pagination',	$pagination);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
-	protected function _setToolbar()
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
+	 */
+	protected function addToolbar()
 	{
 		$user = JFactory::getUser();
 		$condition = ($this->client->name == 'site');
 		JSubMenuHelper::addEntry(JText::_('JSITE'), 'index.php?option=com_cache&client=0', $condition);
 		JSubMenuHelper::addEntry(JText::_('JADMINISTRATOR'), 'index.php?option=com_cache&client=1', !$condition);
 
-		JToolBarHelper::title(JText::_('COM_CACHE_MANAGER').' - '.JText::_('COM_CACHE_CLEAR_CACHE_ADMIN'), 'clear.png');
-		JToolBarHelper::custom('delete', 'delete.png', 'delete_f2.png', 'JTOOLBAR_TRASH', true);
+		JToolBarHelper::title(JText::_('COM_CACHE_MANAGER').': '.JText::_('COM_CACHE_CLEAR_CACHE'), 'clear.png');
+		JToolBarHelper::custom('delete', 'delete.png', 'delete_f2.png', 'JTOOLBAR_DELETE', true);
 		JToolBarHelper::divider();
 		if (JFactory::getUser()->authorise('core.admin', 'com_cache')) {
 			JToolBarHelper::preferences('com_cache');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.cache','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_SITE_MAINTENANCE_CLEAR_CACHE');
 	}
 }

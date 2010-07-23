@@ -91,7 +91,7 @@ class JFormFieldRules extends JFormField
 		$html[] = '	<thead>';
 		$html[] = '	<tr>';
 		$html[] = '		<th>';
-		$html[] = '			<span class="acl-action">'.JText::_('JAction_User_Group').'</span>';
+		$html[] = '			<span class="acl-action">'.JText::_('JACTION_USER_GROUP').'</span>';
 		$html[] = '		</th>';
 		foreach ($actions as $action) {
 			$html[] = '		<th>';
@@ -113,10 +113,10 @@ class JFormFieldRules extends JFormField
 				// TODO: Fix this inline style stuff...
 				//$html[] = '			<fieldset class="access_rule">';
 
-				$html[] = '				<select name="'.$this->name.'['.$action->name.']['.$group->value.']" id="'.$this->id.'_'.$action->name.'_'.$group->value.'">';
-				$html[] = '					<option value=""'.($rules->allow($action->name, $group->value) === null ? ' selected="selected"' : '').'>'.JText::_('JInherit_Unset').'</option>';
-				$html[] = '					<option value="0"'.($rules->allow($action->name, $group->value) === false ? ' selected="selected"' : '').'>'.JText::_('JDeny').'</option>';
-				$html[] = '					<option value="1"'.($rules->allow($action->name, $group->value) === true ? ' selected="selected"' : '').'>'.JText::_('JAllow').'</option>';
+				$html[] = '				<select name="'.$this->name.'['.$action->name.']['.$group->value.']" id="'.$this->id.'_'.$action->name.'_'.$group->value.'" title="'.JText::sprintf('JSELECT_ALLOW_DENY_GROUP', JText::_($action->title), trim($group->text)).'">';
+				$html[] = '					<option value=""'.($rules->allow($action->name, $group->value) === null ? ' selected="selected"' : '').'>'.JText::_('JINHERIT_UNSET').'</option>';
+				$html[] = '					<option value="0"'.($rules->allow($action->name, $group->value) === false ? ' selected="selected"' : '').'>'.JText::_('JDENY').'</option>';
+				$html[] = '					<option value="1"'.($rules->allow($action->name, $group->value) === true ? ' selected="selected"' : '').'>'.JText::_('JALLOW').'</option>';
 				$html[] = '				</select>';
 				//$html[] = '			</fieldset>';
 				$html[] = '		</td>';
@@ -148,7 +148,7 @@ class JFormFieldRules extends JFormField
 
 		// Pad the option text with spaces using depth level as a multiplier.
 		foreach ($options as $option) {
-			$option->text = str_repeat('&nbsp;&nbsp;',$option->level).$option->text;
+			$option->text = str_repeat('&#160;&#160;',$option->level).$option->text;
 		}
 
 		return $options;

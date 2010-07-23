@@ -16,70 +16,64 @@ jimport('joomla.application.component.view');
  *
  * @package		Joomla.Site
  * @subpackage	com_users
- * @version		1.0
+ * @since		1.5
  */
 class UsersViewRemind extends JView
 {
+	protected $form;
+	protected $params;
+	protected $state;
+
 	/**
 	 * Method to display the view.
 	 *
-	 * @access	public
 	 * @param	string	$tpl	The template file to include
-	 * @since	1.0
+	 * @since	1.5
 	 */
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
 		// Get the view data.
-		$form	= &$this->get('Form');
-		$data	= &$this->get('Data');
-		$state	= $this->get('State');
+		$this->form		= $this->get('Form');
+		$this->state	= $this->get('State');
+		$this->params	= $this->state->params;
 
 		// Check for errors.
-		if (count($errors = &$this->get('Errors'))) {
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode('<br />', $errors));
 			return false;
 		}
 
-		// Bind the data to the form.
-		if ($form) {
-			$form->bind($data);
-		}
-		
-		$params = &$state->params;
-
-		// Push the data into the view.
-		$this->assignRef('form',	$form);
-		$this->assignRef('data',	$data);
-		$this->assignRef('params',	$params);
-		
-		$this->_prepareDocument();
+		$this->prepareDocument();
 
 		parent::display($tpl);
 	}
-	
+
 	/**
-	 * Prepares the document
+	 * Prepares the document.
+	 *
+	 * @since	1.6
 	 */
-	protected function _prepareDocument()
+	protected function prepareDocument()
 	{
-		$app		= &JFactory::getApplication();
-		$menus		= &JSite::getMenu();
+		$app		= JFactory::getApplication();
+		$menus		= $app->getMenu();
 		$title 		= null;
 
 		// Because the application sets a default page title,
 		// we need to get it from the menu item itself
 		$menu = $menus->getActive();
-		if($menu)
-		{
+		if ($menu) {
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('Users_Remind')); 
+			$this->params->def('page_heading', JText::_('COM_USERS_REMIND'));
 		}
-		
-		$title = $this->params->get('page_title', $this->params->get('page_heading'));
-		if (empty($title))
-		{
+
+		$title = $this->params->get('page_title', '');
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 	}

@@ -25,8 +25,8 @@ class WeblinksViewForm extends JView
 	public function display($tpl = null)
 	{
 		// Initialise variables.
-		$app		= &JFactory::getApplication();
-		$user		= &JFactory::getUser();
+		$app		= JFactory::getApplication();
+		$user		= JFactory::getUser();
 
 		// Get model data.
 		$state	= $this->get('State');
@@ -63,9 +63,9 @@ class WeblinksViewForm extends JView
 		$this->assignRef('item',	$item);
 		$this->assignRef('form',	$form);
 		$this->assignRef('user',	$user);
-		
+
 		$this->_prepareDocument();
-		
+
 		parent::display($tpl);
 	}
 
@@ -74,8 +74,8 @@ class WeblinksViewForm extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app	= &JFactory::getApplication();
-		$menus	= &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menus	= $app->getMenu();
 		$title	= null;
 
 		// Because the application sets a default page title,
@@ -85,9 +85,12 @@ class WeblinksViewForm extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_WEBLINKS_FORM_EDIT_WEBLINK')); 
+			$this->params->def('page_heading', JText::_('COM_WEBLINKS_FORM_EDIT_WEBLINK'));
 		}
 		$title = $this->params->def('page_title', JText::_('COM_WEBLINKS_FORM_EDIT_WEBLINK'));
+		if ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
+		}
 		$this->document->setTitle($title);
 	}
 }

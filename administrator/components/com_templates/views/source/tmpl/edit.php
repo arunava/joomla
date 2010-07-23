@@ -16,7 +16,6 @@ JHtml::_('behavior.formvalidation');
 JHtml::_('behavior.keepalive');
 ?>
 <script type="text/javascript">
-<!--
 	function submitbutton(task)
 	{
 		if (task == 'source.cancel' || document.formvalidator.isValid(document.id('source-form'))) {
@@ -24,10 +23,9 @@ JHtml::_('behavior.keepalive');
 			submitform(task);
 		}
 		else {
-			alert('<?php echo $this->escape(JText::_('JVALIDATION_FORM_FAILED'));?>');
+			alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
 		}
 	}
-// -->
 </script>
 
 <form action="<?php JRoute::_('index.php?option=com_templates'); ?>" method="post" name="adminForm" id="source-form" class="form-validate">
@@ -43,10 +41,11 @@ JHtml::_('behavior.keepalive');
 		<div class="editor-border">
 		<?php echo $this->form->getInput('source'); ?>
 		</div>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</fieldset>
 
 	<?php echo $this->form->getInput('extension_id'); ?>
 	<?php echo $this->form->getInput('filename'); ?>
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
+
 </form>

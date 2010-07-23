@@ -1,4 +1,11 @@
 <?php
+/**
+ * @version		$Id$
+ * @package		Joomla.SystemTest
+ * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * Tests creating and deleting a User
+ */
 require_once 'SeleniumJoomlaTestCase.php';
 
 class User0001Test extends SeleniumJoomlaTestCase
@@ -17,14 +24,6 @@ class User0001Test extends SeleniumJoomlaTestCase
 		$this->type("jform_password", "password1");
 		$this->type("jform_password2", "password1");
 		$this->type("jform_email", "email@example.com");
-		$this->type("jform_profile_address1", "address1");
-		$this->type("jform_profile_address2", "address2");
-		$this->type("jform_profile_city", "city");
-		$this->type("jform_profile_region", "region");
-		$this->type("jform_profile_country", "country");
-		$this->type("jform_profile_postal_code", "postal code");
-		$this->type("jform_profile_phone", "phone");
-		$this->type("jform_profile_website", "website");
 		$this->click("1group_1");
 		$this->click("//li[@id='toolbar-save']/a/span");
 		$this->waitForPageToLoad("60000");

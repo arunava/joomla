@@ -28,6 +28,9 @@ class MediaModelManager extends JModel
 			$folder = JRequest::getVar('folder', '', '', 'path');
 			$this->setState('folder', $folder);
 
+			$fieldid = JRequest::getVar('fieldid', '');
+			$this->setState('field.id', $fieldid);
+
 			$parent = str_replace("\\", "/", dirname($folder));
 			$parent = ($parent == '.') ? null : $parent;
 			$this->setState('parent', $parent);
@@ -54,11 +57,11 @@ class MediaModelManager extends JModel
 		$folders = JFolder::folders($base, '.', true, true);
 
 		// Load appropriate language files
-		$lang = & JFactory::getLanguage();
+/*		$lang = JFactory::getLanguage();
 		$lang->load('', JPATH_ADMINISTRATOR);
 		$lang->load(JRequest::getCmd('option'), JPATH_ADMINISTRATOR);
-
-		$document = &JFactory::getDocument();
+*/
+		$document = JFactory::getDocument();
 		$document->setTitle(JText::_('COM_MEDIA_INSERT_IMAGE'));
 
 		// Build the array of select options for the folder list

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: view.html.php 12416 2009-07-03 08:49:14Z eddieajau $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -42,13 +42,11 @@ class ContactViewCategories extends JView
 			return false;
 		}
 
-		if($items === false)
-		{
+		if ($items === false) {
 			//TODO Raise error for missing category here
 		}
 
-		if($parent == false)
-		{
+		if ($parent == false) {
 			//TODO Raise error for missing parent category here
 		}
 
@@ -56,7 +54,7 @@ class ContactViewCategories extends JView
 
 		$items = array($parent->id => $items);
 
-		$this->assignRef('maxLevel',	$params->get('maxLevel', -1));
+		$this->assign('maxLevel',	$params->get('maxLevel', -1));
 		$this->assignRef('params',		$params);
 		$this->assignRef('parent',		$parent);
 		$this->assignRef('items',		$items);
@@ -71,8 +69,8 @@ class ContactViewCategories extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app	= &JFactory::getApplication();
-		$menus	= &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menus	= $app->getMenu();
 		$title	= null;
 
 		// Because the application sets a default page title,
@@ -83,10 +81,13 @@ class ContactViewCategories extends JView
 			$this->params->def('page_heading', $this->params->def('page_title', $menu->title));
 		} else {
 			$this->params->def('page_heading', JText::_('COM_CONTACT_DEFAULT_PAGE_TITLE'));
-		} 
-		$title = $this->params->get('page_title');
+		}
+		$title = $this->params->get('page_title', '');
 		if (empty($title)) {
-			$title	= htmlspecialchars_decode($app->getCfg('sitename'));
+			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 	}

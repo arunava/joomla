@@ -5,6 +5,7 @@
  * @subpackage	com_templates
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.6
  */
 
 // No direct access.
@@ -15,7 +16,9 @@ JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 JHtml::_('behavior.tooltip');
 JHtml::_('behavior.modal');
 
-$user = & JFactory::getUser();
+$user		= JFactory::getUser();
+$listOrder	= $this->state->get('list.ordering');
+$listDirn	= $this->state->get('list.direction');
 ?>
 
 <form action="<?php echo JRoute::_('index.php?option=com_templates&view=templates'); ?>" method="post" name="adminForm" id="adminForm">
@@ -39,13 +42,13 @@ $user = & JFactory::getUser();
 		<thead>
 			<tr>
 				<th class="col1template">
-					&nbsp;
+					&#160;
 				</th>
 				<th>
-					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_TEMPLATE', 'a.element', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_TEMPLATE', 'a.element', $listDirn, $listOrder); ?>
 				</th>
 				<th width="10%">
-					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_TYPE', 'a.client_id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_TYPE', 'a.client_id', $listDirn, $listOrder); ?>
 				</th>
 				<th width="10%" class="center">
 					<?php echo JText::_('JVERSION'); ?>
@@ -73,7 +76,18 @@ $user = & JFactory::getUser();
 				</td>
 				<td class="template-name">
 					<a href="<?php echo JRoute::_('index.php?option=com_templates&view=template&id='.(int) $item->extension_id); ?>">
-						<?php echo $item->name;?></a>
+						<?php echo  JText::sprintf( 'COM_TEMPLATES_TEMPLATE_DETAILS', $item->name) ;?></a>
+					<p>
+					<?php if($this->preview && $item->client_id == '0'): ?>
+						<a href="<?php echo JURI::root(true).'?tp=1&template='.$item->element; ?>" target="_blank">
+							<?php echo  JText::sprintf('COM_TEMPLATES_TEMPLATE_PREVIEW'); ?></a>
+					<?php elseif ($item->client_id == '1'): ?>
+						<?php echo  JText::sprintf('COM_TEMPLATES_TEMPLATE_NO_PREVIEW_ADMIN'); ?>
+					<?php else: ?>
+						<span class="hasTip" title="<?php echo JText::sprintf('COM_TEMPLATES_TEMPLATE_NO_PREVIEW'); ?>::<?php echo JText::sprintf('COM_TEMPLATES_TEMPLATE_NO_PREVIEW_DESC'); ?>">
+							<?php echo  JText::sprintf('COM_TEMPLATES_TEMPLATE_NO_PREVIEW'); ?></span>
+					<?php endif; ?>
+					</p>
 				</td>
 				<td class="center">
 					<?php echo $item->client_id == 0 ? JText::_('JSITE') : JText::_('JADMINISTRATOR'); ?>
@@ -103,9 +117,11 @@ $user = & JFactory::getUser();
 		</tbody>
 	</table>
 
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

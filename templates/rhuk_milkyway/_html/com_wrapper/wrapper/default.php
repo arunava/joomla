@@ -1,6 +1,6 @@
 <?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
-<script language="javascript" type="text/javascript">
+defined('_JEXEC') or die; ?>
+<script type="text/javascript">
 function iFrameHeight() {
 	var h = 0;
 	if ( !document.all ) {
@@ -13,7 +13,7 @@ function iFrameHeight() {
 }
 </script>
 <div class="contentpane<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>">
-<?php if ( $this->params->get( 'show_page_title', 1 ) ) : ?>
+<?php if ( $this->params->get( 'show_page_heading', 1 ) ) : ?>
 	<div class="componentheading<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>">
 	<?php echo $this->escape($this->params->get( 'page_title' )); ?>
 	</div>

@@ -23,15 +23,15 @@ class ContentViewCategory extends JView
 	{
 		$app = JFactory::getApplication();
 
-		$doc	= &JFactory::getDocument();
-		$params = &$app->getParams();
+		$doc	= JFactory::getDocument();
+		$params = $app->getParams();
 
 		// Get some data from the model
 		JRequest::setVar('limit', $app->getCfg('feed_limit'));
-		$category	= & $this->get('Category');
-		$rows		= & $this->get('Articles');
+		$category	= $this->get('Category');
+		$rows		= $this->get('Items');
 
-		$doc->link = JRoute::_(ContentHelperRoute::getCategoryRoute($category->id, $cagtegory->sectionid));
+		$doc->link = JRoute::_(ContentHelperRoute::getCategoryRoute($category->id));
 
 		foreach ($rows as $row)
 		{
@@ -39,9 +39,12 @@ class ContentViewCategory extends JView
 			$title = $this->escape($row->title);
 			$title = html_entity_decode($title, ENT_COMPAT, 'UTF-8');
 
+			// Compute the article slug
+			$row->slug = $row->alias ? ($row->id . ':' . $row->alias) : $row->id;
+
 			// url link to article
 			// & used instead of &amp; as this is converted by feed creator
-			$link = JRoute::_(ContentHelperRoute::getArticleRoute($row->slug, $row->catslug, $row->sectionid));
+			$link = JRoute::_(ContentHelperRoute::getArticleRoute($row->slug, $row->catid), false);
 
 			// strip html from feed item description text
 			// TODO: Only pull fulltext if necessary (actually, just get the necessary fields).

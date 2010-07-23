@@ -16,70 +16,71 @@ jimport('joomla.application.component.view');
  */
 class ContentViewArticles extends JView
 {
-	protected $state;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
+		// We don't need toolbar in the modal window.
+		if ($this->getLayout() !== 'modal') {
+			$this->addToolbar();
+		}
 
-		$this->_setToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Display the toolbar
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$state	= $this->get('State');
 		$canDo	= ContentHelper::getActions($state->get('filter.category_id'));
 
-		JToolBarHelper::title(JText::_('Content_Articles_Title'), 'article.png');
+		JToolBarHelper::title(JText::_('COM_CONTENT_ARTICLES_TITLE'), 'article.png');
 		if ($canDo->get('core.create')) {
 			JToolBarHelper::custom('article.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
 		}
 		if ($canDo->get('core.edit')) {
 			JToolBarHelper::custom('article.edit', 'edit.png', 'edit_f2.png','JTOOLBAR_EDIT', true);
 		}
-		JToolBarHelper::divider();
 		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::divider();
 			JToolBarHelper::custom('articles.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
 			JToolBarHelper::custom('articles.unpublish', 'unpublish.png', 'unpublish_f2.png', 'JTOOLBAR_UNPUBLISH', true);
-			if ($state->get('filter.published') != -1) {
-				JToolBarHelper::divider();
-				JToolBarHelper::archiveList('articles.archive','JTOOLBAR_ARCHIVE');
-			}
+			JToolBarHelper::divider();
+			JToolBarHelper::archiveList('articles.archive','JTOOLBAR_ARCHIVE');
+		}
+		if(JFactory::getUser()->authorise('core.manage','com_checkin')) {
+			JToolBarHelper::custom('articles.checkin', 'checkin.png', 'checkin_f2.png', 'JTOOLBAR_CHECKIN', true);
 		}
 		if ($state->get('filter.published') == -2 && $canDo->get('core.delete')) {
-
 			JToolBarHelper::deleteList('', 'articles.delete','JTOOLBAR_EMPTY_TRASH');
-		}
-		else if ($canDo->get('core.edit.state')) {
+		} else if ($canDo->get('core.edit.state')) {
 			JToolBarHelper::trash('articles.trash','JTOOLBAR_TRASH');
 		}
+
 		if ($canDo->get('core.admin')) {
 			JToolBarHelper::divider();
 			JToolBarHelper::preferences('com_content');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.content.articles','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_CONTENT_ARTICLE_MANAGER');
 	}
 }

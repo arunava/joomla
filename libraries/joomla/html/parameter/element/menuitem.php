@@ -30,7 +30,7 @@ class JElementMenuItem extends JElement
 
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		$menuType = $this->_parent->get('menu_type');
 		if (!empty($menuType)) {
@@ -90,14 +90,14 @@ class JElementMenuItem extends JElement
 
 		// assemble menu items to the array
 		$options	= array();
-		$options[]	= JHtml::_('select.option', '', '- '.JText::_('SELECT_ITEM').' -');
+		$options[]	= JHtml::_('select.option', '', JText::_('JOPTION_SELECT_MENU_ITEM'));
 
 		foreach ($menuTypes as $type)
 		{
 			if ($menuType == '')
 			{
-				$options[]	= JHtml::_('select.option',  '0', '&nbsp;', 'value', 'text', true);
-				$options[]	= JHtml::_('select.option',  $type->menutype, $type->title . ' - ' . JText::_('Top'), 'value', 'text', true);
+				$options[]	= JHtml::_('select.option',  '0', '&#160;', 'value', 'text', true);
+				$options[]	= JHtml::_('select.option',  $type->menutype, $type->title . ' - ' . JText::_('JGLOBAL_TOP'), 'value', 'text', true);
 			}
 			if (isset($groupedList[$type->menutype]))
 			{
@@ -117,7 +117,7 @@ class JElementMenuItem extends JElement
 					}
 
 					$disable = strpos($node->attributes('disable'), $item->type) !== false ? true : false;
-					$options[] = JHtml::_('select.option',  $item->id, '&nbsp;&nbsp;&nbsp;' .$item->treename, 'value', 'text', $disable);
+					$options[] = JHtml::_('select.option',  $item->id, '&#160;&#160;&#160;' .$item->treename, 'value', 'text', $disable);
 
 				}
 			}

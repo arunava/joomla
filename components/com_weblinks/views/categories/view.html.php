@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: view.html.php 12416 2009-07-03 08:49:14Z eddieajau $
+ * @version		$Id$
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -55,7 +55,7 @@ class WeblinksViewCategories extends JView
 
         $items = array($parent->id => $items);
 
-		$this->assignRef('maxLevel',	$params->get('maxLevel', -1));
+		$this->assign('maxLevel',	$params->get('maxLevel', -1));
 		$this->assignRef('params',		$params);
 		$this->assignRef('parent',		$parent);
 		$this->assignRef('items',		$items);
@@ -70,8 +70,8 @@ class WeblinksViewCategories extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app	= &JFactory::getApplication();
-		$menus	= &JSite::getMenu();
+		$app	= JFactory::getApplication();
+		$menus	= $app->getMenu();
 		$title	= null;
 
 		// Because the application sets a default page title,
@@ -81,11 +81,14 @@ class WeblinksViewCategories extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_WEBLINKS_DEFAULT_PAGE_TITLE')); 
+			$this->params->def('page_heading', JText::_('COM_WEBLINKS_DEFAULT_PAGE_TITLE'));
 		}
-		$title = $this->params->get('page_title');
+		$title = $this->params->get('page_title', '');
 		if (empty($title)) {
-			$title	= htmlspecialchars_decode($app->getCfg('sitename'));
+			$title = htmlspecialchars_decode($app->getCfg('sitename'));
+		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
 		}
 		$this->document->setTitle($title);
 	}

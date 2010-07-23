@@ -60,7 +60,7 @@ class JHtmlTest extends JoomlaTestCase
 
 		// now we test with a class that will be found in the expected file
 		JHtml::addIncludePath(array(JPATH_BASE.'/tests/unit/suite/libraries/joomla/html/htmltests'));
-		
+
 		$this->assertThat(
 			JHtml::_('mocktest.method1', 'argument1', 'argument2'),
 			$this->equalTo('JHtml Mock Called')
@@ -136,7 +136,7 @@ class JHtmlTest extends JoomlaTestCase
 			JHtml::register('prefix.file.missingtestfunction', array($registered, 'missingFunction')),
 			$this->isFalse(),
 			'If function is missing, we do not register'
-		);		
+		);
 		JHtml::unregister('prefix.file.testfunction');
 		JHtml::unregister('prefix.file.missingtestfunction');
 	}
@@ -156,13 +156,13 @@ class JHtmlTest extends JoomlaTestCase
 			JHtml::unregister('prefix.file.testfunction'),
 			$this->isTrue(),
 			'Function did not unregister'
-		);		
+		);
 
 		$this->assertThat(
 			JHtml::unregister('prefix.file.testkeynotthere'),
 			$this->isFalse(),
 			'Unregister return true when it should have failed'
-		);		
+		);
 
 	}
 
@@ -195,7 +195,7 @@ class JHtmlTest extends JoomlaTestCase
 			)
 
 		);
-	} 
+	}
 
 	/**
 	 * @todo Implement testLink().
@@ -263,6 +263,11 @@ class JHtmlTest extends JoomlaTestCase
 		rmdir(JPATH_THEMES .'/'. $template .'/images');
 		rmdir(JPATH_THEMES .'/'. $template);
 
+		// we create the file that JHtml::image will look for
+		mkdir(JPATH_ROOT .'/media/'. $urlpath .'images', 0777, true);
+		file_put_contents(JPATH_ROOT .'/media/'. $urlpath .'images/'. $urlfilename, 'test');
+
+		// we do a test for the case that the image is in the templates directory
 		$this->assertThat(
 			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true),
 			$this->equalTo('<img src="'.JURI::base(true).'/media/'.$urlpath.'images/'.$urlfilename.'" alt="My Alt Text"  />'),
@@ -272,6 +277,38 @@ class JHtmlTest extends JoomlaTestCase
 		$this->assertThat(
 			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true, true),
 			$this->equalTo(JURI::base(true).'/media/'.$urlpath.'images/'.$urlfilename),
+			'JHtml::image failed when we should get it from the media directory in path only mode'
+		);
+
+		unlink(JPATH_ROOT .'/media/'. $urlpath .'images/'. $urlfilename);
+		rmdir(JPATH_ROOT .'/media/'. $urlpath .'images');
+		rmdir(JPATH_ROOT .'/media/'. $urlpath);
+
+		file_put_contents(JPATH_ROOT .'/media/system/images/'. $urlfilename, 'test');
+
+		$this->assertThat(
+			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true),
+			$this->equalTo('<img src="'.JURI::base(true).'/media/system/images/'.$urlfilename.'" alt="My Alt Text"  />'),
+			'JHtml::image failed when we should get it from the media directory'
+		);
+
+		$this->assertThat(
+			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true, true),
+			$this->equalTo(JURI::base(true).'/media/system/images/'.$urlfilename),
+			'JHtml::image failed when we should get it from the media directory in path only mode'
+		);
+
+		unlink(JPATH_ROOT .'/media/system/images/'. $urlfilename);
+
+		$this->assertThat(
+			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true),
+			$this->equalTo('<img src="" alt="My Alt Text"  />'),
+			'JHtml::image failed when we should get it from the media directory'
+		);
+
+		$this->assertThat(
+			JHtml::image($urlpath.$urlfilename, 'My Alt Text', null, true, true),
+			$this->equalTo(null),
 			'JHtml::image failed when we should get it from the media directory in path only mode'
 		);
 
@@ -301,14 +338,50 @@ class JHtmlTest extends JoomlaTestCase
 		rmdir(JPATH_ROOT .'/media/'. $extension.'/'.$element);
 		rmdir(JPATH_ROOT .'/media/'. $extension);
 
+		mkdir(JPATH_ROOT .'/media/'. $extension.'/images/'.$element .'/'. $urlpath, 0777, true);
+		file_put_contents(JPATH_ROOT .'/media/'. $extension.'/images/'.$element .'/'. $urlpath.$urlfilename, 'test');
+
 		$this->assertThat(
 			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true),
-			$this->equalTo('<img src="'.JURI::base(true).'/media/'. $extension.'/images/'.$element.'/'. $urlpath.$urlfilename.'" alt="My Alt Text"  />')
+			$this->equalTo('<img src="'.JURI::base(true).'/media/'.$extension.'/images/'.$element.'/'. $urlpath.$urlfilename.'" alt="My Alt Text"  />')
 		);
 
 		$this->assertThat(
 			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true, true),
-			$this->equalTo(JURI::base(true).'/media/'. $extension.'/images/'.$element.'/'.$urlpath.$urlfilename)
+			$this->equalTo(JURI::base(true).'/media/'.$extension.'/images/'.$element.'/'.$urlpath.$urlfilename)
+		);
+
+		unlink(JPATH_ROOT .'/media/'. $extension.'/images/'.$element .'/'. $urlpath.$urlfilename);
+		rmdir(JPATH_ROOT .'/media/'. $extension.'/images/'.$element .'/'. $urlpath);
+		rmdir(JPATH_ROOT .'/media/'. $extension.'/images/'.$element);
+		rmdir(JPATH_ROOT .'/media/'. $extension.'/images');
+		rmdir(JPATH_ROOT .'/media/'. $extension);
+
+		mkdir(JPATH_ROOT .'/media/system/images/'. $element.'/'. $urlpath, 0777, true);
+		file_put_contents(JPATH_ROOT .'/media/system/images/'. $element.'/'. $urlpath.$urlfilename, 'test');
+
+		$this->assertThat(
+			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true),
+			$this->equalTo('<img src="'.JURI::base(true).'/media/system/images/'.$element.'/'. $urlpath.$urlfilename.'" alt="My Alt Text"  />')
+		);
+
+		$this->assertThat(
+			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true, true),
+			$this->equalTo(JURI::base(true).'/media/system/images/'.$element.'/'.$urlpath.$urlfilename)
+		);
+
+		unlink(JPATH_ROOT .'/media/system/images/'. $element.'/'. $urlpath.$urlfilename);
+		rmdir(JPATH_ROOT .'/media/system/images/'. $element.'/'. $urlpath);
+		rmdir(JPATH_ROOT .'/media/system/images/'. $element);
+
+		$this->assertThat(
+			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true),
+			$this->equalTo('<img src="" alt="My Alt Text"  />')
+		);
+
+		$this->assertThat(
+			JHtml::image($extension.'/'.$element.'/'.$urlpath.$urlfilename, 'My Alt Text', null, true, true),
+			$this->equalTo(null)
 		);
 
 		$this->assertThat(
@@ -322,17 +395,33 @@ class JHtmlTest extends JoomlaTestCase
 			'JHtml::image with an absolute path'
 		);
 
+		mkdir(JPATH_ROOT .'/test', 0777, true);
+		file_put_contents(JPATH_ROOT .'/test/image.jpg', 'test');
 		$this->assertThat(
 			JHtml::image('test/image.jpg', 'My Alt Text',
 				array(
 					'width' => 150,
 					'height' => 150
-				)
+				),
+				false
 			),
 			$this->equalTo('<img src="'.JURI::root(true).'/test/image.jpg" alt="My Alt Text" width="150" height="150" />'),
 			'JHtml::image with an absolute path, URL does not start with http'
 		);
+		unlink(JPATH_ROOT .'/test/image.jpg');
+		rmdir(JPATH_ROOT .'/test');
 
+		$this->assertThat(
+			JHtml::image('test/image.jpg', 'My Alt Text',
+				array(
+					'width' => 150,
+					'height' => 150
+				),
+				false
+			),
+			$this->equalTo('<img src="" alt="My Alt Text" width="150" height="150" />'),
+			'JHtml::image with an absolute path, URL does not start with http'
+		);
 
 		$_SERVER['HTTP_HOST'] = $http_host;
 		$_SERVER['SCRIPT_NAME'] = $script_name;
@@ -359,7 +448,7 @@ class JHtmlTest extends JoomlaTestCase
 			)
 
 		);
-	} 
+	}
 
 
 	/**
@@ -466,7 +555,7 @@ class JHtmlTest extends JoomlaTestCase
 		$docMock2->expects($this->once())
 			->method('addStylesheet')
 			->with(
-				JURI::base(true).'/media/'.$extension.'/css/'.$cssfilename,
+				JURI::base(true).'/media/system/css/modal.css',
 				'text/css',
 				null,
 				null
@@ -474,13 +563,15 @@ class JHtmlTest extends JoomlaTestCase
 
 		JFactory::$document = $docMock2;
 
-		JHtml::stylesheet($extension.'/'.$cssfilename, null, true);
+		JHtml::stylesheet($extension.'/modal.css', null, true);
 
+		file_put_contents(JPATH_ROOT .'/media/system/css/'.$cssfilename, 'test');
 		$this->assertThat(
 			JHtml::stylesheet($extension.'/'.$cssfilename, null, true, true),
-			$this->equalTo(JURI::root(true).'/media/'.$extension.'/css/'.$cssfilename),
+			$this->equalTo(JURI::root(true).'/media/system/css/'.$cssfilename),
 			'Stylesheet in the media directory failed - path only'
 		);
+		unlink(JPATH_ROOT .'/media/system/css/'.$cssfilename);
 
 		// we create the file that JHtml::stylesheet will look for
 		mkdir(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/css/', 0777, true);
@@ -496,20 +587,38 @@ class JHtmlTest extends JoomlaTestCase
 		rmdir(JPATH_ROOT .'/media/'.$extension.'/'.$element.'/css/');
 		rmdir(JPATH_ROOT .'/media/'.$extension.'/'.$element);
 		rmdir(JPATH_ROOT .'/media/'.$extension);
-		
+
+		mkdir(JPATH_ROOT .'/media/system/css/'.$element, 0777, true);
+		file_put_contents(JPATH_ROOT .'/media/system/css/'.$element.'/'.$cssfilename, 'test');
+		$this->assertThat(
+			JHtml::stylesheet($extension.'/'.$element.'/'.$cssfilename, null, true, true),
+			$this->equalTo(JURI::root(true).'/media/system/css/'.$element.'/'.$cssfilename),
+			'Stylesheet in the media directory -plugins group code - failed - path only'
+		);
+		unlink(JPATH_ROOT .'/media/system/css/'.$element.'/'.$cssfilename);
+		rmdir(JPATH_ROOT .'/media/system/css/'.$element);
+
+		// we create the file that JHtml::stylesheet will look for
+		mkdir(JPATH_ROOT .'/media/'.$extension.'/css/'.$element, 0777, true);
+		file_put_contents(JPATH_ROOT .'/media/'.$extension.'/css/'.$element.'/'.$cssfilename, 'test');
+
 		$this->assertThat(
 			JHtml::stylesheet($extension.'/'.$element.'/'.$cssfilename, null, true, true),
 			$this->equalTo(JURI::root(true).'/media/'.$extension.'/css/'.$element.'/'.$cssfilename),
 			'Stylesheet in the media directory -plugins group code - failed - path only'
 		);
 
+		unlink(JPATH_ROOT .'/media/'.$extension.'/css/'.$element.'/'.$cssfilename);
+		rmdir(JPATH_ROOT .'/media/'.$extension.'/css/'.$element);
+		rmdir(JPATH_ROOT .'/media/'.$extension.'/css');
+		rmdir(JPATH_ROOT .'/media/'.$extension);
 
 		$docMock3 = $this->getMock('myMockDoc3', array('addStylesheet'));
 
 		$docMock3->expects($this->once())
 			->method('addStylesheet')
 			->with(
-				JURI::root(true).'/path/to/stylesheet.css',
+				JURI::root(true).'/media/system/css/modal.css',
 				'text/css',
 				null,
 				'media="print" title="sample title"'
@@ -517,7 +626,7 @@ class JHtmlTest extends JoomlaTestCase
 
 		JFactory::$document = $docMock3;
 
-		JHtml::stylesheet('path/to/stylesheet.css', array('media' => 'print', 'title' => 'sample title'));
+		JHtml::stylesheet('media/system/css/modal.css', array('media' => 'print', 'title' => 'sample title'));
 
 		$_SERVER['HTTP_HOST'] = $http_host;
 		$_SERVER['SCRIPT_NAME'] = $script_name;
@@ -540,9 +649,93 @@ class JHtmlTest extends JoomlaTestCase
 	 */
 	public function testTooltip()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-		'This test has not been implemented yet.'
+		if(!is_array($_SERVER)) {
+			$_SERVER = array();
+		}
+
+		// we save the state of $_SERVER for later and set it to appropriate values
+		$http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : null;
+		$script_name = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : null;
+		$_SERVER['HTTP_HOST'] = 'example.com';
+		$_SERVER['SCRIPT_NAME'] = '/index.php';
+
+		// we generate a random template name so that we don't collide or hit anything
+		$template = 'mytemplate'.rand(1,10000);
+
+		// we create a stub (not a mock because we don't enforce whether it is called or not)
+		// to return a value from getTemplate
+		$mock = $this->getMock('myMockObject', array('getTemplate'));
+		$mock->expects($this->any())
+			->method('getTemplate')
+			->will($this->returnValue($template));
+
+		JFactory::$application = $mock;
+
+		// Testing classical cases
+		$this->assertThat(
+			JHtml::tooltip('Content'),
+			$this->equalTo('<span class="hasTip" title="Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="Tooltip"  /></span>'),
+			'Basic tooltip failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content','Title'),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="Tooltip"  /></span>'),
+			'Tooltip with title and content failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content','Title',null,'Text'),
+			$this->equalTo('<span class="hasTip" title="Title::Content">Text</span>'),
+			'Tooltip with title and content and text failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content','Title',null,'Text','http://www.monsite.com'),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><a href="http://www.monsite.com">Text</a></span>'),
+			'Tooltip with title and content and text and href failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content','Title','tooltip.png',null,null,'MyAlt'),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="MyAlt"  /></span>'),
+			'Tooltip with title and content and alt failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content','Title','tooltip.png',null,null,'MyAlt','hasTip2'),
+			$this->equalTo('<span class="hasTip2" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="MyAlt"  /></span>'),
+			'Tooltip with title and content and alt and class failed'
+		);
+
+		// Testing where title is an array
+		$this->assertThat(
+			JHtml::tooltip('Content',array('title'=>'Title')),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="Tooltip"  /></span>'),
+			'Tooltip with title and content failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content',array('title'=>'Title','text'=>'Text')),
+			$this->equalTo('<span class="hasTip" title="Title::Content">Text</span>'),
+			'Tooltip with title and content and text failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content',array('title'=>'Title','text'=>'Text','href'=>'http://www.monsite.com')),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><a href="http://www.monsite.com">Text</a></span>'),
+			'Tooltip with title and content and text and href failed'
+		);
+
+		$this->assertThat(
+			JHtml::tooltip('Content',array('title'=>'Title','alt'=>'MyAlt')),
+			$this->equalTo('<span class="hasTip" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="MyAlt"  /></span>'),
+			'Tooltip with title and content and alt failed'
+		);
+		$this->assertThat(
+			JHtml::tooltip('Content',array('title'=>'Title','class'=>'hasTip2')),
+			$this->equalTo('<span class="hasTip2" title="Title::Content"><img src="'.JURI::base(true).'/media/system/images/tooltip.png" alt="Tooltip"  /></span>'),
+			'Tooltip with title and content and class failed'
 		);
 	}
 

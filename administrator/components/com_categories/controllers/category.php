@@ -37,9 +37,13 @@ class CategoriesControllerCategory extends JController
 	/**
 	 * Dummy method to redirect back to standard controller
 	 *
-	 * @return	void
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	JController		This object to support chaining.
+	 * @since	1.5
 	 */
-	public function display()
+	public function display($cachable = false, $urlparams = false)
 	{
 		$this->setRedirect(JRoute::_('index.php?option=com_categories', false));
 	}
@@ -52,7 +56,7 @@ class CategoriesControllerCategory extends JController
 	public function add()
 	{
 		// Initialise variables.
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		// Clear the row edit information from the session.
 		$app->setUserState('com_categories.edit.category.id',	null);
@@ -74,14 +78,17 @@ class CategoriesControllerCategory extends JController
 	public function edit()
 	{
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
+		$app	= JFactory::getApplication();
 		$pks	= JRequest::getVar('cid', array(), '', 'array');
 
 		// Get the id of the group to edit.
 		$id		=  (empty($pks) ? JRequest::getInt('item_id') : (int) array_pop($pks));
 
 		// Get the model.
-		$model	= &$this->getModel('Category');
+		$model	= $this->getModel('Category');
+
+		// Check if we are adding for a particular extension
+		$extension = $app->getUserStateFromRequest('com_categories.filter.extension', 'extension', 'com_content');
 
 		// Check that this is not a new category.
 		if ($id > 0) {
@@ -91,15 +98,12 @@ class CategoriesControllerCategory extends JController
 			if ($item->checked_out == 0) {
 				if (!$model->checkout($id)) {
 					// Check-out failed, go back to the list and display a notice.
-					$message = JText::sprintf('JError_Checkout_failed', $model->getError());
-					$this->setRedirect('index.php?option=com_categories&view=category&item_id='.$id, $message, 'error');
+					$message = JText::sprintf('JLIB_APPLICATION_ERROR_CHECKOUT_FAILED', $model->getError());
+					$this->setRedirect('index.php?option=com_categories&view=category&item_id='.$id.'&extension='.$extension, $message, 'error');
 					return false;
 				}
 			}
 		}
-
-		// Check if we are adding for a particular extension
-		$extension = $app->getUserStateFromRequest('com_categories.filter.extension', 'extension', 'com_content');
 
 		// Push the new row id into the session.
 		$app->setUserState('com_categories.edit.category.id',	$id);
@@ -120,23 +124,28 @@ class CategoriesControllerCategory extends JController
 	 */
 	public function cancel()
 	{
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Category');
+		$app	= JFactory::getApplication();
+		$model	= $this->getModel('Category');
 
 		// Get the previous row id.
 		$previousId	= (int) $app->getUserState('com_categories.edit.category.id');
 
+		$extension = JRequest::getCmd('extension', '');
+		if ($extension) {
+			$extension = '&extension='.$extension;
+		}
+
 		// If rows ids do not match, checkin previous row.
 		if ($model->checkin($previousId)) {
 			// Redirect to the list screen.
-			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=categories', false));
+			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=categories'.$extension, false));
 		} else {
 			// Check-in failed
 			$message = JText::sprintf('JError_Checkin_failed', $model->getError());
-			$this->setRedirect('index.php?option=com_categories&view=categories', $message, 'error');
+			$this->setRedirect('index.php?option=com_categories&view=categories'.$extension, $message, 'error');
 		}
 
 		// Clear the row edit information from the session.
@@ -154,7 +163,7 @@ class CategoriesControllerCategory extends JController
 	public function save()
 	{
 		// Check for request forgeries.
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
 		$app	= JFactory::getApplication();
@@ -167,13 +176,18 @@ class CategoriesControllerCategory extends JController
 		// Populate the row id from the session.
 		$data['id'] = (int) $app->getUserState('com_categories.edit.category.id');
 
+		$extension = JRequest::getCmd('extension', '');
+		if ($extension) {
+			$extension = '&extension='.$extension;
+		}
+
 		// The save2copy task needs to be handled slightly differently.
 		if ($task == 'save2copy') {
 			// Check-in the original row.
 			if (!$model->checkin()) {
 				// Check-in failed, go back to the item and display a notice.
-				$message = JText::sprintf('JError_Checkin_saved', $model->getError());
-				$this->setRedirect('index.php?option=com_categories&view=category&layout=edit', $message, 'error');
+				$message = JText::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError());
+				$this->setRedirect('index.php?option=com_categories&view=category&layout=edit'.$extension, $message, 'error');
 				return false;
 			}
 
@@ -209,7 +223,7 @@ class CategoriesControllerCategory extends JController
 			$app->setUserState('com_categories.edit.category.data', $data);
 
 			// Redirect back to the edit screen.
-			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit', false));
+			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit'.$extension, false));
 			return false;
 		}
 
@@ -219,16 +233,16 @@ class CategoriesControllerCategory extends JController
 			$app->setUserState('com_categories.edit.category.data', $data);
 
 			// Redirect back to the edit screen.
-			$this->setMessage(JText::sprintf('JError_Save_failed', $model->getError()), 'notice');
-			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit', false));
+			$this->setMessage(JText::sprintf('JERROR_SAVE_FAILED', $model->getError()), 'notice');
+			$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit'.$extension, false));
 			return false;
 		}
 
 		// Save succeeded, check-in the row.
 		if (!$model->checkin()) {
 			// Check-in failed, go back to the row and display a notice.
-			$message = JText::sprintf('JError_Checkin_saved', $model->getError());
-			$this->setRedirect('index.php?option=com_categories&view=category&layout=edit', $message, 'error');
+			$message = JText::sprintf('JERROR_CHECKIN_SAVED', $model->getError());
+			$this->setRedirect('index.php?option=com_categories&view=category&layout=edit'.$extension, $message, 'error');
 			return false;
 		}
 
@@ -244,7 +258,7 @@ class CategoriesControllerCategory extends JController
 				$app->setUserState('com_categories.edit.category.type',	null);
 
 				// Redirect back to the edit screen.
-				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit', false));
+				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit'.$extension, false));
 				break;
 
 			case 'save2new':
@@ -255,8 +269,7 @@ class CategoriesControllerCategory extends JController
 				$app->setUserState('com_categories.edit.category.type',	null);
 
 				// Redirect back to the edit screen.
-				$extension = JRequest::getString('extension');
-				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit&extension='.$extension, false));
+				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=category&layout=edit'.$extension, false));
 				break;
 
 			default:
@@ -267,7 +280,7 @@ class CategoriesControllerCategory extends JController
 				$app->setUserState('com_categories.edit.category.type',	null);
 
 				// Redirect to the list screen.
-				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=categories', false));
+				$this->setRedirect(JRoute::_('index.php?option=com_categories&view=categories'.$extension, false));
 				break;
 		}
 	}
@@ -279,23 +292,28 @@ class CategoriesControllerCategory extends JController
 	 */
 	function batch()
 	{
-		JRequest::checkToken() or jexit(JText::_('JInvalid_Token'));
+		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
 		// Initialise variables.
-		$app	= &JFactory::getApplication();
-		$model	= &$this->getModel('Category');
+		$app	= JFactory::getApplication();
+		$model	= $this->getModel('Category');
 		$vars	= JRequest::getVar('batch', array(), 'post', 'array');
 		$cid	= JRequest::getVar('cid', array(), 'post', 'array');
 
+		$extension = JRequest::getCmd('extension', '');
+		if ($extension) {
+			$extension = '&extension='.$extension;
+		}
+
 		// Preset the redirect
-		$this->setRedirect('index.php?option=com_categories&view=categories');
+		$this->setRedirect('index.php?option=com_categories&view=categories'.$extension);
 
 		// Attempt to run the batch operation.
 		if ($model->batch($vars, $cid)) {
 			$this->setMessage(JText::_('Categories_Batch_success'));
 			return true;
 		} else {
-			$this->setMessage(JText::_(JText::sprintf('Categories_Error_Batch_failed', $model->getError())));
+			$this->setMessage(JText::_(JText::sprintf('COM_CATEGORIES_ERROR_BATCH_FAILED', $model->getError())));
 			return false;
 		}
 	}

@@ -18,10 +18,10 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 		<?php echo $this->loadTemplate('ftp');?>
 	<?php endif; ?>
 
-	<fieldset class="filter clearfix">
-		<div class="right">
+	<fieldset id="filter-bar">
+		<div class="filter-select fltrt">
 			<label for="filter_client_id">
-				<?php echo JText::_('COM_LANGS_FILTER_CLIENT_LABEL'); ?>
+				<?php echo JText::_('COM_LANGUAGES_FILTER_CLIENT_LABEL'); ?>
 			</label>
 			<select id="filter_client_id" name="filter_client_id" class="inputbox" onchange="this.form.submit()">
 				<?php echo JHtml::_('select.options', JHtml::_('languages.clients'), 'value', 'text', $this->state->get('filter.client_id'));?>
@@ -33,16 +33,16 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 		<thead>
 			<tr>
 				<th width="20">
-					<?php echo JText::_('COM_LANGS_HEADING_NUM'); ?>
+					<?php echo JText::_('COM_LANGUAGES_HEADING_NUM'); ?>
 				</th>
 				<th width="30">
-					&nbsp;
+					&#160;
 				</th>
 				<th width="25%" class="title">
-					<?php echo JText::_('COM_LANGS_HEADING_LANGUAGE'); ?>
+					<?php echo JText::_('COM_LANGUAGES_HEADING_LANGUAGE'); ?>
 				</th>
 				<th width="5%">
-					<?php echo JText::_('COM_LANGS_HEADING_DEFAULT'); ?>
+					<?php echo JText::_('COM_LANGUAGES_HEADING_DEFAULT'); ?>
 				</th>
 				<th width="10%">
 					<?php echo JText::_('JVERSION'); ?>
@@ -54,7 +54,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 					<?php echo JText::_('JAUTHOR'); ?>
 				</th>
 				<th width="25%">
-					<?php echo JText::_('COM_LANGS_HEADING_AUTHOR_EMAIL'); ?>
+					<?php echo JText::_('COM_LANGUAGES_HEADING_AUTHOR_EMAIL'); ?>
 				</th>
 			</tr>
 		</thead>
@@ -78,7 +78,7 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 					<?php echo $row->name;?>
 				</td>
 				<td width="5%" align="center">
-					<?php echo JHtml::_('languages.published',$row->published);?>
+					<?php echo JHtml::_('jgrid.isdefault', $row->published, $i, 'installed.', !$row->published);?>
 				</td>
 				<td align="center">
 					<?php echo $row->version; ?>
@@ -97,7 +97,9 @@ JHtml::addIncludePath(JPATH_COMPONENT.DS.'helpers'.DS.'html');
 		</tbody>
 	</table>
 
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<?php echo JHtml::_('form.token'); ?>
+	<div>
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
 </form>

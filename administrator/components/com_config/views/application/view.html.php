@@ -57,14 +57,16 @@ class ConfigViewApplication extends JView
 		$this->assignRef('usersParams', $usersParams);
 		$this->assignRef('mediaParams', $mediaParams);
 
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Display the toolbar
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		JToolBarHelper::title(JText::_('COM_CONFIG_GLOBAL_CONFIGURATION'), 'config.png');
 		JToolBarHelper::apply('application.apply', 'JTOOLBAR_APPLY');
@@ -72,6 +74,6 @@ class ConfigViewApplication extends JView
 		JToolBarHelper::divider();
 		JToolBarHelper::cancel('application.cancel', 'JTOOLBAR_CANCEL');
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.config');
+		JToolBarHelper::help('JHELP_SITE_GLOBAL_CONFIGURATION');
 	}
 }

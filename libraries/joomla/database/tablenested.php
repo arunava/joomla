@@ -253,13 +253,13 @@ class JTableNested extends JTable
 			$query->order('lft DESC');
 			$position = 'before';
 		}
-				
+
 		$this->_db->setQuery($query);
 		$referenceId = $this->_db->loadResult();
-		
+
 		return $this->moveByReference($referenceId, $position, $pk);
 	}
-	
+
 	/**
 	 * Method to move a node and its children to a new location in the tree.
 	 *
@@ -561,6 +561,37 @@ class JTableNested extends JTable
 		if (!$this->_lock()) {
 			// Error message set in lock method.
 			return false;
+		}
+
+		// If tracking assets, remove the asset first.
+		if ($this->_trackAssets)
+		{
+			$name		= $this->_getAssetName();
+			$asset		= JTable::getInstance('Asset');
+
+			// Lock the table for writing.
+			if (!$asset->_lock())
+			{
+				// Error message set in lock method.
+				return false;
+			}
+			if ($asset->loadByName($name))
+			{
+				// Delete the node in assets table.
+				if (!$asset->delete())
+				{
+					$this->setError($asset->getError());
+					$asset->_unlock();
+					return false;
+				}
+				$asset->_unlock();
+			}
+			else
+			{
+				$this->setError($asset->getError());
+				$asset->_unlock();
+				return false;
+			}
 		}
 
 		// Get the node by id.
@@ -1481,6 +1512,47 @@ class JTableNested extends JTable
 	}
 
 	/**
+	 * Method to update order of table rows
+	 *
+	 * @param	array	id's of rows to be reordered
+	 * @param	array	lft values of rows to be reordered
+	 *
+	 * @return	boolean	True on success
+	 * @since	1.6
+	 */
+	public function saveorder($idArray = null, $lft_array = null)
+	{
+		// Validate arguments
+		if (is_array($idArray) && is_array($lft_array) && count($idArray == count($lft_array)))
+		{
+			for ($i = 0; $i < count($idArray); $i++)
+			{
+				// Do an update to change the lft values in the table for each id
+				$query = $this->_db->getQuery(true);
+				$query->update($this->_tbl);
+				$query->where($this->_tbl_key . ' = ' . (int) $idArray[$i]);
+				$query->set('lft = ' . (int) $lft_array[$i]);
+				$this->_db->setQuery($query);
+
+				// Check for a database error.
+				if (!$this->_db->query())
+				{
+					$e = new JException(JText::sprintf('JLIB_DATABASE_ERROR_REORDER_FAILED', get_class($this), $this->_db->getErrorMsg()));
+					$this->setError($e);
+					$this->_unlock();
+					return false;
+				}
+				if ($this->_debug)
+				{
+					$this->_logtable();
+				}
+
+			}
+			return $this->rebuild();
+		}
+	}
+
+	/**
 	 * Method to get nested set properties for a node in the tree.
 	 *
 	 * @param	integer	Value to look up the node by.
@@ -1647,5 +1719,5 @@ class JTableNested extends JTable
 		}
 		echo $buffer;
 	}
-	
+
 }

@@ -19,38 +19,56 @@ jimport('joomla.application.component.view');
  */
 class TemplatesViewTemplates extends JView
 {
-	protected $state;
+	/**
+	 * @var		array
+	 * @since	1.6
+	 */
 	protected $items;
+
+	/**
+	 * @var		object
+	 * @since	1.6
+	 */
 	protected $pagination;
 
 	/**
-	 * Display the view
+	 * @var		object
+	 * @since	1.6
+	 */
+	protected $state;
+
+	/**
+	 * Display the view.
+	 *
+	 * @param	string
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
+		$this->preview		= JFactory::getConfig()->get('debug_modules');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar.
+	 * Add the page title and toolbar.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$state	= $this->get('State');
 		$canDo	= TemplatesHelper::getActions();
@@ -59,7 +77,8 @@ class TemplatesViewTemplates extends JView
 		if ($canDo->get('core.admin')) {
 			JToolBarHelper::preferences('com_templates');
 		}
+
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.templates','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_EXTENSIONS_TEMPLATE_MANAGER_TEMPLATES');
 	}
 }

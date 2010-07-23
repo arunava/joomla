@@ -12,19 +12,19 @@
 	<authorEmail>admin@joomla.org</authorEmail>
 	<authorUrl>www.joomla.org</authorUrl>
 	<version>1.6.0</version>
-	<description>MOD_ARTICLES_ARCHIVE_XML_DESCRIPTION
-	</description>
+	<description>MOD_ARTICLES_ARCHIVE_XML_DESCRIPTION</description>
 	<files>
 		<filename module="mod_articles_archive">mod_articles_archive.php
 		</filename>
 		<folder>tmpl</folder>
 		<filename>helper.php</filename>
-		<filename>index.php</filename>
+		<filename>index.html</filename>
 		<filename>mod_articles_archive.xml</filename>
 	</files>
 	<languages>
 		<language tag="en-GB">en-GB.mod_archive.ini</language>
 	</languages>
+	<help key="JHELP_EXTENSIONS_MODULE_MANAGER_ARTICLES_ARCHIVE" />
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
@@ -36,7 +36,7 @@
 
 			<fieldset name="advanced">
 				<field name="layout" type="modulelayout"
-					label="JFIELD_ALT_LAYOUT_LABEL" 
+					label="JFIELD_ALT_LAYOUT_LABEL"
 					description="JFIELD_ALT_MODULE_LAYOUT_DESC" />
 
 				<field name="moduleclass_sfx" type="text"
@@ -54,12 +54,11 @@
 
 				<field name="cache_time" type="text"
 					default="900"
-					label="COM_MODULES_FIELD_CACHE_TIME_LABEL" 
+					label="COM_MODULES_FIELD_CACHE_TIME_LABEL"
 					description="COM_MODULES_FIELD_CACHE_TIME_DESC" />
 				<field
 					name="cachemode"
 					type="hidden"
-					label=""
 					default="static">
 					<option
 						value="static"></option>

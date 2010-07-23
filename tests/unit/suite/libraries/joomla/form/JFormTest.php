@@ -60,7 +60,7 @@ class JFormTest extends JoomlaTestCase
 		$paths = JForm::addFieldPath();
 
 		// The default path is the class file folder/forms
-		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form/fields';
+		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form'.DS.'fields';
 
 		$this->assertThat(
 			in_array($valid, $paths),
@@ -90,7 +90,7 @@ class JFormTest extends JoomlaTestCase
 		$paths = JForm::addFormPath();
 
 		// The default path is the class file folder/forms
-		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form/forms';
+		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form'.DS.'forms';
 
 		$this->assertThat(
 			in_array($valid, $paths),
@@ -120,7 +120,7 @@ class JFormTest extends JoomlaTestCase
 		$paths = JForm::addRulePath();
 
 		// The default path is the class file folder/rules
-		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form/rules';
+		$valid = JPATH_LIBRARIES.DS.'joomla'.DS.'form'.DS.'rules';
 
 		$this->assertThat(
 			in_array($valid, $paths),
@@ -385,6 +385,30 @@ class JFormTest extends JoomlaTestCase
 			$form->filterField($form->findField('default'), $input),
 			$this->equalTo('alert(); Some text.'),
 			'Line:'.__LINE__.' The default strict filter should be correctly applied.'
+		);
+
+		$this->assertThat(
+			$form->filterField($form->findField('server_utc'), 'foo'),
+			$this->equalTo(''),
+			'Line:'.__LINE__.' A non-date for a server_utc filter should return nothing.'
+		);
+
+		$this->assertThat(
+			$form->filterField($form->findField('server_utc'), ''),
+			$this->equalTo(''),
+			'Line:'.__LINE__.' An empty date for a server_utc filter should return nothing.'
+		);
+
+		$this->assertThat(
+			$form->filterField($form->findField('user_utc'), 'foo'),
+			$this->equalTo(''),
+			'Line:'.__LINE__.' A non-date for a user_utc filter should return nothing.'
+		);
+
+		$this->assertThat(
+			$form->filterField($form->findField('user_utc'), ''),
+			$this->equalTo(''),
+			'Line:'.__LINE__.' An empty date for a user_utc filter should return nothing.'
 		);
 
 		$this->markTestIncomplete('Need to deal with SERVER_UTC and USER_UTC filters');
@@ -1280,7 +1304,7 @@ class JFormTest extends JoomlaTestCase
 	}
 
 	/**
-	 * Test the JForm::getField method.
+	 * Test the JForm::loadFieldType method.
 	 */
 	public function testLoadFieldType()
 	{

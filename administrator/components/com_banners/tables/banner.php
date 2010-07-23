@@ -5,7 +5,7 @@
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-// no direct access
+// No direct access.
 defined('_JEXEC') or die;
 
 /**
@@ -13,65 +13,15 @@ defined('_JEXEC') or die;
  *
  * @package		Joomla.Framework
  * @subpackage	com_banners
- * @since		1.6
+ * @since		1.5
  */
 class BannersTableBanner extends JTable
 {
-	/** @var int */
-	var $id				= null;
-	/** @var int */
-	var $cid				= null;
-	/** @var int */
-	var $type				= 0;
-	/** @var string */
-	var $name				= '';
-	/** @var string */
-	var $alias				= '';
-	/** @var int */
-	var $imptotal			= 0;
-	/** @var int */
-	var $impmade			= 0;
-	/** @var int */
-	var $clicks				= 0;
-	/** @var string */
-	var $clickurl			= '';
-	/** @var int */
-	var $state				= null;
-	/** @var int */
-	var $catid				= null;
-	/** @var string */
-	var $description		= null;
-	/** @var int */
-	var $sticky				= null;
-	/** @var int */
-	var $ordering			= null;
-	/** @var string */
-	var $metakey		= null;
-	/** @var string */
-	var $params				= null;
-	/** @var int */
-	var $own_prefix			= 0;
-	/** @var string */
-	var $metakey_prefix	= null;
-	/** @var int */
-	var $purchase_type		= 0;
-	/** @var int */
-	var $track_clicks		= 0;
-	/** @var int */
-	var $track_impressions	= 0;
-	/** @var int */
-	var $checked_out		= 0;
-	/** @var date */
-	var $checked_out_time	= 0;
-	/** @var date */
-	var $publish_up			= null;
-	/** @var date */
-	var $publish_down		= null;
-	/** @var date creation date */
-	var $created			= null;
-	/** @var date reset date */
-	var $reset			= null;
-
+	/**
+	 * Constructor
+	 *
+	 * @since	1.5
+	 */
 	function __construct(&$_db)
 	{
 		parent::__construct('#__banners', 'id', $_db);
@@ -91,9 +41,9 @@ class BannersTableBanner extends JTable
 	/**
 	 * Overloaded check function
 	 *
-	 * @return boolean
-	 * @see JTable::check
-	 * @since 1.5
+	 * @return	boolean
+	 * @see		JTable::check
+	 * @since	1.5
 	 */
 	function check()
 	{
@@ -108,12 +58,19 @@ class BannersTableBanner extends JTable
 			$this->alias = JApplication::stringURLSafe($this->name);
 		}
 
-		// Set ordering
-		if($this->state<0) {
-			// Set ordering to 0 if state is trashed
-			$this->ordering = 0;
+		// Check the publish down date is not earlier than publish up.
+		if (intval($this->publish_down) > 0 && $this->publish_down < $this->publish_up) {
+			// Swap the dates.
+			$temp = $this->publish_up;
+			$this->publish_up = $this->publish_down;
+			$this->publish_down = $temp;
 		}
-		elseif(empty($this->ordering)) {
+
+		// Set ordering
+		if ($this->state < 0) {
+			// Set ordering to 0 if state is archived or trashed
+			$this->ordering = 0;
+		} else if (empty($this->ordering)) {
 			// Set ordering to last if ordering was 0
 			$this->ordering = self::getNextOrder('`catid`=' . $this->_db->Quote($this->catid).' AND state>=0');
 		}
@@ -133,7 +90,30 @@ class BannersTableBanner extends JTable
 		if (isset($array['params']) && is_array($array['params'])) {
 			$registry = new JRegistry();
 			$registry->loadArray($array['params']);
-			$array['params'] = (string) $registry;
+
+			if((int) $registry->get('width', 0) < 0){
+				$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_NEGATIVE_NOT_PERMITTED', JText::_('COM_BANNERS_FIELD_WIDTH_LABEL')));
+				return false;
+			}
+
+			if((int) $registry->get('height', 0) < 0){
+				$this->setError(JText::sprintf('JLIB_DATABASE_ERROR_NEGATIVE_NOT_PERMITTED', JText::_('COM_BANNERS_FIELD_HEIGHT_LABEL')));
+				return false;
+			}
+
+			// Converts the width and height to an absolute numeric value:
+			$width = abs((int) $registry->get('width', 0));
+			$height = abs((int) $registry->get('height', 0));
+
+			// Sets the width and height to an empty string if = 0
+			$registry->set('width', ($width ? $width : ''));
+			$registry->set('height', ($height ? $height : ''));
+
+			$array['params'] = (string)$registry;
+		}
+
+		if (isset($array['imptotal'])) {
+			$array['imptotal'] = abs((int) $array['imptotal']);
 		}
 
 		return parent::bind($array, $ignore);
@@ -184,7 +164,7 @@ class BannersTableBanner extends JTable
 		else
 		{
 			// Get the old row
-			$oldrow = & JTable::getInstance('Banner', 'BannersTable');
+			$oldrow = JTable::getInstance('Banner', 'BannersTable');
 			if (!$oldrow->load($this->id) && $oldrow->getError())
 			{
 				$this->setError($oldrow->getError());
@@ -202,31 +182,7 @@ class BannersTableBanner extends JTable
 		}
 		return count($this->getErrors())==0;
 	}
-	/**
-	 * Overloaded load function
-	 *
-	 * @param	int $pk primary key
-	 * @param	boolean $reset reset data
-	 * @return	boolean
-	 * @see JTable:load
-	 */
-	public function load($pk = null, $reset = true)
-	{
-		if (parent::load($pk, $reset))
-		{
-			// Convert the params field to a parameter.
-			$registry = new JRegistry;
-			$registry->loadJSON($this->params);
-			$this->params = $registry;
-			// Set customcode
-			$this->params->set('custom.bannercode', JFilterOutput::objectHTMLSafe( $this->params->get('custom.bannercode',''), ENT_QUOTES));
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
+
 	/**
 	 * Method to set the publishing state for a row or list of rows in the database
 	 * table.  The method respects checked out rows by other users and will attempt
@@ -234,7 +190,7 @@ class BannersTableBanner extends JTable
 	 *
 	 * @param	mixed	An optional array of primary key values to update.  If not
 	 *					set the instance property value is used.
-	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published, -1=archived, -2=trashed]
+	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published, 2=archived, -2=trashed]
 	 * @param	integer The user id of the user performing the operation.
 	 * @return	boolean	True on success.
 	 * @since	1.6
@@ -263,7 +219,7 @@ class BannersTableBanner extends JTable
 		}
 
 		// Get an instance of the table
-		$table = & JTable::getInstance('Banner','BannersTable');
+		$table = JTable::getInstance('Banner','BannersTable');
 
 		// For all keys
 		foreach ($pks as $pk)
@@ -279,6 +235,8 @@ class BannersTableBanner extends JTable
 			{
 				// Change the state
 				$table->state = $state;
+				$table->checked_out=0;
+				$table->checked_out_time=0;
 
 				// Check the row
 				$table->check();
@@ -328,7 +286,7 @@ class BannersTableBanner extends JTable
 		}
 
 		// Get an instance of the table
-		$table = & JTable::getInstance('Banner','BannersTable');
+		$table = JTable::getInstance('Banner','BannersTable');
 
 		// For all keys
 		foreach ($pks as $pk)
@@ -344,6 +302,8 @@ class BannersTableBanner extends JTable
 			{
 				// Change the state
 				$table->sticky = $state;
+				$table->checked_out=0;
+				$table->checked_out_time=0;
 
 				// Check the row
 				$table->check();

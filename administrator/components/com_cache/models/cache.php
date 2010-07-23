@@ -10,6 +10,8 @@
 // no direct access
 defined('_JEXEC') or die;
 
+jimport('joomla.application.component.modellist');
+
 /**
  * Cache Model
  *
@@ -17,7 +19,7 @@ defined('_JEXEC') or die;
  * @subpackage	Cache
  * @since		1.6
  */
-class CacheModelCache extends JModel
+class CacheModelCache extends JModelList
 {
 	/**
 	 * An Array of CacheItems indexed by cache group ID
@@ -43,35 +45,24 @@ class CacheModelCache extends JModel
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * This method should only be called once per instantiation and is designed
-	 * to be called on the first call to the getState() method unless the model
-	 * configuration flag to ignore the request is set.
+	 * Note. Calling getState in this method will result in recursion.
 	 *
-	 * @return	void
 	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		$clientId = JRequest::getInt('client', 0);
 		$this->setState('clientId', $clientId == 1 ? 1 : 0);
 
-		$client	= &JApplicationHelper::getClientInfo($clientId);
+		$client	= JApplicationHelper::getClientInfo($clientId);
 		$this->setState('client', $client);
 
-		$this->setState('path', $client->path.DS.'cache');
-
-		$context	= 'com_cache.cache.';
-
-		$start = $app->getUserStateFromRequest($context.'list.start', 'limitstart', 0, 'int');
-		$limit = $app->getUserStateFromRequest($context.'list.limit', 'limit', $app->getCfg('list_limit', 20), 'int');
-
-		$this->setState('list.start', $start);
-		$this->setState('list.limit', $limit);
+		parent::populateState('group', 'asc');
 	}
 
-	
+
 	/**
 	 * Method to get cache data
 	 *
@@ -80,14 +71,58 @@ class CacheModelCache extends JModel
 	public function getData()
 	{
 		if (empty($this->_data)) {
-		    $conf =& JFactory::getConfig();
-            $storage = $conf->get('cache_handler', 'file');
-			$cache = &JFactory::getCache('', 'callback', $storage);
-			$data = $cache->getAll();
-			if ($data != false) {$this->_data = $data;} else {$this->_data = array();}
+		    $cache 	= $this->getCache();
+			$data 	= $cache->getAll();
+
+			if ($data != false) {
+				$this->_data = $data;
+				$this->_total = sizeof($data);
+
+				if ($this->_total) {
+					// Apply custom ordering
+					$ordering 	= $this->getState('list.ordering');
+					$direction 	= ($this->getState('list.direction') == 'asc') ? 1 : -1;
+
+					jimport('joomla.utilities.arrayhelper');
+					$this->_data = JArrayHelper::sortObjects($data, $ordering, $direction);
+
+					// Apply custom pagination
+					if ($this->_total > $this->getState('list.limit') && $this->getState('list.limit')) {
+						$this->_data = array_slice($this->_data, $this->getState('list.start'), $this->getState('list.limit'));
+					}
+				}
+			} else {
+				$this->_data = array();
+			}
 		}
-		
 		return $this->_data;
+	}
+
+
+
+	/**
+	 * Method to get cache instance
+	 *
+	 * @return object
+	 */
+	public function getCache()
+	{
+		$conf = JFactory::getConfig();
+
+		$options = array(
+			'defaultgroup'	=> '',
+			'storage' 		=> $conf->get('cache_handler', ''),
+			'caching'		=> true,
+			'cachebase'		=> ($this->getState('clientId') == 1) ? JPATH_ROOT.DS.'administrator'.DS.'cache' : $conf->get('cache_path', JPATH_ROOT.DS.'cache')
+		);
+
+		jimport('joomla.cache.cache');
+
+		// We need to clear the previously used cache handlers, otherwise backend cachebase can't be used
+		JCache::$_handler = array();
+
+		$cache = JCache::getInstance('', $options);
+		return $cache;
 	}
 
 	/**
@@ -136,9 +171,8 @@ class CacheModelCache extends JModel
 	 * @param String $group
 	 */
 	public function clean($group = '')
-	{   $conf =& JFactory::getConfig();
-        $storage = $conf->get('cache_handler', 'file');
-		$cache = &JFactory::getCache('', 'callback', $storage);
+	{
+		$cache = $this->getCache();
 		$cache->clean($group);
 	}
 
@@ -151,8 +185,7 @@ class CacheModelCache extends JModel
 
 	public function purge()
 	{
-		$cache = &JFactory::getCache('');
+		$cache = JFactory::getCache('');
 		return $cache->gc();
 	}
 }
-

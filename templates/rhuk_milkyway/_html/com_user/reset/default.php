@@ -1,6 +1,6 @@
 <?php defined('_JEXEC') or die; ?>
 
-<?php if ( $this->params->def( 'show_page_title', 1 ) ) : ?>
+<?php if ( $this->params->def( 'show_page_heading', 1 ) ) : ?>
 	<div class="componentheading<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>">
 		<?php echo $this->escape($this->params->get('page_title')); ?>
 	</div>
@@ -15,7 +15,7 @@
 		</tr>
 		<tr>
 			<td height="40">
-				<label for="email" class="hasTip" title="<?php echo JText::_('RESET_PASSWORD_EMAIL_TIP_TITLE'); ?>::<?php echo JText::_('RESET_PASSWORD_EMAIL_TIP_TEXT'); ?>"><?php echo JText::_('Email Address'); ?>:</label>
+				<label for="email" class="hasTip" title="<?php echo JText::_('RESET_PASSWORD_EMAIL_TIP_TITLE'); ?>::<?php echo JText::_('RESET_PASSWORD_EMAIL_TIP_TEXT'); ?>"><?php echo JText::_('Email Address'); ?></label>
 			</td>
 			<td>
 				<input id="email" name="email" type="text" class="required validate-email" />

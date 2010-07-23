@@ -20,7 +20,8 @@ jimport('joomla.database.tableasset');
 class JTableContent extends JTable
 {
 	/**
-	 * @param database A database connector object
+	 * @param	database	A database connector object
+	 * @since	1.0
 	 */
 	function __construct(&$db)
 	{
@@ -33,6 +34,7 @@ class JTableContent extends JTable
 	 * where id is the value of the primary key of the table.
 	 *
 	 * @return	string
+	 * @since	1.6
 	 */
 	protected function _getAssetName()
 	{
@@ -55,12 +57,13 @@ class JTableContent extends JTable
 	 * Get the parent asset id for the record
 	 *
 	 * @return	int
+	 * @since	1.6
 	 */
 	protected function _getAssetParentId()
 	{
 		// Initialise variables.
 		$assetId = null;
-		$db		= $this->getDbo();
+		$db = $this->getDbo();
 
 		// This is a article under a category.
 		if ($this->catid) {
@@ -69,20 +72,6 @@ class JTableContent extends JTable
 			$query->select('asset_id');
 			$query->from('#__categories');
 			$query->where('id = '.(int) $this->catid);
-
-			// Get the asset id from the database.
-			$this->_db->setQuery($query);
-			if ($result = $this->_db->loadResult()) {
-				$assetId = (int) $result;
-			}
-		}
-		// This is an uncategorized article that needs to parent with the extension.
-		elseif ($assetId === null) {
-			// Build the query to get the asset id for the parent category.
-			$query	= $db->getQuery(true);
-			$query->select('id');
-			$query->from('#__assets');
-			$query->where('name = "com_content"');
 
 			// Get the asset id from the database.
 			$this->_db->setQuery($query);
@@ -103,9 +92,10 @@ class JTableContent extends JTable
 	 * Overloaded bind function
 	 *
 	 * @param	array		$hash named array
+	 *
 	 * @return	null|string	null is operation was satisfactory, otherwise returns an error
-	 * @see JTable:bind
-	 * @since 1.5
+	 * @see		JTable:bind
+	 * @since	1.5
 	 */
 	public function bind($array, $ignore = '')
 	{
@@ -116,6 +106,7 @@ class JTableContent extends JTable
 
 			if ($tagPos == 0) {
 				$this->introtext	= $array['articletext'];
+				$this->fulltext         = '';
 			} else {
 				list($this->introtext, $this->fulltext) = preg_split($pattern, $array['articletext'], 2);
 			}
@@ -133,6 +124,12 @@ class JTableContent extends JTable
 			$array['metadata'] = (string)$registry;
 		}
 
+		// Bind the rules.
+		if (isset($array['rules']) && is_array($array['rules'])) {
+			$rules = new JRules($array['rules']);
+			$this->setRules($rules);
+		}
+
 		return parent::bind($array, $ignore);
 	}
 
@@ -145,18 +142,19 @@ class JTableContent extends JTable
 	 */
 	public function check()
 	{
-		if (empty($this->title)) {
-			$this->setError(JText::_('Article must have a title'));
+		if (empty($this->title) OR (trim($this->title) == '')) {
+			$this->setError(JText::_('COM_CONTENT_WARNING_PROVIDE_VALID_NAME'));
 			return false;
 		}
 
 		if (empty($this->alias)) {
 			$this->alias = $this->title;
 		}
+
 		$this->alias = JApplication::stringURLSafe($this->alias);
 
 		if (trim(str_replace('-','',$this->alias)) == '') {
-			$this->alias = JFactory::getDate()->toFormat("%Y-%m-%d-%H-%M-%S");
+			$this->alias = JFactory::getDate()->format('Y-m-d-H-i-s');
 		}
 
 		if (trim(str_replace('&nbsp;', '', $this->fulltext)) == '') {
@@ -168,6 +166,14 @@ class JTableContent extends JTable
 			return false;
 		}
 
+		// Check the publish down date is not earlier than publish up.
+		if (intval($this->publish_down) > 0 && $this->publish_down < $this->publish_up) {
+			// Swap the dates.
+			$temp = $this->publish_up;
+			$this->publish_up = $this->publish_down;
+			$this->publish_down = $temp;
+		}
+
 		// clean up keywords -- eliminate extra spaces between phrases
 		// and cr (\r) and lf (\n) characters from string
 		if (!empty($this->metakey)) {
@@ -176,6 +182,7 @@ class JTableContent extends JTable
 			$after_clean = JString::str_ireplace($bad_characters, "", $this->metakey); // remove bad characters
 			$keys = explode(',', $after_clean); // create array using commas as delimiter
 			$clean_keys = array();
+
 			foreach($keys as $key) {
 				if (trim($key)) {  // ignore blank keywords
 					$clean_keys[] = trim($key);
@@ -184,12 +191,6 @@ class JTableContent extends JTable
 			$this->metakey = implode(", ", $clean_keys); // put array back together delimited by ", "
 		}
 
-		// clean up description -- eliminate quotes and <> brackets
-		if (!empty($this->metadesc)) {
-			// only process if not empty
-			$bad_characters = array("\"", "<", ">");
-			$this->metadesc = JString::str_ireplace($bad_characters, "", $this->metadesc);
-		}
 
 		return true;
 	}
@@ -198,6 +199,7 @@ class JTableContent extends JTable
 	 * Overriden JTable::store to set modified data and user id.
 	 *
 	 * @param	boolean	True to update fields even if they are null.
+	 *
 	 * @return	boolean	True on success.
 	 * @since	1.6
 	 */
@@ -205,6 +207,7 @@ class JTableContent extends JTable
 	{
 		$date	= JFactory::getDate();
 		$user	= JFactory::getUser();
+
 		if ($this->id) {
 			// Existing item
 			$this->modified		= $date->toMySQL();
@@ -215,6 +218,7 @@ class JTableContent extends JTable
 			if (!intval($this->created)) {
 				$this->created = $date->toMySQL();
 			}
+
 			if (empty($this->created_by)) {
 				$this->created_by = $user->get('id');
 			}
@@ -232,6 +236,7 @@ class JTableContent extends JTable
 	 *					set the instance property value is used.
 	 * @param	integer The publishing state. eg. [0 = unpublished, 1 = published]
 	 * @param	integer The user id of the user performing the operation.
+	 *
 	 * @return	boolean	True on success.
 	 * @since	1.0.4
 	 */
@@ -296,6 +301,7 @@ class JTableContent extends JTable
 		}
 
 		$this->setError('');
+
 		return true;
 	}
 
@@ -303,10 +309,11 @@ class JTableContent extends JTable
 	 * Converts record to XML
 	 *
 	 * @param	boolean	Map foreign keys to text values
+	 * @since	1.5
 	 */
 	function toXML($mapKeysToText=false)
 	{
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		if ($mapKeysToText) {
 			$query = 'SELECT name'

@@ -77,7 +77,7 @@ abstract class JPlugin extends JEvent
 		if (isset($config['type'])) {
 			$this->_type = $config['type'];
 		}
-		$events = get_class_methods($this);
+		$events = array_diff(get_class_methods($this), get_class_methods('JPlugin'));
 		foreach($events as $event)
 		{
 			$method = array('event' => $event, 'handler' => array($this, 'onFireEvent'));
@@ -106,7 +106,7 @@ abstract class JPlugin extends JEvent
 			$extension = 'plg_'.$this->_type.'_'.$this->_name;
 		}
 
-		$lang = &JFactory::getLanguage();
+		$lang = JFactory::getLanguage();
 		return
 			$lang->load(strtolower($extension), $basePath, null, false, false)
 		||	$lang->load(strtolower($extension), JPATH_PLUGINS .DS.$this->_type.DS.$this->_name, null, false, false)

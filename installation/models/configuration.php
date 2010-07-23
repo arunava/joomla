@@ -6,7 +6,7 @@
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('_JEXEC') or die('Invalid Request.');
+defined('_JEXEC') or die;
 
 jimport('joomla.application.component.model');
 jimport('joomla.filesystem.file');
@@ -48,7 +48,7 @@ class JInstallationModelConfiguration extends JModel
 
 		/* Site Settings */
 		$registry->set('offline', 0);
-		$registry->set('offline_message', JText::_('STDOFFLINEMSG'));
+		$registry->set('offline_message', JText::_('INSTL_STD_OFFLINE_MSG'));
 		$registry->set('sitename', $options->site_name);
 		$registry->set('editor', 'tinymce');
 		$registry->set('list_limit', 20);
@@ -57,7 +57,7 @@ class JInstallationModelConfiguration extends JModel
 		/* Debug Settings */
 		$registry->set('debug', 0);
 		$registry->set('debug_lang', 0);
-		$registry->set('debug_modules', 1);
+		$registry->set('debug_modules', 0);
 
 		/* Database Settings */
 		$registry->set('dbtype', $options->db_type);
@@ -72,7 +72,7 @@ class JInstallationModelConfiguration extends JModel
 		$registry->set('secret', JUserHelper::genRandomPassword(16));
 		$registry->set('gzip', 0);
 		$registry->set('error_reporting', -1);
-		$registry->set('helpurl', 'http://help.joomla.org');
+		$registry->set('helpurl', 'http://help.joomla.org/proxy/index.php?option=com_help&amp;keyref=Help{major}{minor}:{keyref}');
 		$registry->set('xmlrpc_server', 0);
 		$registry->set('ftp_host', $options->ftp_host);
 		$registry->set('ftp_port', $options->ftp_port);
@@ -82,8 +82,8 @@ class JInstallationModelConfiguration extends JModel
 		$registry->set('ftp_enable', $options->ftp_enable);
 
 		/* Locale Settings */
-		$registry->set('offset', 0);
-		$registry->set('offset_user', 0);
+		$registry->set('offset', 'UTC');
+		$registry->set('offset_user', 'UTC');
 
 		/* Mail Settings */
 		$registry->set('mailer', 'mail');
@@ -98,13 +98,13 @@ class JInstallationModelConfiguration extends JModel
 		$registry->set('smtpport', '25');
 
 		/* Cache Settings */
-		$registry->set('caching', 0);
-		$registry->set('cachetime', 15);
+		$registry->set('caching', 2);
 		$registry->set('cache_handler', 'file');
+		$registry->set('cachetime', 15);
 
 		/* Meta Settings */
-		$registry->set('MetaDesc', JText::_('STDMETADESC'));
-		$registry->set('MetaKeys', JText::_('STDMETAKEYS'));
+		$registry->set('MetaDesc', JText::_('INSTL_STD_METADESC'));
+		$registry->set('MetaKeys', JText::_('INSTL_STD_METAKEYS'));
 		$registry->set('MetaTitle', 1);
 		$registry->set('MetaAuthor', 1);
 
@@ -162,7 +162,7 @@ class JInstallationModelConfiguration extends JModel
 			jimport('joomla.client.ftp');
 			jimport('joomla.filesystem.path');
 
-			$ftp = & JFTP::getInstance($options->ftp_host, $options->ftp_port);
+			$ftp = JFTP::getInstance($options->ftp_host, $options->ftp_port);
 			$ftp->login($options->ftp_user, $options->ftp_pass);
 
 			// Translate path for the FTP account
@@ -171,7 +171,7 @@ class JInstallationModelConfiguration extends JModel
 			// Use FTP write buffer to file
 			if (!$ftp->write($file, $buffer)) {
 				// Set the config string to the session.
-				$session = & JFactory::getSession();
+				$session = JFactory::getSession();
 				$session->set('setup.config', $buffer);
 			}
 
@@ -181,11 +181,11 @@ class JInstallationModelConfiguration extends JModel
 		{
 			if ($canWrite) {
 				file_put_contents($path, $buffer);
-				$session = & JFactory::getSession();
+				$session = JFactory::getSession();
 				$session->set('setup.config', null);
 			} else {
 				// Set the config string to the session.
-				$session = & JFactory::getSession();
+				$session = JFactory::getSession();
 				$session->set('setup.config', $buffer);
 			}
 		}
@@ -196,17 +196,17 @@ class JInstallationModelConfiguration extends JModel
 	function _createRootUser($options)
 	{
 		// Get a database object.
-		$db = & JInstallationHelperDatabase::getDBO($options->db_type, $options->db_host, $options->db_user, $options->db_pass, $options->db_name, $options->db_prefix);
+		$db = JInstallationHelperDatabase::getDBO($options->db_type, $options->db_host, $options->db_user, $options->db_pass, $options->db_name, $options->db_prefix);
 
 		// Check for errors.
 		if (JError::isError($db)) {
-			$this->setError(JText::sprintf('WARNNOTCONNECTDB', (string)$db));
+			$this->setError(JText::sprintf('INSTL_ERROR_CONNECT_DB', (string)$db));
 			return false;
 		}
 
 		// Check for database errors.
 		if ($err = $db->getErrorNum()) {
-			$this->setError(JText::sprintf('WARNNOTCONNECTDB', $db->getErrorNum()));
+			$this->setError(JText::sprintf('INSTL_ERROR_CONNECT_DB', $db->getErrorNum()));
 			return false;
 		}
 
@@ -216,9 +216,10 @@ class JInstallationModelConfiguration extends JModel
 		$cryptpass = $crypt.':'.$salt;
 
 		// create the admin user
+		date_default_timezone_set('UTC');
 		$installdate	= date('Y-m-d H:i:s');
 		$nullDate		= $db->getNullDate();
-		$query	= 'INSERT INTO #__users SET'
+		$query	= 'REPLACE INTO #__users SET'
 				. ' id = 42'
 				. ', name = '.$db->quote('Super User')
 				. ', username = '.$db->quote($options->admin_user)
@@ -238,7 +239,7 @@ class JInstallationModelConfiguration extends JModel
 		}
 
 		// Map the super admin to the Super Admin Group
-		$query = 'INSERT INTO #__user_usergroup_map' .
+		$query = 'REPLACE INTO #__user_usergroup_map' .
 				' SET user_id = 42, group_id = 8';
 		$db->setQuery($query);
 		if (!$db->query()) {

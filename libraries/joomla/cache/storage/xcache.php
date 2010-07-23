@@ -20,16 +20,6 @@ defined('JPATH_BASE') or die;
 class JCacheStorageXcache extends JCacheStorage
 {
 	/**
-	* Constructor
-	*
-	* @param array $options optional parameters
-	*/
-	public function __construct($options = array())
-	{
-		parent::__construct($options);
-	}
-
-	/**
 	 * Get cached data by id and group
 	 *
 	 * @param	string	$id			The cache data id
@@ -42,16 +32,15 @@ class JCacheStorageXcache extends JCacheStorage
 	{
 		$cache_id = $this->_getCacheId($id, $group);
 		$cache_content = xcache_get($cache_id);
-		if ($cache_content === null)
-		{
+
+		if ($cache_content === null) {
 			return false;
 		}
-		
+
 		return $cache_content;
 	}
-	
-	
-	 /**
+
+	/**
 	 * Get all cached data
 	 *
 	 *  requires the php.ini setting xcache.admin.enable_auth = Off
@@ -60,39 +49,37 @@ class JCacheStorageXcache extends JCacheStorage
 	 * @since	1.6
 	 */
 	public function getAll()
-	{	
+	{
 		parent::getAll();
-		
-		$allinfo = xcache_list(XC_TYPE_VAR, 0);
-		$keys = $allinfo['cache_list'];
-        $secret = $this->_hash;
-        
-        $data = array();		
+
+		$allinfo 	= xcache_list(XC_TYPE_VAR, 0);
+		$keys 		= $allinfo['cache_list'];
+		$secret 	= $this->_hash;
+
+		$data = array();
 
 		foreach ($keys as $key) {
-		
-			$namearr=explode('-',$key['name']);
-			
-			if ($namearr !== false && $namearr[0]==$secret &&  $namearr[1]=='cache') {
-			
-			$group = $namearr[2];
-			
-			if (!isset($data[$group])) {
-			$item = new JCacheStorageHelper();
-			} else {
-			$item = $data[$group];
-			}
 
-			$item->updateSize($key['size']/1024,$group);
-			
-			$data[$group] = $item;
-			
+			$namearr = explode('-',$key['name']);
+
+			if ($namearr !== false && $namearr[0]==$secret &&  $namearr[1]=='cache') {
+				$group = $namearr[2];
+
+				if (!isset($data[$group])) {
+					$item = new JCacheStorageHelper($group);
+				} else {
+					$item = $data[$group];
+				}
+
+				$item->updateSize($key['size']/1024);
+
+				$data[$group] = $item;
 			}
 		}
-	
-					
+
 		return $data;
 	}
+
 	/**
 	 * Store the data by id and group
 	 *
@@ -145,26 +132,26 @@ class JCacheStorageXcache extends JCacheStorage
 	{
 		$allinfo = xcache_list(XC_TYPE_VAR, 0);
 		$keys = $allinfo['cache_list'];
-		
-        $secret = $this->_hash;
-        foreach ($keys as $key) {
-		
-        if (strpos($key['name'], $secret.'-cache-'.$group.'-')===0 xor $mode != 'group')
-					xcache_unset($key['name']);
-        }
+
+		$secret = $this->_hash;
+		foreach ($keys as $key) {
+
+		if (strpos($key['name'], $secret.'-cache-'.$group.'-')===0 xor $mode != 'group')
+			xcache_unset($key['name']);
+		}
 		return true;
 	}
-	
+
 	/**
 	 * Garbage collect expired cache data
 	 *
 	 * @return boolean  True on success, false otherwise.
-	 * * @since	1.6
+	 * @since	1.6
 	 */
 	public function gc()
 	{
 		// dummy, xcache has builtin garbage collector, turn it on in php.ini by changing default xcache.gc_interval setting from 0 to 3600 (=1 hour)
-		
+
 		/**
 		$now = time();
 
@@ -177,14 +164,14 @@ class JCacheStorageXcache extends JCacheStorage
 
 				foreach($keys as $key) {
 
-					if(strstr($key['name'], $this->_hash)) {
-						if(($key['ctime'] + $this->_lifetime ) < $this->_now) xcache_unset($key['name']);
+					if (strstr($key['name'], $this->_hash)) {
+						if (($key['ctime'] + $this->_lifetime ) < $this->_now) xcache_unset($key['name']);
 					}
 				}
 			}
 
 		 */
-		
+
 		return true;
 	}
 

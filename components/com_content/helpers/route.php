@@ -22,7 +22,7 @@ jimport('joomla.application.categories');
  * @since 1.5
  */
 abstract class ContentHelperRoute
-{ 
+{
 	protected static $lookup;
 	/**
 	 * @param	int	The route of the content item
@@ -34,7 +34,7 @@ abstract class ContentHelperRoute
 		);
 		//Create the link
 		$link = 'index.php?option=com_content&view=article&id='. $id;
-		if ($catid > 1)
+		if ((int)$catid > 1)
 		{
 			$categories = JCategories::getInstance('Content');
 			$category = $categories->get((int)$catid);
@@ -59,7 +59,7 @@ abstract class ContentHelperRoute
 		{
 			return;
 		}
-		
+
 		if($catid instanceof JCategoryNode)
 		{
 			$catids = array_reverse($catid->getPath());
@@ -74,7 +74,7 @@ abstract class ContentHelperRoute
 			$category = $categories->get((int)$catid);
 			if(!$category)
 			{
-				return $link;	
+				return $link;
 			}
 			$catids = array_reverse($category->getPath());
 		}
@@ -96,8 +96,9 @@ abstract class ContentHelperRoute
 		{
 			self::$lookup = array();
 
-			$component	= &JComponentHelper::getComponent('com_content');
-			$menus		= &JApplication::getMenu('site');
+			$component	= JComponentHelper::getComponent('com_content');
+			$app		= JFactory::getApplication();
+			$menus		= $app->getMenu('site');
 			$items		= $menus->getItems('component_id', $component->id);
 			foreach ($items as $item)
 			{

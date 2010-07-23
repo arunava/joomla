@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.FunctionalTest
+ * @package		Joomla.SystemTest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * checks that all menu choices are shown in back end
@@ -17,19 +17,19 @@ class SampleData0001 extends SeleniumJoomlaTestCase
 	function testModuleOrder()
 	{
 		$this->setUp();
-		$this->gotoAdmin();		
+		$this->gotoAdmin();
 		$this->doAdminLogin();
 		print("Open up category manager" . "\n");
 		$this->click("link=Category Manager");
 		$this->waitForPageToLoad("30000");
 		print("Move Modules category up one" . "\n");
-		$this->click("//a[@title='Move Up' and @onclick=\"return listItemTask('cb4','categories.orderup')\"]");
+		$this->click("//table[@class='adminlist']/tbody//tr//td/a[contains(text(), 'Modules')]/../../td//a[@title='Move Up']");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Item successfully reordered"));
+		$this->assertTrue($this->isElementPresent("//dl[@id='system-message'][contains(., 'success')]"));
 		print("Move Modules category down one" . "\n");
-		$this->click("//a[@title='Move Down' and @onclick=\"return listItemTask('cb3','categories.orderdown')\"]");
+		$this->click("//table[@class='adminlist']/tbody//tr//td/a[contains(text(), 'Modules')]/../../td//a[@title='Move Down']");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Item successfully reordered"));
+		$this->assertTrue($this->isElementPresent("//dl[@id='system-message'][contains(., 'success')]"));
 		$this->doAdminLogout();
 		print("Finish testModuleOrder" . "\n");
 	}
@@ -37,28 +37,24 @@ class SampleData0001 extends SeleniumJoomlaTestCase
 	function testMenuItems()
 	{
 		$this->setUp();
-		$this->gotoAdmin();		
+		$this->gotoAdmin();
 		$this->doAdminLogin();
 		print("Go to front end" . "\n");
 		$this->gotoSite();
-		$this->waitForPageToLoad("30000");
 		$this->click("link=Home");
 		$this->waitForPageToLoad("30000");
-		print("Go to login" . "\n");
-		$this->click("link=Login");
-		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Username"));
+		$this->assertTrue($this->isTextPresent("User Name"));
 		$this->assertTrue($this->isTextPresent("Password"));
-		$this->assertTrue($this->isElementPresent("//button[@type='submit']"));
+		$this->assertTrue($this->isElementPresent("Submit"));
 		$this->click("link=Home");
 		$this->waitForPageToLoad("30000");
 		print("Go to Sample Data" . "\n");
-		$this->click("link=Sample Data");
+		$this->click("link=Sample Sites");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Sample Sites"));
 		$this->click("link=Home");
 		print("Load search" . "\n");
-		$this->click("link=Search");
+		$this->type("mod_search_searchword", "search");
 		$this->waitForPageToLoad("30000");
 
 		$this->click("link=Home");
@@ -76,7 +72,7 @@ class SampleData0001 extends SeleniumJoomlaTestCase
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Using Joomla!"));
 		print("Go to Extensions" . "\n");
-		$this->click("link=Extensions");
+		$this->click("link=Using Extensions");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Extensions"));
 		$this->assertTrue($this->isElementPresent("link=Components"));
@@ -98,7 +94,7 @@ class SampleData0001 extends SeleniumJoomlaTestCase
 		$this->click("link=Using Joomla!");
 		$this->waitForPageToLoad("30000");
 		print("Go to Extensions" . "\n");
-		$this->click("link=Extensions");
+		$this->click("link=Using Extensions");
 		$this->waitForPageToLoad("30000");
 		print("Go to Components" . "\n");
 		$this->click("link=Components");

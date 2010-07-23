@@ -35,17 +35,17 @@ class NewsfeedsViewNewsfeed extends JView
 		}
 
 		// Get some objects from the JApplication
-		$pathway  = &$app->getPathway();
-		$document = &JFactory::getDocument();
+		$pathway  = $app->getPathway();
+		$document = JFactory::getDocument();
 
 		// Get the current menu item
-		$menus	= &JSite::getMenu();
+		$menus	= $app->getMenu();
 		$menu	= $menus->getActive();
-		$params	= &$app->getParams();
+		$params	= $app->getParams();
 
 		//get the newsfeed
-		$newsfeed = &$this->get('data');
-		
+		$newsfeed = $this->get('data');
+
 		$temp = new JRegistry();
 		$temp->loadJSON($newsfeed->params);
 		$params->merge($temp);
@@ -55,7 +55,7 @@ class NewsfeedsViewNewsfeed extends JView
 		$options['rssUrl']		= $newsfeed->link;
 		$options['cache_time']	= $newsfeed->cache_time;
 
-		$rssDoc = &JFactory::getXMLparser('RSS', $options);
+		$rssDoc = JFactory::getXMLparser('RSS', $options);
 
 		if ($rssDoc == false) {
 			$msg = JText::_('COM_NEWSFEEDS_ERRORS_FEED_NOT_RETRIEVED');
@@ -85,7 +85,7 @@ class NewsfeedsViewNewsfeed extends JView
 
 		$this->assignRef('params'  , $params  );
 		$this->assignRef('newsfeed', $newsfeed);
-		
+
 		$this->_prepareDocument();
 
 		parent::display($tpl);
@@ -96,9 +96,9 @@ class NewsfeedsViewNewsfeed extends JView
 	 */
 	protected function _prepareDocument()
 	{
-		$app		= &JFactory::getApplication();
-		$menus		= &JSite::getMenu();
-		$pathway	= &$app->getPathway();
+		$app		= JFactory::getApplication();
+		$menus		= $app->getMenu();
+		$pathway	= $app->getPathway();
 		$title 		= null;
 
 		// Because the application sets a default page title,
@@ -108,7 +108,7 @@ class NewsfeedsViewNewsfeed extends JView
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
 		} else {
-			$this->params->def('page_heading', JText::_('COM_NEWSFEEDS_DEFAULT_PAGE_TITLE')); 
+			$this->params->def('page_heading', JText::_('COM_NEWSFEEDS_DEFAULT_PAGE_TITLE'));
 		}
 		if($menu && $menu->query['view'] != 'newsfeed')
 		{
@@ -126,12 +126,34 @@ class NewsfeedsViewNewsfeed extends JView
 				$pathway->addItem($title, $link);
 			}
 		}
-		
+
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = htmlspecialchars_decode($app->getCfg('sitename'));
 		}
+		elseif ($app->getCfg('sitename_pagetitles', 0)) {
+			$title = JText::sprintf('JPAGETITLE', htmlspecialchars_decode($app->getCfg('sitename')), $title);
+		}
 		$this->document->setTitle($title);
+
+		if ($this->newsfeed->metadesc)
+		{
+			$this->document->setDescription($this->newsfeed->metadesc);
+		}
+
+		if ($this->newsfeed->metakey)
+		{
+			$this->document->setMetadata('keywords', $this->newsfeed->metakey);
+		}
+
+		$mdata = $this->newsfeed->metadata->toArray();
+		foreach ($mdata as $k => $v)
+		{
+			if ($v)
+			{
+				$this->document->setMetadata($k, $v);
+			}
+		}
+
 	}
 }

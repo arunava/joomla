@@ -22,30 +22,37 @@ jimport('joomla.application.component.modeladmin');
 class ModulesModelModule extends JModelAdmin
 {
 	/**
-	 * Item cache.
+	 * @var		string	The prefix to use with controller messages.
+	 * @since	1.6
 	 */
-	private $_cache = array();
-
-	protected $_context = 'com_modules';
+	protected $text_prefix = 'COM_MODULES';
 
 	/**
-	 * Constructor.
+	 * @var		string	The help screen key for the module.
+	 * @since	1.6
+	 */
+	protected $helpKey = 'JHELP_EXTENSIONS_MODULE_MANAGER_EDIT';
+
+	/**
+	 * @var		string	The help screen base URL for the module.
+	 * @since	1.6
+	 */
+	protected $helpURL;
+
+	/**
+	 * @var		boolean	True to use local lookup for the help screen.
+	 * @since	1.6
+	 */
+	protected $helpLocal = false;
+
+	/**	 * Method to auto-populate the model state.
 	 *
-	 * @param	array An optional associative array of configuration settings.
-	 * @see		JController
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
-	public function __construct($config = array())
-	{
-		parent::__construct($config);
-
-		$this->_item = 'module';
-		$this->_option = 'com_modules';
-	}
-	
-	/**
-	 * Method to auto-populate the model state.
-	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = JFactory::getApplication('administrator');
 
@@ -70,6 +77,7 @@ class ModulesModelModule extends JModelAdmin
 	 * @param	array	An array of item ids.
 	 *
 	 * @return	boolean	Returns true on success, false on failure.
+	 * @since	1.6
 	 */
 	public function delete(&$pks)
 	{
@@ -103,11 +111,7 @@ class ModulesModelModule extends JModelAdmin
 				throw new Exception($table->getError());
 			}
 		}
-		
-		// Clear the component's cache
-		$cache = JFactory::getCache('com_modules');
-		$cache->clean();
-		$cache->clean('mod_menu');
+
 		return true;
 	}
 
@@ -118,6 +122,7 @@ class ModulesModelModule extends JModelAdmin
 	 *
 	 * @return	boolean	True if successful.
 	 * @throws	Exception
+	 * @since	1.6
 	 */
 	public function duplicate(&$pks)
 	{
@@ -178,11 +183,7 @@ class ModulesModelModule extends JModelAdmin
 				return JError::raiseWarning(500, $row->getError());
 			}
 		}
-		
-		// Clear the component's cache
-		$cache = JFactory::getCache('com_modules');
-		$cache->clean();
-		$cache->clean('mod_menu');
+
 		return true;
 	}
 
@@ -199,15 +200,14 @@ class ModulesModelModule extends JModelAdmin
 	/**
 	 * Method to get the record form.
 	 *
-	 * @param	array		An optional array of source data.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
 	 *
-	 * @return	mixed		JForm object on success, false on failure.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm($data = null)
+	public function getForm($data = array(), $loadData = true)
 	{
-		// Initialise variables.
-		$app = JFactory::getApplication();
-
 		// The folder and element vars are passed when saving the form.
 		if (empty($data)) {
 			$item		= $this->getItem();
@@ -223,22 +223,32 @@ class ModulesModelModule extends JModelAdmin
 		$this->setState('item.module',		$module);
 
 		// Get the form.
-		try {
-			$form = parent::getForm('com_modules.module', 'module', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = $this->loadForm('com_modules.module', 'module', array('control' => 'jform', 'load_data' => $loadData));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_modules.edit.module.data', array());
-
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
-		}
+		$form->setFieldAttribute('position', 'client', $this->getState('item.client_id') == 0 ? 'site' : 'administrator');
 
 		return $form;
+	}
+
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function loadFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_modules.edit.module.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
+		}
+
+		return $data;
 	}
 
 	/**
@@ -247,8 +257,9 @@ class ModulesModelModule extends JModelAdmin
 	 * @param	integer	The id of the primary key.
 	 *
 	 * @return	mixed	Object on success, false on failure.
+	 * @since	1.6
 	 */
-	public function &getItem($pk = null)
+	public function getItem($pk = null)
 	{
 		// Initialise variables.
 		$pk	= (!empty($pk)) ? (int) $pk : (int) $this->getState('module.id');
@@ -258,7 +269,7 @@ class ModulesModelModule extends JModelAdmin
 			$false	= false;
 
 			// Get a row instance.
-			$table = &$this->getTable();
+			$table = $this->getTable();
 
 			// Attempt to load the row.
 			$return = $table->load($pk);
@@ -293,7 +304,8 @@ class ModulesModelModule extends JModelAdmin
 					$table->module		= $extension->element;
 					$table->client_id	= $extension->client_id;
 				} else {
-					$this->setError('COM_MODULES_ERROR_CANNOT_GET_MODULE');
+					$app = JFactory::getApplication();
+					$app->redirect(JRoute::_('index.php?option=com_modules&view=modules',false));
 					return false;
 				}
 			}
@@ -348,12 +360,25 @@ class ModulesModelModule extends JModelAdmin
 	}
 
 	/**
+	 * Get the necessary data to load an item help screen.
+	 *
+	 * @return	object	An object with key, url, and local properties for loading the item help screen.
+	 * @since	1.6
+	 */
+	public function getHelp()
+	{
+		return (object) array('key' => $this->helpKey, 'url' => $this->helpURL, 'local' => $this->helpLocal);
+	}
+
+	/**
 	 * Returns a reference to the a Table object, always creating it.
 	 *
 	 * @param	type	The table type to instantiate
 	 * @param	string	A prefix for the table class name. Optional.
 	 * @param	array	Configuration array for model. Optional.
+	 *
 	 * @return	JTable	A database object
+	 * @since	1.6
 	*/
 	public function getTable($type = 'Module', $prefix = 'JTable', $config = array())
 	{
@@ -362,6 +387,9 @@ class ModulesModelModule extends JModelAdmin
 
 	/**
 	 * Prepare and sanitise the table prior to saving.
+	 *
+	 * @return	void
+	 * @since	1.6
 	 */
 	protected function prepareTable(&$table)
 	{
@@ -383,19 +411,22 @@ class ModulesModelModule extends JModelAdmin
 
 	/**
 	 * @param	object	A form object.
+	 * @param	mixed	The data expected for the form.
 	 *
+	 * @return	void
 	 * @throws	Exception if there is an error loading the form.
 	 * @since	1.6
 	 */
-	protected function preprocessForm($form)
+	protected function preprocessForm($form, $data)
 	{
 		jimport('joomla.filesystem.file');
 		jimport('joomla.filesystem.folder');
 
 		// Initialise variables.
+		$lang		= JFactory::getLanguage();
 		$clientId	= $this->getState('item.client_id');
 		$module		= $this->getState('item.module');
-		$lang		= JFactory::getLanguage();
+
 		$client		= JApplicationHelper::getClientInfo($clientId);
 		$formFile	= JPath::clean($client->path.'/modules/'.$module.'/'.$module.'.xml');
 
@@ -408,19 +439,38 @@ class ModulesModelModule extends JModelAdmin
 		if (file_exists($formFile)) {
 			// Get the module form.
 			if (!$form->loadFile($formFile, false, '//config')) {
-				throw new Exception(JText::_('JModelForm_Error_loadFile_failed'));
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
 			}
+			// Attempt to load the xml file.
+			if (!$xml = simplexml_load_file($formFile)) {
+				throw new Exception(JText::_('JERROR_LOADFILE_FAILED'));
+			}
+
+			// Get the help data from the XML file if present.
+			$help = $xml->xpath('/extension/help');
+			if (!empty($help)) {
+				$helpKey = trim((string) $help[0]['key']);
+				$helpURL = trim((string) $help[0]['url']);
+				$helpLoc = trim((string) $help[0]['local']);
+
+				$this->helpKey = $helpKey ? $helpKey : $this->helpKey;
+				$this->helpURL = $helpURL ? $helpURL : $this->helpURL;
+				$this->helpLocal = (($helpLoc == 'true') || ($helpLoc == '1') || ($helpLoc == 'local')) ? true : false;
+			}
+
 		}
 
 		// Trigger the default form events.
-		parent::preprocessForm($form);
+		parent::preprocessForm($form, $data);
 	}
 
 	/**
 	 * Method to save the form data.
 	 *
 	 * @param	array	The form data.
+	 *
 	 * @return	boolean	True on success.
+	 * @since	1.6
 	 */
 	public function save($data)
 	{
@@ -431,7 +481,7 @@ class ModulesModelModule extends JModelAdmin
 		$isNew		= true;
 
 		// Include the content modules for the onSave events.
-		JPluginHelper::importPlugin('content');
+		JPluginHelper::importPlugin('extension');
 
 		// Load the row if saving an existing record.
 		if ($pk > 0) {
@@ -454,8 +504,8 @@ class ModulesModelModule extends JModelAdmin
 			return false;
 		}
 
-		// Trigger the onBeforeSaveContent event.
-		$result = $dispatcher->trigger('onBeforeContentSave', array(&$table, $isNew));
+		// Trigger the onExtensionBeforeSave event.
+		$result = $dispatcher->trigger('onExtensionBeforeSave', array('com_modules.module', &$table, $isNew));
 		if (in_array(false, $result, true)) {
 			$this->setError($table->getError());
 			return false;
@@ -529,27 +579,50 @@ class ModulesModelModule extends JModelAdmin
 					'INSERT INTO #__modules_menu (moduleid, menuid) VALUES '.
 					implode(',', $tuples)
 				);
-				if (!$this->_db->query()) {
+				if (!$db->query()) {
 					$this->setError($db->getErrorMsg());
 					return false;
 				}
 			}
 		}
 
-		// Clean the cache.
-		$cache = JFactory::getCache('com_modules');
+		// Trigger the onExtensionAfterSave event.
+		$dispatcher->trigger('onExtensionAfterSave', array('com_modules.module', &$table, $isNew));
+
+		// Compute the extension id of this module in case the controller wants it.
+		$query	= $db->getQuery(true);
+		$query->select('extension_id');
+		$query->from('#__extensions AS e');
+		$query->leftJoin('#__modules AS m ON e.element = m.module');
+		$query->where('m.id = '.(int) $table->id);
+		$db->setQuery($query);
+
+		$extensionId = $db->loadResult();
+
+		if ($error = $db->getErrorMsg()) {
+			JError::raiseWarning(500, $error);
+			return;
+		}
+
+		$this->setState('module.extension_id',	$extensionId);
+		$this->setState('module.id',			$table->id);
+
+		// Clear module cache
+		$cache = JFactory::getCache($table->module);
 		$cache->clean();
-		$cache->clean('mod_menu');
-
-		// Trigger the onAfterContentSave event.
-		$dispatcher->trigger('onAfterContentSave', array(&$table, $isNew));
-
-		$this->setState('module.id', $table->id);
 
 		return true;
 	}
-	
-	function _orderConditions($table = null)
+
+	/**
+	 * A protected method to get a set of ordering conditions.
+	 *
+	 * @param	object	A record object.
+	 *
+	 * @return	array	An array of conditions to add to add to ordering queries.
+	 * @since	1.6
+	 */
+	protected function getReorderConditions($table = null)
 	{
 		$condition = array();
 		$condition[] = 'client_id = '.(int) $table->client_id;

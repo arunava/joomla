@@ -44,7 +44,7 @@ abstract class JHtmlList
 
 		jimport('joomla.filesystem.folder');
 		$imageFiles	= JFolder::files(JPATH_SITE.DS.$directory);
-		$images		= array(JHtml::_('select.option',  '', '- '. JText::_('SELECT_IMAGE') .' -'));
+		$images		= array(JHtml::_('select.option', '', JText::_('JOPTION_SELECT_IMAGE')));
 		foreach ($imageFiles as $file) {
 			if (preg_match('#('.$extensions.')$#', $file)) {
 				$images[] = JHtml::_('select.option', $file);
@@ -73,7 +73,7 @@ abstract class JHtmlList
 	 */
 	public static function genericordering($sql, $chop = '30')
 	{
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 		$options	= array();
 		$db->setQuery($sql);
 
@@ -86,11 +86,11 @@ abstract class JHtmlList
 		}
 
 		if (empty($items)) {
-			$options[] = JHtml::_('select.option',  1, JText::_('JOption_Order_First'));
+			$options[] = JHtml::_('select.option',  1, JText::_('JOPTION_ORDER_FIRST'));
 			return $options;
 		}
 
-		$options[] = JHtml::_('select.option',  0, '0 '. JText::_('JOption_Order_First'));
+		$options[] = JHtml::_('select.option',  0, '0 '. JText::_('JOPTION_ORDER_FIRST'));
 		for ($i=0, $n=count($items); $i < $n; $i++)
 		{
 			if (JString::strlen($items[$i]->text) > $chop) {
@@ -101,7 +101,7 @@ abstract class JHtmlList
 
 			$options[] = JHtml::_('select.option',  $items[$i]->value, $items[$i]->value.' ('.$text.')');
 		}
-		$options[] = JHtml::_('select.option',  $items[$i-1]->value+1, ($items[$i-1]->value+1).' '. JText::_('JOption_Order_Last'));
+		$options[] = JHtml::_('select.option',  $items[$i-1]->value+1, ($items[$i-1]->value+1).' '. JText::_('JOPTION_ORDER_LAST'));
 
 		return $options;
 	}
@@ -158,12 +158,12 @@ abstract class JHtmlList
 		else
 		{
 			if ($neworder > 0) {
-				$text = JText::_('descNewItemsFirst');
-			}
-			else if ($neworder <= 0) {
 				$text = JText::_('JGLOBAL_NEWITEMSLAST_DESC');
 			}
-			$html = '<input type="hidden" name="'.$name.'" value="'. (int) $selected .'" />'. $text;
+			else if ($neworder <= 0) {
+				$text = JText::_('JGLOBAL_NEWITEMSFIRST_DESC');
+			}
+			$html = '<input type="hidden" name="'.$name.'" value="'. (int) $selected .'" />'. '<span class="readonly">' . $text . '</span>';
 		}
 		return $html;
 	}
@@ -173,7 +173,7 @@ abstract class JHtmlList
 	 */
 	public static function users($name, $active, $nouser = 0, $javascript = NULL, $order = 'name', $reg = 1)
 	{
-		$db = &JFactory::getDbo();
+		$db = JFactory::getDbo();
 
 		$and = '';
 		if ($reg) {
@@ -190,7 +190,7 @@ abstract class JHtmlList
 		;
 		$db->setQuery($query);
 		if ($nouser) {
-			$users[] = JHtml::_('select.option',  '0', '- '. JText::_('No_User') .' -');
+			$users[] = JHtml::_('select.option', '0', JText::_('JOPTION_NO_USER'));
 			$users = array_merge($users, $db->loadObjectList());
 		} else {
 			$users = $db->loadObjectList();
@@ -221,16 +221,16 @@ abstract class JHtmlList
 	{
 		$pos = array();
 		if ($none) {
-			$pos[''] = JText::_('JNone');
+			$pos[''] = JText::_('JNONE');
 		}
 		if ($center) {
-			$pos['center'] = JText::_('Center');
+			$pos['center'] = JText::_('JGLOBAL_CENTER');
 		}
 		if ($left) {
-			$pos['left'] = JText::_('Left');
+			$pos['left'] = JText::_('JGLOBAL_LEFT');
 		}
 		if ($right) {
-			$pos['right'] = JText::_('Right');
+			$pos['right'] = JText::_('JGLOBAL_RIGHT');
 		}
 
 		$positions = JHtml::_(
@@ -255,7 +255,7 @@ abstract class JHtmlList
 	{
 		$categories = JHtml::_('category.options', $extension);
 		if ($sel_cat) {
-			array_unshift($categories, JHTML::_('select.option',  '0', JText::_('JOption_Select_Category')));
+			array_unshift($categories, JHTML::_('select.option',  '0', JText::_('JOPTION_SELECT_CATEGORY')));
 		}
 
 		$category = JHTML::_(

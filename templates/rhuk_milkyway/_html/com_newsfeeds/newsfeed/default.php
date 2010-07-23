@@ -1,7 +1,7 @@
 <?php // no direct acces
-defined('_JEXEC') or die('Restricted access'); ?>
+defined('_JEXEC') or die; ?>
 <?php
-		$lang = &JFactory::getLanguage();
+		$lang = JFactory::getLanguage();
 		$myrtl =$this->newsfeed->rtl;
 		if ($lang->isRTL() && $myrtl==0){
 			$direction= "direction:rtl !important;";
@@ -29,7 +29,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 		}
 ?>
 <div style="<?php echo $direction; ?><?php echo $align; ?>">
-<?php if ($this->params->get('show_page_title', 1)) : ?>
+<?php if ($this->params->get('show_page_heading', 1)) : ?>
 	<div class="componentheading<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>" style="<?php echo $direction; ?><?php echo $align; ?>"><?php echo $this->escape($this->params->get('page_title')); ?></div>
 <?php endif; ?>
 <table width="100%" class="contentpane<?php echo $this->escape($this->params->get('pageclass_sfx')); ?>">

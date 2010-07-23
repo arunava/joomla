@@ -11,10 +11,10 @@
 defined('_JEXEC') or die;
 
 // Initialise variables.
-$config = &JFactory::getConfig();
-$user = &JFactory::getUser();
-$db = &JFactory::getDbo();
-$lang = &JFactory::getLanguage();
+$config	= JFactory::getConfig();
+$user	= JFactory::getUser();
+$db		= JFactory::getDbo();
+$lang	= JFactory::getLanguage();
 
 // Get the number of unread messages in your inbox.
 $query	= $db->getQuery(true);
@@ -48,11 +48,11 @@ if ($unread) {
 	$inboxClass = 'no-unread-messages';
 }
 
-// Get the number of logged in users.
+// Get the number of frontend logged in users.
 $query->clear();
 $query->select('COUNT(session_id)');
 $query->from('#__session');
-$query->where('guest <> 1');
+$query->where('guest = 0 AND client_id = 0');
 
 $db->setQuery($query);
 $online_num = (int) $db->loadResult();

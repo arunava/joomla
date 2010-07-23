@@ -32,9 +32,9 @@ class plgAuthenticationOpenID extends JPlugin
 	 * @return	boolean
 	 * @since 1.5
 	 */
-	function onAuthenticate($credentials, $options, & $response)
+	function onUserAuthenticate($credentials, $options, & $response)
 	{
-		$app = &JFactory::getApplication();
+		$app = JFactory::getApplication();
 
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 			define('Auth_OpenID_RAND_SOURCE', null);
@@ -59,13 +59,13 @@ class plgAuthenticationOpenID extends JPlugin
 		jimport('joomla.filesystem.folder');
 
 		// Access the session data
-		$session = & JFactory :: getSession();
+		$session = JFactory :: getSession();
 
 		// Create and/or start using the data store
 		$store_path = JPATH_ROOT . '/tmp/_joomla_openid_store';
 		if (!JFolder :: exists($store_path) && !JFolder :: create($store_path)) {
-			$response->type = JAUTHENTICATE_STATUS_FAILURE;
-			$response->error_message = "Could not create the FileStore directory '$store_path'. " . " Please check the effective permissions.";
+			$response->status = JAUTHENTICATE_STATUS_FAILURE;
+			$response->error_message = JText::sprintf('JGLOBAL_AUTH_NOT_CREATE_DIR', $store_path);
 			return false;
 		}
 
@@ -78,8 +78,8 @@ class plgAuthenticationOpenID extends JPlugin
 		if (!isset ($_SESSION['_openid_consumer_last_token'])) {
 			// Begin the OpenID authentication process.
 			if (!$auth_request = $consumer->begin($credentials['username'])) {
-				$response->type = JAUTHENTICATE_STATUS_FAILURE;
-				$response->error_message = 'Authentication error : could not connect to the openid server';
+				$response->status = JAUTHENTICATE_STATUS_FAILURE;
+				$response->error_message = JText::_('JGLOBAL_AUTH_ERROR');
 				return false;
 			}
 
@@ -139,7 +139,7 @@ class plgAuthenticationOpenID extends JPlugin
 				// If the redirect URL can't be built, display an error
 				// message.
 				if (Auth_OpenID :: isFailure($redirect_url)) {
-					displayError("Could not redirect to server: " . $redirect_url->message);
+					displayError(JText::sprintf('JGLOBAL_AUTH_NO_REDIRECT', $redirect_url->message));
 				} else {
 					// Send redirect.
 					$app->redirect($redirect_url);
@@ -188,7 +188,7 @@ class plgAuthenticationOpenID extends JPlugin
 					$response->username = $result->getDisplayIdentifier();
 				} else {
 					// first, check if the provider provided username exists in the database
-					$db = &JFactory::getDbo();
+					$db = JFactory::getDbo();
 					$query	= $db->getQuery(true);
 
 					$query->select('username');
@@ -247,12 +247,12 @@ class plgAuthenticationOpenID extends JPlugin
 
 			case Auth_OpenID_CANCEL :
 				$response->status = JAUTHENTICATE_STATUS_CANCEL;
-				$response->error_message = 'Authentication cancelled';
+				$response->error_message = JText::_('JGLOBAL_AUTH_CANCEL');
 				break;
 
 			case Auth_OpenID_FAILURE :
 				$response->status = JAUTHENTICATE_STATUS_FAILURE;
-				$response->error_message = 'Authentication failed';
+				$response->error_message = JText::_('JGLOBAL_AUTH_FAIL');
 				break;
 		}
 	}

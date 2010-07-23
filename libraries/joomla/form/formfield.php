@@ -106,7 +106,7 @@ abstract class JFormField
 	 * @since	1.6
 	 */
 	protected $fieldname;
-	
+
 	/**
 	 * The required state for the form field.  If true then there must be a value for the field to
 	 * be considered valid.
@@ -258,7 +258,7 @@ abstract class JFormField
 		$required	= (string) $element['required'];
 
 		// Set the required and validation options.
-		$this->required	= ($required == 'true' || $required == 'required');
+		$this->required	= ($required == 'true' || $required == 'required' || $required == '1');
 		$this->validate	= (string) $element['validate'];
 
 		// Add the required class if the field is required.

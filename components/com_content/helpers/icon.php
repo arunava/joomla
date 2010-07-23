@@ -22,23 +22,23 @@ class JHTMLIcon
 {
 	static function create($article, $params)
 	{
-		$uri = &JFactory::getURI();
+		$uri = JFactory::getURI();
 
 		$url = 'index.php?option=com_content&task=article.add&return='.base64_encode($uri).'&id=0&sectionid='.$article->sectionid;
 
 		if ($params->get('show_icons')) {
-			$text = JHTML::_('image','system/new.png', JText::_('New'), NULL, true);
+			$text = JHTML::_('image','system/new.png', JText::_('JNEW'), NULL, true);
 		} else {
-			$text = JText::_('New').'&nbsp;';
+			$text = JText::_('JNEW').'&#160;';
 		}
 
-		$attribs	= array('title' => JText::_('New'));
+		$attribs	= array('title' => JText::_('JNEW'));
 		return JHTML::_('link',JRoute::_($url), $text, $attribs);
 	}
 
 	static function email($article, $params, $attribs = array())
 	{
-		$uri	= &JURI::getInstance();
+		$uri	= JURI::getInstance();
 		$base	= $uri->toString(array('scheme', 'host', 'port'));
 		$link	= $base.JRoute::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catid) , false);
 		$url	= 'index.php?option=com_mailto&tmpl=component&link='.base64_encode($link);
@@ -46,12 +46,12 @@ class JHTMLIcon
 		$status = 'width=400,height=350,menubar=yes,resizable=yes';
 
 		if ($params->get('show_icons')) {
-			$text = JHTML::_('image','system/emailButton.png', JText::_('Email'), NULL, true);
+			$text = JHTML::_('image','system/emailButton.png', JText::_('JGLOBAL_EMAIL'), NULL, true);
 		} else {
-			$text = '&nbsp;'.JText::_('Email');
+			$text = '&#160;'.JText::_('JGLOBAL_EMAIL');
 		}
 
-		$attribs['title']	= JText::_('Email');
+		$attribs['title']	= JText::_('JGLOBAL_EMAIL');
 		$attribs['onclick'] = "window.open(this.href,'win2','".$status."'); return false;";
 
 		$output = JHTML::_('link',JRoute::_($url), $text, $attribs);
@@ -60,8 +60,8 @@ class JHTMLIcon
 
 	static function edit($article, $params, $attribs = array())
 	{
-		$user = &JFactory::getUser();
-		$uri = &JFactory::getURI();
+		$user = JFactory::getUser();
+		$uri = JFactory::getURI();
 
 		if ($params->get('popup')) {
 			return;
@@ -79,7 +79,7 @@ class JHTMLIcon
 
 		$url = 'index.php?task=article.edit&id='.$article->id.'&return='.base64_encode($uri);
 		$icon = $article->state ? 'edit.png' : 'edit_unpublished.png';
-		$text = JHTML::_('image','system/'.$icon, JText::_('Edit'), NULL, true);
+		$text = JHTML::_('image','system/'.$icon, JText::_('JGLOBAL_EDIT'), NULL, true);
 
 		if ($article->state == 0) {
 			$overlib = JText::_('JUNPUBLISHED');
@@ -87,16 +87,16 @@ class JHTMLIcon
 			$overlib = JText::_('JPUBLISHED');
 		}
 		$date = JHTML::_('date',$article->created);
-		$author = $article->created_by_alias ? $article->created_by_alias : $article->created_by;
+		$author = $article->created_by_alias ? $article->created_by_alias : $article->author;
 
 		$overlib .= '&lt;br /&gt;';
 		$overlib .= $date;
 		$overlib .= '&lt;br /&gt;';
-		$overlib .= $author;
+		$overlib .= htmlspecialchars($author, ENT_COMPAT, 'UTF-8');
 
 		$button = JHTML::_('link',JRoute::_($url), $text);
 
-		$output = '<span class="hasTip" title="'.JText::_('EDIT_ITEM').' :: '.$overlib.'">'.$button.'</span>';
+		$output = '<span class="hasTip" title="'.JText::_('COM_CONTENT_EDIT_ITEM').' :: '.$overlib.'">'.$button.'</span>';
 		return $output;
 	}
 
@@ -110,12 +110,12 @@ class JHTMLIcon
 
 		// checks template image directory for image, if non found default are loaded
 		if ($params->get('show_icons')) {
-			$text = JHTML::_('image','system/printButton.png', JText::_('Print'), NULL, true);
+			$text = JHTML::_('image','system/printButton.png', JText::_('COM_CONTENT_PRINT'), NULL, true);
 		} else {
-			$text = JText::_('ICON_SEP') .'&nbsp;'. JText::_('Print') .'&nbsp;'. JText::_('ICON_SEP');
+			$text = JText::_('COM_CONTENT_ICON_SEP') .'&#160;'. JText::_('COM_CONTENT_PRINT') .'&#160;'. JText::_('COM_CONTENT_ICON_SEP');
 		}
 
-		$attribs['title']	= JText::_('Print');
+		$attribs['title']	= JText::_('COM_CONTENT_PRINT');
 		$attribs['onclick'] = "window.open(this.href,'win2','".$status."'); return false;";
 		$attribs['rel']		= 'nofollow';
 
@@ -128,7 +128,7 @@ class JHTMLIcon
 		if ($params->get('show_icons')) {
 			$text = JHTML::_('image','system/printButton.png', JText::_('Print'), NULL, true);
 		} else {
-			$text = JText::_('ICON_SEP') .'&nbsp;'. JText::_('Print') .'&nbsp;'. JText::_('ICON_SEP');
+			$text = JText::_('COM_CONTENT_ICON_SEP') .'&#160;'. JText::_('COM_CONTENT_PRINT') .'&#160;'. JText::_('COM_CONTENT_ICON_SEP');
 		}
 		return '<a href="#" onclick="window.print();return false;">'.$text.'</a>';
 	}

@@ -5,6 +5,7 @@
  * @subpackage	com_installer
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.6
  */
 
 // no direct access
@@ -30,8 +31,8 @@ defined('_JEXEC') or die;
 	<td class="center"><?php echo @$this->item->folder != '' ? $this->item->folder : 'N/A'; ?></td>
 	<td class="center"><?php echo @$this->item->client != '' ? $this->item->client : 'N/A'; ?></td>
 	<td>
-		<span class="editlinktip hasTip" title="<?php echo JText::_('COM_INSTALLER_AUTHOR_INFORMATION');?>::<?php echo $this->item->author_info; ?>">
-			<?php echo @$this->item->author != '' ? $this->item->author : '&nbsp;'; ?>
+		<span class="editlinktip hasTip" title="<?php echo addslashes(htmlspecialchars(JText::_('COM_INSTALLER_AUTHOR_INFORMATION').'::'.$this->item->author_info)); ?>">
+			<?php echo @$this->item->author != '' ? $this->item->author : '&#160;'; ?>
 		</span>
 	</td>
 </tr>

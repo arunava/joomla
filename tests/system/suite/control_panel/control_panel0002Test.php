@@ -1,7 +1,7 @@
 <?php
 /**
  * @version		$Id$
- * @package		Joomla.FunctionalTest
+ * @package		Joomla.SystemTest
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  * loads each menu choice in back end
@@ -41,11 +41,11 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Clear Cache.\n";
 		$this->click("link=Clear Cache");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Cache Manager - Clear Cache Admin"));
+		$this->assertTrue($this->isTextPresent("Cache Manager: Clear Cache"));
 		echo "Navigate to Purge Expired Cache.\n";
 		$this->click("link=Purge Expired Cache");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Cache Manager - Purge Cache Admin "));
+		$this->assertTrue($this->isTextPresent("Cache Manager: Purge Expired Cache"));
 		$this->click("link=System Information");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("System Information"));
@@ -94,7 +94,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Mass Mail.\n";
 		$this->click("link=Mass Mail Users");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("E-mail Groups"));
+		$this->assertTrue($this->isTextPresent("Mass Mail"));
 		$this->click("//li[@id='toolbar-cancel']/a/span");
 		$this->waitForPageToLoad("30000");
 		echo "Navigate to Read Private Messages.\n";
@@ -106,10 +106,26 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->waitForPageToLoad("30000");
 		$this->click("//li[@id='toolbar-cancel']/a/span");
 		$this->waitForPageToLoad("30000");
-		$this->click("//li[@id='toolbar-popup-Popup']/a/span");
-		sleep(2);
+
+		echo "Open Options modal \n";
+		$this->click("//li[@id='toolbar-popup-options']/a[contains(., 'Options')]");
+		for ($second = 0; ; $second++) {
+			if ($second >= 60) $this->fail("timeout");
+			try {
+				if ($this->isElementPresent("//div[@class='configuration'][contains(., 'Messages Configuration')]")) break;
+			} catch (Exception $e) {}
+			sleep(1);
+		}
+
 		$this->click("//button[@type='button' and @onclick='window.parent.SqueezeBox.close();']");
-		sleep(2);
+		for ($second = 0; ; $second++) {
+			if ($second >= 60) $this->fail("timeout");
+			try {
+				if (!$this->isElementPresent("//div[@class='configuration'][contains(., 'Messages Configuration')]")) break;
+			} catch (Exception $e) {}
+			sleep(1);
+		}
+
 		echo "Navigate to Menu Manager.\n";
 		$this->click("link=Menu Manager");
 		$this->waitForPageToLoad("30000");
@@ -124,7 +140,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Category Manager.\n";
 		$this->click("link=Category Manager");
@@ -148,7 +164,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-remove']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Add New Article.\n";
 		$this->click("link=Add New Article");
@@ -167,7 +183,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isTextPresent("Category Manager: Add New Category"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-save']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-apply']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-save-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-cancel']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		$this->click("//li[@id='toolbar-cancel']/a/span");
@@ -185,7 +201,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Banner Clients.\n";
 		$this->click("link=Clients");
@@ -197,21 +213,21 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 
 		echo "Navigate to Banner Tracks.\n";
 		$this->click("link=Tracks");
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Banner Manager: Tracks"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-COM_BANNERS_DELETE_MSG']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 
 		echo "Navigate to Banner Categories.\n";
 		$this->click("link=Categories");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Banner Manager: Categories"));
+		$this->assertTrue($this->isTextPresent("Category Manager: Banners"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -235,7 +251,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		echo "Navigate to Contact Category.\n";
 		$this->click("//ul[@id='menu-contacts']/li[2]/a");
 		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Category Manager"));
+		$this->assertTrue($this->isTextPresent("Category Manager: Contacts"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -254,7 +270,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to News Feed Categories.\n";
 		$this->click("//ul[@id='menu-newsfeeds']/li[2]/a");
@@ -264,16 +280,12 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
-
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-refresh']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Redirect.\n";
-		$this->click("link=Redirect Manager");
-		$this->waitForPageToLoad("30000");
-		$this->assertTrue($this->isTextPresent("Redirect Manager: Links"));
-
+		$this->jClick('Redirect Manager');
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-new']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
@@ -286,7 +298,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->waitForPageToLoad("30000");
 		$this->assertTrue($this->isTextPresent("Search Manager: Search Term Analysis"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-refresh']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Weblinks Manager.\n";
 		$this->click("link=Links");
@@ -296,7 +308,7 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
-		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-Popup']/a/span"));
+		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-popup-options']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-help']/a/span"));
 		echo "Navigate to Web Links Categories.\n";
 		$this->click("//ul[@id='menu-weblinks']/li[2]/a");
@@ -306,7 +318,6 @@ class ControlPanel0002 extends SeleniumJoomlaTestCase
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-edit']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-publish']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-unpublish']/a/span"));
-
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-archive']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));
 		$this->assertTrue($this->isElementPresent("//li[@id='toolbar-trash']/a/span"));

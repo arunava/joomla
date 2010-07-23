@@ -16,18 +16,18 @@ jimport('joomla.application.component.view');
  */
 class ContentViewFeatured extends JView
 {
-	protected $state;
 	protected $items;
 	protected $pagination;
+	protected $state;
 
 	/**
 	 * Display the view
 	 */
 	public function display($tpl = null)
 	{
-		$state		= $this->get('State');
-		$items		= $this->get('Items');
-		$pagination	= $this->get('Pagination');
+		$this->items		= $this->get('Items');
+		$this->pagination	= $this->get('Pagination');
+		$this->state		= $this->get('State');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -35,22 +35,20 @@ class ContentViewFeatured extends JView
 			return false;
 		}
 
-		$this->assignRef('state',		$state);
-		$this->assignRef('items',		$items);
-		$this->assignRef('pagination',	$pagination);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Display the toolbar
+	 * Add the page title and toolbar.
+	 *
+	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		$canDo	= ContentHelper::getActions($this->state->get('filter.category_id'));
 
-		JToolBarHelper::title(JText::_('Content_Featured_Title'), 'featured.png');
+		JToolBarHelper::title(JText::_('COM_CONTENT_FEATURED_TITLE'), 'featured.png');
 
 		if ($canDo->get('core.create')) {
 			JToolBarHelper::custom('article.add', 'new.png', 'new_f2.png','JTOOLBAR_NEW', false);
@@ -62,10 +60,16 @@ class ContentViewFeatured extends JView
 		if ($canDo->get('core.edit.state')) {
 			JToolBarHelper::custom('articles.publish', 'publish.png', 'publish_f2.png','JTOOLBAR_PUBLISH', true);
 			JToolBarHelper::custom('articles.unpublish', 'unpublish.png', 'unpublish_f2.png','JTOOLBAR_UNPUBLISH', true);
-			JToolBarHelper::custom('featured.delete','remove.png','remove_f2.png','JToolbar_Remove', true);
+			JToolBarHelper::divider();
 			if ($this->state->get('filter.published') != -1) {
 				JToolBarHelper::archiveList('articles.archive','JTOOLBAR_ARCHIVE');
 			}
+		}
+		if(JFactory::getUser()->authorise('core.manage','com_checkin')) {
+			JToolBarHelper::custom('articles.checkin', 'checkin.png', 'checkin_f2.png', 'JTOOLBAR_CHECKIN', true);
+		}
+		if ($canDo->get('core.edit.state')) {
+			JToolBarHelper::custom('featured.delete','remove.png','remove_f2.png','JTOOLBAR_REMOVE', true);
 
 		}
 		if ($canDo->get('core.admin')) {
@@ -73,6 +77,6 @@ class ContentViewFeatured extends JView
 			JToolBarHelper::preferences('com_content');
 		}
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.content.featured','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_CONTENT_FEATURED_ARTICLES');
 	}
 }

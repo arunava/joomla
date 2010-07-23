@@ -28,9 +28,9 @@ class WeblinksViewWeblink extends JView
 	 */
 	public function display($tpl = null)
 	{
-		$state	= $this->get('State');
-		$item	= $this->get('Item');
-		$form	= $this->get('Form');
+		$this->state	= $this->get('State');
+		$this->item		= $this->get('Item');
+		$this->form		= $this->get('Form');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
@@ -38,23 +38,16 @@ class WeblinksViewWeblink extends JView
 			return false;
 		}
 
-		// Bind the record to the form.
-		$form->bind($item);
-
-		$this->assignRef('state',	$state);
-		$this->assignRef('item',	$item);
-		$this->assignRef('form',	$form);
-
-		$this->_setToolbar();
+		$this->addToolbar();
 		parent::display($tpl);
 	}
 
 	/**
-	 * Setup the Toolbar
+	 * Add the page title and toolbar.
 	 *
 	 * @since	1.6
 	 */
-	protected function _setToolbar()
+	protected function addToolbar()
 	{
 		JRequest::setVar('hidemainmenu', true);
 
@@ -63,30 +56,28 @@ class WeblinksViewWeblink extends JView
 		$checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
 		$canDo		= WeblinksHelper::getActions($this->state->get('filter.category_id'), $this->item->id);
 
-		JToolBarHelper::title(JText::_('COM_WEBLINKS_MANAGER_WEBLINK'));
-
-
+		JToolBarHelper::title(JText::_('COM_WEBLINKS_MANAGER_WEBLINK'), 'weblinks.png');
 
 		// If not checked out, can save the item.
 		if (!$checkedOut && $canDo->get('core.edit'))
 		{
 
-			JToolBarHelper::apply('weblink.apply', 'JToolbar_Apply');
-			JToolBarHelper::save('weblink.save', 'JToolbar_Save');
-			JToolBarHelper::addNew('weblink.save2new', 'JToolbar_Save_and_new');
+			JToolBarHelper::apply('weblink.apply', 'JTOOLBAR_APPLY');
+			JToolBarHelper::save('weblink.save', 'JTOOLBAR_SAVE');
+			JToolBarHelper::custom('weblink.save2new', 'save-new.png', 'save-new_f2.png', 'JTOOLBAR_SAVE_AND_NEW', false);
 		}
 			// If an existing item, can save to a copy.
 		if (!$isNew && $canDo->get('core.create')) {
-			JToolBarHelper::custom('weblink.save2copy', 'copy.png', 'copy_f2.png', 'JToolbar_Save_as_Copy', false);
+			JToolBarHelper::custom('weblink.save2copy', 'save-copy.png', 'save-copy_f2.png', 'JTOOLBAR_SAVE_AS_COPY', false);
 		}
-		if (empty($this->item->id))  {
-			JToolBarHelper::cancel('weblink.cancel', 'JToolbar_Cancel');
+		if (empty($this->item->id)) {
+			JToolBarHelper::cancel('weblink.cancel', 'JTOOLBAR_CANCEL');
 		}
 		else {
-			JToolBarHelper::cancel('weblink.cancel', 'JToolbar_Close');
+			JToolBarHelper::cancel('weblink.cancel', 'JTOOLBAR_CLOSE');
 		}
 
 		JToolBarHelper::divider();
-		JToolBarHelper::help('screen.weblink.edit','JTOOLBAR_HELP');
+		JToolBarHelper::help('JHELP_COMPONENTS_WEBLINKS_LINKS_EDIT');
 	}
 }

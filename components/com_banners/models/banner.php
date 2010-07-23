@@ -44,9 +44,9 @@ class BannersModelBanner extends JModel
 		}
 
 		// track clicks
-				
+
 		$item =  $this->getItem();
-		
+
 		$trackClicks = $item->track_clicks;
 
 		if ($trackClicks < 0 && $item->cid) {
@@ -54,12 +54,12 @@ class BannersModelBanner extends JModel
 		}
 
 		if ($trackClicks < 0) {
-			$config = &JComponentHelper::getParams('com_banners');
+			$config = JComponentHelper::getParams('com_banners');
 			$trackClicks = $config->get('track_clicks');
 		}
 
 		if ($trackClicks > 0) {
-			$trackDate = JFactory::getDate()->toFormat('%Y-%m-%d');
+			$trackDate = JFactory::getDate()->format('Y-m-d-H-i-s');
 
 			$query->clear();
 			$query->select('`count`');
@@ -104,13 +104,13 @@ class BannersModelBanner extends JModel
 	function &getItem()
 	{
 		if (!isset($this->_item))
-		{	
-			$cache = JFactory::getCache('com_banners', '');		
-			
+		{
+			$cache = JFactory::getCache('com_banners', '');
+
 			$id = $this->getState('banner.id');
-			
+
 			$this->_item =  $cache->get($id);
-			
+
 			if ($this->_item === false) {
 				// redirect to banner url
 				$db		= $this->getDbo();
@@ -122,15 +122,15 @@ class BannersModelBanner extends JModel
 					);
 				$query->from('#__banners as a');
 				$query->where('a.id = ' . (int) $id);
-	
+
 				$query->join('LEFT', '#__banner_clients AS cl ON cl.id = a.cid');
 				$query->select('cl.track_clicks as client_track_clicks');
-	
+
 				$db->setQuery((string)$query);
 				if (!$db->query()) {
 					JError::raiseError(500, $db->getErrorMsg());
 				}
-	
+
 				$this->_item = $db->loadObject();
 				$cache->store($this->_item, $id);
 			}
@@ -143,7 +143,7 @@ class BannersModelBanner extends JModel
 	 */
 	function getUrl()
 	{
-		$item = &$this->getItem();
+		$item = $this->getItem();
 		$url = $item->clickurl;
 		// check for links
 		if (!preg_match('#http[s]?://|index[2]?\.php#', $url)) {

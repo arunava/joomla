@@ -43,7 +43,7 @@ class TemplatesControllerSource extends JController
 	 *
 	 * @return	boolean
 	 */
-	protected function _allowEdit()
+	protected function allowEdit()
 	{
 		return JFactory::getUser()->authorise('core.edit', 'com_templates');
 	}
@@ -58,9 +58,9 @@ class TemplatesControllerSource extends JController
 	 *
 	 * @return	boolean
 	 */
-	protected function _allowSave()
+	protected function allowSave()
 	{
-		return $this->_allowEdit();
+		return $this->allowEdit();
 	}
 
 	/**
@@ -81,9 +81,13 @@ class TemplatesControllerSource extends JController
 	/**
 	 * This controller does not have a display method. Redirect back to the list view of the component.
 	 *
-	 * @return	void
+	 * @param	boolean			If true, the view output will be cached
+	 * @param	array			An array of safe url parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return	JController		This object to support chaining.
+	 * @since	1.5
 	 */
-	public function display()
+	public function display($cachable = false, $urlparams = false)
 	{
 		$this->setRedirect(JRoute::_('index.php?option=com_templates&view=templates', false));
 	}
@@ -102,7 +106,7 @@ class TemplatesControllerSource extends JController
 		$context	= 'com_templates.edit.source';
 
 		// Access check.
-		if (!$this->_allowEdit()) {
+		if (!$this->allowEdit()) {
 			return JError::raiseWarning(403, 'JLIB_APPLICATION_ERROR_EDIT_NOT_PERMITTED');
 		}
 
@@ -151,7 +155,7 @@ class TemplatesControllerSource extends JController
 		$model		= $this->getModel();
 
 		// Access check.
-		if (!$this->_allowSave()) {
+		if (!$this->allowSave()) {
 			return JError::raiseWarning(403, 'JERROR_SAVE_NOT_PERMITTED');
 		}
 
@@ -167,7 +171,7 @@ class TemplatesControllerSource extends JController
 		}
 
 		// Validate the posted data.
-		$form	= &$model->getForm();
+		$form	= $model->getForm();
 		if (!$form)
 		{
 			JError::raiseError(500, $model->getError());
@@ -212,7 +216,7 @@ class TemplatesControllerSource extends JController
 			return false;
 		}
 
-		$this->setMessage(JText::_('JCONTROLLER_SAVE_SUCCESS'));
+		$this->setMessage(JText::_('COM_TEMPLATES_FILE_SAVE_SUCCESS'));
 
 		// Redirect the user and adjust session state based on the chosen task.
 		switch ($task)

@@ -48,7 +48,7 @@ class PHPMailer {
    * Sets the CharSet of the message.
    * @var string
    */
-  public $CharSet           = 'iso-8859-1';
+  public $CharSet           = 'utf-8';
 
   /**
    * Sets the Content-type of the message.
@@ -517,7 +517,7 @@ class PHPMailer {
    * @return bool
    */
   public function SmtpSend($header, $body) {
-    include_once($this->PluginDir . 'class.smtp.php');
+    include_once($this->PluginDir . 'smtp.php');
     $error = '';
     $bad_rcpt = array();
 

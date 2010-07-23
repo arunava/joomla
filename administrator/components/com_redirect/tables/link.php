@@ -7,7 +7,7 @@
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('_JEXEC') or die('Invalid Request.');
+defined('_JEXEC') or die;
 
 /**
  * Link Table for Redirect.
@@ -19,40 +19,12 @@ defined('_JEXEC') or die('Invalid Request.');
 class RedirectTableLink extends JTable
 {
 	/**
-	 * @var int
-	 */
-	public $id = null;
-	/**
-	 * @var varchar
-	 */
-	public $old_url = null;
-	/**
-	 * @var varchar
-	 */
-	public $new_url = null;
-	/**
-	 * @var varchar
-	 */
-	public $comment = null;
-	/**
-	 * @var int unsigned
-	 */
-	public $published = null;
-	/**
-	 * @var int unsigned
-	 */
-	public $created_date = null;
-	/**
-	 * @var int unsigned
-	 */
-	public $updated_date = null;
-
-	/**
 	 * Constructor
 	 *
 	 * @param	object	Database object
+	 *
 	 * @return	void
-	 * @since	1.0
+	 * @since	1.6
 	 */
 	public function __construct(&$db)
 	{
@@ -63,6 +35,7 @@ class RedirectTableLink extends JTable
 	 * Overloaded check function
 	 *
 	 * @return boolean
+	 * @since	1.6
 	 */
 	public function check()
 	{
@@ -70,25 +43,61 @@ class RedirectTableLink extends JTable
 		$this->new_url = trim($this->new_url);
 
 		// Check for valid name.
-		if (empty($this->old_url))
-		{
+		if (empty($this->old_url)) {
 			$this->setError(JText::_('COM_REDIRECT_ERROR_SOURCE_URL_REQUIRED'));
 			return false;
 		}
 
 		// Check for valid name.
-		if (empty($this->new_url))
-		{
+		if (empty($this->new_url)) {
 			$this->setError(JText::_('COM_REDIRECT_ERROR_DESTINATION_URL_REQUIRED'));
 			return false;
 		}
 
 		// Check for duplicates
-		if ($this->old_url == $this->new_url)
-		{
+		if ($this->old_url == $this->new_url) {
 			$this->setError(JText::_('COM_REDIRECT_ERROR_DUPLICATE_URLS'));
 			return false;
 		}
+
+		$db = $this->getDbo();
+
+		// Check for existing name
+		$query = 'SELECT id FROM #__redirect_links WHERE old_url ='.$db->Quote($this->old_url);
+		$db->setQuery($query);
+
+		$xid = intval($db->loadResult());
+
+		if ($xid && $xid != intval($this->id)) {
+			$this->setError(JText::_('COM_REDIRECT_ERROR_DUPLICATE_OLD_URL'));
+			return false;
+		}
+
 		return true;
+	}
+
+	/**
+	 * Overriden store method to set dates.
+	 *
+	 * @param	boolean	True to update fields even if they are null.
+	 *
+	 * @return	boolean	True on success.
+	 * @see		JTable::store
+	 * @since	1.6
+	 */
+	public function store($updateNulls = false)
+	{
+		// Initialise variables.
+		$date = JFactory::getDate()->toMySQL();
+
+		if ($this->id) {
+			// Existing item
+			$this->modified_date = $date;
+		} else {
+			// New record.
+			$this->created_date = $date;
+		}
+
+		return parent::store($updateNulls);
 	}
 }

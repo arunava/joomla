@@ -1,6 +1,6 @@
 <?php
 /**
- * @version		$Id: image.php 13031 2009-10-02 21:54:22Z louis $
+ * @version		$Id$
  * @package		Joomla
  * @copyright	Copyright (C) 2005 - 2010 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
@@ -38,16 +38,9 @@ class plgButtonArticle extends JPlugin
 			jInsertEditorText(tag, '".$name."');
 			SqueezeBox.close();
 		}";
-		/*
-		 * CSS for article button
-		 */
-		$css = "
-		.button2-left .article {
-			background: url(../../../plugins/editors-xtd/article.png) 100% 0 no-repeat;
-		}";
-		$doc =& JFactory::getDocument();
+
+		$doc = JFactory::getDocument();
 		$doc->addScriptDeclaration($js);
-		$doc->addStyleDeclaration($css);
 
 		JHTML::_('behavior.modal');
 

@@ -20,6 +20,12 @@ jimport('joomla.application.component.modelform');
 class MenusModelMenu extends JModelForm
 {
 	/**
+	 * @var		string	The prefix to use with controller messages.
+	 * @since	1.6
+	 */
+	protected $text_prefix = 'COM_MENUS_MENU';
+
+	/**
 	 * Model context string.
 	 *
 	 * @var		string
@@ -42,9 +48,11 @@ class MenusModelMenu extends JModelForm
 	/**
 	 * Method to auto-populate the model state.
 	 *
-	 * @return	void
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since	1.6
 	 */
-	protected function _populateState()
+	protected function populateState()
 	{
 		$app = JFactory::getApplication('administrator');
 
@@ -73,7 +81,7 @@ class MenusModelMenu extends JModelForm
 		$false	= false;
 
 		// Get a menu item row instance.
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		// Attempt to load the row.
 		$return = $table->load($itemId);
@@ -91,30 +99,38 @@ class MenusModelMenu extends JModelForm
 	/**
 	 * Method to get the menu item form.
 	 *
-	 * @return	mixed	JForm object on success, false on failure.
+	 * @param	array	$data		Data for the form.
+	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
+	 * @return	JForm	A JForm object on success, false on failure
+	 * @since	1.6
 	 */
-	public function getForm()
+	public function getForm($data = array(), $loadData = true)
 	{
-		// Initialise variables.
-		$app = &JFactory::getApplication();
-
 		// Get the form.
-		try {
-			$form = parent::getForm('com_menus.menu', 'menu', array('control' => 'jform'));
-		} catch (Exception $e) {
-			$this->setError($e->getMessage());
+		$form = $this->loadForm('com_menus.menu', 'menu', array('control' => 'jform', 'load_data' => $loadData));
+		if (empty($form)) {
 			return false;
 		}
 
-		// Check the session for previously entered form data.
-		$data = $app->getUserState('com_menus.edit.menu.data', array());
+		return $form;
+	}
 
-		// Bind the form data if present.
-		if (!empty($data)) {
-			$form->bind($data);
+	/**
+	 * Method to get the data that should be injected in the form.
+	 *
+	 * @return	mixed	The data for the form.
+	 * @since	1.6
+	 */
+	protected function loadFormData()
+	{
+		// Check the session for previously entered form data.
+		$data = JFactory::getApplication()->getUserState('com_menus.edit.menu.data', array());
+
+		if (empty($data)) {
+			$data = $this->getItem();
 		}
 
-		return $form;
+		return $data;
 	}
 
 	/**
@@ -129,7 +145,7 @@ class MenusModelMenu extends JModelForm
 		$isNew	= true;
 
 		// Get a row instance.
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		// Load the row if saving an existing item.
 		if ($id > 0) {
@@ -151,17 +167,17 @@ class MenusModelMenu extends JModelForm
 
 		// Store the data.
 		if (!$table->store()) {
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($table->getError());
 			return false;
 		}
 
 		$this->setState('menu.id', $table->id);
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
 		$cache->clean('mod_menu');
-		
+
 		return true;
 	}
 
@@ -178,7 +194,7 @@ class MenusModelMenu extends JModelForm
 		JArrayHelper::toInteger($itemIds);
 
 		// Get a group row instance.
-		$table = &$this->getTable();
+		$table = $this->getTable();
 
 		// Iterate the items to delete each one.
 		foreach ($itemIds as $itemId) {
@@ -190,7 +206,7 @@ class MenusModelMenu extends JModelForm
 				return false;
 			}
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache('com_modules');
 		$cache->clean();
@@ -206,13 +222,16 @@ class MenusModelMenu extends JModelForm
 	 */
 	public function &getModules()
 	{
-		$db = &$this->getDbo();
+		$db = $this->getDbo();
 
-		$db->setQuery(
-			'SELECT id, title, params, position' .
-			' FROM #__modules' .
-			' WHERE module = '.$db->quote('mod_mainmenu')
-		);
+		$query = $db->getQuery(true);
+		$query->from('#__modules as a');
+		$query->select('a.id, a.title, a.params, a.position');
+		$query->where('module = '.$db->quote('mod_menu'));
+		$query->select('ag.title AS access_title');
+		$query->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+		$db->setQuery($query);
+
 		$modules = $db->loadObjectList();
 
 		$result = array();

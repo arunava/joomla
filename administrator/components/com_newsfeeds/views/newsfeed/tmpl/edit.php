@@ -18,86 +18,103 @@ JHtml::_('behavior.keepalive');
 
 ?>
 <script type="text/javascript">
-<!--
 	function submitbutton(task)
 	{
-		// @todo Validation is currently busted
-		//if (task == 'newsfeed.cancel' || document.formvalidator.isValid(document.id('newsfeed-form'))) {
-		if (task == 'newsfeed.cancel') {
+		if (task == 'newsfeed.cancel' || document.formvalidator.isValid(document.id('newsfeed-form'))) {
 			submitform(task);
 		}
-		// @todo Deal with the editor methods
-		submitform(task);
+		else {
+			alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
+		}
 	}
-// -->
 </script>
 
 <form action="<?php echo JRoute::_('index.php?option=com_newsfeeds'); ?>" method="post" name="adminForm" id="newsfeed-form" class="form-validate">
-<div class="width-60 fltlft">
-	<fieldset class="adminform">
-		<legend><?php echo empty($this->item->id) ? JText::_('COM_NEWSFEEDS_NEW_NEWSFEED') : JText::sprintf('COM_NEWSFEEDS_EDIT_NEWSFEED', $this->item->id); ?></legend>
+	<div class="width-60 fltlft">
+		<fieldset class="adminform">
+			<legend><?php echo empty($this->item->id) ? JText::_('COM_NEWSFEEDS_NEW_NEWSFEED') : JText::sprintf('COM_NEWSFEEDS_EDIT_NEWSFEED', $this->item->id); ?></legend>
+			<ul class="adminformlist">
+			<li><?php echo $this->form->getLabel('name'); ?>
+			<?php echo $this->form->getInput('name'); ?></li>
 
-			<?php echo $this->form->getLabel('name'); ?>
-			<?php echo $this->form->getInput('name'); ?>
+			<li><?php echo $this->form->getLabel('link'); ?>
+			<?php echo $this->form->getInput('link'); ?></li>
 
-			<?php echo $this->form->getLabel('alias'); ?>
-			<?php echo $this->form->getInput('alias'); ?>
+			<li><?php echo $this->form->getLabel('catid'); ?>
+			<?php echo $this->form->getInput('catid'); ?></li>
 
-			<?php echo $this->form->getLabel('published'); ?>
-			<?php echo $this->form->getInput('published'); ?>
+			<li><?php echo $this->form->getLabel('alias'); ?>
+			<?php echo $this->form->getInput('alias'); ?></li>
 
-			<?php echo $this->form->getLabel('access'); ?>
-			<?php echo $this->form->getInput('access'); ?>
+			<li><?php echo $this->form->getLabel('published'); ?>
+			<?php echo $this->form->getInput('published'); ?></li>
 
-			<?php echo $this->form->getLabel('catid'); ?>
-			<?php echo $this->form->getInput('catid'); ?>
+			<li><?php echo $this->form->getLabel('access'); ?>
+			<?php echo $this->form->getInput('access'); ?></li>
 
-			<?php echo $this->form->getLabel('link'); ?>
-			<?php echo $this->form->getInput('link'); ?>
+			<li><?php echo $this->form->getLabel('ordering'); ?>
+			<?php echo $this->form->getInput('ordering'); ?></li>
 
-			<?php echo $this->form->getLabel('ordering'); ?>
-			<div id="jform_ordering" class="fltlft"><?php echo $this->form->getInput('ordering'); ?></div>
+			<li><?php echo $this->form->getLabel('language'); ?>
+			<?php echo $this->form->getInput('language'); ?></li>
 
-			<?php echo $this->form->getLabel('language'); ?>
-			<?php echo $this->form->getInput('language'); ?>
+			<li><?php echo $this->form->getLabel('id'); ?>
+			<?php echo $this->form->getInput('id'); ?></li>
+			</ul>
+		</fieldset>
+	</div>
 
-	</fieldset>
-</div>
-
-<div class="width-40 fltrt">
+	<div class="width-40 fltrt">
 		<?php echo JHtml::_('sliders.start','newsfeed-sliders-'.$this->item->id, array('useCookie'=>1)); ?>
 
-		<?php echo JHtml::_('sliders.panel',JText::_('COM_NEWSFEEDS_FIELD_OPTIONS'), 'newsfeeds-options'); ?>
+			<?php echo JHtml::_('sliders.panel',JText::_('JGLOBAL_FIELDSET_PUBLISHING'), 'publishing-details'); ?>
 
-	<fieldset class="panelform">
+			<fieldset class="panelform">
+			<ul class="adminformlist">
+				<li><?php echo $this->form->getLabel('numarticles'); ?>
+				<?php echo $this->form->getInput('numarticles'); ?></li>
 
-			<?php echo $this->form->getLabel('numarticles'); ?>
-			<?php echo $this->form->getInput('numarticles'); ?>
+				<li><?php echo $this->form->getLabel('cache_time'); ?>
+				<?php echo $this->form->getInput('cache_time'); ?></li>
 
-			<?php echo $this->form->getLabel('cache_time'); ?>
-			<?php echo $this->form->getInput('cache_time'); ?>
+				<li><?php echo $this->form->getLabel('rtl'); ?>
+				<?php echo $this->form->getInput('rtl'); ?></li>
 
-			<?php echo $this->form->getLabel('rtl'); ?>
-			<?php echo $this->form->getInput('rtl'); ?>
+				<li><?php echo $this->form->getLabel('created_by'); ?>
+				<?php echo $this->form->getInput('created_by'); ?></li>
 
-		<?php foreach($this->form->getFieldset('params') as $field): ?>
-			<?php if ($field->hidden): ?>
-				<?php echo $field->input; ?>
-			<?php else: ?>
-			<div class="paramrow">
-				<?php echo $field->label; ?>
-				<?php echo $field->input; ?>
-			</div>
-			<?php endif; ?>
-		<?php endforeach; ?>
+				<li><?php echo $this->form->getLabel('created_by_alias'); ?>
+				<?php echo $this->form->getInput('created_by_alias'); ?></li>
 
-	</fieldset>
-	
-	<?php echo JHtml::_('sliders.end'); ?>
-</div>
+				<li><?php echo $this->form->getLabel('created'); ?>
+				<?php echo $this->form->getInput('created'); ?></li>
 
-<div class="clr"></div>
+				<li><?php echo $this->form->getLabel('publish_up'); ?>
+				<?php echo $this->form->getInput('publish_up'); ?></li>
 
-	<input type="hidden" name="task" value="" />
-	<?php echo JHtml::_('form.token'); ?>
+				<li><?php echo $this->form->getLabel('publish_down'); ?>
+				<?php echo $this->form->getInput('publish_down'); ?></li>
+
+				<li><?php echo $this->form->getLabel('modified'); ?>
+				<?php echo $this->form->getInput('modified'); ?></li>
+
+				<li><?php echo $this->form->getLabel('version'); ?>
+				<?php echo $this->form->getInput('version'); ?></li>
+
+				<li><?php //echo $this->form->getLabel('xreference'); // Missing from schema! ?>
+				<?php //echo $this->form->getInput('xreference'); ?></li>
+
+				</ul>
+			</fieldset>
+
+			<?php echo $this->loadTemplate('params'); ?>
+
+			<?php echo $this->loadTemplate('metadata'); ?>
+
+		<?php echo JHtml::_('sliders.end'); ?>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
+	</div>
+
+	<div class="clr"></div>
 </form>
