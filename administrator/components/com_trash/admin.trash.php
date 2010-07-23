@@ -94,12 +94,6 @@ function viewTrashContent( $option )
 	}
 
 	$where 		= ( count( $where ) ? ' WHERE ' . implode( ' AND ', $where ) : '' );
-
-	// ensure filter_order has a valid value
-	if (!in_array($filter_order, array('c.title', 'c.id', 'sectname', 'catname'))) {
-		$filter_order = 'sectname';
-	}
-
 	$orderby = ' ORDER BY '. $filter_order .' '. $filter_order_Dir .', s.name, cc.name, c.title';
 
 	// get the total number of content
@@ -171,12 +165,6 @@ function viewTrashMenu( $option )
 	}
 
 	$where 		= ( count( $where ) ? ' WHERE ' . implode( ' AND ', $where ) : '' );
-
-	// ensure filter_order has a valid value
-	if (!in_array($filter_order, array('m.name', 'm.id', 'm.menutype', 'm.type'))) {
-		$filter_order = 'm.menutype';
-	}
-
 	$orderby 	= ' ORDER BY '. $filter_order . ' ' . $filter_order_Dir .', m.menutype, m.ordering, m.ordering,  m.name';
 
 	$query = 'SELECT count(*)'

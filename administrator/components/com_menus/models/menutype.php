@@ -146,7 +146,7 @@ class MenusModelMenutype extends JModel
 	{
 		$table = & $this->getTable();
 		if ($table->menutype == '') {
-			$table->menutype = JRequest::getVar('menutype', '', '', 'menutype');
+			$table->menutype = JRequest::getString('menutype');
 		}
 
 		$db = &$this->getDBO();
