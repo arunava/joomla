@@ -108,6 +108,122 @@ abstract class JModelAdmin extends JModelForm
 	}
 
 	/**
+	 * Method to perform batch operations on a category or a set of categories.
+	 *
+	 * @param	array	An array of commands to perform.
+	 * @param	array	An array of category ids.
+	 *
+	 * @return	mixed	Returns true on success, false on failure and null if nothing was done.
+	 * @since	1.6
+	 */
+	public function batch($commands, $pks)
+	{
+		// Sanitise user ids.
+		$pks = array_unique($pks);
+		JArrayHelper::toInteger($pks);
+
+		// Remove any values of zero.
+		if (array_search(0, $pks, true)) {
+			unset($pks[array_search(0, $pks, true)]);
+		}
+
+		// Check that something in the list was selected.
+		if (empty($pks)) {
+			$this->setError(JText::_('JLIB_APPLICATION_ERROR_BATCH_NOTHING_SELECTED'));
+
+			return false;
+		}
+
+		// Prepare a variable to see if anything was done.
+		$done = false;
+
+		if (!empty($commands['assetgroup_id'])) {
+			if (!$this->batchChangeAccess($commands['assetgroup_id'], $pks)) {
+				return false;
+			}
+			$done = true;
+		}
+
+		if (!empty($commands['category_id'])) {
+			$cmd = JArrayHelper::getValue($commands, 'move_copy', 'c');
+
+			if ($cmd == 'c' && !$this->batchCopy($commands['category_id'], $pks)) {
+				return false;
+			}
+			else if ($cmd == 'm' && !$this->batchMove($commands['category_id'], $pks)) {
+				return false;
+			}
+
+			$done = true;
+		}
+
+		if (!$done) {
+			$this->setError(JText::_('JLIB_APPLICATION_ERROR_NO_BATCH_INFORMATION'));
+
+			return null;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Changes the access level of a list of records.
+	 *
+	 * @param	int		$value	The new value matching an Asset Group ID.
+	 * @param	array	$pk		An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
+	 */
+	protected function batchChangeAccess($value, $pks)
+	{
+		$table = $this->getTable();
+
+		foreach ($pks as $pk)
+		{
+			$table->reset();
+			$table->load($pk);
+			$table->access = (int) $value;
+
+			if (!$table->store()) {
+				$this->setError($table->getError());
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Copies the selected items in the list.
+	 *
+	 * @param	int		$value	The new category or sub-item.
+	 * @param	array	$pks	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
+	 */
+	protected function batchCopy($value, $pks)
+	{
+		return true;
+	}
+
+	/**
+	 * Batch move categories to a new category.
+	 *
+	 * @param	int		$value	The new category or sub-item.
+	 * @param	array	$pks	An array of row IDs.
+	 *
+	 * @return	booelan	True if successful, false otherwise and internal error is set.
+	 * @since	1.6
+	 */
+	protected function batchMove($value, $pks)
+	{
+		return true;
+	}
+
+	/**
 	 * Method to test whether a record can be deleted.
 	 *
 	 * @param	object	$record	A record object.

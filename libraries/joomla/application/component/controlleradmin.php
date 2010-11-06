@@ -83,6 +83,37 @@ class JControllerAdmin extends JController
 	}
 
 	/**
+	 * Method to run batch operations.
+	 *
+	 * @return	boolean	True if method ran successfully, false if an error occurred.
+	 */
+	public function batch()
+ 	{
+ 		JRequest::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+
+ 		// Initialise variables.
+ 		$app	= JFactory::getApplication();
+ 		$model	= $this->getModel();
+		$vars	= JRequest::getVar('batch', array(), 'post', 'array');
+		$cid	= JRequest::getVar('cid', array(), 'post', 'array');
+
+		// Preset the redirect
+		$this->setRedirect('index.php?option='.$this->option.'&view='.$this->view_list);
+
+		// Attempt to run the batch operation.
+		if ($model->batch($vars, $cid)) {
+			$this->setMessage(JText::_('JLIB_APPLICATION_SUCCESS_BATCH'));
+
+			return true;
+ 		}
+ 		else {
+			$this->setMessage(JText::_(JText::sprintf('JLIB_APPLICATION_ERROR_BATCH_FAILED', $model->getError())));
+
+			return false;
+ 		}
+	}
+
+	/**
 	 * Removes an item.
 	 *
 	 * @since	1.6
@@ -97,7 +128,8 @@ class JControllerAdmin extends JController
 
 		if (!is_array($cid) || count($cid) < 1) {
 			JError::raiseWarning(500, JText::_($this->text_prefix.'_NO_ITEM_SELECTED'));
-		} else {
+		}
+		else {
 			// Get the model.
 			$model = $this->getModel();
 
@@ -108,7 +140,8 @@ class JControllerAdmin extends JController
 			// Remove the items.
 			if ($model->delete($cid)) {
 				$this->setMessage(JText::plural($this->text_prefix.'_N_ITEMS_DELETED', count($cid)));
-			} else {
+			}
+			else {
 				$this->setMessage($model->getError());
 			}
 		}
@@ -198,14 +231,16 @@ class JControllerAdmin extends JController
 		$ids	= JRequest::getVar('cid', null, 'post', 'array');
 		$inc	= ($this->getTask() == 'orderup') ? -1 : +1;
 
-		$model = $this->getModel();
+		$model	= $this->getModel();
 		$return = $model->reorder($ids, $inc);
+
 		if ($return === false) {
 			// Reorder failed.
 			$message = JText::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError());
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
 			return false;
-		} else {
+		}
+		else {
 			// Reorder succeeded.
 			$message = JText::_('JLIB_APPLICATION_SUCCESS_ITEM_REORDERED');
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message);
@@ -237,17 +272,18 @@ class JControllerAdmin extends JController
 		// Save the ordering
 		$return = $model->saveorder($pks, $order);
 
-		if ($return === false)
-		{
+		if ($return === false) {
 			// Reorder failed
 			$message = JText::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError());
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
+
 			return false;
-		} else
-		{
+		}
+		else {
 			// Reorder succeeded.
 			$this->setMessage(JText::_('JLIB_APPLICATION_SUCCESS_ORDERING_SAVED'));
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
+
 			return true;
 		}
 	}
@@ -266,17 +302,21 @@ class JControllerAdmin extends JController
 		$user	= JFactory::getUser();
 		$ids	= JRequest::getVar('cid', null, 'post', 'array');
 
-		$model = $this->getModel();
+		$model	= $this->getModel();
 		$return = $model->checkin($ids);
+
 		if ($return === false) {
 			// Checkin failed.
 			$message = JText::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError());
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message, 'error');
+
 			return false;
-		} else {
+		}
+		else {
 			// Checkin succeeded.
 			$message =  JText::plural($this->text_prefix.'_N_ITEMS_CHECKED_IN', count($ids));
 			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false), $message);
+
 			return true;
 		}
 	}

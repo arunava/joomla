@@ -129,7 +129,7 @@ class MenusModelItem extends JModelAdmin
 		}
 
 		if (!$done) {
-			$this->setError(JText::_('JGLOBAL_ERROR_INSUFFICIENT_BATCH_INFORMATION'));
+			$this->setError(JText::_('JLIB_APPLICATION_ERROR_NO_BATCH_INFORMATION'));
 			return false;
 		}
 

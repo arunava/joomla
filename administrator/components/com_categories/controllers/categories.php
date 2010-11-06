@@ -19,6 +19,30 @@ jimport('joomla.application.component.controlleradmin');
 class CategoriesControllerCategories extends JControllerAdmin
 {
 	/**
+	 * Method to run batch opterations.
+	 *
+	 * Overrides the parent batch method to change the redirect URL.
+	 *
+	 * @return	void
+	 * @since	1.6
+	 */
+	public function batch()
+ 	{
+ 		// Get the result of the parent batch method (this includes the token check).
+ 		$result = parent::batch();
+
+ 		$extension = JRequest::getCmd('extension', '');
+ 		if ($extension) {
+ 			$extension = '&extension='.$extension;
+ 		}
+
+		// Override the default redirect.
+		$this->setRedirect('index.php?option=com_categories&view=categories'.$extension);
+
+		return $result;
+	}
+
+	/**
 	 * Proxy for getModel
 	 *
 	 * @param	string	$name	The model name. Optional.
