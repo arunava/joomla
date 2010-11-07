@@ -784,6 +784,34 @@ class JInstallerComponent extends JAdapterInstance
 		 */
 
 		/*
+		 * If we have an install script, lets include it, execute the custom
+		 * install method, and append the return value from the custom install
+		 * method to the installation message.
+		 */
+		// start legacy support
+		if ($this->get('install_script')) {
+			if (is_file($this->parent->getPath('extension_administrator').DS.$this->get('install_script')) || $this->parent->getOverwrite()) {
+				$notdef = false;
+				$ranwell = false;
+				ob_start();
+				ob_implicit_flush(false);
+
+				require_once $this->parent->getPath('extension_administrator').DS.$this->get('install_script');
+
+				if (function_exists('com_install')) {
+					if (com_install() === false) {
+						$this->parent->abort(JText::_('JLIB_INSTALLER_ABORT_COMP_INSTALL_CUSTOM_INSTALL_FAILURE'));
+
+						return false;
+					}
+				}
+
+				$msg .= ob_get_contents(); // append messages
+				ob_end_clean();
+			}
+		}
+
+		/*
 		 * If we have an update script, lets include it, execute the custom
 		 * update method, and append the return value from the custom update
 		 * method to the installation message.
@@ -921,6 +949,8 @@ class JInstallerComponent extends JAdapterInstance
 		$this->parent->setPath('source', $this->parent->getPath('extension_administrator'));
 
 		// Get the package manifest object
+		// We do findManifest to avoid problem when uninstalling a list of extension: getManifest cache its manifest file
+		$this->parent->findManifest();
 		$this->manifest = $this->parent->getManifest();
 
 		if (!$this->manifest) {
@@ -1133,7 +1163,7 @@ class JInstallerComponent extends JAdapterInstance
 		$query->from('#__menu AS m');
 		$query->leftJoin('#__extensions AS e ON m.component_id = e.extension_id');
 		$query->where('m.parent_id = 1');
-		$query->where("m.menutype = '_adminmenu'");
+		$query->where("m.client_id = 1");
 		$query->where('e.element = '.$db->quote($option));
 
 		$db->setQuery($query);
@@ -1172,7 +1202,8 @@ class JInstallerComponent extends JAdapterInstance
 
 		if ($menuElement) {
 			$data = array();
-			$data['menutype'] = '_adminmenu';
+			$data['menutype'] = 'main';
+			$data['client_id'] = 1;
 			$data['title'] = $option;
 			$data['alias'] = (string)$menuElement;
 			$data['link'] = 'index.php?option='.$option;
@@ -1197,7 +1228,8 @@ class JInstallerComponent extends JAdapterInstance
 		// No menu element was specified, Let's make a generic menu item
 		else {
 			$data = array();
-			$data['menutype'] = '_adminmenu';
+			$data['menutype'] = 'main';
+			$data['client_id'] = 1;
 			$data['title'] = $option;
 			$data['alias'] = $option;
 			$data['link'] = 'index.php?option='.$option;
@@ -1234,7 +1266,8 @@ class JInstallerComponent extends JAdapterInstance
 
 		foreach ($this->manifest->administration->submenu->menu as $child) {
 			$data = array();
-			$data['menutype'] = '_adminmenu';
+			$data['menutype'] = 'main';
+			$data['client_id'] = 1;
 			$data['title'] = (string)$child;
 			$data['alias'] = (string)$child;
 			$data['type'] = 'component';
@@ -1315,7 +1348,7 @@ class JInstallerComponent extends JAdapterInstance
 		$query	= $db->getQuery(true);
 		$query->select('id');
 		$query->from('#__menu');
-		$query->where('`menutype` = '.$db->quote('_adminmenu'));
+		$query->where('`client_id` = 1');
 		$query->where('`component_id` = '.(int) $id);
 
 		$db->setQuery($query);

@@ -68,6 +68,7 @@ class JTableMenu extends JTableNested
 	public function check()
 	{
 		// If the alias field is empty, set it to the title.
+		$this->alias = trim($this->alias);
 		if (empty($this->alias)) {
 			$this->alias = $this->title;
 		}
@@ -114,8 +115,13 @@ class JTableMenu extends JTableNested
 		}
 		// Verify that the alias is unique
 		$table = JTable::getInstance('Menu','JTable');
-		if ($table->load(array('alias'=>$this->alias,'parent_id'=>$this->parent_id)) && ($table->id != $this->id || $this->id==0)) {
-			$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS'));
+		if ($table->load(array('alias'=>$this->alias,'parent_id'=>$this->parent_id,'client_id'=>$this->client_id)) && ($table->id != $this->id || $this->id==0)) {
+			if ($this->menutype==$table->menutype) {
+				$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS'));
+			}
+			else {
+				$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT'));
+			}
 			return false;
 		}
 		return parent::store($updateNulls);

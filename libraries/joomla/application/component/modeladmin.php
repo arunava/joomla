@@ -140,38 +140,41 @@ abstract class JModelAdmin extends JModelForm
 	 *
 	 * @param	integer|array	$pks	The ID of the primary key or an array of IDs
 	 *
-	 * @return	boolean
+	 * @return	mixed	Boolean false if there is an error, otherwise the count of records checked in.
 	 * @since	1.6
 	 */
-	public function checkin(&$pks = array())
+	public function checkin($pks = array())
 	{
 		// Initialise variables.
 		$user		= JFactory::getUser();
 		$pks		= (array) $pks;
 		$table		= $this->getTable();
+		$count		= 0;
 
 		if (empty($pks)) {
 			$pks = array((int) $this->getState($this->getName().'.id'));
 		}
 
 		// Check in all items.
-		foreach ($pks as $i => $pk) {
-
+		foreach ($pks as $i => $pk)
+		{
 			if ($table->load($pk)) {
 
-				if ($table->checked_out>0) {
-					if(!parent::checkin($pk)) {
+				if ($table->checked_out > 0) {
+					if (!parent::checkin($pk)) {
 						return false;
 					}
-				} else {
-					unset($pks[$i]);
+					$count++;
 				}
-			} else {
+			}
+			else {
 				$this->setError($table->getError());
+
 				return false;
 			}
 		}
-		return true;
+
+		return $count;
 	}
 
 	/**
@@ -237,7 +240,7 @@ abstract class JModelAdmin extends JModelForm
 
 					// Prune items that you can't change.
 					unset($pks[$i]);
-					JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDIT_STATE_NOT_PERMITTED'));
+					JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
 				}
 
 			} else {
@@ -245,7 +248,7 @@ abstract class JModelAdmin extends JModelForm
 				return false;
 			}
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache($this->option);
 		$cache->clean();
@@ -313,15 +316,12 @@ abstract class JModelAdmin extends JModelForm
 	{
 		$app = JFactory::getApplication('administrator');
 
-		// Load the User state.
-		if (!($pk = (int) $app->getUserState($this->option.'.edit.'.$this->getName().'.id'))) {
-			$pk = (int) JRequest::getInt('id');
-		}
-
+		// Get the pk of the record from the request.
+		$pk = (int) JRequest::getInt('id');
 		$this->setState($this->getName().'.id', $pk);
 
 		// Load the parameters.
-		$value	= JComponentHelper::getParams($this->option);
+		$value = JComponentHelper::getParams($this->option);
 		$this->setState('params', $value);
 	}
 
@@ -366,7 +366,7 @@ abstract class JModelAdmin extends JModelForm
 				if (!$this->canEditState($table)) {
 					// Prune items that you can't change.
 					unset($pks[$i]);
-					JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDIT_STATE_NOT_PERMITTED'));
+					JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
 				}
 			}
 		}
@@ -386,7 +386,7 @@ abstract class JModelAdmin extends JModelForm
 			$this->setError($table->getError());
 			return false;
 		}
-		
+
 		// Clear the component's cache
 		$cache = JFactory::getCache($this->option);
 		$cache->clean();
@@ -425,7 +425,7 @@ abstract class JModelAdmin extends JModelForm
 					// Prune items that you can't change.
 					unset($pks[$i]);
 					$this->checkin($pk);
-					JError::raiseWarning(403, JText::_('JERROR_CORE_EDIT_STATE_NOT_PERMITTED'));
+					JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
 					$allowed = false;
 					continue;
 				}
@@ -450,13 +450,13 @@ abstract class JModelAdmin extends JModelForm
 		if ($allowed === false && empty($pks)) {
 			$result = null;
 		}
-		
+
 		if ($result == true) {
 			// Clear the component's cache
 			$cache = JFactory::getCache($this->option);
 			$cache->clean();
 		}
-		
+
 		return $result;
 	}
 
@@ -559,7 +559,7 @@ abstract class JModelAdmin extends JModelForm
 			if (!$this->canEditState($table)) {
 				// Prune items that you can't change.
 				unset($pks[$i]);
-				JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDIT_STATE_NOT_PERMITTED'));
+				JError::raiseWarning(403, JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'));
 			} else if ($table->ordering != $order[$i]) {
 				$table->ordering = $order[$i];
 

@@ -118,7 +118,7 @@ abstract class JHtmlBehavior
 				toggler = document.id('submenu');
 				element = document.id('config-document');
 				if(element) {
-					document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getAttribute('class')});
+					document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getProperty('class')});
 				}
 			});";
 
@@ -550,6 +550,19 @@ abstract class JHtmlBehavior
 	}
 
 	/**
+	 * Break us out of any containing iframes
+	 *
+	 * @return	void
+	 * @since	1.5
+	 */
+	public static function noframes($location='top.location.href')
+	{
+		$js = "window.addEvent('domready', function () {if (top != self) {top.location.replace(".$location.");}});";
+		$document = JFactory::getDocument();
+		$document->addScriptDeclaration($js);
+	}
+
+	/**
 	 * Internal method to get a JavaScript object notation string from an array
 	 *
 	 * @param	array	$array	The array to convert to JavaScript object notation
@@ -615,7 +628,7 @@ Calendar._TT["ABOUT_TIME"] = "\n\n" +
 "- or Shift-click to decrease it\n" +
 "- or click and drag for faster selection.";
 
-		Calendar._TT["PREV_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_YEAR_HOLD_FOR_MENU',true).'";Calendar._TT["PREV_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_PREV_MONTH_HOLD_FOR_MENU',true).'";	Calendar._TT["GO_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_GO_TODAY',true).'";Calendar._TT["NEXT_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_MONTH_HOLD_FOR_MENU',true).'";Calendar._TT["NEXT_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_YEAR_HOLD_FOR_MENU',true).'";Calendar._TT["SEL_DATE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SELECT_DATE',true).'";Calendar._TT["DRAG_TO_MOVE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DRAG_TO_MOVE',true).'";Calendar._TT["PART_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY',true).'";Calendar._TT["DAY_FIRST"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DISPLAY_S_FIRST',true).'";Calendar._TT["WEEKEND"] = "0,6";Calendar._TT["CLOSE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_CLOSE',true).'";Calendar._TT["TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY',true).'";Calendar._TT["TIME_PART"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SHIFT_CLICK_OR_DRAG_TO_CHANGE_VALUE',true).'";Calendar._TT["DEF_DATE_FORMAT"] = "'.JText::_('%Y-%m-%d',true).'"; Calendar._TT["TT_DATE_FORMAT"] = "'.JText::_('%a, %b %e',true).'";Calendar._TT["WK"] = "'.JText::_('JLIB_HTML_BEHAVIOR_WK',true).'";Calendar._TT["TIME"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TIME',true).'";';
+		Calendar._TT["PREV_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_PREV_YEAR_HOLD_FOR_MENU',true).'";Calendar._TT["PREV_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_PREV_MONTH_HOLD_FOR_MENU',true).'";	Calendar._TT["GO_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_GO_TODAY',true).'";Calendar._TT["NEXT_MONTH"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_MONTH_HOLD_FOR_MENU',true).'";Calendar._TT["NEXT_YEAR"] = "'.JText::_('JLIB_HTML_BEHAVIOR_NEXT_YEAR_HOLD_FOR_MENU',true).'";Calendar._TT["SEL_DATE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SELECT_DATE',true).'";Calendar._TT["DRAG_TO_MOVE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DRAG_TO_MOVE',true).'";Calendar._TT["PART_TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY',true).'";Calendar._TT["DAY_FIRST"] = "'.JText::_('JLIB_HTML_BEHAVIOR_DISPLAY_S_FIRST',true).'";Calendar._TT["WEEKEND"] = "0,6";Calendar._TT["CLOSE"] = "'.JText::_('JLIB_HTML_BEHAVIOR_CLOSE',true).'";Calendar._TT["TODAY"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TODAY',true).'";Calendar._TT["TIME_PART"] = "'.JText::_('JLIB_HTML_BEHAVIOR_SHIFT_CLICK_OR_DRAG_TO_CHANGE_VALUE',true).'";Calendar._TT["DEF_DATE_FORMAT"] = "'.JText::_('%Y-%m-%d',true).'"; Calendar._TT["TT_DATE_FORMAT"] = "'.JText::_('%a, %b %e',true).'";Calendar._TT["WK"] = "'.JText::_('JLIB_HTML_BEHAVIOR_WK',true).'";Calendar._TT["TIME"] = "'.JText::_('JLIB_HTML_BEHAVIOR_TIME',true).'";';
 			$jsscript = 1;
 			return $return;
 		}

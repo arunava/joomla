@@ -33,7 +33,7 @@ class Featured0001Test extends SeleniumJoomlaTestCase
 			if ($second >= 15) $this->fail("timeout");
 			try
 			{
-				if (!$this->isElementPresent("//dl[@id='config-tabs-com_content_configuration']")) break;
+				if (!$this->isElementPresent("//dl[contains(@id, 'configuration')]")) break;
 			}
 			catch (Exception $e)
 			{
@@ -43,8 +43,6 @@ class Featured0001Test extends SeleniumJoomlaTestCase
 
 		echo "Reverse the article order on the front page\n";
 		$this->click("link=Featured Articles");
-		$this->waitForPageToLoad("30000");
-		$this->click("link=Ordering");
 		$this->waitForPageToLoad("30000");
 		$this->click("link=Ordering");
 		$this->waitForPageToLoad("30000");
