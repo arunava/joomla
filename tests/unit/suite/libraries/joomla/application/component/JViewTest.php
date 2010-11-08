@@ -13,11 +13,23 @@ require_once JPATH_BASE.'/libraries/joomla/application/component/view.php';
 class JViewTest extends PHPUnit_Framework_TestCase
 {
 	/**
+	 * @var JView
+	 */
+	protected $object;
+	 
+	/**
 	 * Sets up the fixture, for example, opens a network connection.
 	 * This method is called before a test is executed.
 	 */
 	protected function setUp()
 	{
+		if (!defined('JPATH_COMPONENT')) {
+			define('JPATH_COMPONENT', JPATH_BASE.'/components/com_foobar');
+		}
+		$_SERVER['REQUEST_METHOD'] = 'get';
+		$_SERVER['HTTP_HOST'] = 'example.com';
+		$app = JFactory::getApplication('site');
+		$this->object = new JView;
 	}
 
 	/**
@@ -82,12 +94,19 @@ class JViewTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @todo Implement testGetLayout().
+	 * Test JView::getLayout
+	 *
+	 * @since	1.6
 	 */
 	public function testGetLayout()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->assertEquals($this->object->getLayout(),'default');
+		$this->object->setLayout('layout1');
+		$this->assertEquals($this->object->getLayout(),'layout1');
+		$this->object->setLayout(array('system'=>'layout2'));
+		$this->assertEquals($this->object->getLayout(),'layout1');
+		JFactory::getApplication()->setTemplate('system');
+		$this->assertEquals($this->object->getLayout(),'layout2');
 	}
 
 	/**
@@ -109,12 +128,21 @@ class JViewTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @todo Implement testSetLayout().
+	 * Test JView::setLayout
+	 *
+	 * @since	1.6
 	 */
 	public function testSetLayout()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$layout = 'layout1';
+		$this->assertEquals($this->object->setLayout($layout),'default');
+		$layout = array('_'=>'layout2');
+		$this->assertEquals($this->object->setLayout($layout),'layout1');
+		$layout = array('template1'=>'layout3');
+		$this->assertEquals($this->object->setLayout($layout),array('_'=>'layout2'));
+		$layout = array('_'=>'layout5', 'template2'=>'layout4');
+		$this->assertEquals($this->object->setLayout($layout),array('_'=>'layout2', 'template1'=>'layout3'));
+		$this->assertEquals($this->object->setLayout(null),array('_'=>'layout5', 'template1'=>'layout5','template2'=>'layout4'));
 	}
 
 	/**

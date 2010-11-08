@@ -10,6 +10,8 @@
 // No direct access.
 defined('JPATH_BASE') or die;
 
+jimport('joomla.user.user');
+
 /**
  * Base class for a Joomla! application.
  *

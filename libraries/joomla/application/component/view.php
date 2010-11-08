@@ -10,6 +10,8 @@
 // No direct access
 defined('JPATH_BASE') or die;
 
+jimport('joomla.environment.uri');
+
 /**
  * Base class for a Joomla View
  *
@@ -389,18 +391,25 @@ class JView extends JObject
 	*/
 	function getLayout()
 	{
-		$template = JFactory::getApplication()->getTemplate();
-		$layout = (array) $this->_layout;
-		if (isset($layout[$template]) && $layout[$template]!='') {
-			$layout = $layout[$template];
+		if (is_string($this->_layout))
+		{
+			return $this->_layout;
 		}
-		elseif (isset($layout['_']) && $layout['_']!='') {
-			$layout = $layout['_'];
+		else
+		{
+			$template = JFactory::getApplication()->getTemplate();
+			$layout = $this->_layout;
+			if (isset($layout[$template]) && $layout[$template]!='') {
+				$layout = $layout[$template];
+			}
+			elseif (isset($layout['_']) && $layout['_']!='') {
+				$layout = $layout['_'];
+			}
+			else {
+				$layout = 'default';
+			}
+			return $layout;
 		}
-		else {
-			$layout = 'default';
-		}
-		return $layout;
 	}
 
 	/**
@@ -468,13 +477,28 @@ class JView extends JObject
 	function setLayout($layout)
 	{
 		$previous = $this->_layout;
-		if (is_string($layout))
-		{
-			$this->_layout = array('_'=>$layout);
-		}
-		else
-		{
-			$this->_layout = array_merge((array) $previous, (array) $layout);
+		if (!empty($layout)) {
+			if (is_string($layout))
+			{
+				$this->_layout = $layout;
+			}
+			else
+			{
+				$layout = (array) $layout;
+				if (is_string($previous)) {
+					$this->_layout = array('_'=>$previous);
+				}
+				if (isset($layout['_']))
+				{
+					foreach ($this->_layout as $key=>$value)
+					{
+						if (!isset($layout[$key])) {
+							$this->_layout[$key] = $layout['_'];
+						}
+					}
+				}
+				$this->_layout = array_merge($this->_layout, $layout);
+			}
 		}
 		return $previous;
 	}
